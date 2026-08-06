@@ -1,23 +1,72 @@
+-- ============================================================
+-- 1. DELETE existing data for these dates (optional, but recommended)
+-- ============================================================
+DELETE FROM night_checklist 
+WHERE report_date BETWEEN DATE '2026-08-01' AND DATE '2026-08-05';
+COMMIT;
 
-Error starting at line : 14 in command -
+-- ============================================================
+-- 2. INSERT using CTE (clean and efficient)
+-- ============================================================
+WITH dates AS (
+    SELECT DATE '2026-08-01' AS dt FROM dual UNION ALL
+    SELECT DATE '2026-08-02' FROM dual UNION ALL
+    SELECT DATE '2026-08-03' FROM dual UNION ALL
+    SELECT DATE '2026-08-04' FROM dual UNION ALL
+    SELECT DATE '2026-08-05' FROM dual
+)
 INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks, created_at, updated_at)
-SELECT DATE '2026-08-01', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y'
-UNION ALL
-SELECT DATE '2026-08-02', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y'
-UNION ALL
-SELECT DATE '2026-08-03', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y'
-UNION ALL
-SELECT DATE '2026-08-04', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y'
-UNION ALL
-SELECT DATE '2026-08-05', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y'
-Error at Command Line : 14 Column : 8
-Error report -
-SQL Error: ORA-00918: column ambiguously defined
-00918. 00000 -  "column ambiguously defined"
-*Cause:    
-*Action:
+SELECT 
+    d.dt,
+    t.section,
+    t.task_name,
+    -- Set some sample statuses for variety
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '12:00 AM TO 02:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '02:00 AM TO 04:00 AM' THEN 'IN PROGRESS'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '04:00 AM TO 06:00 AM' THEN 'PENDING'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '06:00 AM TO 07:00 AM' THEN 'NA'
+        WHEN t.section = 'night_report' AND t.task_name = 'DASHBOARD' THEN 'DONE'
+        WHEN t.section = 'night_report' AND t.task_name = 'DAILY STATISTICS' THEN 'DONE'
+        WHEN t.section = 'night_report' AND t.task_name LIKE '%ERROR%' THEN 'PENDING'
+        ELSE 'PENDING'
+    END AS status1,
+    -- status2 and status3 mostly blank, but some sample
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '12:00 AM TO 02:00 AM' THEN 'IN PROGRESS'
+        ELSE ''
+    END AS status2,
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'PENDING'
+        ELSE ''
+    END AS status3,
+    -- done_by: assign some employees
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'Sharath'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '12:00 AM TO 02:00 AM' THEN 'Shubham'
+        WHEN t.section = 'night_report' AND t.task_name = 'DASHBOARD' THEN 'Sharath'
+        WHEN t.section = 'night_report' AND t.task_name = 'DAILY STATISTICS' THEN 'Akram'
+        ELSE ''
+    END AS done_by,
+    -- review
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'All good'
+        WHEN t.section = 'night_report' AND t.task_name = 'DASHBOARD' THEN 'OK'
+        ELSE ''
+    END AS review,
+    -- remarks
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'No issues'
+        WHEN t.section = 'night_report' AND t.task_name = 'DASHBOARD' THEN 'Sent to manager'
+        ELSE ''
+    END AS remarks,
+    SYSTIMESTAMP AS created_at,
+    SYSTIMESTAMP AS updated_at
+FROM tasks_master t
+CROSS JOIN dates d
+WHERE t.is_active = 'Y'
+ORDER BY d.dt, t.section, t.id;
+
+COMMIT;
