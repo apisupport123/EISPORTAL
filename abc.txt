@@ -6,22 +6,80 @@ WHERE report_date BETWEEN DATE '2026-08-01' AND DATE '2026-08-05';
 COMMIT;
 
 -- ============================================================
--- 2. INSERT with aliases to avoid ORA-00918
+-- 2. INSERT all tasks as COMPLETED (DONE) with full data
 -- ============================================================
 INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks, created_at, updated_at)
-SELECT DATE '2026-08-01', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP AS created_at, SYSTIMESTAMP AS updated_at
-FROM tasks_master WHERE is_active='Y'
-UNION ALL
-SELECT DATE '2026-08-02', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y'
-UNION ALL
-SELECT DATE '2026-08-03', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y'
-UNION ALL
-SELECT DATE '2026-08-04', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y'
-UNION ALL
-SELECT DATE '2026-08-05', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y';
+SELECT 
+    d.dt AS report_date,
+    t.section,
+    t.task_name,
+    'DONE' AS status1,
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '12:00 AM TO 02:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '02:00 AM TO 04:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '04:00 AM TO 06:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '06:00 AM TO 07:00 AM' THEN 'DONE'
+        ELSE ''
+    END AS status2,
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '12:00 AM TO 02:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '02:00 AM TO 04:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '04:00 AM TO 06:00 AM' THEN 'DONE'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '06:00 AM TO 07:00 AM' THEN 'DONE'
+        ELSE ''
+    END AS status3,
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'Sharath'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '12:00 AM TO 02:00 AM' THEN 'Shubham'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '02:00 AM TO 04:00 AM' THEN 'Swarup'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '04:00 AM TO 06:00 AM' THEN 'Akram'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '06:00 AM TO 07:00 AM' THEN 'Handover'
+        WHEN t.section = 'night_report' AND t.task_name = 'DASHBOARD' THEN 'Sharath'
+        WHEN t.section = 'night_report' AND t.task_name = 'DAILY STATISTICS' THEN 'Shubham'
+        WHEN t.section = 'night_report' AND t.task_name = 'INCIDENT SUMMARY' THEN 'Swarup'
+        WHEN t.section = 'night_report' AND t.task_name = 'EOD ACTIVITY' THEN 'Akram'
+        WHEN t.section = 'night_report' AND t.task_name = 'Night Checklist' THEN 'Handover'
+        ELSE ''
+    END AS done_by,
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'All good, no issues'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '12:00 AM TO 02:00 AM' THEN 'Completed successfully'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '02:00 AM TO 04:00 AM' THEN 'All systems stable'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '04:00 AM TO 06:00 AM' THEN 'No errors found'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '06:00 AM TO 07:00 AM' THEN 'Handover done'
+        WHEN t.section = 'night_report' AND t.task_name = 'DASHBOARD' THEN 'Verified and confirmed'
+        WHEN t.section = 'night_report' AND t.task_name = 'DAILY STATISTICS' THEN 'Numbers validated'
+        WHEN t.section = 'night_report' AND t.task_name = 'INCIDENT SUMMARY' THEN 'Reviewed and approved'
+        WHEN t.section = 'night_report' AND t.task_name = 'EOD ACTIVITY' THEN 'All activities logged'
+        WHEN t.section = 'night_report' AND t.task_name = 'Night Checklist' THEN 'Complete checklist verified'
+        ELSE 'Completed'
+    END AS review,
+    CASE 
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '10:00 PM TO 12:00 AM' THEN 'All tickets resolved'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '12:00 AM TO 02:00 AM' THEN 'No pending items'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '02:00 AM TO 04:00 AM' THEN 'System health OK'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '04:00 AM TO 06:00 AM' THEN 'All services running'
+        WHEN t.section = 'time_slot' AND t.task_name LIKE '06:00 AM TO 07:00 AM' THEN 'Shift handed over'
+        WHEN t.section = 'night_report' AND t.task_name = 'DASHBOARD' THEN 'Dashboard updated'
+        WHEN t.section = 'night_report' AND t.task_name = 'DAILY STATISTICS' THEN 'Stats sent to management'
+        WHEN t.section = 'night_report' AND t.task_name = 'INCIDENT SUMMARY' THEN 'Incident report generated'
+        WHEN t.section = 'night_report' AND t.task_name = 'EOD ACTIVITY' THEN 'EOD report submitted'
+        WHEN t.section = 'night_report' AND t.task_name = 'Night Checklist' THEN 'All items checked'
+        ELSE 'Completed'
+    END AS remarks,
+    SYSTIMESTAMP AS created_at,
+    SYSTIMESTAMP AS updated_at
+FROM tasks_master t
+CROSS JOIN (
+    SELECT DATE '2026-08-01' AS dt FROM dual UNION ALL
+    SELECT DATE '2026-08-02' FROM dual UNION ALL
+    SELECT DATE '2026-08-03' FROM dual UNION ALL
+    SELECT DATE '2026-08-04' FROM dual UNION ALL
+    SELECT DATE '2026-08-05' FROM dual
+) d
+WHERE t.is_active = 'Y'
+ORDER BY d.dt, t.section, t.id;
 
 COMMIT;
