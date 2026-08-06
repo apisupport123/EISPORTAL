@@ -1,13 +1,5 @@
--- ============================================================
--- DELETE existing data for 01-08-2026 to 05-08-2026 (optional)
--- ============================================================
-DELETE FROM night_checklist 
-WHERE report_date BETWEEN DATE '2026-08-01' AND DATE '2026-08-05';
-COMMIT;
 
--- ============================================================
--- INSERT all active tasks for each date (1–5 Aug 2026)
--- ============================================================
+Error starting at line : 14 in command -
 INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks, created_at, updated_at)
 SELECT DATE '2026-08-01', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
 FROM tasks_master WHERE is_active='Y'
@@ -22,6 +14,10 @@ SELECT DATE '2026-08-04', section, task_name, 'PENDING', '', '', '', '', '', SYS
 FROM tasks_master WHERE is_active='Y'
 UNION ALL
 SELECT DATE '2026-08-05', section, task_name, 'PENDING', '', '', '', '', '', SYSTIMESTAMP, SYSTIMESTAMP
-FROM tasks_master WHERE is_active='Y';
-
-COMMIT;
+FROM tasks_master WHERE is_active='Y'
+Error at Command Line : 14 Column : 8
+Error report -
+SQL Error: ORA-00918: column ambiguously defined
+00918. 00000 -  "column ambiguously defined"
+*Cause:    
+*Action:
