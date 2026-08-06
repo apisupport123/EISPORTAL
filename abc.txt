@@ -45,7 +45,8 @@ Calendar nowCal = Calendar.getInstance();
 java.util.Date now = nowCal.getTime();
 int hour = nowCal.get(Calendar.HOUR_OF_DAY);
 int minute = nowCal.get(Calendar.MINUTE);
-boolean beforeHalfPastNine = (hour < 21) || (hour == 21 && minute < 30);
+// Editable after 6:00 PM (18:00)
+boolean beforeSixPM = (hour < 18);
 
 // Today's date (midnight)
 Calendar todayCal = Calendar.getInstance();
@@ -80,25 +81,22 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
 }
 
 if (!isCustomView) {
-    displayDate = beforeHalfPastNine ? yesterdaySQL : todaySQL;
+    displayDate = beforeSixPM ? yesterdaySQL : todaySQL;
     saveDate = todaySQL;
 }
 
 String displayDateStr = sdfDisplay.format(displayDate);
 
-// Debug flag
-boolean debug = "true".equals(request.getParameter("debug"));
-
-// Global freeze
+// Global freeze: if custom view and not today, or (today and before 6PM)
 boolean globalFrozen;
 if (isCustomView) {
     if (!displayDate.equals(todaySQL)) {
         globalFrozen = true;
     } else {
-        globalFrozen = beforeHalfPastNine;
+        globalFrozen = beforeSixPM;
     }
 } else {
-    globalFrozen = beforeHalfPastNine;
+    globalFrozen = beforeSixPM;
 }
 
 // ===== HANDLE SAVE =====
@@ -489,7 +487,6 @@ if ("export".equals(action)) {
         .toast-body { font-size: 14px; padding: 12px 20px; }
         .spinner-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.6); backdrop-filter: blur(3px); z-index: 9998; justify-content: center; align-items: center; }
         .spinner-overlay .spinner-border { width: 60px; height: 60px; color: var(--primary-blue); }
-        .debug-info { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; margin-top: 20px; font-family: monospace; font-size: 13px; white-space: pre-wrap; display: <%= debug ? "block" : "none" %>; }
         @media (max-width: 768px) { .header-card { flex-direction: column; align-items: stretch; } .header-actions { justify-content: center; } .search-bar { width: 100%; justify-content: space-between; } .search-bar input[type="date"] { width: 100%; } .table-checklist { font-size: 12px; min-width: 900px; } .toast-container { left: 20px; right: 20px; top: 20px; } .toast { min-width: auto; } }
     </style>
 </head>
@@ -550,10 +547,10 @@ if ("export".equals(action)) {
                 <div class="col-md-6">
                     <p><i class="fas fa-hourglass-half me-2"></i> <strong>Freeze Rules:</strong></p>
                     <ul style="font-size:13px; padding-left:20px; margin-bottom:0;">
-                        <li>Time slots freeze <strong>30 min after end time</strong>.</li>
+                        <li><strong>Before 6:00 PM</strong> → Previous night data (read-only)</li>
+                        <li><strong>After 6:00 PM</strong> → Today's night shift (editable)</li>
+                        <li>Time slots freeze <strong>30 min after end time</strong> (e.g., 10PM-12AM → freezes at 12:30 AM).</li>
                         <li>Historical dates are <strong>always read-only</strong>.</li>
-                        <li>Today's data becomes editable after <strong>9:30 PM</strong>.</li>
-                        <li>All reports are always displayed (tasks_master rows) – blank if no data saved.</li>
                     </ul>
                 </div>
             </div>
@@ -774,31 +771,6 @@ if ("export".equals(action)) {
             </form>
         </div>
     </div>
-
-    <!-- DEBUG INFO (visible only if ?debug=true) -->
-    <% if (debug) { %>
-    <div class="debug-info">
-        <strong>🔍 DEBUG INFO</strong><br>
-        displayDate = <%= displayDate %> (formatted: <%= displayDateStr %>)<br>
-        beforeHalfPastNine = <%= beforeHalfPastNine %><br>
-        isCustomView = <%= isCustomView %><br>
-        globalFrozen = <%= globalFrozen %><br>
-        tasks_master rows = <%= masterTasks.size() %><br>
-        savedDataMap size = <%= savedDataMap.size() %><br>
-        displayRows size = <%= displayRows.size() %><br>
-        timeSlots = <%= timeSlots.size() %>, nightReports = <%= nightReports.size() %><br>
-        <details>
-            <summary>Sample savedDataMap entries (first 5)</summary>
-            <%
-            int count = 0;
-            for (Map.Entry<String, Map<String, Object>> entry : savedDataMap.entrySet()) {
-                if (count++ >= 5) break;
-                out.println(entry.getKey() + " => " + entry.getValue() + "<br>");
-            }
-            %>
-        </details>
-    </div>
-    <% } %>
 
     <div class="text-center text-muted py-3" style="font-size:13px; border-top:1px solid #dee2e6;">
         <i class="fas fa-database me-1"></i> Night Shift Checklist &bull; <%= displayDateStr %> &bull;
