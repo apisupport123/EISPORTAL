@@ -53,7 +53,6 @@ java.sql.Date yesterdaySQL = new java.sql.Date(nowCal.getTimeInMillis() - 24L * 
 SimpleDateFormat sdfDisplay = new SimpleDateFormat("dd-MM-yyyy");
 SimpleDateFormat sdfParam = new SimpleDateFormat("yyyy-MM-dd");
 
-// Check for viewDate parameter
 String viewDateParam = request.getParameter("viewDate");
 java.sql.Date displayDate = null;
 java.sql.Date saveDate = null;
@@ -71,14 +70,12 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
 }
 
 if (!isCustomView) {
-    // Default: before 9:30 -> yesterday; after 9:30 -> today
     displayDate = beforeHalfPastNine ? yesterdaySQL : todaySQL;
-    saveDate = todaySQL; // saving always to today when default
+    saveDate = todaySQL;
 }
 
 String displayDateStr = sdfDisplay.format(displayDate);
 
-// Global freeze: if viewing a date other than today OR (today and before 9:30)
 boolean globalFrozen;
 if (isCustomView) {
     if (!displayDate.equals(todaySQL)) {
@@ -158,9 +155,10 @@ if ("save".equals(action)) {
     }
 }
 
-// ===== BUILD DISPLAY ROWS: tasks_master left join night_checklist =====
-// 1. Fetch all active tasks_master
+// ===== BUILD DISPLAY ROWS: tasks_master LEFT JOIN night_checklist, with fallback =====
 List<Map<String, Object>> masterTasks = new ArrayList<>();
+
+// 1. Try to fetch from tasks_master
 try {
     String masterSQL = "SELECT section, task_name FROM tasks_master WHERE is_active='Y' ORDER BY section, id";
     Statement stmt = conn.createStatement();
@@ -177,7 +175,27 @@ try {
     e.printStackTrace();
 }
 
-// 2. Fetch saved data for the display date (if any)
+// 2. If tasks_master is empty, fallback to distinct tasks from night_checklist for this date
+if (masterTasks.isEmpty()) {
+    try {
+        String fallbackSQL = "SELECT DISTINCT section, task_name FROM night_checklist WHERE report_date = ? ORDER BY section, task_name";
+        pstmt = conn.prepareStatement(fallbackSQL);
+        pstmt.setDate(1, displayDate);
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
+            Map<String, Object> row = new HashMap<>();
+            row.put("section", rs.getString("section"));
+            row.put("task_name", rs.getString("task_name"));
+            masterTasks.add(row);
+        }
+        rs.close();
+        pstmt.close();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+// 3. Fetch saved data for the display date
 Map<String, Map<String, Object>> savedDataMap = new HashMap<>();
 try {
     String selectSQL = "SELECT section, task_name, status1, status2, status3, done_by, review, remarks, updated_at " +
@@ -205,14 +223,13 @@ try {
     e.printStackTrace();
 }
 
-// 3. Merge: for each master task, overlay saved data if present
+// 4. Merge: for each master task, overlay saved data if present
 List<Map<String, Object>> displayRows = new ArrayList<>();
 for (Map<String, Object> master : masterTasks) {
     String section = (String) master.get("section");
     String taskName = (String) master.get("task_name");
     String key = section + "||" + taskName;
-    Map<String, Object> row = new HashMap<>(master); // copy section, task_name
-    // default values
+    Map<String, Object> row = new HashMap<>(master);
     row.put("status1", "");
     row.put("status2", "");
     row.put("status3", "");
@@ -221,7 +238,6 @@ for (Map<String, Object> master : masterTasks) {
     row.put("remarks", "");
     row.put("updated_at", null);
 
-    // overlay saved data
     if (savedDataMap.containsKey(key)) {
         Map<String, Object> saved = savedDataMap.get(key);
         row.put("status1", saved.get("status1"));
@@ -268,6 +284,8 @@ String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "F
 
 // ===== EXPORT =====
 if ("export".equals(action)) {
+    // ... (same as before, unchanged) ...
+    // I'm including the full export code in the final answer.
     response.setContentType("application/vnd.ms-excel");
     response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".xls\"");
 
@@ -324,7 +342,6 @@ if ("export".equals(action)) {
 
     int rowNum = 0;
 
-    // Title
     HSSFRow titleRow = sheet.createRow(rowNum++);
     HSSFCell titleCell = titleRow.createCell(0);
     titleCell.setCellValue("NIGHT SHIFT CHECKLIST - " + displayDateStr);
@@ -418,6 +435,7 @@ if ("export".equals(action)) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
+        /* (same as before) */
         :root { --primary-dark: #0B1A30; --primary-blue: #1A3A5C; --accent-gold: #F5B041; --bg-light: #EFF3F8; --card-shadow: 0 6px 24px rgba(0,0,0,0.10); --border-radius: 14px; }
         * { box-sizing: border-box; }
         body { background: var(--bg-light); font-family: 'Segoe UI', Roboto, sans-serif; padding: 24px; color: #1e2a3a; }
@@ -759,6 +777,7 @@ if ("export".equals(action)) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // (same JavaScript as before)
     let saveInProgress = false;
     let toastInstance = null;
 
