@@ -1,9 +1,50 @@
-🔍 Debug Info:
+-- Insert all active tasks from tasks_master into night_checklist for yesterday
+INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks, created_at, updated_at)
+SELECT 
+    TRUNC(SYSDATE-1) AS report_date,
+    section,
+    task_name,
+    -- Set some default statuses: time slots get 'DONE' for status1 and status2, others get 'PENDING'
+    CASE 
+        WHEN section = 'time_slot' AND task_name LIKE '10:00 PM TO 12:00 AM' THEN 'DONE'
+        WHEN section = 'time_slot' AND task_name LIKE '12:00 AM TO 02:00 AM' THEN 'DONE'
+        WHEN section = 'time_slot' THEN 'PENDING'
+        ELSE 'PENDING'
+    END AS status1,
+    CASE 
+        WHEN section = 'time_slot' AND task_name LIKE '10:00 PM TO 12:00 AM' THEN 'DONE'
+        WHEN section = 'time_slot' AND task_name LIKE '12:00 AM TO 02:00 AM' THEN 'IN PROGRESS'
+        WHEN section = 'time_slot' THEN 'PENDING'
+        ELSE ''
+    END AS status2,
+    CASE 
+        WHEN section = 'time_slot' AND task_name LIKE '10:00 PM TO 12:00 AM' THEN 'PENDING'
+        WHEN section = 'time_slot' THEN 'PENDING'
+        ELSE ''
+    END AS status3,
+    -- Assign employees to some rows
+    CASE 
+        WHEN section = 'time_slot' AND task_name LIKE '10:00 PM TO 12:00 AM' THEN 'Sharath'
+        WHEN section = 'time_slot' AND task_name LIKE '12:00 AM TO 02:00 AM' THEN 'Shubham'
+        WHEN section = 'time_slot' AND task_name LIKE '02:00 AM TO 04:00 AM' THEN 'Swarup'
+        WHEN section = 'night_report' AND task_name = 'DASHBOARD' THEN 'Sharath'
+        WHEN section = 'night_report' AND task_name = 'DAILY STATISTICS' THEN 'Akram'
+        ELSE ''
+    END AS done_by,
+    CASE 
+        WHEN section = 'time_slot' AND task_name LIKE '10:00 PM TO 12:00 AM' THEN 'All good'
+        WHEN section = 'night_report' AND task_name = 'DASHBOARD' THEN 'OK'
+        ELSE ''
+    END AS review,
+    CASE 
+        WHEN section = 'time_slot' AND task_name LIKE '10:00 PM TO 12:00 AM' THEN 'No issues'
+        WHEN section = 'night_report' AND task_name = 'DASHBOARD' THEN 'Sent'
+        ELSE ''
+    END AS remarks,
+    SYSTIMESTAMP AS created_at,
+    SYSTIMESTAMP AS updated_at
+FROM tasks_master 
+WHERE is_active = 'Y'
+ORDER BY section, id;
 
-        night_checklist rows for 2026-08-05 = 0
-No data found for this date. Please insert data with TRUNC(SYSDATE-1) for test.
-----------------------------------------
-tasks_master rows = 22
-savedDataMap size = 0
-displayRows size = 22
-timeSlots = 5, nightReports = 17
+COMMIT;
