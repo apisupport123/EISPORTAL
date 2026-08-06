@@ -40,15 +40,25 @@ try {
     e.printStackTrace();
 }
 
-// ===== DATE & TIME =====
+// ===== DATE & TIME (using Calendar properly) =====
 Calendar nowCal = Calendar.getInstance();
 java.util.Date now = nowCal.getTime();
 int hour = nowCal.get(Calendar.HOUR_OF_DAY);
 int minute = nowCal.get(Calendar.MINUTE);
 boolean beforeHalfPastNine = (hour < 21) || (hour == 21 && minute < 30);
 
-java.sql.Date todaySQL = new java.sql.Date(nowCal.getTimeInMillis());
-java.sql.Date yesterdaySQL = new java.sql.Date(nowCal.getTimeInMillis() - 24L * 60 * 60 * 1000);
+// Today's date (midnight)
+Calendar todayCal = Calendar.getInstance();
+todayCal.set(Calendar.HOUR_OF_DAY, 0);
+todayCal.set(Calendar.MINUTE, 0);
+todayCal.set(Calendar.SECOND, 0);
+todayCal.set(Calendar.MILLISECOND, 0);
+java.sql.Date todaySQL = new java.sql.Date(todayCal.getTimeInMillis());
+
+// Yesterday's date (midnight)
+Calendar yesterdayCal = (Calendar) todayCal.clone();
+yesterdayCal.add(Calendar.DATE, -1);
+java.sql.Date yesterdaySQL = new java.sql.Date(yesterdayCal.getTimeInMillis());
 
 SimpleDateFormat sdfDisplay = new SimpleDateFormat("dd-MM-yyyy");
 SimpleDateFormat sdfParam = new SimpleDateFormat("yyyy-MM-dd");
@@ -76,6 +86,10 @@ if (!isCustomView) {
 
 String displayDateStr = sdfDisplay.format(displayDate);
 
+// Debug flag
+boolean debug = "true".equals(request.getParameter("debug"));
+
+// Global freeze
 boolean globalFrozen;
 if (isCustomView) {
     if (!displayDate.equals(todaySQL)) {
@@ -475,6 +489,7 @@ if ("export".equals(action)) {
         .toast-body { font-size: 14px; padding: 12px 20px; }
         .spinner-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.6); backdrop-filter: blur(3px); z-index: 9998; justify-content: center; align-items: center; }
         .spinner-overlay .spinner-border { width: 60px; height: 60px; color: var(--primary-blue); }
+        .debug-info { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 12px; margin-top: 20px; font-family: monospace; font-size: 13px; white-space: pre-wrap; display: <%= debug ? "block" : "none" %>; }
         @media (max-width: 768px) { .header-card { flex-direction: column; align-items: stretch; } .header-actions { justify-content: center; } .search-bar { width: 100%; justify-content: space-between; } .search-bar input[type="date"] { width: 100%; } .table-checklist { font-size: 12px; min-width: 900px; } .toast-container { left: 20px; right: 20px; top: 20px; } .toast { min-width: auto; } }
     </style>
 </head>
@@ -759,6 +774,31 @@ if ("export".equals(action)) {
             </form>
         </div>
     </div>
+
+    <!-- DEBUG INFO (visible only if ?debug=true) -->
+    <% if (debug) { %>
+    <div class="debug-info">
+        <strong>🔍 DEBUG INFO</strong><br>
+        displayDate = <%= displayDate %> (formatted: <%= displayDateStr %>)<br>
+        beforeHalfPastNine = <%= beforeHalfPastNine %><br>
+        isCustomView = <%= isCustomView %><br>
+        globalFrozen = <%= globalFrozen %><br>
+        tasks_master rows = <%= masterTasks.size() %><br>
+        savedDataMap size = <%= savedDataMap.size() %><br>
+        displayRows size = <%= displayRows.size() %><br>
+        timeSlots = <%= timeSlots.size() %>, nightReports = <%= nightReports.size() %><br>
+        <details>
+            <summary>Sample savedDataMap entries (first 5)</summary>
+            <%
+            int count = 0;
+            for (Map.Entry<String, Map<String, Object>> entry : savedDataMap.entrySet()) {
+                if (count++ >= 5) break;
+                out.println(entry.getKey() + " => " + entry.getValue() + "<br>");
+            }
+            %>
+        </details>
+    </div>
+    <% } %>
 
     <div class="text-center text-muted py-3" style="font-size:13px; border-top:1px solid #dee2e6;">
         <i class="fas fa-database me-1"></i> Night Shift Checklist &bull; <%= displayDateStr %> &bull;
