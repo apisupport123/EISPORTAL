@@ -27,33 +27,12 @@
             return null;
         }
     }
-
-    private Map<String, Map<String, Object>> buildDataMap(ResultSet rs) throws SQLException {
-        Map<String, Map<String, Object>> map = new HashMap<>();
-        while (rs.next()) {
-            Map<String, Object> row = new HashMap<>();
-            row.put("id", rs.getInt("id"));
-            row.put("section", rs.getString("section"));
-            row.put("task_name", rs.getString("task_name"));
-            row.put("status1", rs.getString("status1"));
-            row.put("status2", rs.getString("status2"));
-            row.put("status3", rs.getString("status3"));
-            row.put("done_by", rs.getString("done_by"));
-            row.put("review", rs.getString("review"));
-            row.put("remarks", rs.getString("remarks"));
-            row.put("updated_at", rs.getTimestamp("updated_at"));
-            String key = rs.getString("section") + "|" + rs.getString("task_name");
-            map.put(key, row);
-        }
-        return map;
-    }
 %>
 
 <%
 Connection conn = null;
 PreparedStatement pstmt = null;
 ResultSet rs = null;
-String selectSQL = null;
 
 try {
     conn = DBUtilityAuto.getReportDBConnection();
@@ -69,13 +48,12 @@ int minute = nowCal.get(Calendar.MINUTE);
 boolean beforeHalfPastNine = (hour < 21) || (hour == 21 && minute < 30);
 
 java.sql.Date todaySQL = new java.sql.Date(nowCal.getTimeInMillis());
-Calendar calPrev = Calendar.getInstance();
-calPrev.add(Calendar.DATE, -1);
-java.sql.Date yesterdaySQL = new java.sql.Date(calPrev.getTimeInMillis());
+java.sql.Date yesterdaySQL = new java.sql.Date(nowCal.getTimeInMillis() - 24L * 60 * 60 * 1000);
 
 SimpleDateFormat sdfDisplay = new SimpleDateFormat("dd-MM-yyyy");
 SimpleDateFormat sdfParam = new SimpleDateFormat("yyyy-MM-dd");
 
+// Check for viewDate parameter
 String viewDateParam = request.getParameter("viewDate");
 java.sql.Date displayDate = null;
 java.sql.Date saveDate = null;
@@ -93,17 +71,21 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
 }
 
 if (!isCustomView) {
-    // Default: before 9:30 -> yesterday, after 9:30 -> today
+    // Default: before 9:30 -> yesterday; after 9:30 -> today
     displayDate = beforeHalfPastNine ? yesterdaySQL : todaySQL;
-    saveDate = todaySQL;
+    saveDate = todaySQL; // saving always to today when default
 }
 
 String displayDateStr = sdfDisplay.format(displayDate);
 
-// Global freeze: if date is not today OR (today but before 9:30)
+// Global freeze: if viewing a date other than today OR (today and before 9:30)
 boolean globalFrozen;
 if (isCustomView) {
-    globalFrozen = !displayDate.equals(todaySQL) || beforeHalfPastNine;
+    if (!displayDate.equals(todaySQL)) {
+        globalFrozen = true;
+    } else {
+        globalFrozen = beforeHalfPastNine;
+    }
 } else {
     globalFrozen = beforeHalfPastNine;
 }
@@ -137,7 +119,7 @@ if ("save".equals(action)) {
             for (int i = 0; i < sections.length; i++) {
                 String section = sections[i];
                 String taskName = taskNames[i];
-                String status1 = (status1s != null && i < status1s.length) ? status1s[i] : "";
+                String status1 = (status1s != null && i < status1s.length) ? status1s[i] : "PENDING";
                 String status2 = (status2s != null && i < status2s.length) ? status2s[i] : "";
                 String status3 = (status3s != null && i < status3s.length) ? status3s[i] : "";
                 String doneBy = (doneBys != null && i < doneBys.length) ? doneBys[i] : "";
@@ -176,55 +158,81 @@ if ("save".equals(action)) {
     }
 }
 
-// ===== FETCH DATA =====
-List<Map<String, Object>> displayRows = new ArrayList<>();
-Map<String, Map<String, Object>> dataMap = new HashMap<>();
-
-// Fetch existing data for displayDate
+// ===== BUILD DISPLAY ROWS: tasks_master left join night_checklist =====
+// 1. Fetch all active tasks_master
+List<Map<String, Object>> masterTasks = new ArrayList<>();
 try {
-    selectSQL = "SELECT id, report_date, section, task_name, status1, status2, status3, done_by, review, remarks, created_at, updated_at " +
-                "FROM night_checklist WHERE report_date = ?";
+    String masterSQL = "SELECT section, task_name FROM tasks_master WHERE is_active='Y' ORDER BY section, id";
+    Statement stmt = conn.createStatement();
+    rs = stmt.executeQuery(masterSQL);
+    while (rs.next()) {
+        Map<String, Object> row = new HashMap<>();
+        row.put("section", rs.getString("section"));
+        row.put("task_name", rs.getString("task_name"));
+        masterTasks.add(row);
+    }
+    rs.close();
+    stmt.close();
+} catch (Exception e) {
+    e.printStackTrace();
+}
+
+// 2. Fetch saved data for the display date (if any)
+Map<String, Map<String, Object>> savedDataMap = new HashMap<>();
+try {
+    String selectSQL = "SELECT section, task_name, status1, status2, status3, done_by, review, remarks, updated_at " +
+                       "FROM night_checklist WHERE report_date = ?";
     pstmt = conn.prepareStatement(selectSQL);
     pstmt.setDate(1, displayDate);
     rs = pstmt.executeQuery();
-    dataMap = buildDataMap(rs);
+    while (rs.next()) {
+        String section = rs.getString("section");
+        String taskName = rs.getString("task_name");
+        String key = section + "||" + taskName;
+        Map<String, Object> data = new HashMap<>();
+        data.put("status1", rs.getString("status1"));
+        data.put("status2", rs.getString("status2"));
+        data.put("status3", rs.getString("status3"));
+        data.put("done_by", rs.getString("done_by"));
+        data.put("review", rs.getString("review"));
+        data.put("remarks", rs.getString("remarks"));
+        data.put("updated_at", rs.getTimestamp("updated_at"));
+        savedDataMap.put(key, data);
+    }
     rs.close();
     pstmt.close();
 } catch (Exception e) {
     e.printStackTrace();
 }
 
-// Fetch all active tasks from tasks_master
-try {
-    String masterSQL = "SELECT section, task_name FROM tasks_master WHERE is_active='Y' ORDER BY section, id";
-    Statement stmt = conn.createStatement();
-    rs = stmt.executeQuery(masterSQL);
-    while (rs.next()) {
-        String section = rs.getString("section");
-        String taskName = rs.getString("task_name");
-        String key = section + "|" + taskName;
-        Map<String, Object> row;
-        if (dataMap.containsKey(key)) {
-            row = dataMap.get(key);
-        } else {
-            row = new HashMap<>();
-            row.put("id", null);
-            row.put("section", section);
-            row.put("task_name", taskName);
-            row.put("status1", "");
-            row.put("status2", "");
-            row.put("status3", "");
-            row.put("done_by", "");
-            row.put("review", "");
-            row.put("remarks", "");
-            row.put("updated_at", null);
-        }
-        displayRows.add(row);
+// 3. Merge: for each master task, overlay saved data if present
+List<Map<String, Object>> displayRows = new ArrayList<>();
+for (Map<String, Object> master : masterTasks) {
+    String section = (String) master.get("section");
+    String taskName = (String) master.get("task_name");
+    String key = section + "||" + taskName;
+    Map<String, Object> row = new HashMap<>(master); // copy section, task_name
+    // default values
+    row.put("status1", "");
+    row.put("status2", "");
+    row.put("status3", "");
+    row.put("done_by", "");
+    row.put("review", "");
+    row.put("remarks", "");
+    row.put("updated_at", null);
+
+    // overlay saved data
+    if (savedDataMap.containsKey(key)) {
+        Map<String, Object> saved = savedDataMap.get(key);
+        row.put("status1", saved.get("status1"));
+        row.put("status2", saved.get("status2"));
+        row.put("status3", saved.get("status3"));
+        row.put("done_by", saved.get("done_by"));
+        row.put("review", saved.get("review"));
+        row.put("remarks", saved.get("remarks"));
+        row.put("updated_at", saved.get("updated_at"));
     }
-    rs.close();
-    stmt.close();
-} catch (Exception e) {
-    e.printStackTrace();
+    displayRows.add(row);
 }
 
 // Separate time slots and night reports
@@ -256,15 +264,147 @@ try {
     e.printStackTrace();
 }
 
-// Status options with empty as first option
-String[] statusOptions = {"", "DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "FAILED", "REVIEW"};
+String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "FAILED", "REVIEW"};
 
 // ===== EXPORT =====
 if ("export".equals(action)) {
-    // ... (same as before) ...
     response.setContentType("application/vnd.ms-excel");
     response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".xls\"");
-    // ... (full export code) ...
+
+    HSSFWorkbook workbook = new HSSFWorkbook();
+    HSSFSheet sheet = workbook.createSheet("Night Checklist");
+
+    // ... (styles same as before) ...
+    HSSFFont headerFont = workbook.createFont();
+    headerFont.setBold(true);
+    headerFont.setFontHeightInPoints((short) 12);
+    HSSFFont subHeaderFont = workbook.createFont();
+    subHeaderFont.setBold(true);
+    subHeaderFont.setFontHeightInPoints((short) 11);
+    HSSFFont normalFont = workbook.createFont();
+    normalFont.setFontHeightInPoints((short) 10);
+
+    HSSFCellStyle headerStyle = workbook.createCellStyle();
+    headerStyle.setFont(headerFont);
+    headerStyle.setAlignment(HorizontalAlignment.CENTER);
+    headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+    headerStyle.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+    headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    headerStyle.setBorderTop(BorderStyle.THIN);
+    headerStyle.setBorderBottom(BorderStyle.THIN);
+    headerStyle.setBorderLeft(BorderStyle.THIN);
+    headerStyle.setBorderRight(BorderStyle.THIN);
+
+    HSSFCellStyle subHeaderStyle = workbook.createCellStyle();
+    subHeaderStyle.setFont(subHeaderFont);
+    subHeaderStyle.setAlignment(HorizontalAlignment.CENTER);
+    subHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+    subHeaderStyle.setFillForegroundColor(HSSFColor.LIGHT_BLUE.index);
+    subHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    subHeaderStyle.setBorderTop(BorderStyle.THIN);
+    subHeaderStyle.setBorderBottom(BorderStyle.THIN);
+    subHeaderStyle.setBorderLeft(BorderStyle.THIN);
+    subHeaderStyle.setBorderRight(BorderStyle.THIN);
+
+    HSSFCellStyle cellStyle = workbook.createCellStyle();
+    cellStyle.setFont(normalFont);
+    cellStyle.setBorderTop(BorderStyle.THIN);
+    cellStyle.setBorderBottom(BorderStyle.THIN);
+    cellStyle.setBorderLeft(BorderStyle.THIN);
+    cellStyle.setBorderRight(BorderStyle.THIN);
+
+    HSSFCellStyle doneStyle = workbook.createCellStyle();
+    doneStyle.setFont(normalFont);
+    doneStyle.setBorderTop(BorderStyle.THIN);
+    doneStyle.setBorderBottom(BorderStyle.THIN);
+    doneStyle.setBorderLeft(BorderStyle.THIN);
+    doneStyle.setBorderRight(BorderStyle.THIN);
+    doneStyle.setFillForegroundColor(HSSFColor.LIGHT_GREEN.index);
+    doneStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+    int rowNum = 0;
+
+    // Title
+    HSSFRow titleRow = sheet.createRow(rowNum++);
+    HSSFCell titleCell = titleRow.createCell(0);
+    titleCell.setCellValue("NIGHT SHIFT CHECKLIST - " + displayDateStr);
+    titleCell.setCellStyle(headerStyle);
+    sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, 7));
+    rowNum++;
+
+    // Time Slots
+    HSSFRow tsSectionRow = sheet.createRow(rowNum++);
+    HSSFCell tsSectionCell = tsSectionRow.createCell(0);
+    tsSectionCell.setCellValue("TIME SLOTS");
+    tsSectionCell.setCellStyle(subHeaderStyle);
+    sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(rowNum-1, rowNum-1, 0, 7));
+
+    HSSFRow tsHeader = sheet.createRow(rowNum++);
+    String[] tsHeaders = {"TIME SLOT", "UNRESPONDED MAILS & GIMS & DPG", "STRATEGIC MANAGEMENT", "HELIX TICKET", "DONE BY", "REVIEW", "REMARKS", "LAST UPDATED"};
+    for (int i=0; i<tsHeaders.length; i++) {
+        HSSFCell cell = tsHeader.createCell(i);
+        cell.setCellValue(tsHeaders[i]);
+        cell.setCellStyle(headerStyle);
+    }
+
+    SimpleDateFormat sdfExcel = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+    for (Map<String, Object> row : timeSlots) {
+        HSSFRow dataRow = sheet.createRow(rowNum++);
+        dataRow.createCell(0).setCellValue((String) row.get("task_name"));
+        dataRow.createCell(1).setCellValue((String) row.get("status1"));
+        dataRow.createCell(2).setCellValue((String) row.get("status2"));
+        dataRow.createCell(3).setCellValue((String) row.get("status3"));
+        dataRow.createCell(4).setCellValue((String) row.get("done_by"));
+        dataRow.createCell(5).setCellValue((String) row.get("review"));
+        dataRow.createCell(6).setCellValue((String) row.get("remarks"));
+        Timestamp ts = (Timestamp) row.get("updated_at");
+        String tsStr = (ts != null) ? sdfExcel.format(ts) : "";
+        dataRow.createCell(7).setCellValue(tsStr);
+        for (int i=0; i<8; i++) {
+            dataRow.getCell(i).setCellStyle(cellStyle);
+            if (i>=1 && i<=3 && "DONE".equals(row.get("status" + (i-1+1)))) {
+                dataRow.getCell(i).setCellStyle(doneStyle);
+            }
+        }
+    }
+    rowNum++;
+
+    // Night Reports
+    HSSFRow nrSectionRow = sheet.createRow(rowNum++);
+    HSSFCell nrSectionCell = nrSectionRow.createCell(0);
+    nrSectionCell.setCellValue("NIGHT REPORTS");
+    nrSectionCell.setCellStyle(subHeaderStyle);
+    sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(rowNum-1, rowNum-1, 0, 5));
+
+    HSSFRow nrHeader = sheet.createRow(rowNum++);
+    String[] nrHeaders = {"TASK", "STATUS", "DONE BY", "REVIEW", "REMARKS", "LAST UPDATED"};
+    for (int i=0; i<nrHeaders.length; i++) {
+        HSSFCell cell = nrHeader.createCell(i);
+        cell.setCellValue(nrHeaders[i]);
+        cell.setCellStyle(headerStyle);
+    }
+
+    for (Map<String, Object> row : nightReports) {
+        HSSFRow dataRow = sheet.createRow(rowNum++);
+        dataRow.createCell(0).setCellValue((String) row.get("task_name"));
+        dataRow.createCell(1).setCellValue((String) row.get("status1"));
+        dataRow.createCell(2).setCellValue((String) row.get("done_by"));
+        dataRow.createCell(3).setCellValue((String) row.get("review"));
+        dataRow.createCell(4).setCellValue((String) row.get("remarks"));
+        Timestamp ts = (Timestamp) row.get("updated_at");
+        String tsStr = (ts != null) ? sdfExcel.format(ts) : "";
+        dataRow.createCell(5).setCellValue(tsStr);
+        for (int i=0; i<6; i++) {
+            dataRow.getCell(i).setCellStyle(cellStyle);
+            if (i==1 && "DONE".equals(row.get("status1"))) {
+                dataRow.getCell(i).setCellStyle(doneStyle);
+            }
+        }
+    }
+
+    for (int i=0; i<8; i++) sheet.autoSizeColumn(i);
+    workbook.write(response.getOutputStream());
+    workbook.close();
     return;
 }
 %>
@@ -272,12 +412,12 @@ if ("export".equals(action)) {
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Night Shift Checklist - <%= displayDateStr %></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
-        /* (same styles as before, omitted for brevity – use from previous code) */
         :root { --primary-dark: #0B1A30; --primary-blue: #1A3A5C; --accent-gold: #F5B041; --bg-light: #EFF3F8; --card-shadow: 0 6px 24px rgba(0,0,0,0.10); --border-radius: 14px; }
         * { box-sizing: border-box; }
         body { background: var(--bg-light); font-family: 'Segoe UI', Roboto, sans-serif; padding: 24px; color: #1e2a3a; }
@@ -328,10 +468,10 @@ if ("export".equals(action)) {
 </head>
 <body>
 
-<!-- Spinner, Toast, etc. (same as before) -->
 <div class="spinner-overlay" id="spinnerOverlay">
     <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
 </div>
+
 <div class="toast-container">
     <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -386,7 +526,7 @@ if ("export".equals(action)) {
                         <li>Time slots freeze <strong>30 min after end time</strong>.</li>
                         <li>Historical dates are <strong>always read-only</strong>.</li>
                         <li>Today's data becomes editable after <strong>9:30 PM</strong>.</li>
-                        <li>After 9:30 PM, fields are <strong>blank</strong> (no auto-copy).</li>
+                        <li>All reports are always displayed (tasks_master rows) – blank if no data saved.</li>
                     </ul>
                 </div>
             </div>
@@ -619,7 +759,6 @@ if ("export".equals(action)) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Same JavaScript as before (saveAll, exportExcel, etc.)
     let saveInProgress = false;
     let toastInstance = null;
 
