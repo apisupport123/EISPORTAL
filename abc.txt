@@ -1,30 +1,12 @@
--- Insert dummy data for previous day (today - 1)
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'time_slot', '10PM-12AM', 'DONE', 'DONE', 'PENDING', 'Sharath', 'All good', 'No issues');
-
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'time_slot', '12AM-2AM', 'DONE', 'IN PROGRESS', 'PENDING', 'Shubham', 'Partial done', 'Need follow-up');
-
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'time_slot', '2AM-4AM', 'PENDING', 'PENDING', 'PENDING', 'Swarup', 'Not started', 'Delay due to issue');
-
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'time_slot', '4AM-6AM', 'NA', 'NA', 'NA', 'Akram', 'N/A', 'Not applicable');
-
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'time_slot', '6AM-7AM', 'DONE', 'DONE', 'DONE', 'Handover', 'Completed', 'All clear');
-
--- Night reports
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'night_report', 'Daily Status Report', 'DONE', '', '', 'Sharath', 'Ok', 'Sent to manager');
-
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'night_report', 'Handover Report', 'IN PROGRESS', '', '', 'Shubham', 'Draft', 'Need final review');
-
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'night_report', 'Pending Issues Log', 'PENDING', '', '', 'Swarup', 'Under review', 'Open tickets');
-
-INSERT INTO night_checklist (report_date, section, task_name, status1, status2, status3, done_by, review, remarks)
-VALUES (SYSDATE-1, 'night_report', 'Next Action Plan', 'DONE', '', '', 'Akram', 'Approved', 'Ready for execution');
-
-COMMIT;
+ID	NUMBER(10,0)	No	"EISAPPSUPPORT"."ISEQ$$_868943".nextval	1	
+REPORT_DATE	DATE	No		2	
+SECTION	VARCHAR2(20 BYTE)	No		3	
+TASK_NAME	VARCHAR2(200 BYTE)	No		4	
+STATUS1	VARCHAR2(50 BYTE)	Yes		5	
+STATUS2	VARCHAR2(50 BYTE)	Yes		6	
+STATUS3	VARCHAR2(50 BYTE)	Yes		7	
+DONE_BY	VARCHAR2(100 BYTE)	Yes		8	
+REVIEW	VARCHAR2(500 BYTE)	Yes		9	
+REMARKS	VARCHAR2(500 BYTE)	Yes		10	
+CREATED_AT	TIMESTAMP(6)	Yes	SYSTIMESTAMP	11	
+UPDATED_AT	TIMESTAMP(6)	Yes	SYSTIMESTAMP	12	
