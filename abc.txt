@@ -1,17 +1,21 @@
 Dear Sir/Madam,
 
-We performed a troubleshooting activity on August 4, 2026 to fix a file upload issue in the EIS Portal application. The fix involved downloading a required library (commons-io-2.11.0.jar) using standard Windows tools (cmd.exe and bitsadmin.exe).
+We performed a troubleshooting activity on August 4, 2026 to fix a file upload issue in the EIS Portal application.
 
-PowerShell was NOT used.
+Activity Details:
 
-This activity triggered two security incidents:
+Downloaded commons-io-2.11.0.jar from Maven Central using standard Windows tools (cmd.exe and bitsadmin.exe).
+
+Placed the JAR in the application folder to resolve the NoSuchFieldError.
+
+PowerShell was NOT used at any point.
+
+Security Incidents Raised:
 
 WB-10166-20260804-00298
 
 WB-10166-20260804-00376
 
-SOC has requested approval from competent authority for closure.
+SOC has requested approval from the competent authority for closure.
 
-We request your approval for this activity. Please reply with your confirmation so we can forward it to SOC.
-
-Regards,
+We request your approval for this activity. Kindly reply with your confirmation.
