@@ -131,6 +131,9 @@ if ("save".equals(action)) {
                 String review = (reviews != null && i < reviews.length) ? reviews[i] : "";
                 String remark = (remarks != null && i < remarks.length) ? remarks[i] : "";
 
+                // DEBUG: Print mapping to server console
+                System.out.println("DEBUG SAVE - Row " + i + ": section=" + section + ", task=" + taskName + ", done_by=" + doneBy);
+
                 pstmt.setDate(1, saveDate);
                 pstmt.setString(2, section);
                 pstmt.setString(3, taskName);
@@ -439,7 +442,6 @@ if ("export".equals(action)) {
             --primary-mid: #1A3A5C;
             --primary-blue: #2A5C8A;
             --accent-gold: #F5B041;
-            --accent-teal: #48C9B0;
             --bg-main: #f0f4f9;
             --card-shadow: 0 12px 40px rgba(11, 26, 48, 0.08);
             --border-radius-lg: 18px;
@@ -1107,9 +1109,7 @@ if ("export".equals(action)) {
         saveInProgress = true;
         $('#spinnerOverlay').fadeIn(200);
 
-        // Single form – no merging needed
         var formData = new FormData($('#checklistForm')[0]);
-        // action is already in the hidden input
 
         var hasData = false;
         for (var pair of formData.entries()) {
