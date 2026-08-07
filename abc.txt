@@ -1,47 +1,133 @@
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-======= SAVE DEBUG =======
-sections length: 22
-doneBys length: 4
-reviews length: 22
-remarks length: 22
-Row 1: section=night_report, task=DASHBOARD, done_by=Ajit Gorad, review=, remark=
-Row 2: section=night_report, task=DAILY STATISTICS, done_by=Mukul Patil, review=done, remark=done
-Row 3: section=night_report, task=SIO07  (DB CONNECTION ERROR), done_by=Pranav Patil, review=, remark=
-Row 4: section=night_report, task=URN DETAILS DASHBOARD, done_by=Mohammad Aziz Shaikh, review=, remark=
-Row 5: section=night_report, task=URN DETAILS EXCEPTION, done_by=, review=, remark=
-Row 6: section=night_report, task=CRITICAL ISSUES, done_by=, review=, remark=
-Row 7: section=night_report, task=DPG INCONSISTENCY, done_by=, review=done, remark=done
-Row 8: section=night_report, task=HIT NOT OBSERVED IN SERVICES SINCE LAST 7 DAYS, done_by=, review=, remark=
-Row 9: section=night_report, task=MAO TRANSACTION, done_by=, review=, remark=
-Row 10: section=night_report, task=PEAK AND AVG TPS, done_by=, review=, remark=
-Row 11: section=night_report, task=Successful in SYS but SIO02 in EXP layer, done_by=, review=, remark=
-Row 12: section=night_report, task=INCIDENT SUMMARY, done_by=, review=, remark=
-Row 13: section=night_report, task=TIME DIFFERENT ANALYSIS, done_by=, review=, remark=
-Row 14: section=night_report, task=Curl_Stopped_Services, done_by=, review=done, remark=done
-Row 15: section=night_report, task=ITSM TICKET REPORT, done_by=, review=, remark=
-Row 16: section=night_report, task=EOD ACTIVITY, done_by=, review=, remark=
-Row 17: section=night_report, task=Night Checklist, done_by=, review=, remark=
-Row 18: section=time_slot, task=10:00 PM TO 12:00 AM, done_by=, review=, remark=
-Row 19: section=time_slot, task=12:00 AM TO 02:00 AM, done_by=, review=, remark=
-Row 20: section=time_slot, task=02:00 AM TO 04:00 AM, done_by=, review=, remark=
-Row 21: section=time_slot, task=04:00 AM TO 06:00 AM, done_by=, review=, remark=
-Row 22: section=time_slot, task=06:00 AM TO 07:00 AM, done_by=, review=done, remark=done
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
+Dear Team,
+
+SOC has raised below security incident in archer. Please refer raw logs attached.
+
+
+
+workbenchId
+workbenchLink
+severity
+signature
+description
+detail.alertTriggerTimestamp
+detail.impactScope{}.entityType
+detail.impactScope{}.entityValue
+detail.impactScope{}.entityValue.ips{}
+detail.impactScope{}.entityValue.name
+name
+impactScope.desktopCount
+detail.indicators{}.objectValue
+values(workbenchName)
+WB-10166-20260804-00298
+https://portal.in.xdr.trendmicro.com/index.html#/workbench/alerts/WB-10166-20260804-00298?ref=3276068322cd76781ef6f780f60d73d030bfd08f
+high
+As per IS&SP advisory EPMS/ESS/2026/05/10 dated 16/05/2026 - Detects usage of legitimate system utilities by CS Red Team based on behavioral patterns, command-line arguments, and execution context to ensure visibility without disrupting authorized activities.
+Legitimate tools used by CS Red Team activities
+2026-08-04T10:47:00.046Z
+account
+CORP\TCS150045
+10.0.57.130
+GCBSBI4A17133
+Legitimate tools used by CS Red Team activities -1
+1
+5CEEC3064D495F73AAD77FACF9D0B05A89B3A137FC86BA1B43C14B3CA3BD3E11
+Legitimate tools used by CS Red Team activities
+host
+87768A709EDF3ADCF29C7AF8514E40F8D82CC06E
+ 
+C:\Windows\Explorer.EXE
+ 
+C:\Windows\System32\bitsadmin.exe
+ 
+C:\Windows\system32\cmd.exe /c ""C:\Users\tcs150045\Desktop\cleanup.bat" "
+ 
+TCS150045
+ 
+bitsadmin /transfer "download_io" /download /priority normal https://repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar "C:\Users\TCS150~1\AppData\Local\Temp\commons_io_download\commons-io-2.11.0.jar"
+
+
+
+workbenchId
+severity
+signature
+description
+detail.alertTriggerTimestamp
+detail.impactScope{}.entityType
+detail.impactScope{}.entityValue
+detail.impactScope{}.entityValue.ips{}
+detail.impactScope{}.entityValue.name
+name
+impactScope.desktopCount
+detail.indicators{}.objectValue
+values(workbenchName)
+WB-10166-20260804-00376
+high
+As per IS&SP advisory EPMS/ESS/2026/05/10 dated 16/05/2026 - Detects usage of legitimate system utilities by CS Red Team based on behavioral patterns, command-line arguments, and execution context to ensure visibility without disrupting authorized activities.
+Legitimate tools used by CS Red Team activities
+2026-08-04T13:44:57.748Z
+account
+CORP\TCS150045
+10.0.57.130
+GCBSBI4A17133
+Legitimate tools used by CS Red Team activities -1
+1
+5CEEC3064D495F73AAD77FACF9D0B05A89B3A137FC86BA1B43C14B3CA3BD3E11
+Legitimate tools used by CS Red Team activities
+host
+87768A709EDF3ADCF29C7AF8514E40F8D82CC06E
+ 
+C:\Windows\Explorer.EXE
+ 
+C:\Windows\System32\bitsadmin.exe
+ 
+C:\Windows\system32\cmd.exe /c ""C:\Users\tcs150045\Desktop\cleanup.bat" "
+ 
+TCS150045
+ 
+bitsadmin /transfer "download_io" /download /priority normal https://repo1.maven.org/maven2/commons-io/commons-io/2.11.0/commons-io-2.11.0.jar "C:\Users\TCS150~1\AppData\Local\Temp\commons_io_fix\commons-io-2.11.0.jar"
+
+Kindly let us know why PowerShell was used.  Elaborate the purpose of the activity.
+Since the PowerShell feature has been disabled as per banks policy. Kindly confirm if anyone has re-enabled or modified PowerShell settings recently?
+Kindly share the approval from the competent authority if the activity was authorized.
+
+
+
+Thanks & regards,
+
+Sapna Rani
+
+
+Dear Team,
+
+This is regarding the security alerts raised for user `CORP\TCS150045`.
+
+1.  What was the activity?
+We were troubleshooting a file upload issue in our*internal EIS Portal application. The application was throwing a `NoSuchFieldError` due to a missing `commons-io` library. We downloaded the correct JAR from Maven Central using `bitsadmin` (standard Windows utility) and placed it in the application folder to fix the issue.
+
+2. Was PowerShell used?
+No. PowerShell was not used. Only `cmd.exe` and `bitsadmin.exe` (standard Windows tools) were used.
+
+3. Is this critical?
+No. This was routine maintenance – not a critical or security-related activity.
+
+4. Policy violation?
+No. This was performed on our internal portal using standard OS tools. No sensitive data was accessed.
+
+5. Future action
+We will use internal artifact repository for future downloads to avoid such alerts.
+
+Request: Please close the incident as legitimate troubleshooting activity.
+
+
+Regards,
+Akshay K
+
+
+
+Dear Team,
+
+Please provide any mail trail evidence for the activity preformed for closure of security incident.
+
+Thanks & regards,
+
+Sapna Rani
