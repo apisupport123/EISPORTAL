@@ -291,7 +291,6 @@ if ("export".equals(action)) {
     HSSFWorkbook workbook = new HSSFWorkbook();
     HSSFSheet sheet = workbook.createSheet("Night Checklist");
 
-    // Fonts and styles
     HSSFFont headerFont = workbook.createFont();
     headerFont.setBold(true);
     headerFont.setFontHeightInPoints((short) 12);
@@ -341,7 +340,6 @@ if ("export".equals(action)) {
 
     int rowNum = 0;
 
-    // Title
     HSSFRow titleRow = sheet.createRow(rowNum++);
     HSSFCell titleCell = titleRow.createCell(0);
     titleCell.setCellValue("NIGHT SHIFT CHECKLIST - " + displayDateStr);
@@ -349,7 +347,6 @@ if ("export".equals(action)) {
     sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, 7));
     rowNum++;
 
-    // Time Slots section
     HSSFRow tsSectionRow = sheet.createRow(rowNum++);
     HSSFCell tsSectionCell = tsSectionRow.createCell(0);
     tsSectionCell.setCellValue("TIME SLOTS");
@@ -386,7 +383,6 @@ if ("export".equals(action)) {
     }
     rowNum++;
 
-    // Night Reports section
     HSSFRow nrSectionRow = sheet.createRow(rowNum++);
     HSSFCell nrSectionCell = nrSectionRow.createCell(0);
     nrSectionCell.setCellValue("NIGHT REPORTS");
@@ -431,13 +427,9 @@ if ("export".equals(action)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Night Shift Checklist - <%= displayDateStr %></title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome 6 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
     <style>
@@ -467,7 +459,6 @@ if ("export".equals(action)) {
 
         .main-container { max-width: 1600px; margin: 0 auto; }
 
-        /* ----- HEADER CARD (Glassmorphism + Gradient) ----- */
         .header-card {
             background: linear-gradient(145deg, var(--primary-dark), var(--primary-mid), #0f2a44);
             color: #fff;
@@ -548,7 +539,6 @@ if ("export".equals(action)) {
         .btn-glow-warning { background: #ffc107; color: #212529; }
         .btn-glow-warning:hover { background: #e0a800; color: #212529; }
 
-        /* ----- SEARCH BAR CARD ----- */
         .search-card {
             background: #ffffff;
             border-radius: var(--border-radius-md);
@@ -608,7 +598,6 @@ if ("export".equals(action)) {
             font-weight: 600;
         }
 
-        /* ----- INFO BANNER ----- */
         .info-banner {
             background: linear-gradient(135deg, #e6f0fa, #f0f7ff);
             border-radius: var(--border-radius-md);
@@ -626,7 +615,6 @@ if ("export".equals(action)) {
         .info-banner i { color: var(--primary-blue); margin-right: 6px; width: 18px; }
         .info-banner .highlight { font-weight: 600; color: var(--primary-dark); }
 
-        /* ----- SECTION CARDS ----- */
         .section-card {
             background: #ffffff;
             border-radius: var(--border-radius-lg);
@@ -657,7 +645,6 @@ if ("export".equals(action)) {
         .section-card .card-header-custom h5 i { color: var(--primary-blue); margin-right: 10px; }
         .section-card .card-body-custom { padding: 16px 20px 20px 20px; overflow-x: auto; }
 
-        /* ----- TABLE STYLES ----- */
         .table-checklist {
             font-size: 13px;
             margin-bottom: 0;
@@ -705,7 +692,6 @@ if ("export".equals(action)) {
         }
         .table-checklist .task-name-sm { font-size: 12px; }
 
-        /* Dropdowns inside table */
         .table-checklist select.form-select-sm {
             font-size: 12px;
             padding: 4px 24px 4px 10px;
@@ -722,7 +708,6 @@ if ("export".equals(action)) {
             border-color: var(--primary-blue);
             box-shadow: 0 0 0 3px rgba(42,92,138,0.1);
         }
-        /* Status colors on select */
         .table-checklist select.form-select-sm.status-done {
             background-color: #d4edda;
             border-color: #28a745;
@@ -739,7 +724,6 @@ if ("export".equals(action)) {
             color: #383d41;
         }
 
-        /* Textareas */
         .table-checklist textarea.form-control-sm {
             font-size: 12px;
             padding: 4px 10px;
@@ -758,7 +742,6 @@ if ("export".equals(action)) {
             box-shadow: 0 0 0 3px rgba(42,92,138,0.08);
         }
 
-        /* Frozen Rows */
         .frozen-row td {
             background: #f7f9fc !important;
             opacity: 0.85;
@@ -777,7 +760,6 @@ if ("export".equals(action)) {
             font-weight: 500;
         }
 
-        /* Toast & Spinner */
         .toast-container { position: fixed; top: 30px; right: 30px; z-index: 9999; }
         .toast { border-radius: var(--border-radius-md); box-shadow: 0 16px 48px rgba(0,0,0,0.15); min-width: 320px; border: none; }
         .toast-body { font-size: 14px; padding: 14px 20px; }
@@ -797,7 +779,6 @@ if ("export".equals(action)) {
             color: var(--primary-blue);
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             body { padding: 12px; }
             .header-card { padding: 16px; flex-direction: column; align-items: stretch; }
@@ -830,7 +811,7 @@ if ("export".equals(action)) {
 
 <div class="main-container">
 
-    <!-- ===== HEADER ===== -->
+    <!-- HEADER -->
     <div class="header-card">
         <div class="header-left">
             <h1><i class="fas fa-moon"></i> Night Shift Checklist</h1>
@@ -853,7 +834,7 @@ if ("export".equals(action)) {
         </div>
     </div>
 
-    <!-- ===== SEARCH BAR ===== -->
+    <!-- SEARCH BAR -->
     <div class="search-card">
         <div class="search-group">
             <i class="fas fa-calendar-alt text-muted"></i>
@@ -871,7 +852,7 @@ if ("export".equals(action)) {
         </div>
     </div>
 
-    <!-- ===== INFO BANNER ===== -->
+    <!-- INFO BANNER -->
     <div class="info-banner">
         <div><i class="fas fa-clock"></i> <span class="highlight">Edit Mode:</span> After <strong>6:00 PM</strong> today's shift becomes editable.</div>
         <div><i class="fas fa-hourglass-half"></i> <span class="highlight">Slot Freeze:</span> Each time slot freezes <strong>30 min</strong> after its end time.</div>
@@ -1126,8 +1107,9 @@ if ("export".equals(action)) {
         saveInProgress = true;
         $('#spinnerOverlay').fadeIn(200);
 
+        // Single form – no merging needed
         var formData = new FormData($('#checklistForm')[0]);
-        // Action already set in hidden input, no need to add again
+        // action is already in the hidden input
 
         var hasData = false;
         for (var pair of formData.entries()) {
