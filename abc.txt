@@ -287,12 +287,142 @@ String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "F
 if ("export".equals(action)) {
     response.setContentType("application/vnd.ms-excel");
     response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".xls\"");
-    // ... (export code is long, I'll keep it minimal to save space but ensure it works)
+
     HSSFWorkbook workbook = new HSSFWorkbook();
     HSSFSheet sheet = workbook.createSheet("Night Checklist");
-    // ... styles & data ...
-    // For brevity, I'm skipping the export code in this response to focus on UI, but will include it in the final copy.
-    // Actually, I must include the full working code. I'll add a compact version.
+
+    // Fonts and styles
+    HSSFFont headerFont = workbook.createFont();
+    headerFont.setBold(true);
+    headerFont.setFontHeightInPoints((short) 12);
+    HSSFFont subHeaderFont = workbook.createFont();
+    subHeaderFont.setBold(true);
+    subHeaderFont.setFontHeightInPoints((short) 11);
+    HSSFFont normalFont = workbook.createFont();
+    normalFont.setFontHeightInPoints((short) 10);
+
+    HSSFCellStyle headerStyle = workbook.createCellStyle();
+    headerStyle.setFont(headerFont);
+    headerStyle.setAlignment(HorizontalAlignment.CENTER);
+    headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+    headerStyle.setFillForegroundColor(HSSFColor.GREY_25_PERCENT.index);
+    headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    headerStyle.setBorderTop(BorderStyle.THIN);
+    headerStyle.setBorderBottom(BorderStyle.THIN);
+    headerStyle.setBorderLeft(BorderStyle.THIN);
+    headerStyle.setBorderRight(BorderStyle.THIN);
+
+    HSSFCellStyle subHeaderStyle = workbook.createCellStyle();
+    subHeaderStyle.setFont(subHeaderFont);
+    subHeaderStyle.setAlignment(HorizontalAlignment.CENTER);
+    subHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+    subHeaderStyle.setFillForegroundColor(HSSFColor.LIGHT_BLUE.index);
+    subHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    subHeaderStyle.setBorderTop(BorderStyle.THIN);
+    subHeaderStyle.setBorderBottom(BorderStyle.THIN);
+    subHeaderStyle.setBorderLeft(BorderStyle.THIN);
+    subHeaderStyle.setBorderRight(BorderStyle.THIN);
+
+    HSSFCellStyle cellStyle = workbook.createCellStyle();
+    cellStyle.setFont(normalFont);
+    cellStyle.setBorderTop(BorderStyle.THIN);
+    cellStyle.setBorderBottom(BorderStyle.THIN);
+    cellStyle.setBorderLeft(BorderStyle.THIN);
+    cellStyle.setBorderRight(BorderStyle.THIN);
+
+    HSSFCellStyle doneStyle = workbook.createCellStyle();
+    doneStyle.setFont(normalFont);
+    doneStyle.setBorderTop(BorderStyle.THIN);
+    doneStyle.setBorderBottom(BorderStyle.THIN);
+    doneStyle.setBorderLeft(BorderStyle.THIN);
+    doneStyle.setBorderRight(BorderStyle.THIN);
+    doneStyle.setFillForegroundColor(HSSFColor.LIGHT_GREEN.index);
+    doneStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+    int rowNum = 0;
+
+    // Title
+    HSSFRow titleRow = sheet.createRow(rowNum++);
+    HSSFCell titleCell = titleRow.createCell(0);
+    titleCell.setCellValue("NIGHT SHIFT CHECKLIST - " + displayDateStr);
+    titleCell.setCellStyle(headerStyle);
+    sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(0, 0, 0, 7));
+    rowNum++;
+
+    // Time Slots section
+    HSSFRow tsSectionRow = sheet.createRow(rowNum++);
+    HSSFCell tsSectionCell = tsSectionRow.createCell(0);
+    tsSectionCell.setCellValue("TIME SLOTS");
+    tsSectionCell.setCellStyle(subHeaderStyle);
+    sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(rowNum-1, rowNum-1, 0, 7));
+
+    HSSFRow tsHeader = sheet.createRow(rowNum++);
+    String[] tsHeaders = {"TIME SLOT", "UNRESPONDED MAILS & GIMS & DPG", "STRATEGIC MANAGEMENT", "HELIX TICKET", "DONE BY", "REVIEW", "REMARKS", "LAST UPDATED"};
+    for (int i=0; i<tsHeaders.length; i++) {
+        HSSFCell cell = tsHeader.createCell(i);
+        cell.setCellValue(tsHeaders[i]);
+        cell.setCellStyle(headerStyle);
+    }
+
+    SimpleDateFormat sdfExcel = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+    for (Map<String, Object> row : timeSlots) {
+        HSSFRow dataRow = sheet.createRow(rowNum++);
+        dataRow.createCell(0).setCellValue((String) row.get("task_name"));
+        dataRow.createCell(1).setCellValue((String) row.get("status1"));
+        dataRow.createCell(2).setCellValue((String) row.get("status2"));
+        dataRow.createCell(3).setCellValue((String) row.get("status3"));
+        dataRow.createCell(4).setCellValue((String) row.get("done_by"));
+        dataRow.createCell(5).setCellValue((String) row.get("review"));
+        dataRow.createCell(6).setCellValue((String) row.get("remarks"));
+        Timestamp ts = (Timestamp) row.get("updated_at");
+        String tsStr = (ts != null) ? sdfExcel.format(ts) : "";
+        dataRow.createCell(7).setCellValue(tsStr);
+        for (int i=0; i<8; i++) {
+            dataRow.getCell(i).setCellStyle(cellStyle);
+            if (i>=1 && i<=3 && "DONE".equals(row.get("status" + (i-1+1)))) {
+                dataRow.getCell(i).setCellStyle(doneStyle);
+            }
+        }
+    }
+    rowNum++;
+
+    // Night Reports section
+    HSSFRow nrSectionRow = sheet.createRow(rowNum++);
+    HSSFCell nrSectionCell = nrSectionRow.createCell(0);
+    nrSectionCell.setCellValue("NIGHT REPORTS");
+    nrSectionCell.setCellStyle(subHeaderStyle);
+    sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(rowNum-1, rowNum-1, 0, 5));
+
+    HSSFRow nrHeader = sheet.createRow(rowNum++);
+    String[] nrHeaders = {"TASK", "STATUS", "DONE BY", "REVIEW", "REMARKS", "LAST UPDATED"};
+    for (int i=0; i<nrHeaders.length; i++) {
+        HSSFCell cell = nrHeader.createCell(i);
+        cell.setCellValue(nrHeaders[i]);
+        cell.setCellStyle(headerStyle);
+    }
+
+    for (Map<String, Object> row : nightReports) {
+        HSSFRow dataRow = sheet.createRow(rowNum++);
+        dataRow.createCell(0).setCellValue((String) row.get("task_name"));
+        dataRow.createCell(1).setCellValue((String) row.get("status1"));
+        dataRow.createCell(2).setCellValue((String) row.get("done_by"));
+        dataRow.createCell(3).setCellValue((String) row.get("review"));
+        dataRow.createCell(4).setCellValue((String) row.get("remarks"));
+        Timestamp ts = (Timestamp) row.get("updated_at");
+        String tsStr = (ts != null) ? sdfExcel.format(ts) : "";
+        dataRow.createCell(5).setCellValue(tsStr);
+        for (int i=0; i<6; i++) {
+            dataRow.getCell(i).setCellStyle(cellStyle);
+            if (i==1 && "DONE".equals(row.get("status1"))) {
+                dataRow.getCell(i).setCellStyle(doneStyle);
+            }
+        }
+    }
+
+    for (int i=0; i<8; i++) sheet.autoSizeColumn(i);
+    workbook.write(response.getOutputStream());
+    workbook.close();
+    return;
 }
 %>
 <!DOCTYPE html>
@@ -748,15 +878,17 @@ if ("export".equals(action)) {
         <div><i class="fas fa-history"></i> Historical dates are always <span class="highlight">read-only</span>.</div>
     </div>
 
-    <!-- ===== TIME SLOTS ===== -->
-    <div class="section-card">
-        <div class="card-header-custom">
-            <h5><i class="fas fa-clock"></i> Time Slots</h5>
-            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><%= timeSlots.size() %> Slots</span>
-        </div>
-        <div class="card-body-custom">
-            <form id="checklistForm" method="post">
-                <input type="hidden" name="action" value="save">
+    <!-- ===== SINGLE FORM – ALL ROWS ===== -->
+    <form id="checklistForm" method="post">
+        <input type="hidden" name="action" value="save">
+
+        <!-- TIME SLOTS -->
+        <div class="section-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-clock"></i> Time Slots</h5>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><%= timeSlots.size() %> Slots</span>
+            </div>
+            <div class="card-body-custom">
                 <table class="table table-checklist" id="timeSlotTable">
                     <thead>
                         <tr>
@@ -865,19 +997,16 @@ if ("export".equals(action)) {
                         <% } } %>
                     </tbody>
                 </table>
-            </form>
+            </div>
         </div>
-    </div>
 
-    <!-- ===== NIGHT REPORTS ===== -->
-    <div class="section-card">
-        <div class="card-header-custom">
-            <h5><i class="fas fa-file-alt"></i> Night Reports</h5>
-            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><%= nightReports.size() %> Reports</span>
-        </div>
-        <div class="card-body-custom">
-            <form id="checklistForm2" method="post">
-                <input type="hidden" name="action" value="save">
+        <!-- NIGHT REPORTS -->
+        <div class="section-card">
+            <div class="card-header-custom">
+                <h5><i class="fas fa-file-alt"></i> Night Reports</h5>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><%= nightReports.size() %> Reports</span>
+            </div>
+            <div class="card-body-custom">
                 <table class="table table-checklist" id="nightReportTable">
                     <thead>
                         <tr>
@@ -957,9 +1086,10 @@ if ("export".equals(action)) {
                         <% } } %>
                     </tbody>
                 </table>
-            </form>
+            </div>
         </div>
-    </div>
+
+    </form> <!-- end single form -->
 
     <!-- FOOTER -->
     <div class="text-center text-muted py-3" style="font-size:13px; border-top:1px solid #e2e8f0;">
@@ -997,9 +1127,7 @@ if ("export".equals(action)) {
         $('#spinnerOverlay').fadeIn(200);
 
         var formData = new FormData($('#checklistForm')[0]);
-        var formData2 = new FormData($('#checklistForm2')[0]);
-        for (var pair of formData2.entries()) formData.append(pair[0], pair[1]);
-        formData.set('action', 'save');
+        // Action already set in hidden input, no need to add again
 
         var hasData = false;
         for (var pair of formData.entries()) {
