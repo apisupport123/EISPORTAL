@@ -1,1 +1,230 @@
+package com.cron;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
+import com.jdbc.DBUtilityAuto;
+
+public class ExpSysServiceWise {
+
+	public static void main(String[] args) throws SQLException {
+		// TODO Auto-generated method stub
+		System.out.println("Execution start at "+new java.util.Date());
+		expService();
+		sysService();
+		System.out.println("Insertion Successfull at "+new java.util.Date());
+	}
+	
+	private static void expService() throws SQLException {
+		String flagStatus = null;
+        String sql = null;
+        
+        try (Connection conn1 = DBUtilityAuto.getReportDBConnection();
+            Statement smt = conn1.createStatement();
+            ResultSet rs = smt.executeQuery("SELECT FLAG FROM connection_master")) {
+            if (rs.next()) {
+                flagStatus = rs.getString("FLAG");
+                if (flagStatus == null) flagStatus = "DR";
+            }
+            rs.close();
+            smt.close();
+            conn1.close();
+        } catch(Exception e) {
+            flagStatus = "DR";
+        }
+		 if(flagStatus.equalsIgnoreCase("PR")){
+             sql = "WITH filtered_logs AS ( " +
+                 " SELECT /*+PARALLEL(04)*/ " +
+                 " API_NAME, " +
+                 " BROKER_NAME, " +
+                 " error_code, " +
+                 " CASE " +
+                 " WHEN (substr(error_code,3,3) in ('002','014') OR error_code in ('SI001','SI007','SI569','SI570','SI015')) " +
+                 " AND error_code <> '00014' THEN 1 " +
+                 " ELSE 0 " +
+                 " END AS is_td_error " +
+                 " FROM eisapp.API_LOG@MIDB_LINK " +
+                 " WHERE " +
+                 " REQUEST_DATE_TIME >= SYSDATE - INTERVAL '10' MINUTE " +
+                 " AND API_NAME NOT LIKE '%gen.%' " +
+                 " AND trim(CONCAT(API_NAME, SOURCE_ID) || error_description) NOT IN ( " +
+                 " SELECT trim(CONCAT(API_NAME, SOURCE_ID) || error_description) " +
+                 " FROM vaild_bd_master " +
+                 " ) " +
+                 ") " +
+                 "SELECT * FROM ( " +
+                 " SELECT " +
+                 " API_NAME, " +
+                 " BROKER_NAME, " +
+                 " COUNT(1) AS TOTAL_HITS, " +
+                 " SUM(is_td_error) AS TD_COUNT, " +
+                 " ROUND(SUM(is_td_error) * 100 / COUNT(1), 2) AS TD_PERCENT, " +
+                 " TRIM(',' FROM " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI001' THEN 1 ELSE 0 END) > 0 THEN ',SI001' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI002' THEN 1 ELSE 0 END) > 0 THEN ',SI002' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN substr(error_code,3,3) = '002' AND error_code <> 'SI002' THEN 1 ELSE 0 END) > 0 THEN ',DYNAMIC 002' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI007' AND error_code <> '70007' THEN 1 ELSE 0 END) > 0 THEN ',SI007' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI051' THEN 1 ELSE 0 END) > 0 THEN ',SI051' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN substr(error_code,3,3) = '014' AND error_code <> '00014' THEN 1 ELSE 0 END) > 0 THEN ',014' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI569' THEN 1 ELSE 0 END) > 0 THEN ',SI569' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI570' THEN 1 ELSE 0 END) > 0 THEN ',SI570' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI015' THEN 1 ELSE 0 END) > 0 THEN ',SI015' ELSE '' END" +
+                 " ) AS ACTIVE_ERROR_CODES " +
+                 " FROM filtered_logs " +
+                 " GROUP BY API_NAME, BROKER_NAME " +
+                 " HAVING ROUND(SUM(is_td_error) * 100 / COUNT(1), 2) >= 0.5 " +
+                 " ORDER BY TD_PERCENT DESC " +
+                 ") WHERE ROWNUM <= 10";
+         } else {
+             sql = "WITH filtered_logs AS ( " +
+                 " SELECT /*+PARALLEL(04)*/ " +
+                 " API_NAME, " +
+                 " BROKER_NAME, " +
+                 " error_code, " +
+                 " CASE " +
+                 " WHEN (substr(error_code,3,3) in ('002','014') OR error_code in ('SI001','SI007','SI569','SI570','SI015')) " +
+                 " AND error_code <> '00014' THEN 1 " +
+                 " ELSE 0 " +
+                 " END AS is_td_error " +
+                 " FROM eisapp.API_LOG@HIDB_LINK " +
+                 " WHERE " +
+                 " REQUEST_DATE_TIME >= SYSDATE - INTERVAL '10' MINUTE " +
+                 " AND API_NAME NOT LIKE '%gen.%' " +
+                 " AND trim(CONCAT(API_NAME, SOURCE_ID) || error_description) NOT IN ( " +
+                 " SELECT trim(CONCAT(API_NAME, SOURCE_ID) || error_description) " +
+                 " FROM vaild_bd_master " +
+                 " ) " +
+                 ") " +
+                 "SELECT * FROM ( " +
+                 " SELECT " +
+                 " API_NAME, " +
+                 " BROKER_NAME, " +
+                 " COUNT(1) AS TOTAL_HITS, " +
+                 " SUM(is_td_error) AS TD_COUNT, " +
+                 " ROUND(SUM(is_td_error) * 100 / COUNT(1), 2) AS TD_PERCENT, " +
+                 " TRIM(',' FROM " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI001' THEN 1 ELSE 0 END) > 0 THEN ',SI001' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI002' THEN 1 ELSE 0 END) > 0 THEN ',SI002' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN substr(error_code,3,3) = '002' AND error_code <> 'SI002' THEN 1 ELSE 0 END) > 0 THEN ',DYNAMIC 002' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI007' AND error_code <> '70007' THEN 1 ELSE 0 END) > 0 THEN ',SI007' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI051' THEN 1 ELSE 0 END) > 0 THEN ',SI051' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN substr(error_code,3,3) = '014' AND error_code <> '00014' THEN 1 ELSE 0 END) > 0 THEN ',014' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI569' THEN 1 ELSE 0 END) > 0 THEN ',SI569' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI570' THEN 1 ELSE 0 END) > 0 THEN ',SI570' ELSE '' END || " +
+                 " CASE WHEN SUM(CASE WHEN error_code = 'SI015' THEN 1 ELSE 0 END) > 0 THEN ',SI015' ELSE '' END" +
+                 " ) AS ACTIVE_ERROR_CODES " +
+                 " FROM filtered_logs " +
+                 " GROUP BY API_NAME, BROKER_NAME " +
+                 " HAVING ROUND(SUM(is_td_error) * 100 / COUNT(1), 2) >= 0.5 " +
+                 " ORDER BY TD_PERCENT DESC " +
+                 ") WHERE ROWNUM <= 10";
+         }
+		 
+		
+		 Connection reportexpcon= DBUtilityAuto.getReportDBConnection();
+		 try {
+			
+			 String exp_insert = "insert into a_exp_service_wise_td (API_NAME,BROKER_NAME ,TOTAL_HITS, TD_COUNT,TD_PERCENT, ACTIVE_ERROR_CODES , insertion_Time)(?,?,?,?,?,?,SYSDATE)  ";
+			 PreparedStatement prepared = reportexpcon.prepareStatement(exp_insert);
+			 Statement expsmt= reportexpcon.createStatement();
+			 ResultSet rs= expsmt.executeQuery(sql);
+			 while(rs.next()) {
+				 prepared.setObject(1, rs.getString("API_NAME"));
+				 prepared.setObject(2, rs.getString("BROKER_NAME"));
+				 prepared.setObject(3, rs.getInt("TOTAL_HITS"));
+				 prepared.setObject(4, rs.getInt("TD_COUNT"));
+				 prepared.setObject(5, rs.getDouble("TD_PERCENT"));
+				 prepared.setObject(6, rs.getString("ACTIVE_ERROR_CODES"));
+				 
+				 prepared.addBatch();
+			 }
+			 rs.close();
+			 prepared.close();
+			 expsmt.close();
+		 }catch(Exception e) {
+			 e.printStackTrace();
+		 }finally {
+			if(reportexpcon != null) reportexpcon.close();
+		 }
+		
+	}
+	
+	private static void sysService() throws SQLException {
+		Connection iibsyscon = DBUtilityAuto.getIIBDBConnection();
+		Connection reportsyscon = DBUtilityAuto.getReportDBConnection();
+        ZonedDateTime CurrentDate = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM_yy");
+        String PART = CurrentDate.format(formatter).toUpperCase();
+        String sys_insert = "insert into a_sys_service_wise_td (API_NAME,SYS_BROKER ,TOTAL_HITS, TD_COUNT,TD_PERCENT, ACTIVE_ERROR_CODES , insertion_Time)(?,?,?,?,?,?,SYSDATE)";
+		String SysSql = "WITH filtered_logs AS ( " +
+                " SELECT /*+PARALLEL(04)*/ " +
+                " API_NAME, " +
+                " SYS_BROKER, " +
+                " error_code, " +
+                " CASE " +
+                " WHEN (substr(error_code,3,3) in ('002','014') OR error_code in ('SI001','SI007','SI569','SI570','SI015')) " +
+                " AND error_code <> '00014' THEN 1 " +
+                " ELSE 0 " +
+                " END AS is_td_error " +
+                " FROM eisapp.backend_log PARTITION(" + PART + ") " +
+                " WHERE " +
+                " REQUEST_DATE_TIME >= SYSDATE - INTERVAL '10' MINUTE " +
+                " AND API_NAME NOT LIKE '%gen.%' " +
+                ") " +
+                "SELECT * FROM ( " +
+                " SELECT " +
+                " API_NAME, " +
+                " SYS_BROKER, " +
+                " COUNT(1) AS TOTAL_HITS, " +
+                " SUM(is_td_error) AS TD_COUNT, " +
+                " ROUND(SUM(is_td_error) * 100 / COUNT(1), 2) AS TD_PERCENT, " +
+                " TRIM(',' FROM " +
+                " CASE WHEN SUM(CASE WHEN error_code = 'SI001' THEN 1 ELSE 0 END) > 0 THEN ',SI001' ELSE '' END || " +
+                " CASE WHEN SUM(CASE WHEN error_code = 'SI002' THEN 1 ELSE 0 END) > 0 THEN ',SI002' ELSE '' END || " +
+                " CASE WHEN SUM(CASE WHEN substr(error_code,3,3) = '002' AND error_code <> 'SI002' THEN 1 ELSE 0 END) > 0 THEN ',DYNAMIC 002' ELSE '' END || " +
+                " CASE WHEN SUM(CASE WHEN error_code = 'SI007' AND error_code <> '70007' THEN 1 ELSE 0 END) > 0 THEN ',SI007' ELSE '' END || " +
+                " CASE WHEN SUM(CASE WHEN error_code = 'SI051' THEN 1 ELSE 0 END) > 0 THEN ',SI051' ELSE '' END || " +
+                " CASE WHEN SUM(CASE WHEN substr(error_code,3,3) = '014' AND error_code <> '00014' THEN 1 ELSE 0 END) > 0 THEN ',014' ELSE '' END || " +
+                " CASE WHEN SUM(CASE WHEN error_code = 'SI569' THEN 1 ELSE 0 END) > 0 THEN ',SI569' ELSE '' END || " +
+                " CASE WHEN SUM(CASE WHEN error_code = 'SI570' THEN 1 ELSE 0 END) > 0 THEN ',SI570' ELSE '' END || " +
+                " CASE WHEN SUM(CASE WHEN error_code = 'SI015' THEN 1 ELSE 0 END) > 0 THEN ',SI015' ELSE '' END" +
+                " ) AS ACTIVE_ERROR_CODES " +
+                " FROM filtered_logs " +
+                " GROUP BY API_NAME, SYS_BROKER " +
+                " HAVING COUNT(1)>10 "+
+                " ORDER BY TD_PERCENT DESC " +
+                ") WHERE ROWNUM <= 10";
+		try {
+			PreparedStatement prepared = reportsyscon.prepareStatement(sys_insert);
+			 Statement syssmt= iibsyscon.createStatement();
+			 ResultSet rs= syssmt.executeQuery(SysSql);
+			 while(rs.next()) {
+				 System.out.println(rs.getString("API_NAME"));
+				 prepared.setObject(1, rs.getString("API_NAME"));
+				 System.out.println(rs.getString("SYS_BROKER"));
+				 prepared.setObject(2, rs.getString("SYS_BROKER"));
+				 prepared.setObject(3, rs.getInt("TOTAL_HITS"));
+				 prepared.setObject(4, rs.getInt("TD_COUNT"));
+				 prepared.setObject(5, rs.getDouble("TD_PERCENT"));
+				 prepared.setObject(6, rs.getString("ACTIVE_ERROR_CODES"));
+				 prepared.addBatch();
+			 }
+			 rs.close();
+			 syssmt.close();
+			 prepared.close();
+		}catch (Exception e) {
+			e.printStackTrace();
+		}finally {
+			if(iibsyscon != null) iibsyscon.close();
+			if(reportsyscon != null) reportsyscon.close();
+		}
+	}
+
+}
 
