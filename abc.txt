@@ -466,6 +466,7 @@ if ("export".equals(action)) {
         .alert-custom.alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
         .alert-custom.alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
         .alert-custom.alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; display: block; }
+        .done-by-required { color: #dc3545; font-size: 11px; font-weight: 600; margin-left: 4px; }
         @media (max-width: 768px) { body { padding: 12px; } .header-card { padding: 16px; flex-direction: column; align-items: stretch; } .header-right { justify-content: space-between; } .search-card { flex-direction: column; align-items: stretch; } .search-card .search-group { width: 100%; } .search-card .search-group input[type="date"] { width: 100%; } .table-checklist { min-width: 1000px; font-size: 11px; } }
     </style>
 </head>
@@ -516,7 +517,7 @@ if ("export".equals(action)) {
         </div>
     </div>
 
-    <!-- ===== MESSAGE ALERT (Instead of Toast) ===== -->
+    <!-- ===== MESSAGE ALERT ===== -->
     <% if (showMessage && message != null && !message.isEmpty()) { %>
         <div class="alert-custom 
             <%= message.startsWith("✅") ? "alert-success" : "" %>
@@ -553,6 +554,10 @@ if ("export".equals(action)) {
             <i class="fas fa-info-circle"></i> 
             <span class="highlight">Row Numbers:</span> Time Slots (1-5) | Night Reports (1-17)
         </div>
+        <div>
+            <i class="fas fa-star text-warning"></i> 
+            <span class="highlight">Mandatory:</span> At least <strong>one "Done By"</strong> value must be selected
+        </div>
         <div class="w-100 mt-1" style="font-size:12px; color:#4a5a6a; border-top:1px dashed #dce3ed; padding-top:6px;">
             <i class="fas fa-shift"></i> 
             <span class="highlight">Night Shift:</span> 10:00 PM → 7:00 AM (Next Day)
@@ -566,7 +571,7 @@ if ("export".equals(action)) {
 
         <div class="section-card">
             <div class="card-header-custom">
-                <h5><i class="fas fa-clock"></i> Time Slots</h5>
+                <h5><i class="fas fa-clock"></i> Time Slots <span class="done-by-required">* Done By mandatory</span></h5>
                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><%= timeSlots.size() %> Slots</span>
             </div>
             <div class="card-body-custom">
@@ -578,7 +583,7 @@ if ("export".equals(action)) {
                             <th style="min-width:150px;">Unresponded Mails &amp; GIMS &amp; DPG</th>
                             <th style="min-width:150px;">Strategic Management</th>
                             <th style="min-width:150px;">Helix Ticket</th>
-                            <th style="min-width:120px;">Done By</th>
+                            <th style="min-width:120px;">Done By <span class="text-danger">*</span></th>
                             <th style="min-width:140px;">Review</th>
                             <th style="min-width:140px;">Remarks</th>
                             <th style="min-width:140px;">Last Updated</th>
@@ -652,7 +657,7 @@ if ("export".equals(action)) {
                                     <span><%= doneBy %></span>
                                     <input type="hidden" name="done_by[]" value="<%= doneBy %>">
                                 <% } else { %>
-                                    <select class="form-select form-select-sm" name="done_by_display_ts_<%= tsCounter %>" onchange="updateDoneBy(this, 'ts_<%= tsCounter %>')">
+                                    <select class="form-select form-select-sm done-by-select" name="done_by_display_ts_<%= tsCounter %>" onchange="updateDoneBy(this, 'ts_<%= tsCounter %>')">
                                         <option value="" <%= (doneBy == null || doneBy.isEmpty()) ? "selected" : "" %>>Select</option>
                                         <% for (String emp : employeeList) { %>
                                             <option value="<%= emp %>" <%= emp.equals(doneBy) ? "selected" : "" %>><%= emp %></option>
@@ -690,7 +695,7 @@ if ("export".equals(action)) {
 
         <div class="section-card">
             <div class="card-header-custom">
-                <h5><i class="fas fa-file-alt"></i> Night Reports</h5>
+                <h5><i class="fas fa-file-alt"></i> Night Reports <span class="done-by-required">* Done By mandatory</span></h5>
                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><%= nightReports.size() %> Reports</span>
             </div>
             <div class="card-body-custom">
@@ -700,7 +705,7 @@ if ("export".equals(action)) {
                             <th style="width:45px;">#</th>
                             <th style="min-width:200px;">TASK</th>
                             <th style="min-width:120px;">STATUS</th>
-                            <th style="min-width:120px;">Done By</th>
+                            <th style="min-width:120px;">Done By <span class="text-danger">*</span></th>
                             <th style="min-width:140px;">Review</th>
                             <th style="min-width:140px;">Remarks</th>
                             <th style="min-width:140px;">Last Updated</th>
@@ -747,7 +752,7 @@ if ("export".equals(action)) {
                                     <span><%= doneBy %></span>
                                     <input type="hidden" name="done_by[]" value="<%= doneBy %>">
                                 <% } else { %>
-                                    <select class="form-select form-select-sm" name="done_by_display_nr_<%= nrCounter %>" onchange="updateDoneBy(this, 'nr_<%= nrCounter %>')">
+                                    <select class="form-select form-select-sm done-by-select" name="done_by_display_nr_<%= nrCounter %>" onchange="updateDoneBy(this, 'nr_<%= nrCounter %>')">
                                         <option value="" <%= (doneBy == null || doneBy.isEmpty()) ? "selected" : "" %>>Select</option>
                                         <% for (String emp : employeeList) { %>
                                             <option value="<%= emp %>" <%= emp.equals(doneBy) ? "selected" : "" %>><%= emp %></option>
@@ -807,20 +812,47 @@ if ("export".equals(action)) {
         if (selectElem.value && selectElem.value.trim() !== '') {
             tr.classList.add('row-highlight');
             if (indicator) indicator.style.display = 'inline';
+            selectElem.style.border = '1.5px solid #28a745';
+            selectElem.style.backgroundColor = '#f0fff4';
         } else {
             tr.classList.remove('row-highlight');
             if (indicator) indicator.style.display = 'none';
+            selectElem.style.border = '2px solid #dc3545';
+            selectElem.style.backgroundColor = '#fff5f5';
         }
+        checkDoneByStatus();
+    }
+
+    function checkDoneByStatus() {
+        var hasDoneBy = false;
+        var allSelects = document.querySelectorAll('select.done-by-select');
+        allSelects.forEach(function(select) {
+            if (select.value && select.value.trim() !== '') {
+                hasDoneBy = true;
+                select.style.border = '1.5px solid #28a745';
+                select.style.backgroundColor = '#f0fff4';
+            } else {
+                select.style.border = '2px solid #dc3545';
+                select.style.backgroundColor = '#fff5f5';
+            }
+        });
+        return hasDoneBy;
     }
 
     $(document).ready(function() {
-        $('select[name^="done_by_display_"]').each(function() {
+        // Initialize Done By fields
+        $('select.done-by-select').each(function() {
             var name = $(this).attr('name');
             var rowId = name.replace('done_by_display_', '');
             if ($(this).val() && $(this).val().trim() !== '') {
                 var tr = $('#row-' + rowId);
                 tr.addClass('row-highlight');
                 $('#row-' + rowId + '-indicator').show();
+                $(this).css('border', '1.5px solid #28a745');
+                $(this).css('background-color', '#f0fff4');
+            } else {
+                $(this).css('border', '2px solid #dc3545');
+                $(this).css('background-color', '#fff5f5');
             }
         });
         
@@ -843,6 +875,44 @@ if ("export".equals(action)) {
             alert('⚠️ Cannot save: View is read-only.');
             return;
         }
+
+        // ===== MANDATORY CHECK: At least one Done By must be selected =====
+        var doneByFields = document.getElementsByName('done_by[]');
+        var hasDoneBy = false;
+        var firstEmptySelect = null;
+        
+        for (var i = 0; i < doneByFields.length; i++) {
+            if (doneByFields[i].value && doneByFields[i].value.trim() !== '') {
+                hasDoneBy = true;
+                break;
+            }
+        }
+        
+        if (!hasDoneBy) {
+            // Highlight all empty fields and scroll to first
+            var selects = document.querySelectorAll('select.done-by-select');
+            for (var j = 0; j < selects.length; j++) {
+                if (!selects[j].value || selects[j].value.trim() === '') {
+                    selects[j].style.border = '3px solid #dc3545';
+                    selects[j].style.backgroundColor = '#fff0f0';
+                    selects[j].style.boxShadow = '0 0 0 3px rgba(220,53,69,0.25)';
+                    if (!firstEmptySelect) {
+                        firstEmptySelect = selects[j];
+                    }
+                }
+            }
+            
+            if (firstEmptySelect) {
+                firstEmptySelect.focus();
+                $('html, body').animate({
+                    scrollTop: $(firstEmptySelect).offset().top - 150
+                }, 300);
+            }
+            
+            alert('⚠️ Please select at least one "Done By" value before saving!\n\nEmpty fields are highlighted in red.');
+            return;
+        }
+        // ===== END MANDATORY CHECK =====
 
         if (!confirm('✅ Are you sure you want to save the changes?')) {
             return;
@@ -886,6 +956,10 @@ if ("export".equals(action)) {
         if (val === 'DONE') $(this).addClass('status-done');
         else if (val === 'PENDING' || val === 'IN PROGRESS') $(this).addClass('status-pending');
         else if (val === 'NA') $(this).addClass('status-na');
+    });
+
+    $(document).on('change', 'select.done-by-select', function() {
+        checkDoneByStatus();
     });
 
     $(document).on('keydown', function(e) {
