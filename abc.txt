@@ -31,6 +31,11 @@
     private String NVL(String str, String defaultVal) {
         return (str == null || str.trim().isEmpty()) ? defaultVal : str.trim();
     }
+    
+    private String cleanCSV(String str) {
+        if (str == null) return "";
+        return str.replace(",", ";").replace("\"", "'").replace("\n", " ");
+    }
 %>
 
 <%
@@ -347,45 +352,125 @@ try {
 
 String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "FAILED", "REVIEW"};
 
+// ===== EXPORT - FIXED with CSV Fallback =====
 if ("export".equals(action)) {
-    response.setContentType("application/vnd.ms-excel");
-    response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".xls\"");
     try {
-        HSSFWorkbook workbook = new HSSFWorkbook();
-        HSSFSheet sheet = workbook.createSheet("Night Checklist");
-        HSSFRow headerRow = sheet.createRow(0);
-        String[] headers = {"#", "Section", "Task", "Status1", "Status2", "Status3", "Done By", "Review", "Remarks", "Last Updated"};
-        for (int i = 0; i < headers.length; i++) {
-            HSSFCell cell = headerRow.createCell(i);
-            cell.setCellValue(headers[i]);
-            HSSFCellStyle style = workbook.createCellStyle();
-            HSSFFont font = workbook.createFont();
-            font.setBold(true);
-            style.setFont(font);
-            cell.setCellStyle(style);
+        boolean excelSuccess = false;
+        
+        // Try Excel first (if POI available)
+        try {
+            Class.forName("org.apache.poi.hssf.usermodel.HSSFWorkbook");
+            
+            response.setContentType("application/vnd.ms-excel");
+            response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".xls\"");
+            
+            HSSFWorkbook workbook = new HSSFWorkbook();
+            HSSFSheet sheet = workbook.createSheet("Night Checklist");
+            
+            // Header
+            HSSFRow headerRow = sheet.createRow(0);
+            String[] headers = {"#", "Section", "Task", "Status1", "Status2", "Status3", "Done By", "Review", "Remarks", "Last Updated"};
+            HSSFCellStyle headerStyle = workbook.createCellStyle();
+            HSSFFont headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            
+            for (int i = 0; i < headers.length; i++) {
+                HSSFCell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            
+            // Data
+            int rowNum = 1;
+            for (Map<String, Object> row : displayRows) {
+                HSSFRow excelRow = sheet.createRow(rowNum++);
+                excelRow.createCell(0).setCellValue(rowNum - 1);
+                excelRow.createCell(1).setCellValue((String) row.get("section"));
+                excelRow.createCell(2).setCellValue((String) row.get("task_name"));
+                excelRow.createCell(3).setCellValue((String) row.get("status1"));
+                excelRow.createCell(4).setCellValue((String) row.get("status2"));
+                excelRow.createCell(5).setCellValue((String) row.get("status3"));
+                excelRow.createCell(6).setCellValue((String) row.get("done_by"));
+                excelRow.createCell(7).setCellValue((String) row.get("review"));
+                excelRow.createCell(8).setCellValue((String) row.get("remarks"));
+                Timestamp ts = (Timestamp) row.get("updated_at");
+                excelRow.createCell(9).setCellValue(ts != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "");
+            }
+            
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+            
+            workbook.write(response.getOutputStream());
+            workbook.close();
+            excelSuccess = true;
+            
+        } catch (ClassNotFoundException e) {
+            // POI not available - will use CSV
+            System.out.println("POI library not found, using CSV fallback");
+        } catch (Exception e) {
+            // Excel failed - will use CSV
+            System.out.println("Excel export failed: " + e.getMessage());
         }
-        int rowNum = 1;
-        for (Map<String, Object> row : displayRows) {
-            HSSFRow excelRow = sheet.createRow(rowNum++);
-            excelRow.createCell(0).setCellValue(rowNum - 1);
-            excelRow.createCell(1).setCellValue((String) row.get("section"));
-            excelRow.createCell(2).setCellValue((String) row.get("task_name"));
-            excelRow.createCell(3).setCellValue((String) row.get("status1"));
-            excelRow.createCell(4).setCellValue((String) row.get("status2"));
-            excelRow.createCell(5).setCellValue((String) row.get("status3"));
-            excelRow.createCell(6).setCellValue((String) row.get("done_by"));
-            excelRow.createCell(7).setCellValue((String) row.get("review"));
-            excelRow.createCell(8).setCellValue((String) row.get("remarks"));
-            Timestamp ts = (Timestamp) row.get("updated_at");
-            excelRow.createCell(9).setCellValue(ts != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "");
+        
+        // If Excel failed, use CSV fallback
+        if (!excelSuccess) {
+            response.setContentType("text/csv");
+            response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".csv\"");
+            
+            PrintWriter writer = response.getWriter();
+            writer.print('\uFEFF'); // UTF-8 BOM for Excel compatibility
+            
+            writer.println("#,Section,Task,Status1,Status2,Status3,Done By,Review,Remarks,Last Updated");
+            
+            int rowNum = 1;
+            for (Map<String, Object> row : displayRows) {
+                String section = (String) row.get("section");
+                String taskName = (String) row.get("task_name");
+                String status1 = (String) row.get("status1");
+                String status2 = (String) row.get("status2");
+                String status3 = (String) row.get("status3");
+                String doneBy = (String) row.get("done_by");
+                String review = (String) row.get("review");
+                String remark = (String) row.get("remarks");
+                Timestamp ts = (Timestamp) row.get("updated_at");
+                String lastUpdated = (ts != null) ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "";
+                
+                writer.println(
+                    (rowNum++) + "," +
+                    cleanCSV(section) + "," +
+                    cleanCSV(taskName) + "," +
+                    cleanCSV(status1) + "," +
+                    cleanCSV(status2) + "," +
+                    cleanCSV(status3) + "," +
+                    cleanCSV(doneBy) + "," +
+                    cleanCSV(review) + "," +
+                    cleanCSV(remark) + "," +
+                    cleanCSV(lastUpdated)
+                );
+            }
+            
+            writer.flush();
+            writer.close();
         }
-        for (int i = 0; i < headers.length; i++) {
-            sheet.autoSizeColumn(i);
-        }
-        workbook.write(response.getOutputStream());
-        workbook.close();
+        
     } catch (Exception e) {
         e.printStackTrace();
+        // If everything fails, show error
+        try {
+            response.setContentType("text/html");
+            out.println("<h3>Export Error:</h3>");
+            out.println("<pre>");
+            out.println("Error: " + e.toString());
+            out.println("Message: " + e.getMessage());
+            for (StackTraceElement ste : e.getStackTrace()) {
+                out.println(ste.toString());
+            }
+            out.println("</pre>");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
     return;
 }
@@ -396,7 +481,7 @@ if ("export".equals(action)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Night Shift Checklist - <%= displayDateStr %></title>
-        <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
+    <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/all.min.css" rel="stylesheet">
     <script src="../js/jquery-3.7.1.min.js"></script>
