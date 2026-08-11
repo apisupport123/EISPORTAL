@@ -44,9 +44,18 @@ try {
     e.printStackTrace();
 }
 
+// ===== DATE & TIME LOGIC =====
 Calendar nowCal = Calendar.getInstance();
 java.util.Date now = nowCal.getTime();
 int hour = nowCal.get(Calendar.HOUR_OF_DAY);
+int minute = nowCal.get(Calendar.MINUTE);
+
+// Edit Mode: 4 PM (16:00) to next day 8 AM (08:00)
+boolean isEditable = false;
+if (hour >= 16 || hour < 8) {
+    isEditable = true;
+}
+
 boolean beforeFourPM = (hour < 16);
 
 Calendar todayCal = Calendar.getInstance();
@@ -91,12 +100,13 @@ if (isCustomView) {
     if (!displayDate.equals(todaySQL)) {
         globalFrozen = true;
     } else {
-        globalFrozen = beforeFourPM;
+        globalFrozen = !isEditable;
     }
 } else {
-    globalFrozen = beforeFourPM;
+    globalFrozen = !isEditable;
 }
 
+// ===== HANDLE SAVE =====
 String action = request.getParameter("action");
 String message = "";
 
@@ -414,9 +424,11 @@ if ("export".equals(action)) {
         .search-card .search-group button { border-radius: 50px; padding: 6px 18px; font-weight: 600; font-size: 13px; }
         .search-card .status-indicator { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; }
         .badge-status-mode { padding: 6px 16px; border-radius: 50px; font-weight: 600; }
-        .info-banner { background: linear-gradient(135deg, #e6f0fa, #f0f7ff); border-radius: var(--border-radius-md); padding: 14px 24px; margin-bottom: 28px; border-left: 5px solid var(--primary-blue); display: flex; align-items: center; flex-wrap: wrap; gap: 12px 32px; font-size: 14px; color: #1a2a3a; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); }
+        .info-banner { background: linear-gradient(135deg, #e6f0fa, #f0f7ff); border-radius: var(--border-radius-md); padding: 16px 24px; margin-bottom: 28px; border-left: 5px solid var(--primary-blue); display: flex; align-items: center; flex-wrap: wrap; gap: 8px 24px; font-size: 13px; color: #1a2a3a; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02); }
         .info-banner i { color: var(--primary-blue); margin-right: 6px; width: 18px; }
         .info-banner .highlight { font-weight: 600; color: var(--primary-dark); }
+        .info-banner .badge-time { background: var(--primary-dark); color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .info-banner .time-slot { display: inline-flex; align-items: center; gap: 4px; background: #e8edf4; padding: 2px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; }
         .section-card { background: #ffffff; border-radius: var(--border-radius-lg); box-shadow: var(--card-shadow); margin-bottom: 32px; overflow: hidden; border: 1px solid rgba(0,0,0,0.02); transition: box-shadow 0.2s; }
         .section-card:hover { box-shadow: 0 16px 48px -12px rgba(11,26,48,0.12); }
         .section-card .card-header-custom { background: #fafcff; padding: 16px 24px; border-bottom: 2px solid #eef3f9; display: flex; justify-content: space-between; align-items: center; }
@@ -450,6 +462,7 @@ if ("export".equals(action)) {
         .spinner-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.6); backdrop-filter: blur(3px); z-index: 9998; justify-content: center; align-items: center; }
         .spinner-overlay .spinner-border { width: 60px; height: 60px; color: var(--primary-blue); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .row-highlight { background-color: #fff9e6 !important; }
+        .edit-timer { font-weight: 600; color: var(--primary-blue); }
         @media (max-width: 768px) { body { padding: 12px; } .header-card { padding: 16px; flex-direction: column; align-items: stretch; } .header-right { justify-content: space-between; } .search-card { flex-direction: column; align-items: stretch; } .search-card .search-group { width: 100%; } .search-card .search-group input[type="date"] { width: 100%; } .table-checklist { min-width: 1000px; font-size: 11px; } .toast-container { left: 20px; right: 20px; top: 20px; } .toast { min-width: auto; } }
     </style>
 </head>
@@ -509,11 +522,33 @@ if ("export".equals(action)) {
         </div>
     </div>
 
+    <!-- ===== INFORMATIVE INFO BANNER ===== -->
     <div class="info-banner">
-        <div><i class="fas fa-clock"></i> <span class="highlight">Edit Mode:</span> After <strong>4:00 PM</strong> today's shift becomes editable.</div>
-        <div><i class="fas fa-hourglass-half"></i> <span class="highlight">Slot Freeze:</span> Each time slot freezes <strong>30 min</strong> after its end time.</div>
-        <div><i class="fas fa-history"></i> Historical dates are always <span class="highlight">read-only</span>.</div>
-        <div><i class="fas fa-info-circle"></i> <span class="highlight">Row numbers are per table</span> – Time Slots (1-5), Night Reports (1-17).</div>
+        <div>
+            <i class="fas fa-clock"></i> 
+            <span class="highlight">Edit Window:</span> 
+            <span class="time-slot"><i class="fas fa-sun"></i> 4:00 PM</span>
+            <i class="fas fa-arrow-right text-muted mx-1"></i>
+            <span class="time-slot"><i class="fas fa-moon"></i> 8:00 AM (Next Day)</span>
+        </div>
+        <div>
+            <i class="fas fa-hourglass-half"></i> 
+            <span class="highlight">Slot Freeze:</span> Each time slot freezes <strong>30 min</strong> after its end time
+        </div>
+        <div>
+            <i class="fas fa-history"></i> 
+            <span class="highlight">History:</span> Past dates are <strong>read-only</strong>
+        </div>
+        <div>
+            <i class="fas fa-info-circle"></i> 
+            <span class="highlight">Row Numbers:</span> Time Slots (1-5) | Night Reports (1-17)
+        </div>
+        <div class="w-100 mt-1" style="font-size:12px; color:#4a5a6a; border-top:1px dashed #dce3ed; padding-top:6px;">
+            <i class="fas fa-shift"></i> 
+            <span class="highlight">Night Shift:</span> 10:00 PM → 7:00 AM (Next Day)
+            <span class="ms-3"><i class="fas fa-edit"></i> Editable from 4:00 PM same day</span>
+            <span class="ms-3"><i class="fas fa-lock"></i> Locks at 8:00 AM next day</span>
+        </div>
     </div>
 
     <form id="checklistForm" method="post">
