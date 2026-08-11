@@ -45,7 +45,8 @@ Calendar nowCal = Calendar.getInstance();
 java.util.Date now = nowCal.getTime();
 int hour = nowCal.get(Calendar.HOUR_OF_DAY);
 int minute = nowCal.get(Calendar.MINUTE);
-boolean beforeSixPM = (hour < 18);
+// FIXED: Edit Mode now starts at 4:00 PM instead of 6:00 PM
+boolean beforeFourPM = (hour < 16); // 4:00 PM
 
 Calendar todayCal = Calendar.getInstance();
 todayCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -78,7 +79,8 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
 }
 
 if (!isCustomView) {
-    displayDate = beforeSixPM ? yesterdaySQL : todaySQL;
+    // FIXED: Before 4PM show yesterday, after 4PM show today
+    displayDate = beforeFourPM ? yesterdaySQL : todaySQL;
     saveDate = todaySQL;
 }
 
@@ -89,13 +91,15 @@ if (isCustomView) {
     if (!displayDate.equals(todaySQL)) {
         globalFrozen = true;
     } else {
-        globalFrozen = beforeSixPM;
+        // FIXED: Before 4PM = frozen, after 4PM = editable
+        globalFrozen = beforeFourPM;
     }
 } else {
-    globalFrozen = beforeSixPM;
+    // FIXED: Before 4PM = frozen, after 4PM = editable
+    globalFrozen = beforeFourPM;
 }
 
-// ===== HANDLE SAVE - FIXED VERSION =====
+// ===== HANDLE SAVE - WITH CONDITIONAL UPDATED_AT =====
 String action = request.getParameter("action");
 String message = "";
 
@@ -110,21 +114,25 @@ if ("save".equals(action)) {
     String[] remarks = request.getParameterValues("remarks[]");
 
     if (sections != null && sections.length > 0 && !globalFrozen) {
-        System.out.println("======= SAVE DEBUG (FIXED - FINAL) =======");
+        System.out.println("======= SAVE DEBUG (FINAL - UPDATED_AT FIXED) =======");
         System.out.println("sections length: " + sections.length);
         System.out.println("doneBys length: " + (doneBys != null ? doneBys.length : "null"));
-        System.out.println("reviews length: " + (reviews != null ? reviews.length : "null"));
-        System.out.println("remarks length: " + (remarks != null ? remarks.length : "null"));
 
         try {
             conn.setAutoCommit(false);
             
-            // SIMPLIFIED: Direct MERGE statement - no mapping needed!
+            // FIXED: updated_at only updates when data actually changes
             String mergeSQL = "MERGE INTO night_checklist t " +
                     "USING (SELECT ? AS report_date, ? AS section, ? AS task_name FROM dual) s " +
                     "ON (t.report_date = s.report_date AND t.section = s.section AND t.task_name = s.task_name) " +
                     "WHEN MATCHED THEN UPDATE SET " +
-                    "    status1=?, status2=?, status3=?, done_by=?, review=?, remarks=?, updated_at = SYSTIMESTAMP " +
+                    "    status1=?, status2=?, status3=?, done_by=?, review=?, remarks=?, " +
+                    "    updated_at = CASE " +
+                    "        WHEN NVL(t.status1,'') != NVL(?,'') OR NVL(t.status2,'') != NVL(?,'') OR NVL(t.status3,'') != NVL(?,'') " +
+                    "             OR NVL(t.done_by,'') != NVL(?,'') OR NVL(t.review,'') != NVL(?,'') OR NVL(t.remarks,'') != NVL(?,'') " +
+                    "        THEN SYSTIMESTAMP " +
+                    "        ELSE t.updated_at " +
+                    "    END " +
                     "WHEN NOT MATCHED THEN INSERT " +
                     "    (report_date, section, task_name, status1, status2, status3, done_by, review, remarks, created_at, updated_at) " +
                     "    VALUES (s.report_date, s.section, s.task_name, ?, ?, ?, ?, ?, ?, SYSTIMESTAMP, SYSTIMESTAMP)";
@@ -140,9 +148,9 @@ if ("save".equals(action)) {
                 String review = (reviews != null && i < reviews.length) ? reviews[i] : "";
                 String remark = (remarks != null && i < remarks.length) ? remarks[i] : "";
 
-                System.out.println("Row " + (i+1) + ": section=" + section + ", task=" + taskName + ", done_by='" + doneBy + "', review='" + review + "', remark='" + remark + "'");
+                System.out.println("Row " + (i+1) + ": done_by='" + doneBy + "', review='" + review + "', remark='" + remark + "'");
 
-                // For MATCHED update (params 1-9)
+                // MATCHED update params (1-9)
                 pstmt.setDate(1, saveDate);
                 pstmt.setString(2, section);
                 pstmt.setString(3, taskName);
@@ -153,13 +161,21 @@ if ("save".equals(action)) {
                 pstmt.setString(8, review);
                 pstmt.setString(9, remark);
                 
-                // For NOT MATCHED insert (params 10-18)
+                // CASE condition params (10-15) - new values for comparison
                 pstmt.setString(10, status1);
                 pstmt.setString(11, status2);
                 pstmt.setString(12, status3);
                 pstmt.setString(13, doneBy);
                 pstmt.setString(14, review);
                 pstmt.setString(15, remark);
+                
+                // NOT MATCHED insert params (16-24)
+                pstmt.setString(16, status1);
+                pstmt.setString(17, status2);
+                pstmt.setString(18, status3);
+                pstmt.setString(19, doneBy);
+                pstmt.setString(20, review);
+                pstmt.setString(21, remark);
                 
                 pstmt.executeUpdate();
             }
@@ -481,9 +497,9 @@ if ("export".equals(action)) {
         </div>
     </div>
 
-    <!-- INFO BANNER -->
+    <!-- INFO BANNER - FIXED: Updated to show 4:00 PM -->
     <div class="info-banner">
-        <div><i class="fas fa-clock"></i> <span class="highlight">Edit Mode:</span> After <strong>6:00 PM</strong> today's shift becomes editable.</div>
+        <div><i class="fas fa-clock"></i> <span class="highlight">Edit Mode:</span> After <strong>4:00 PM</strong> today's shift becomes editable.</div>
         <div><i class="fas fa-hourglass-half"></i> <span class="highlight">Slot Freeze:</span> Each time slot freezes <strong>30 min</strong> after its end time.</div>
         <div><i class="fas fa-history"></i> Historical dates are always <span class="highlight">read-only</span>.</div>
         <div><i class="fas fa-info-circle"></i> <span class="highlight">Row numbers are per table</span> – Time Slots (1-5), Night Reports (1-17).</div>
@@ -577,7 +593,6 @@ if ("export".equals(action)) {
                                     </select>
                                 <% } %>
                             </td>
-                            <!-- FIXED: Done By column - ALWAYS submits value -->
                             <td>
                                 <% if (slotFrozen) { %>
                                     <span><%= doneBy %></span>
@@ -589,7 +604,6 @@ if ("export".equals(action)) {
                                             <option value="<%= emp %>" <%= emp.equals(doneBy) ? "selected" : "" %>><%= emp %></option>
                                         <% } %>
                                     </select>
-                                    <!-- HIDDEN FIELD that ALWAYS submits -->
                                     <input type="hidden" name="done_by[]" value="<%= doneBy %>" id="done_by_ts_<%= tsCounter %>">
                                     <span id="row-ts-<%= tsCounter %>-indicator" style="display:none; color:green; margin-left:4px;"><i class="fas fa-check-circle"></i></span>
                                 <% } %>
@@ -647,7 +661,7 @@ if ("export".equals(action)) {
                         } else {
                             for (Map<String, Object> row : nightReports) {
                                 nrCounter++;
-                                int actualRowIndex = 5 + nrCounter; // Time slots (5) + night report index
+                                int actualRowIndex = 5 + nrCounter;
                                 boolean frozen = globalFrozen;
                                 String status1 = (String) row.get("status1");
                                 String doneBy = (String) row.get("done_by");
@@ -675,7 +689,6 @@ if ("export".equals(action)) {
                                     <input type="hidden" name="status3[]" value="">
                                 <% } %>
                             </td>
-                            <!-- FIXED: Done By column - ALWAYS submits value -->
                             <td>
                                 <% if (frozen) { %>
                                     <span><%= doneBy %></span>
@@ -687,7 +700,6 @@ if ("export".equals(action)) {
                                             <option value="<%= emp %>" <%= emp.equals(doneBy) ? "selected" : "" %>><%= emp %></option>
                                         <% } %>
                                     </select>
-                                    <!-- HIDDEN FIELD that ALWAYS submits -->
                                     <input type="hidden" name="done_by[]" value="<%= doneBy %>" id="done_by_nr_<%= nrCounter %>">
                                     <span id="row-nr-<%= nrCounter %>-indicator" style="display:none; color:green; margin-left:4px;"><i class="fas fa-check-circle"></i></span>
                                 <% } %>
@@ -718,7 +730,7 @@ if ("export".equals(action)) {
             </div>
         </div>
 
-    </form> <!-- end single form -->
+    </form>
 
     <!-- FOOTER -->
     <div class="text-center text-muted py-3" style="font-size:13px; border-top:1px solid #e2e8f0;">
@@ -745,7 +757,6 @@ if ("export".equals(action)) {
         toastInstance.show();
     }
 
-    // FIXED: Update hidden field when dropdown changes
     function updateDoneBy(selectElem, rowId) {
         var hiddenField = document.getElementById('done_by_' + rowId);
         if (hiddenField) {
@@ -764,7 +775,6 @@ if ("export".equals(action)) {
     }
 
     $(document).ready(function() {
-        // Initialize highlights for existing values
         $('select[name^="done_by_display_"]').each(function() {
             var name = $(this).attr('name');
             var rowId = name.replace('done_by_display_', '');
@@ -801,7 +811,6 @@ if ("export".equals(action)) {
             return;
         }
 
-        // Show what will be saved
         var mapping = [];
         var doneByFields = document.getElementsByName('done_by[]');
         var sectionFields = document.getElementsByName('section[]');
