@@ -27,6 +27,10 @@
             return null;
         }
     }
+    
+    private String NVL(String str, String defaultVal) {
+        return (str == null || str.trim().isEmpty()) ? defaultVal : str.trim();
+    }
 %>
 
 <%
@@ -45,8 +49,7 @@ Calendar nowCal = Calendar.getInstance();
 java.util.Date now = nowCal.getTime();
 int hour = nowCal.get(Calendar.HOUR_OF_DAY);
 int minute = nowCal.get(Calendar.MINUTE);
-// FIXED: Edit Mode now starts at 4:00 PM instead of 6:00 PM
-boolean beforeFourPM = (hour < 16); // 4:00 PM
+boolean beforeFourPM = (hour < 16);
 
 Calendar todayCal = Calendar.getInstance();
 todayCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -79,7 +82,6 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
 }
 
 if (!isCustomView) {
-    // FIXED: Before 4PM show yesterday, after 4PM show today
     displayDate = beforeFourPM ? yesterdaySQL : todaySQL;
     saveDate = todaySQL;
 }
@@ -91,15 +93,13 @@ if (isCustomView) {
     if (!displayDate.equals(todaySQL)) {
         globalFrozen = true;
     } else {
-        // FIXED: Before 4PM = frozen, after 4PM = editable
         globalFrozen = beforeFourPM;
     }
 } else {
-    // FIXED: Before 4PM = frozen, after 4PM = editable
     globalFrozen = beforeFourPM;
 }
 
-// ===== HANDLE SAVE - WITH CONDITIONAL UPDATED_AT =====
+// ===== HANDLE SAVE =====
 String action = request.getParameter("action");
 String message = "";
 
@@ -114,25 +114,34 @@ if ("save".equals(action)) {
     String[] remarks = request.getParameterValues("remarks[]");
 
     if (sections != null && sections.length > 0 && !globalFrozen) {
-        System.out.println("======= SAVE DEBUG (FINAL - UPDATED_AT FIXED) =======");
-        System.out.println("sections length: " + sections.length);
-        System.out.println("doneBys length: " + (doneBys != null ? doneBys.length : "null"));
-
         try {
             conn.setAutoCommit(false);
             
-            // FIXED: updated_at only updates when data actually changes
+            Map<String, Map<String, Object>> existingData = new HashMap<>();
+            String selectSQL = "SELECT section, task_name, status1, status2, status3, done_by, review, remarks FROM night_checklist WHERE report_date = ?";
+            pstmt = conn.prepareStatement(selectSQL);
+            pstmt.setDate(1, saveDate);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                String key = rs.getString("section") + "||" + rs.getString("task_name");
+                Map<String, Object> data = new HashMap<>();
+                data.put("status1", rs.getString("status1"));
+                data.put("status2", rs.getString("status2"));
+                data.put("status3", rs.getString("status3"));
+                data.put("done_by", rs.getString("done_by"));
+                data.put("review", rs.getString("review"));
+                data.put("remarks", rs.getString("remarks"));
+                existingData.put(key, data);
+            }
+            rs.close();
+            pstmt.close();
+
             String mergeSQL = "MERGE INTO night_checklist t " +
                     "USING (SELECT ? AS report_date, ? AS section, ? AS task_name FROM dual) s " +
                     "ON (t.report_date = s.report_date AND t.section = s.section AND t.task_name = s.task_name) " +
                     "WHEN MATCHED THEN UPDATE SET " +
                     "    status1=?, status2=?, status3=?, done_by=?, review=?, remarks=?, " +
-                    "    updated_at = CASE " +
-                    "        WHEN NVL(t.status1,'') != NVL(?,'') OR NVL(t.status2,'') != NVL(?,'') OR NVL(t.status3,'') != NVL(?,'') " +
-                    "             OR NVL(t.done_by,'') != NVL(?,'') OR NVL(t.review,'') != NVL(?,'') OR NVL(t.remarks,'') != NVL(?,'') " +
-                    "        THEN SYSTIMESTAMP " +
-                    "        ELSE t.updated_at " +
-                    "    END " +
+                    "    updated_at = ? " +
                     "WHEN NOT MATCHED THEN INSERT " +
                     "    (report_date, section, task_name, status1, status2, status3, done_by, review, remarks, created_at, updated_at) " +
                     "    VALUES (s.report_date, s.section, s.task_name, ?, ?, ?, ?, ?, ?, SYSTIMESTAMP, SYSTIMESTAMP)";
@@ -141,6 +150,7 @@ if ("save".equals(action)) {
             for (int i = 0; i < sections.length; i++) {
                 String section = sections[i];
                 String taskName = taskNames[i];
+                String key = section + "||" + taskName;
                 String status1 = (status1s != null && i < status1s.length) ? status1s[i] : "PENDING";
                 String status2 = (status2s != null && i < status2s.length) ? status2s[i] : "";
                 String status3 = (status3s != null && i < status3s.length) ? status3s[i] : "";
@@ -148,9 +158,30 @@ if ("save".equals(action)) {
                 String review = (reviews != null && i < reviews.length) ? reviews[i] : "";
                 String remark = (remarks != null && i < remarks.length) ? remarks[i] : "";
 
-                System.out.println("Row " + (i+1) + ": done_by='" + doneBy + "', review='" + review + "', remark='" + remark + "'");
+                boolean dataChanged = false;
+                Map<String, Object> existing = existingData.get(key);
+                if (existing == null) {
+                    dataChanged = true;
+                } else {
+                    String oldStatus1 = (String) existing.get("status1");
+                    String oldStatus2 = (String) existing.get("status2");
+                    String oldStatus3 = (String) existing.get("status3");
+                    String oldDoneBy = (String) existing.get("done_by");
+                    String oldReview = (String) existing.get("review");
+                    String oldRemark = (String) existing.get("remarks");
+                    
+                    if (!NVL(oldStatus1,"").equals(NVL(status1,"")) ||
+                        !NVL(oldStatus2,"").equals(NVL(status2,"")) ||
+                        !NVL(oldStatus3,"").equals(NVL(status3,"")) ||
+                        !NVL(oldDoneBy,"").equals(NVL(doneBy,"")) ||
+                        !NVL(oldReview,"").equals(NVL(review,"")) ||
+                        !NVL(oldRemark,"").equals(NVL(remark,""))) {
+                        dataChanged = true;
+                    }
+                }
 
-                // MATCHED update params (1-9)
+                Timestamp updateTime = dataChanged ? new Timestamp(now.getTime()) : null;
+
                 pstmt.setDate(1, saveDate);
                 pstmt.setString(2, section);
                 pstmt.setString(3, taskName);
@@ -161,21 +192,18 @@ if ("save".equals(action)) {
                 pstmt.setString(8, review);
                 pstmt.setString(9, remark);
                 
-                // CASE condition params (10-15) - new values for comparison
-                pstmt.setString(10, status1);
-                pstmt.setString(11, status2);
-                pstmt.setString(12, status3);
-                pstmt.setString(13, doneBy);
-                pstmt.setString(14, review);
-                pstmt.setString(15, remark);
+                if (updateTime != null) {
+                    pstmt.setTimestamp(10, updateTime);
+                } else {
+                    pstmt.setNull(10, java.sql.Types.TIMESTAMP);
+                }
                 
-                // NOT MATCHED insert params (16-24)
-                pstmt.setString(16, status1);
-                pstmt.setString(17, status2);
-                pstmt.setString(18, status3);
-                pstmt.setString(19, doneBy);
-                pstmt.setString(20, review);
-                pstmt.setString(21, remark);
+                pstmt.setString(11, status1);
+                pstmt.setString(12, status2);
+                pstmt.setString(13, status3);
+                pstmt.setString(14, doneBy);
+                pstmt.setString(15, review);
+                pstmt.setString(16, remark);
                 
                 pstmt.executeUpdate();
             }
@@ -439,12 +467,10 @@ if ("export".equals(action)) {
 </head>
 <body>
 
-<!-- SPINNER -->
 <div class="spinner-overlay" id="spinnerOverlay">
     <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
 </div>
 
-<!-- TOAST -->
 <div class="toast-container">
     <div id="liveToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -456,7 +482,6 @@ if ("export".equals(action)) {
 
 <div class="main-container">
 
-    <!-- HEADER -->
     <div class="header-card">
         <div class="header-left">
             <h1><i class="fas fa-moon"></i> Night Shift Checklist</h1>
@@ -479,7 +504,6 @@ if ("export".equals(action)) {
         </div>
     </div>
 
-    <!-- SEARCH BAR -->
     <div class="search-card">
         <div class="search-group">
             <i class="fas fa-calendar-alt text-muted"></i>
@@ -497,7 +521,6 @@ if ("export".equals(action)) {
         </div>
     </div>
 
-    <!-- INFO BANNER - FIXED: Updated to show 4:00 PM -->
     <div class="info-banner">
         <div><i class="fas fa-clock"></i> <span class="highlight">Edit Mode:</span> After <strong>4:00 PM</strong> today's shift becomes editable.</div>
         <div><i class="fas fa-hourglass-half"></i> <span class="highlight">Slot Freeze:</span> Each time slot freezes <strong>30 min</strong> after its end time.</div>
@@ -505,11 +528,9 @@ if ("export".equals(action)) {
         <div><i class="fas fa-info-circle"></i> <span class="highlight">Row numbers are per table</span> – Time Slots (1-5), Night Reports (1-17).</div>
     </div>
 
-    <!-- ===== SINGLE FORM – ALL ROWS ===== -->
     <form id="checklistForm" method="post">
         <input type="hidden" name="action" value="save">
 
-        <!-- TIME SLOTS -->
         <div class="section-card">
             <div class="card-header-custom">
                 <h5><i class="fas fa-clock"></i> Time Slots</h5>
@@ -538,7 +559,7 @@ if ("export".equals(action)) {
                         } else {
                             for (Map<String, Object> row : timeSlots) {
                                 tsCounter++;
-                                int actualRowIndex = tsCounter; // 1-5
+                                int actualRowIndex = tsCounter;
                                 String taskName = (String) row.get("task_name");
                                 boolean slotFrozen = globalFrozen;
                                 if (!globalFrozen) {
@@ -634,7 +655,6 @@ if ("export".equals(action)) {
             </div>
         </div>
 
-        <!-- NIGHT REPORTS -->
         <div class="section-card">
             <div class="card-header-custom">
                 <h5><i class="fas fa-file-alt"></i> Night Reports</h5>
@@ -732,7 +752,6 @@ if ("export".equals(action)) {
 
     </form>
 
-    <!-- FOOTER -->
     <div class="text-center text-muted py-3" style="font-size:13px; border-top:1px solid #e2e8f0;">
         <i class="fas fa-database me-1"></i> Night Shift Checklist &bull; <%= displayDateStr %> &bull;
         <span id="lastSaved">Last saved: <%= new SimpleDateFormat("HH:mm:ss").format(now) %></span>
@@ -811,30 +830,6 @@ if ("export".equals(action)) {
             return;
         }
 
-        var mapping = [];
-        var doneByFields = document.getElementsByName('done_by[]');
-        var sectionFields = document.getElementsByName('section[]');
-        var taskFields = document.getElementsByName('task_name[]');
-        for (var i = 0; i < doneByFields.length; i++) {
-            var doneVal = doneByFields[i].value;
-            if (doneVal && doneVal.trim() !== '') {
-                var section = sectionFields[i] ? sectionFields[i].value : '?';
-                var task = taskFields[i] ? taskFields[i].value : '?';
-                mapping.push('Row ' + (i+1) + ': ' + doneVal + ' (' + section + ' - ' + task + ')');
-            }
-        }
-
-        var msg = 'The following Done By values will be saved:\n\n';
-        if (mapping.length === 0) {
-            msg += '⚠️ No Done By values selected.\n';
-        } else {
-            msg += mapping.join('\n');
-        }
-        msg += '\n\nProceed with save?';
-        if (!confirm(msg)) {
-            return;
-        }
-
         saveInProgress = true;
         $('#spinnerOverlay').fadeIn(200);
 
@@ -877,7 +872,6 @@ if ("export".equals(action)) {
 </body>
 </html>
 <%
-// ===== RESOURCES CLEANUP =====
 try {
     if (rs != null) rs.close();
 } catch (Exception e) {}
