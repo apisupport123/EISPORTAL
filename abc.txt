@@ -517,7 +517,6 @@ if ("export".equals(action)) {
         </div>
     </div>
 
-    <!-- ===== MESSAGE ALERT ===== -->
     <% if (showMessage && message != null && !message.isEmpty()) { %>
         <div class="alert-custom 
             <%= message.startsWith("✅") ? "alert-success" : "" %>
@@ -533,7 +532,6 @@ if ("export".equals(action)) {
         </div>
     <% } %>
 
-    <!-- ===== INFORMATIVE INFO BANNER ===== -->
     <div class="info-banner">
         <div>
             <i class="fas fa-clock"></i> 
@@ -556,7 +554,7 @@ if ("export".equals(action)) {
         </div>
         <div>
             <i class="fas fa-star text-warning"></i> 
-            <span class="highlight">Mandatory:</span> At least <strong>one "Done By"</strong> value must be selected
+            <span class="highlight">Mandatory:</span> All <strong>"Done By"</strong> fields must be filled
         </div>
         <div class="w-100 mt-1" style="font-size:12px; color:#4a5a6a; border-top:1px dashed #dce3ed; padding-top:6px;">
             <i class="fas fa-shift"></i> 
@@ -571,7 +569,7 @@ if ("export".equals(action)) {
 
         <div class="section-card">
             <div class="card-header-custom">
-                <h5><i class="fas fa-clock"></i> Time Slots <span class="done-by-required">* Done By mandatory</span></h5>
+                <h5><i class="fas fa-clock"></i> Time Slots <span class="done-by-required">* All Done By mandatory</span></h5>
                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><%= timeSlots.size() %> Slots</span>
             </div>
             <div class="card-body-custom">
@@ -695,7 +693,7 @@ if ("export".equals(action)) {
 
         <div class="section-card">
             <div class="card-header-custom">
-                <h5><i class="fas fa-file-alt"></i> Night Reports <span class="done-by-required">* Done By mandatory</span></h5>
+                <h5><i class="fas fa-file-alt"></i> Night Reports <span class="done-by-required">* All Done By mandatory</span></h5>
                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill"><%= nightReports.size() %> Reports</span>
             </div>
             <div class="card-body-custom">
@@ -824,19 +822,21 @@ if ("export".equals(action)) {
     }
 
     function checkDoneByStatus() {
-        var hasDoneBy = false;
+        var allFilled = true;
+        var emptyCount = 0;
         var allSelects = document.querySelectorAll('select.done-by-select');
         allSelects.forEach(function(select) {
             if (select.value && select.value.trim() !== '') {
-                hasDoneBy = true;
                 select.style.border = '1.5px solid #28a745';
                 select.style.backgroundColor = '#f0fff4';
             } else {
                 select.style.border = '2px solid #dc3545';
                 select.style.backgroundColor = '#fff5f5';
+                allFilled = false;
+                emptyCount++;
             }
         });
-        return hasDoneBy;
+        return { allFilled: allFilled, emptyCount: emptyCount };
     }
 
     $(document).ready(function() {
@@ -876,19 +876,20 @@ if ("export".equals(action)) {
             return;
         }
 
-        // ===== MANDATORY CHECK: At least one Done By must be selected =====
+        // ===== MANDATORY CHECK: ALL Done By fields must be filled =====
         var doneByFields = document.getElementsByName('done_by[]');
-        var hasDoneBy = false;
+        var allFilled = true;
+        var emptyCount = 0;
         var firstEmptySelect = null;
         
         for (var i = 0; i < doneByFields.length; i++) {
-            if (doneByFields[i].value && doneByFields[i].value.trim() !== '') {
-                hasDoneBy = true;
-                break;
+            if (!doneByFields[i].value || doneByFields[i].value.trim() === '') {
+                allFilled = false;
+                emptyCount++;
             }
         }
         
-        if (!hasDoneBy) {
+        if (!allFilled) {
             // Highlight all empty fields and scroll to first
             var selects = document.querySelectorAll('select.done-by-select');
             for (var j = 0; j < selects.length; j++) {
@@ -909,7 +910,7 @@ if ("export".equals(action)) {
                 }, 300);
             }
             
-            alert('⚠️ Please select at least one "Done By" value before saving!\n\nEmpty fields are highlighted in red.');
+            alert('⚠️ All "Done By" fields are mandatory!\n\n' + emptyCount + ' row(s) are empty.\nPlease select "Done By" for all rows before saving.');
             return;
         }
         // ===== END MANDATORY CHECK =====
