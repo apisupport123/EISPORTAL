@@ -68,3 +68,30 @@ Thread timeRangeThread = new Thread(new Runnable() {
         }
     }
 });
+
+// Time range message - using database max insertion time
+document.addEventListener('DOMContentLoaded', function() {
+    // Get times from server-side
+    var minTime = '<%= request.getAttribute("minTime") != null ? request.getAttribute("minTime") : "" %>';
+    var maxTime = '<%= request.getAttribute("maxTime") != null ? request.getAttribute("maxTime") : "" %>';
+    
+    // If we have valid times from database, use them
+    if (minTime && maxTime && minTime !== "" && maxTime !== "") {
+        var message = 'Session data from ' + minTime + ' to ' + maxTime + ' (DB Insertion Time)';
+        document.getElementById('timeRangeMessage').innerText = message;
+    } else {
+        // Fallback to current time range
+        var currentTime = new Date();
+        var tenMinutesAgo = new Date();
+        tenMinutesAgo.setMinutes(currentTime.getMinutes() - 10);
+        var formatTime = function(date) {
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes;
+        };
+        var message = 'Session data from ' + formatTime(tenMinutesAgo) + ' to ' + formatTime(currentTime);
+        document.getElementById('timeRangeMessage').innerText = message;
+    }
+});
