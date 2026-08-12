@@ -257,6 +257,7 @@ class SysDataHolder {
     List<String> errorCodes = new ArrayList<>();
     boolean loaded = false;
 }
+
 class TimeRangeHolder {
     String minTime = "";
     String maxTime = "";
@@ -267,66 +268,72 @@ final ExpDataHolder expHolder = new ExpDataHolder();
 final SysDataHolder sysHolder = new SysDataHolder();
 final TimeRangeHolder timeRangeHolder = new TimeRangeHolder();
 
-//Create thread to fetch only MAX insertion time from database
+// Create thread to fetch only MAX insertion time from database
 Thread timeRangeThread = new Thread(new Runnable() {
- public void run() {
-     try {
-         Connection conn = null;
-         try {
-             conn = DBUtilityAuto.getReportDBConnection();
-             // Query to get max insertion time from both tables
-             String timeSql = "SELECT MAX(INSERTION_TIME) as max_time FROM ( \n"
-                 + "SELECT INSERTION_TIME FROM a_exp_service_wise_td WHERE INSERTION_TIME >= SYSTIMESTAMP - INTERVAL '10' MINUTE \n"
-                 + "UNION ALL \n"
-                 + "SELECT INSERTION_TIME FROM a_sys_service_wise_td WHERE INSERTION_TIME >= SYSTIMESTAMP - INTERVAL '10' MINUTE \n"
-                 + ")";
-             
-             System.out.println("Time Range Query: " + timeSql);
-             Statement statement = conn.createStatement();
-             ResultSet resultSet = statement.executeQuery(timeSql);
-             
-             if (resultSet.next()) {
-                 Timestamp maxTime = resultSet.getTimestamp("max_time");
-                 
-                 if (maxTime != null) {
-                     // Format max time
-                     SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-                     timeRangeHolder.maxTime = sdf.format(maxTime);
-                     
-                     // Subtract 10 minutes from max time to get min time
-                     Calendar cal = Calendar.getInstance();
-                     cal.setTime(maxTime);
-                     cal.add(Calendar.MINUTE, -10);
-                     timeRangeHolder.minTime = sdf.format(cal.getTime());
-                 } else {
-                     // Fallback to current time
-                     ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-                     ZonedDateTime tenMinsAgo = now.minusMinutes(10);
-                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-                     timeRangeHolder.minTime = tenMinsAgo.format(formatter);
-                     timeRangeHolder.maxTime = now.format(formatter);
-                 }
-             }
-             resultSet.close();
-             statement.close();
-         } catch (Exception e) {
-             e.printStackTrace();
-             // Fallback to current time range
-             ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-             ZonedDateTime tenMinsAgo = now.minusMinutes(10);
-             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
-             timeRangeHolder.minTime = tenMinsAgo.format(formatter);
-             timeRangeHolder.maxTime = now.format(formatter);
-         } finally {
-             if (conn != null) try { conn.close(); } catch (Exception e) {}
-         }
-         timeRangeHolder.loaded = true;
-     } catch(Exception e) {
-         e.printStackTrace();
-         timeRangeHolder.loaded = true;
-     }
- }
+    public void run() {
+        try {
+            Connection conn = null;
+            try {
+                conn = DBUtilityAuto.getReportDBConnection();
+                // Query to get max insertion time from both tables
+                String timeSql = "SELECT MAX(INSERTION_TIME) as max_time FROM ("
+                    + "SELECT INSERTION_TIME FROM a_exp_service_wise_td WHERE INSERTION_TIME >= SYSTIMESTAMP - INTERVAL '10' MINUTE "
+                    + "UNION ALL "
+                    + "SELECT INSERTION_TIME FROM a_sys_service_wise_td WHERE INSERTION_TIME >= SYSTIMESTAMP - INTERVAL '10' MINUTE"
+                    + ")";
+                
+                System.out.println("Time Range Query: " + timeSql);
+                Statement statement = conn.createStatement();
+                ResultSet resultSet = statement.executeQuery(timeSql);
+                
+                if (resultSet.next()) {
+                    Timestamp maxTime = resultSet.getTimestamp("max_time");
+                    
+                    if (maxTime != null) {
+                        // Format max time
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                        timeRangeHolder.maxTime = sdf.format(maxTime);
+                        
+                        // Subtract 10 minutes from max time to get min time
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(maxTime);
+                        cal.add(Calendar.MINUTE, -10);
+                        timeRangeHolder.minTime = sdf.format(cal.getTime());
+                        
+                        System.out.println("Max Time from DB: " + timeRangeHolder.maxTime);
+                        System.out.println("Min Time (max - 10 min): " + timeRangeHolder.minTime);
+                    } else {
+                        // Fallback to current time
+                        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+                        ZonedDateTime tenMinsAgo = now.minusMinutes(10);
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+                        timeRangeHolder.minTime = tenMinsAgo.format(formatter);
+                        timeRangeHolder.maxTime = now.format(formatter);
+                        System.out.println("No data found, using current time");
+                    }
+                }
+                resultSet.close();
+                statement.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Fallback to current time range
+                ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+                ZonedDateTime tenMinsAgo = now.minusMinutes(10);
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+                timeRangeHolder.minTime = tenMinsAgo.format(formatter);
+                timeRangeHolder.maxTime = now.format(formatter);
+                System.out.println("Exception occurred, using current time");
+            } finally {
+                if (conn != null) try { conn.close(); } catch (Exception e) {}
+            }
+            timeRangeHolder.loaded = true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            timeRangeHolder.loaded = true;
+        }
+    }
 });
+
 // Create threads to run queries in PARALLEL
 Thread expThread = new Thread(new Runnable() {
     public void run() {
@@ -351,9 +358,6 @@ Thread expThread = new Thread(new Runnable() {
             
             try {
                 conn = DBUtilityAuto.getReportDBConnection();
-                /* ZonedDateTime CurrentDate = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM_yy");
-                String PART = CurrentDate.format(formatter).toUpperCase(); */
                 if(flagStatus.equalsIgnoreCase("PR")){
                     sql = "Select * from a_exp_service_wise_td where INSERTION_TIME >= SYSTIMESTAMP - INTERVAL '10' MINUTE order by TD_PERCENT desc";
                 }
@@ -404,10 +408,7 @@ Thread sysThread = new Thread(new Runnable() {
         try {
             Connection connSys = null;
             try {
-                 connSys = DBUtilityAuto.getReportDBConnection();
-               /*  ZonedDateTime CurrentDate = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM_yy");
-                String PART = CurrentDate.format(formatter).toUpperCase();  */
+                connSys = DBUtilityAuto.getReportDBConnection();
                 String SysSql = "Select * from a_sys_service_wise_td where INSERTION_TIME >= SYSTIMESTAMP - INTERVAL '10' MINUTE order by TD_PERCENT desc";
                 System.out.println(" Sys Query :- "+ SysSql);
                 System.out.println("SYS Query Started at :"+LocalTime.now() + " on thread: " + Thread.currentThread().getName());
@@ -451,13 +452,15 @@ Thread sysThread = new Thread(new Runnable() {
     }
 });
 
-// Start BOTH threads simultaneously - THEY RUN IN PARALLEL!
+// Start ALL THREE threads simultaneously - THEY RUN IN PARALLEL!
 expThread.start();
 sysThread.start();
+timeRangeThread.start();  // <-- IMPORTANT: Start the time range thread
 
-// Wait for both threads to complete
+// Wait for all three threads to complete
 expThread.join();
 sysThread.join();
+timeRangeThread.join();   // <-- IMPORTANT: Wait for time range thread to complete
 
 // Store in request attributes for access
 request.setAttribute("expLabels", expHolder.labels);
@@ -471,6 +474,13 @@ request.setAttribute("sysValues", sysHolder.values);
 request.setAttribute("sysApiNames", sysHolder.apiNames);
 request.setAttribute("sysBrokerNames", sysHolder.brokerNames);
 request.setAttribute("sysErrorCodes", sysHolder.errorCodes);
+
+// Store time range in request attributes  <-- IMPORTANT: Set these attributes
+request.setAttribute("minTime", timeRangeHolder.minTime);
+request.setAttribute("maxTime", timeRangeHolder.maxTime);
+
+System.out.println("minTime set in request: " + timeRangeHolder.minTime);
+System.out.println("maxTime set in request: " + timeRangeHolder.maxTime);
 %>
 
 <!-- Legend in Top Right Corner -->
@@ -541,27 +551,14 @@ errorCodes: [],
 loaded: false
 };
 
-/* // Time range message
-document.addEventListener('DOMContentLoaded', function() {
-var currentTime = new Date();
-var tenMinutesAgo = new Date();
-tenMinutesAgo.setMinutes(currentTime.getMinutes() - 10);
-var formatTime = function(date) {
-var hours = date.getHours();
-var minutes = date.getMinutes();
-hours = hours < 10 ? '0' + hours : hours;
-minutes = minutes < 10 ? '0' + minutes : minutes;
-return hours + ':' + minutes;
-};
-var message = 'Your session was from ' + formatTime(tenMinutesAgo) + ' to ' + formatTime(currentTime);
-document.getElementById('timeRangeMessage').innerText = message;
-}); */
-
-//Time range message - using database max insertion time
+// Time range message - using database max insertion time
 document.addEventListener('DOMContentLoaded', function() {
     // Get times from server-side
     var minTime = '<%= request.getAttribute("minTime") != null ? request.getAttribute("minTime") : "" %>';
     var maxTime = '<%= request.getAttribute("maxTime") != null ? request.getAttribute("maxTime") : "" %>';
+    
+    console.log("minTime from server: " + minTime);
+    console.log("maxTime from server: " + maxTime);
     
     // If we have valid times from database, use them
     if (minTime && maxTime && minTime !== "" && maxTime !== "") {
