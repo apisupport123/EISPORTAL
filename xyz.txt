@@ -353,16 +353,10 @@ try {
 String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "FAILED", "REVIEW"};
 
 // ================================================================
-// ===== EXPORT - COMPLETELY REPLACED WITH JAVASCRIPT VERSION =====
-// ================================================================
-// The export action now only sets up the page with export data
-// Actual export happens via JavaScript using SheetJS library
+// ===== EXPORT - EXACT MATCH WITH IMAGE FORMAT =====
 // ================================================================
 
 if ("export".equals(action)) {
-    // Instead of generating Excel here, we'll pass data to JavaScript
-    // and let client-side handle the export
-    // For backward compatibility, we redirect to the main page with export parameter
     response.sendRedirect(request.getContextPath() + "/jsp/NightShiftCheckList_NEW.jsp?exportData=true&viewDate=" + (viewDateParam != null ? viewDateParam : sdfParam.format(displayDate)));
     return;
 }
@@ -370,27 +364,37 @@ if ("export".equals(action)) {
 // Check if this is an export data request
 String exportDataParam = request.getParameter("exportData");
 if ("true".equals(exportDataParam)) {
-    // Return data as JSON for JavaScript export
     response.setContentType("application/json");
     response.setCharacterEncoding("UTF-8");
     
-    List<Map<String, Object>> exportData = new ArrayList<>();
-    int rowNum = 1;
-    for (Map<String, Object> row : displayRows) {
-        Map<String, Object> exportRow = new LinkedHashMap<>();
-        exportRow.put("#", rowNum++);
-        exportRow.put("Section", row.get("section") != null ? row.get("section") : "");
-        exportRow.put("Task", row.get("task_name") != null ? row.get("task_name") : "");
-        exportRow.put("Status1", row.get("status1") != null ? row.get("status1") : "");
-        exportRow.put("Status2", row.get("status2") != null ? row.get("status2") : "");
-        exportRow.put("Status3", row.get("status3") != null ? row.get("status3") : "");
-        exportRow.put("Done By", row.get("done_by") != null ? row.get("done_by") : "");
-        exportRow.put("Review", row.get("review") != null ? row.get("review") : "");
-        exportRow.put("Remarks", row.get("remarks") != null ? row.get("remarks") : "");
-        Timestamp ts = (Timestamp) row.get("updated_at");
-        exportRow.put("Last Updated", ts != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "");
-        exportData.add(exportRow);
+    Map<String, Object> exportData = new LinkedHashMap<>();
+    
+    // ===== TIME SLOTS DATA =====
+    List<Map<String, Object>> timeSlotData = new ArrayList<>();
+    for (Map<String, Object> row : timeSlots) {
+        Map<String, Object> slot = new LinkedHashMap<>();
+        slot.put("time_slot", row.get("task_name") != null ? row.get("task_name") : "");
+        slot.put("unresponded_mails", row.get("status1") != null ? row.get("status1") : "");
+        slot.put("strategic_management", row.get("status2") != null ? row.get("status2") : "");
+        slot.put("helix_ticket", row.get("status3") != null ? row.get("status3") : "");
+        slot.put("done_by", row.get("done_by") != null ? row.get("done_by") : "");
+        timeSlotData.add(slot);
     }
+    exportData.put("timeSlots", timeSlotData);
+    
+    // ===== NIGHT REPORTS DATA =====
+    List<Map<String, Object>> reportData = new ArrayList<>();
+    for (Map<String, Object> row : nightReports) {
+        Map<String, Object> report = new LinkedHashMap<>();
+        report.put("night_report", row.get("task_name") != null ? row.get("task_name") : "");
+        report.put("status", row.get("status1") != null ? row.get("status1") : "");
+        report.put("done_by", row.get("done_by") != null ? row.get("done_by") : "");
+        reportData.add(report);
+    }
+    exportData.put("nightReports", reportData);
+    
+    // ===== DATE =====
+    exportData.put("displayDate", displayDateStr);
     
     // Convert to JSON
     String jsonData = new com.google.gson.Gson().toJson(exportData);
@@ -958,7 +962,7 @@ if ("true".equals(exportDataParam)) {
     }
 
     // ================================================================
-    // ===== EXPORT FUNCTION - COMPLETELY IN JAVASCRIPT =====
+    // ===== EXPORT FUNCTION - EXACT MATCH WITH IMAGE FORMAT =====
     // ================================================================
     function exportExcel() {
         $('#spinnerOverlay').fadeIn(200);
@@ -975,40 +979,15 @@ if ("true".equals(exportDataParam)) {
                 return response.json();
             })
             .then(data => {
-                if (!data || data.length === 0) {
+                if (!data || (!data.timeSlots && !data.nightReports)) {
                     alert('⚠️ No data available to export!');
                     $('#spinnerOverlay').fadeOut(300);
                     return;
                 }
                 
-                // Create worksheet using SheetJS
-                var ws = XLSX.utils.json_to_sheet(data);
+                // Export with styled HTML
+                exportWithStyledHTML(data);
                 
-                // Set column widths
-                var colWidths = [];
-                var headers = Object.keys(data[0]);
-                headers.forEach(function(header, index) {
-                    var maxLen = header.length;
-                    data.forEach(function(row) {
-                        var val = String(row[header] || '');
-                        maxLen = Math.max(maxLen, val.length);
-                    });
-                    colWidths[index] = { wch: Math.min(maxLen + 2, 40) };
-                });
-                ws['!cols'] = colWidths;
-                
-                // Create workbook
-                var wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, 'NightShift');
-                
-                // Generate filename
-                var displayDate = viewDate ? viewDate.replace(/-/g, '-') : new Date().toISOString().split('T')[0];
-                var fileName = 'Night_Shift_Checklist_' + displayDate + '.xlsx';
-                
-                // Download
-                XLSX.writeFile(wb, fileName);
-                
-                alert('✅ Excel exported successfully: ' + fileName);
                 $('#spinnerOverlay').fadeOut(300);
             })
             .catch(error => {
@@ -1016,6 +995,325 @@ if ("true".equals(exportDataParam)) {
                 alert('❌ Error exporting to Excel: ' + error.message);
                 $('#spinnerOverlay').fadeOut(300);
             });
+    }
+
+    // ================================================================
+    // ===== EXPORT WITH STYLED HTML (Colors, Bold, Formatting) =====
+    // ================================================================
+    function exportWithStyledHTML(data) {
+        var displayDate = data.displayDate || new Date().toISOString().split('T')[0];
+        
+        // Create HTML table with styling
+        var html = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+              xmlns:x="urn:schemas-microsoft-com:office:excel" 
+              xmlns="http://www.w3.org/TR/REC-html40">
+        <head>
+            <meta charset="UTF-8">
+            <!--[if gte mso 9]>
+            <xml>
+                <x:ExcelWorkbook>
+                    <x:ExcelWorksheets>
+                        <x:ExcelWorksheet>
+                            <x:Name>Night Checklist</x:Name>
+                            <x:WorksheetOptions>
+                                <x:DisplayGridlines/>
+                            </x:WorksheetOptions>
+                        </x:ExcelWorksheet>
+                    </x:ExcelWorksheets>
+                </x:ExcelWorkbook>
+            </xml>
+            <![endif]-->
+            <style>
+                /* ===== MAIN STYLES ===== */
+                body { 
+                    font-family: 'Segoe UI', Arial, sans-serif; 
+                    padding: 20px;
+                    background: white;
+                }
+                
+                /* ===== DATE HEADER ===== */
+                .date-header {
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: #1a237e;
+                    margin-bottom: 15px;
+                    padding: 10px 15px;
+                    background: #e8edf4;
+                    border-left: 4px solid #1a237e;
+                }
+                
+                /* ===== TABLE STYLES ===== */
+                table {
+                    border-collapse: collapse;
+                    width: 100%;
+                    margin-bottom: 25px;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                }
+                
+                /* ===== HEADER ROW - DARK BLUE BACKGROUND ===== */
+                th {
+                    background: #1a237e;
+                    color: #ffffff;
+                    font-weight: bold;
+                    padding: 12px 10px;
+                    text-align: center;
+                    vertical-align: middle;
+                    border: 1px solid #0d1547;
+                    font-size: 12px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                
+                /* ===== TABLE CELLS ===== */
+                td {
+                    padding: 10px;
+                    border: 1px solid #d0d7de;
+                    text-align: center;
+                    vertical-align: middle;
+                    font-size: 12px;
+                    color: #1a2634;
+                }
+                
+                /* ===== ALTERNATE ROW COLORS ===== */
+                tr:nth-child(even) {
+                    background: #f8f9fc;
+                }
+                
+                tr:nth-child(odd) {
+                    background: #ffffff;
+                }
+                
+                /* ===== TIME SLOT TASK NAMES ===== */
+                .task-name {
+                    font-weight: 600;
+                    color: #0B1A30;
+                    text-align: left;
+                    padding-left: 15px;
+                }
+                
+                /* ===== STATUS COLORS ===== */
+                .status-done {
+                    background: #d4edda;
+                    color: #155724;
+                    font-weight: bold;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                
+                .status-pending {
+                    background: #fff3cd;
+                    color: #856404;
+                    font-weight: bold;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                
+                .status-na {
+                    background: #e2e3e5;
+                    color: #383d41;
+                    font-weight: bold;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                
+                .status-inprogress {
+                    background: #cce5ff;
+                    color: #004085;
+                    font-weight: bold;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                
+                .status-handover {
+                    background: #f5c6cb;
+                    color: #721c24;
+                    font-weight: bold;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                
+                .status-failed {
+                    background: #f8d7da;
+                    color: #721c24;
+                    font-weight: bold;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                
+                .status-review {
+                    background: #d6d8db;
+                    color: #383d41;
+                    font-weight: bold;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    display: inline-block;
+                }
+                
+                /* ===== DONE BY HIGHLIGHT ===== */
+                .done-by {
+                    font-weight: 600;
+                    color: #0B1A30;
+                }
+                
+                /* ===== SECTION TITLE ===== */
+                .section-title {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #1a237e;
+                    padding: 15px 10px 10px 10px;
+                    border-bottom: 3px solid #1a237e;
+                    margin-top: 20px;
+                    margin-bottom: 15px;
+                    background: #e8edf4;
+                }
+                
+                /* ===== PRINT OPTIMIZATION ===== */
+                @media print {
+                    body { padding: 10px; }
+                    th { background: #1a237e !important; color: white !important; }
+                }
+            </style>
+        </head>
+        <body>
+            <!-- ===== DATE HEADER ===== -->
+            <div class="date-header">
+                📅 DATE: ${displayDate}
+            </div>
+        `;
+        
+        // ===== TIME SLOTS TABLE =====
+        if (data.timeSlots && data.timeSlots.length > 0) {
+            html += `
+                <div class="section-title">⏰ TIME SLOTS</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:20%;">TIME SLOT</th>
+                            <th style="width:25%;">UNRESPONDED MAILS &amp; GIMS &amp; DPG</th>
+                            <th style="width:20%;">STRATEGIC MANAGEMENT</th>
+                            <th style="width:15%;">HELIX TICKET</th>
+                            <th style="width:20%;">DONE BY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.timeSlots.forEach(function(row) {
+                var status1 = row.unresponded_mails || '';
+                var status2 = row.strategic_management || '';
+                var status3 = row.helix_ticket || '';
+                var doneBy = row.done_by || '';
+                
+                html += `
+                    <tr>
+                        <td class="task-name">${row.time_slot || ''}</td>
+                        <td>${getStatusBadge(status1)}</td>
+                        <td>${getStatusBadge(status2)}</td>
+                        <td>${getStatusBadge(status3)}</td>
+                        <td class="done-by">${doneBy}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // ===== NIGHT REPORTS TABLE =====
+        if (data.nightReports && data.nightReports.length > 0) {
+            html += `
+                <div class="section-title">📋 NIGHT REPORTS</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:55%;">NIGHT REPORTS</th>
+                            <th style="width:25%;">STATUS</th>
+                            <th style="width:20%;">DONE BY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.nightReports.forEach(function(row) {
+                var status = row.status || '';
+                var doneBy = row.done_by || '';
+                
+                html += `
+                    <tr>
+                        <td class="task-name">${row.night_report || ''}</td>
+                        <td>${getStatusBadge(status)}</td>
+                        <td class="done-by">${doneBy}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        html += `
+            <!-- ===== FOOTER ===== -->
+            <div style="margin-top: 30px; padding-top: 15px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 11px;">
+                Generated on: ${new Date().toLocaleString()}
+            </div>
+        </body>
+        </html>
+        `;
+        
+        // Download
+        var blob = new Blob([html], { 
+            type: 'application/vnd.ms-excel;charset=utf-8' 
+        });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'Night_Shift_Checklist_' + displayDate + '.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+        
+        alert('✅ Excel exported successfully!');
+    }
+
+    // ================================================================
+    // ===== HELPER: GET STATUS BADGE WITH COLOR =====
+    // ================================================================
+    function getStatusBadge(status) {
+        if (!status) return '-';
+        
+        var statusUpper = status.toUpperCase().trim();
+        var className = '';
+        
+        if (statusUpper === 'DONE') {
+            className = 'status-done';
+        } else if (statusUpper === 'PENDING') {
+            className = 'status-pending';
+        } else if (statusUpper === 'NA') {
+            className = 'status-na';
+        } else if (statusUpper === 'IN PROGRESS') {
+            className = 'status-inprogress';
+        } else if (statusUpper === 'HANDOVER') {
+            className = 'status-handover';
+        } else if (statusUpper === 'FAILED') {
+            className = 'status-failed';
+        } else if (statusUpper === 'REVIEW') {
+            className = 'status-review';
+        } else {
+            return status;
+        }
+        
+        return `<span class="${className}">${status}</span>`;
     }
 
     $(document).on('change', '.status-select', function() {
