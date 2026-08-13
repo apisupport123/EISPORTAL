@@ -353,7 +353,7 @@ try {
 String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "FAILED", "REVIEW"};
 
 // ================================================================
-// ===== EXPORT - EXACT MATCH WITH IMAGE FORMAT =====
+// ===== EXPORT - ENHANCED WITH REVIEW & REMARKS =====
 // ================================================================
 
 if ("export".equals(action)) {
@@ -369,7 +369,7 @@ if ("true".equals(exportDataParam)) {
     
     Map<String, Object> exportData = new LinkedHashMap<>();
     
-    // ===== TIME SLOTS DATA =====
+    // ===== TIME SLOTS DATA WITH REVIEW & REMARKS =====
     List<Map<String, Object>> timeSlotData = new ArrayList<>();
     for (Map<String, Object> row : timeSlots) {
         Map<String, Object> slot = new LinkedHashMap<>();
@@ -378,17 +378,23 @@ if ("true".equals(exportDataParam)) {
         slot.put("strategic_management", row.get("status2") != null ? row.get("status2") : "");
         slot.put("helix_ticket", row.get("status3") != null ? row.get("status3") : "");
         slot.put("done_by", row.get("done_by") != null ? row.get("done_by") : "");
+        slot.put("review", row.get("review") != null ? row.get("review") : "");
+        slot.put("remarks", row.get("remarks") != null ? row.get("remarks") : "");
+        slot.put("last_updated", row.get("updated_at") != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(row.get("updated_at")) : "");
         timeSlotData.add(slot);
     }
     exportData.put("timeSlots", timeSlotData);
     
-    // ===== NIGHT REPORTS DATA =====
+    // ===== NIGHT REPORTS DATA WITH REVIEW & REMARKS =====
     List<Map<String, Object>> reportData = new ArrayList<>();
     for (Map<String, Object> row : nightReports) {
         Map<String, Object> report = new LinkedHashMap<>();
         report.put("night_report", row.get("task_name") != null ? row.get("task_name") : "");
         report.put("status", row.get("status1") != null ? row.get("status1") : "");
         report.put("done_by", row.get("done_by") != null ? row.get("done_by") : "");
+        report.put("review", row.get("review") != null ? row.get("review") : "");
+        report.put("remarks", row.get("remarks") != null ? row.get("remarks") : "");
+        report.put("last_updated", row.get("updated_at") != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(row.get("updated_at")) : "");
         reportData.add(report);
     }
     exportData.put("nightReports", reportData);
@@ -860,7 +866,6 @@ String footerDate = sdfFooter.format(new java.util.Date());
     }
 
     $(document).ready(function() {
-        // Initialize Done By fields
         $('select.done-by-select').each(function() {
             var name = $(this).attr('name');
             var rowId = name.replace('done_by_display_', '');
@@ -896,7 +901,6 @@ String footerDate = sdfFooter.format(new java.util.Date());
             return;
         }
 
-        // ===== MANDATORY CHECK: ALL Done By fields must be filled =====
         var doneByFields = document.getElementsByName('done_by[]');
         var allFilled = true;
         var emptyCount = 0;
@@ -910,7 +914,6 @@ String footerDate = sdfFooter.format(new java.util.Date());
         }
         
         if (!allFilled) {
-            // Highlight all empty fields and scroll to first
             var selects = document.querySelectorAll('select.done-by-select');
             for (var j = 0; j < selects.length; j++) {
                 if (!selects[j].value || selects[j].value.trim() === '') {
@@ -933,7 +936,6 @@ String footerDate = sdfFooter.format(new java.util.Date());
             alert('⚠️ All "Done By" fields are mandatory!\n\n' + emptyCount + ' row(s) are empty.\nPlease select "Done By" for all rows before saving.');
             return;
         }
-        // ===== END MANDATORY CHECK =====
 
         if (!confirm('✅ Are you sure you want to save the changes?')) {
             return;
@@ -966,7 +968,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
     }
 
     // ================================================================
-    // ===== EXPORT FUNCTION - EXACT MATCH WITH IMAGE FORMAT =====
+    // ===== ENHANCED EXPORT FUNCTION WITH REVIEW & REMARKS =====
     // ================================================================
     function exportExcel() {
         $('#spinnerOverlay').fadeIn(200);
@@ -974,7 +976,6 @@ String footerDate = sdfFooter.format(new java.util.Date());
         var viewDate = document.getElementById('viewDate').value;
         var url = window.location.pathname + '?exportData=true&viewDate=' + viewDate;
         
-        // Fetch data as JSON
         fetch(url)
             .then(function(response) {
                 if (!response.ok) {
@@ -989,9 +990,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
                     return;
                 }
                 
-                // Export with styled HTML
                 exportWithStyledHTML(data);
-                
                 $('#spinnerOverlay').fadeOut(300);
             })
             .catch(function(error) {
@@ -1002,25 +1001,37 @@ String footerDate = sdfFooter.format(new java.util.Date());
     }
 
     // ================================================================
-    // ===== EXPORT WITH STYLED HTML (Colors, Bold, Formatting) =====
+    // ===== ENHANCED EXPORT WITH REVIEW, REMARKS & BETTER FORMATTING =====
     // ================================================================
     function exportWithStyledHTML(data) {
         var displayDate = data.displayDate || new Date().toISOString().split('T')[0];
         
-        // Create HTML table with styling
         var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
         html += '<head><meta charset="UTF-8">';
         html += '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Night Checklist</x:Name>';
         html += '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
         html += '<style>';
-        html += 'body { font-family: "Segoe UI", Arial, sans-serif; padding: 20px; background: white; }';
-        html += '.date-header { font-size: 16px; font-weight: bold; color: #1a237e; margin-bottom: 15px; padding: 10px 15px; background: #e8edf4; border-left: 4px solid #1a237e; }';
-        html += 'table { border-collapse: collapse; width: 100%; margin-bottom: 25px; font-family: "Segoe UI", Arial, sans-serif; }';
-        html += 'th { background: #1a237e; color: #ffffff; font-weight: bold; padding: 12px 10px; text-align: center; vertical-align: middle; border: 1px solid #0d1547; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }';
-        html += 'td { padding: 10px; border: 1px solid #d0d7de; text-align: center; vertical-align: middle; font-size: 12px; color: #1a2634; }';
+        html += 'body { font-family: "Segoe UI", Arial, sans-serif; padding: 20px; background: #f8f9fc; }';
+        
+        // Main Title
+        html += '.main-title { font-size: 22px; font-weight: 700; color: #0B1A30; text-align: center; padding: 15px; background: linear-gradient(135deg, #e8edf4, #d5dce6); border-radius: 8px; margin-bottom: 20px; border: 2px solid #1a237e; }';
+        html += '.main-title span { color: #1a237e; }';
+        
+        // Date Header
+        html += '.date-header { font-size: 16px; font-weight: bold; color: #1a237e; margin-bottom: 20px; padding: 12px 20px; background: #e8edf4; border-left: 5px solid #1a237e; border-radius: 4px; }';
+        
+        // Table Styles
+        html += 'table { border-collapse: collapse; width: 100%; margin-bottom: 30px; font-family: "Segoe UI", Arial, sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }';
+        html += 'th { background: #1a237e; color: #ffffff; font-weight: bold; padding: 14px 12px; text-align: center; vertical-align: middle; border: 1px solid #0d1547; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }';
+        html += 'td { padding: 12px; border: 1px solid #d0d7de; text-align: center; vertical-align: middle; font-size: 12px; color: #1a2634; }';
         html += 'tr:nth-child(even) { background: #f8f9fc; }';
         html += 'tr:nth-child(odd) { background: #ffffff; }';
+        html += 'tr:hover { background: #e8f0fe; }';
+        
+        // Task Name
         html += '.task-name { font-weight: 600; color: #0B1A30; text-align: left; padding-left: 15px; }';
+        
+        // Status Colors
         html += '.status-done { background: #d4edda; color: #155724; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
         html += '.status-pending { background: #fff3cd; color: #856404; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
         html += '.status-na { background: #e2e3e5; color: #383d41; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
@@ -1028,38 +1039,51 @@ String footerDate = sdfFooter.format(new java.util.Date());
         html += '.status-handover { background: #f5c6cb; color: #721c24; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
         html += '.status-failed { background: #f8d7da; color: #721c24; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
         html += '.status-review { background: #d6d8db; color: #383d41; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
+        
+        // Done By
         html += '.done-by { font-weight: 600; color: #0B1A30; }';
-        html += '.section-title { font-size: 18px; font-weight: bold; color: #1a237e; padding: 15px 10px 10px 10px; border-bottom: 3px solid #1a237e; margin-top: 20px; margin-bottom: 15px; background: #e8edf4; }';
+        
+        // Section Title
+        html += '.section-title { font-size: 18px; font-weight: bold; color: #1a237e; padding: 15px 15px 10px 15px; border-bottom: 3px solid #1a237e; margin-top: 25px; margin-bottom: 20px; background: #e8edf4; border-radius: 4px 4px 0 0; }';
+        html += '.section-title i { margin-right: 10px; }';
+        
+        // Footer
+        html += '.footer { margin-top: 30px; padding: 15px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 11px; background: #f8f9fc; border-radius: 4px; }';
+        html += '.footer .company { font-weight: 600; color: #1a237e; }';
+        
         html += '@media print { body { padding: 10px; } th { background: #1a237e !important; color: white !important; } }';
         html += '</style></head><body>';
         
-        // Date header
-        html += '<div class="date-header">📅 DATE: ' + displayDate + '</div>';
+        // Main Title
+        html += '<div class="main-title">🌙 NIGHT SHIFT CHECKLIST <span>| ' + displayDate + '</span></div>';
+        
+        // Date Header
+        html += '<div class="date-header">📅 Date: ' + displayDate + ' | ⏰ Generated: ' + new Date().toLocaleString() + '</div>';
         
         // ===== TIME SLOTS TABLE =====
         if (data.timeSlots && data.timeSlots.length > 0) {
             html += '<div class="section-title">⏰ TIME SLOTS</div>';
-            html += '<table><thead><tr>';
-            html += '<th style="width:20%;">TIME SLOT</th>';
-            html += '<th style="width:25%;">UNRESPONDED MAILS &amp; GIMS &amp; DPG</th>';
-            html += '<th style="width:20%;">STRATEGIC MANAGEMENT</th>';
-            html += '<th style="width:15%;">HELIX TICKET</th>';
-            html += '<th style="width:20%;">DONE BY</th>';
+            html += '<table>';
+            html += '<thead><tr>';
+            html += '<th style="width:18%;">TIME SLOT</th>';
+            html += '<th style="width:18%;">UNRESPONDED MAILS &amp; GIMS &amp; DPG</th>';
+            html += '<th style="width:16%;">STRATEGIC MANAGEMENT</th>';
+            html += '<th style="width:14%;">HELIX TICKET</th>';
+            html += '<th style="width:14%;">DONE BY</th>';
+            html += '<th style="width:10%;">REVIEW</th>';
+            html += '<th style="width:10%;">REMARKS</th>';
             html += '</tr></thead><tbody>';
             
             for (var i = 0; i < data.timeSlots.length; i++) {
                 var row = data.timeSlots[i];
-                var status1 = row.unresponded_mails || '';
-                var status2 = row.strategic_management || '';
-                var status3 = row.helix_ticket || '';
-                var doneBy = row.done_by || '';
-                
                 html += '<tr>';
                 html += '<td class="task-name">' + (row.time_slot || '') + '</td>';
-                html += '<td>' + getStatusBadge(status1) + '</td>';
-                html += '<td>' + getStatusBadge(status2) + '</td>';
-                html += '<td>' + getStatusBadge(status3) + '</td>';
-                html += '<td class="done-by">' + doneBy + '</td>';
+                html += '<td>' + getStatusBadge(row.unresponded_mails || '') + '</td>';
+                html += '<td>' + getStatusBadge(row.strategic_management || '') + '</td>';
+                html += '<td>' + getStatusBadge(row.helix_ticket || '') + '</td>';
+                html += '<td class="done-by">' + (row.done_by || '') + '</td>';
+                html += '<td style="text-align:left;padding-left:10px;">' + (row.review || '') + '</td>';
+                html += '<td style="text-align:left;padding-left:10px;">' + (row.remarks || '') + '</td>';
                 html += '</tr>';
             }
             
@@ -1069,21 +1093,23 @@ String footerDate = sdfFooter.format(new java.util.Date());
         // ===== NIGHT REPORTS TABLE =====
         if (data.nightReports && data.nightReports.length > 0) {
             html += '<div class="section-title">📋 NIGHT REPORTS</div>';
-            html += '<table><thead><tr>';
-            html += '<th style="width:55%;">NIGHT REPORTS</th>';
-            html += '<th style="width:25%;">STATUS</th>';
-            html += '<th style="width:20%;">DONE BY</th>';
+            html += '<table>';
+            html += '<thead><tr>';
+            html += '<th style="width:35%;">NIGHT REPORTS</th>';
+            html += '<th style="width:18%;">STATUS</th>';
+            html += '<th style="width:15%;">DONE BY</th>';
+            html += '<th style="width:16%;">REVIEW</th>';
+            html += '<th style="width:16%;">REMARKS</th>';
             html += '</tr></thead><tbody>';
             
             for (var i = 0; i < data.nightReports.length; i++) {
                 var row = data.nightReports[i];
-                var status = row.status || '';
-                var doneBy = row.done_by || '';
-                
                 html += '<tr>';
                 html += '<td class="task-name">' + (row.night_report || '') + '</td>';
-                html += '<td>' + getStatusBadge(status) + '</td>';
-                html += '<td class="done-by">' + doneBy + '</td>';
+                html += '<td>' + getStatusBadge(row.status || '') + '</td>';
+                html += '<td class="done-by">' + (row.done_by || '') + '</td>';
+                html += '<td style="text-align:left;padding-left:10px;">' + (row.review || '') + '</td>';
+                html += '<td style="text-align:left;padding-left:10px;">' + (row.remarks || '') + '</td>';
                 html += '</tr>';
             }
             
@@ -1092,8 +1118,10 @@ String footerDate = sdfFooter.format(new java.util.Date());
         
         // Footer
         var footerDate = '<%= footerDate %>';
-        html += '<div style="margin-top: 30px; padding-top: 15px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 11px;">';
-        html += 'Generated on: ' + footerDate;
+        html += '<div class="footer">';
+        html += '<div><span class="company">EIS Portal</span> | Night Shift Checklist</div>';
+        html += '<div style="margin-top:5px;">Generated on: ' + footerDate + ' | Exported by: ' + (session.getAttribute("username") != null ? session.getAttribute("username") : "User") + '</div>';
+        html += '<div style="margin-top:5px;font-size:10px;color:#999;">This is a system generated report. Please verify all entries.</div>';
         html += '</div>';
         
         html += '</body></html>';
@@ -1110,7 +1138,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
         document.body.removeChild(link);
         URL.revokeObjectURL(link.href);
         
-        alert('✅ Excel exported successfully!');
+        alert('✅ Excel exported successfully with Review & Remarks!');
     }
 
     // ================================================================
