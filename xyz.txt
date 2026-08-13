@@ -352,126 +352,49 @@ try {
 
 String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "FAILED", "REVIEW"};
 
-// ===== EXPORT - FIXED with CSV Fallback =====
+// ================================================================
+// ===== EXPORT - COMPLETELY REPLACED WITH JAVASCRIPT VERSION =====
+// ================================================================
+// The export action now only sets up the page with export data
+// Actual export happens via JavaScript using SheetJS library
+// ================================================================
+
 if ("export".equals(action)) {
-    try {
-        boolean excelSuccess = false;
-        
-        // Try Excel first (if POI available)
-        try {
-            Class.forName("org.apache.poi.hssf.usermodel.HSSFWorkbook");
-            
-            response.setContentType("application/vnd.ms-excel");
-            response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".xls\"");
-            
-            HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet("Night Checklist");
-            
-            // Header
-            HSSFRow headerRow = sheet.createRow(0);
-            String[] headers = {"#", "Section", "Task", "Status1", "Status2", "Status3", "Done By", "Review", "Remarks", "Last Updated"};
-            HSSFCellStyle headerStyle = workbook.createCellStyle();
-            HSSFFont headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-            
-            for (int i = 0; i < headers.length; i++) {
-                HSSFCell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(headerStyle);
-            }
-            
-            // Data
-            int rowNum = 1;
-            for (Map<String, Object> row : displayRows) {
-                HSSFRow excelRow = sheet.createRow(rowNum++);
-                excelRow.createCell(0).setCellValue(rowNum - 1);
-                excelRow.createCell(1).setCellValue((String) row.get("section"));
-                excelRow.createCell(2).setCellValue((String) row.get("task_name"));
-                excelRow.createCell(3).setCellValue((String) row.get("status1"));
-                excelRow.createCell(4).setCellValue((String) row.get("status2"));
-                excelRow.createCell(5).setCellValue((String) row.get("status3"));
-                excelRow.createCell(6).setCellValue((String) row.get("done_by"));
-                excelRow.createCell(7).setCellValue((String) row.get("review"));
-                excelRow.createCell(8).setCellValue((String) row.get("remarks"));
-                Timestamp ts = (Timestamp) row.get("updated_at");
-                excelRow.createCell(9).setCellValue(ts != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "");
-            }
-            
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-            
-            workbook.write(response.getOutputStream());
-            workbook.close();
-            excelSuccess = true;
-            
-        } catch (ClassNotFoundException e) {
-            // POI not available - will use CSV
-            System.out.println("POI library not found, using CSV fallback");
-        } catch (Exception e) {
-            // Excel failed - will use CSV
-            System.out.println("Excel export failed: " + e.getMessage());
-        }
-        
-        // If Excel failed, use CSV fallback
-        if (!excelSuccess) {
-            response.setContentType("text/csv");
-            response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".csv\"");
-            
-            PrintWriter writer = response.getWriter();
-            writer.print('\uFEFF'); // UTF-8 BOM for Excel compatibility
-            
-            writer.println("#,Section,Task,Status1,Status2,Status3,Done By,Review,Remarks,Last Updated");
-            
-            int rowNum = 1;
-            for (Map<String, Object> row : displayRows) {
-                String section = (String) row.get("section");
-                String taskName = (String) row.get("task_name");
-                String status1 = (String) row.get("status1");
-                String status2 = (String) row.get("status2");
-                String status3 = (String) row.get("status3");
-                String doneBy = (String) row.get("done_by");
-                String review = (String) row.get("review");
-                String remark = (String) row.get("remarks");
-                Timestamp ts = (Timestamp) row.get("updated_at");
-                String lastUpdated = (ts != null) ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "";
-                
-                writer.println(
-                    (rowNum++) + "," +
-                    cleanCSV(section) + "," +
-                    cleanCSV(taskName) + "," +
-                    cleanCSV(status1) + "," +
-                    cleanCSV(status2) + "," +
-                    cleanCSV(status3) + "," +
-                    cleanCSV(doneBy) + "," +
-                    cleanCSV(review) + "," +
-                    cleanCSV(remark) + "," +
-                    cleanCSV(lastUpdated)
-                );
-            }
-            
-            writer.flush();
-            writer.close();
-        }
-        
-    } catch (Exception e) {
-        e.printStackTrace();
-        // If everything fails, show error
-        try {
-            response.setContentType("text/html");
-            out.println("<h3>Export Error:</h3>");
-            out.println("<pre>");
-            out.println("Error: " + e.toString());
-            out.println("Message: " + e.getMessage());
-            for (StackTraceElement ste : e.getStackTrace()) {
-                out.println(ste.toString());
-            }
-            out.println("</pre>");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    // Instead of generating Excel here, we'll pass data to JavaScript
+    // and let client-side handle the export
+    // For backward compatibility, we redirect to the main page with export parameter
+    response.sendRedirect(request.getContextPath() + "/jsp/NightShiftCheckList_NEW.jsp?exportData=true&viewDate=" + (viewDateParam != null ? viewDateParam : sdfParam.format(displayDate)));
+    return;
+}
+
+// Check if this is an export data request
+String exportDataParam = request.getParameter("exportData");
+if ("true".equals(exportDataParam)) {
+    // Return data as JSON for JavaScript export
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+    
+    List<Map<String, Object>> exportData = new ArrayList<>();
+    int rowNum = 1;
+    for (Map<String, Object> row : displayRows) {
+        Map<String, Object> exportRow = new LinkedHashMap<>();
+        exportRow.put("#", rowNum++);
+        exportRow.put("Section", row.get("section") != null ? row.get("section") : "");
+        exportRow.put("Task", row.get("task_name") != null ? row.get("task_name") : "");
+        exportRow.put("Status1", row.get("status1") != null ? row.get("status1") : "");
+        exportRow.put("Status2", row.get("status2") != null ? row.get("status2") : "");
+        exportRow.put("Status3", row.get("status3") != null ? row.get("status3") : "");
+        exportRow.put("Done By", row.get("done_by") != null ? row.get("done_by") : "");
+        exportRow.put("Review", row.get("review") != null ? row.get("review") : "");
+        exportRow.put("Remarks", row.get("remarks") != null ? row.get("remarks") : "");
+        Timestamp ts = (Timestamp) row.get("updated_at");
+        exportRow.put("Last Updated", ts != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "");
+        exportData.add(exportRow);
     }
+    
+    // Convert to JSON
+    String jsonData = new com.google.gson.Gson().toJson(exportData);
+    out.print(jsonData);
     return;
 }
 %>
@@ -485,6 +408,10 @@ if ("export".equals(action)) {
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/all.min.css" rel="stylesheet">
     <script src="../js/jquery-3.7.1.min.js"></script>
+    
+    <!-- ===== SHEETJS LIBRARY FOR EXCEL EXPORT ===== -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
     <style>
         :root { --primary-dark: #0B1A30; --primary-mid: #1A3A5C; --primary-blue: #2A5C8A; --accent-gold: #F5B041; --bg-main: #f0f4f9; --card-shadow: 0 12px 40px rgba(11,26,48,0.08); --border-radius-lg: 18px; --border-radius-md: 12px; --font-family: 'Inter', sans-serif; }
         * { box-sizing: border-box; }
@@ -1030,10 +957,65 @@ if ("export".equals(action)) {
         });
     }
 
+    // ================================================================
+    // ===== EXPORT FUNCTION - COMPLETELY IN JAVASCRIPT =====
+    // ================================================================
     function exportExcel() {
         $('#spinnerOverlay').fadeIn(200);
-        window.location.href = window.location.pathname + '?action=export' + (window.location.search ? '&' + window.location.search.substring(1) : '');
-        setTimeout(function(){ $('#spinnerOverlay').fadeOut(300); }, 2000);
+        
+        var viewDate = document.getElementById('viewDate').value;
+        var url = window.location.pathname + '?exportData=true&viewDate=' + viewDate;
+        
+        // Fetch data as JSON
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data || data.length === 0) {
+                    alert('⚠️ No data available to export!');
+                    $('#spinnerOverlay').fadeOut(300);
+                    return;
+                }
+                
+                // Create worksheet using SheetJS
+                var ws = XLSX.utils.json_to_sheet(data);
+                
+                // Set column widths
+                var colWidths = [];
+                var headers = Object.keys(data[0]);
+                headers.forEach(function(header, index) {
+                    var maxLen = header.length;
+                    data.forEach(function(row) {
+                        var val = String(row[header] || '');
+                        maxLen = Math.max(maxLen, val.length);
+                    });
+                    colWidths[index] = { wch: Math.min(maxLen + 2, 40) };
+                });
+                ws['!cols'] = colWidths;
+                
+                // Create workbook
+                var wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'NightShift');
+                
+                // Generate filename
+                var displayDate = viewDate ? viewDate.replace(/-/g, '-') : new Date().toISOString().split('T')[0];
+                var fileName = 'Night_Shift_Checklist_' + displayDate + '.xlsx';
+                
+                // Download
+                XLSX.writeFile(wb, fileName);
+                
+                alert('✅ Excel exported successfully: ' + fileName);
+                $('#spinnerOverlay').fadeOut(300);
+            })
+            .catch(error => {
+                console.error('Export error:', error);
+                alert('❌ Error exporting to Excel: ' + error.message);
+                $('#spinnerOverlay').fadeOut(300);
+            });
     }
 
     $(document).on('change', '.status-select', function() {
