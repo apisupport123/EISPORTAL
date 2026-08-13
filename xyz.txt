@@ -1,62 +1,786 @@
-Request URL
-https://10.191.171.12:5443/EISPortal/jsp/NightShiftCheckList_NEW.jsp?action=export&viewDate=2026-08-11
-Request Method
-GET
-Status Code
-500 Internal Server Error
-Remote Address
-10.191.171.12:5443
-Referrer Policy
-strict-origin-when-cross-origin
-access-control-allow-headers
-Content-Type, Authorization
-access-control-allow-methods
-GET, POST, PUT, DELETE, OPTIONS
-access-control-allow-origin
-*
-connection
-Keep-alive
-content-disposition
-attachment; filename="Night_Shift_Checklist_11-08-2026.xls"
-content-language
-en
-content-length
-455
-content-type
-text/html;charset=utf-8
-date
-Thu, 13 Aug 2026 05:05:31 GMT
-via
-1.1 ID-0016035575633470 uproxy-16
-accept
-text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7
-accept-encoding
-gzip, deflate, br, zstd
-accept-language
-en-US,en;q=0.9
-cache-control
-max-age=0
-connection
-keep-alive
-cookie
-JSESSIONID=B55B3070E350B44CBC92246FBB5215D9
-host
-10.191.171.12:5443
-referer
-https://10.191.171.12:5443/EISPortal/jsp/NightShiftCheckList_NEW.jsp?viewDate=2026-08-11
-sec-ch-ua
-"Not=A?Brand";v="99", "Google Chrome";v="151", "Chromium";v="151"
-sec-ch-ua-mobile
-?0
-sec-ch-ua-platform
-"Windows"
-sec-fetch-dest
-document
-sec-fetch-mode
-navigate
-sec-fetch-site
-same-origin
-upgrade-insecure-requests
-1
-user-agent
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+pageEncoding="UTF-8"%>
+<%@ page import="java.util.List" %>
+<%@ page import="com.beans.TxnContactDetailBean" %>
+<%@ page import="org.apache.commons.text.StringEscapeUtils" %>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Txn EndPoint Contact Detail</title>
+    <link href="./css/bootstrap.min.css" rel="stylesheet">
+    <script type="text/javascript" src="./js/jquery.min.js"></script>
+    <link rel="stylesheet" href="./css/csstxncontact.css">
+    <link rel="stylesheet" href="./css/icon.css">
+    <link rel="stylesheet" href="./css/font-awesome.mintxncontactdetails.css">
+    <link rel="stylesheet" href="./css/bootstrap.mintxncontact.css">
+    <script src="./js/jquery.mintxncontact.js"></script>
+    <script src="./js/pagination.min.js"></script>
+    <link rel="stylesheet" href="./css/pagination.css"/>
+
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" href="./css/jquery-1.13.7.dataTables.min.css">
+    <link rel="stylesheet" href="./css/responsive-2.5.0.dataTables.min.css">
+    <script src="./js/jquery-1.13.7.dataTables.min.js"></script>
+    <script src="./js/dataTables-2.5.0.responsive.min.js"></script>
+    <!-- SheetJS for better Excel export with full data -->
+    <script src="./js/xlsx-0.20.2.full.min.js"></script>
+
+    <style type="text/css">
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #1E90FF;
+            padding: 1rem;
+            margin: 0;
+        }
+        .table-wrapper {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 9px;
+            box-shadow: 0 1px 1px rgba(0,0,0,.05);
+            overflow-x: auto;
+            width: 100%;
+        }
+        
+        /* ========== IMPROVED ALIGNMENT STYLES ========== */
+        
+        /* Table layout - fixed for perfect column alignment */
+        .dataTable {
+            width: 100% !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+        }
+        
+        /* Consistent header and cell styling */
+        .dataTable thead th,
+        .dataTable tbody td {
+            vertical-align: middle !important;
+            text-align: left !important;
+            padding: 12px 10px !important;
+            border: 1px solid #dee2e6 !important;
+        }
+        
+        /* Header specific styles - strong alignment */
+        .dataTable thead th {
+            background-color: #435d7d !important;
+            color: white !important;
+            font-weight: bold !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            border: 1px solid #5a7a9a !important;
+        }
+        
+        /* Header text inside b tags */
+        .dataTable thead th b {
+            color: white !important;
+            font-weight: bold !important;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        
+        /* Checkbox column header - center align */
+        .dataTable thead th:first-child {
+            text-align: center !important;
+        }
+        
+        /* Actions column header */
+        .dataTable thead th:last-child {
+            text-align: center !important;
+        }
+        
+        /* Table cells alignment */
+        .dataTable tbody td {
+            text-align: left !important;
+            vertical-align: top !important;
+            word-wrap: break-word !important;
+            word-break: break-word !important;
+            white-space: normal !important;
+            line-height: 1.5 !important;
+            background-color: #fff !important;
+        }
+        
+        /* Checkbox cell - center align */
+        .dataTable tbody td:first-child {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Actions cell - center align with proper spacing */
+        .dataTable tbody td:last-child {
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: nowrap !important;
+        }
+        
+        /* Specific column widths for proper alignment */
+        .dataTable thead th:nth-child(1) { width: 50px; text-align: center !important; }
+        .dataTable thead th:nth-child(2) { width: 100px; text-align: center !important; }
+        .dataTable thead th:nth-child(3) { width: 180px; }
+        .dataTable thead th:nth-child(4) { width: 130px; }
+        .dataTable thead th:nth-child(5) { width: 200px; }
+        .dataTable thead th:nth-child(6) { width: 200px; }
+        .dataTable thead th:nth-child(7) { width: 160px; }
+        .dataTable thead th:nth-child(8) { width: 160px; }
+        .dataTable thead th:nth-child(9) { width: 160px; }
+        .dataTable thead th:nth-child(10) { width: 160px; }
+        .dataTable thead th:nth-child(11) { width: 100px; text-align: center !important; }
+        .dataTable thead th:nth-child(12) { width: 130px; text-align: center !important; }
+        
+        /* Date cells - center alignment */
+        .dataTable tbody td:nth-child(2),
+        .dataTable tbody td:nth-child(11) {
+            text-align: center !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Email cells - better readability */
+        .dataTable tbody td:nth-child(5),
+        .dataTable tbody td:nth-child(6) {
+            word-break: break-all;
+            font-size: 12px;
+        }
+        
+        /* Action buttons styling */
+        .dataTable tbody td:last-child .btn-sm {
+            margin: 2px 3px;
+            padding: 5px 10px;
+            font-size: 12px;
+            display: inline-block;
+        }
+        
+        /* Table title section */
+        .table-title {
+            padding-bottom: 15px;
+            background: #435d7d;
+            color: #fff;
+            padding: 1rem;
+            margin: -25px -25px 10px;
+            border-radius: 3px 3px 0 0;
+        }
+        .table-title h2 {
+            margin: 5px 0 0;
+            font-size: 24px;
+        }
+        .table-title .btn-group {
+            float: right;
+        }
+        .table-title .btn {
+            color: #fff;
+            float: right;
+            font-size: 13px;
+            border: none;
+            min-width: 50px;
+            border-radius: 2px;
+            outline: none !important;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-primary {
+            background-color: #007bff;
+        }
+        .btn-info {
+            background-color: #17a2b2;
+        }
+        table.table tr th, table.table tr td {
+            border-color: #e9e9e9;
+        }
+        
+        /* DataTables customizations */
+        .dataTables_wrapper .dataTables_length,
+        .dataTables_wrapper .dataTables_filter,
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            margin-bottom: 15px;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px 10px;
+            margin-left: 5px;
+        }
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 5px;
+            margin: 0 5px;
+        }
+        
+        /* Ensure DataTables controls are properly styled */
+        .dataTables_wrapper {
+            overflow-x: auto;
+        }
+        
+        /* Zebra striping for better readability */
+        .dataTable tbody tr:nth-of-type(odd) td {
+            background-color: #f9f9f9;
+        }
+        .dataTable tbody tr:hover td {
+            background-color: #f0f0f0;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            padding-top: 50px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 1200px;
+            border-radius: 10px;
+            background-color: #0766AD;
+            opacity: 0.98;
+        }
+        .close {
+            margin-right: 20px;
+            color: #aaaaaa;
+            float: right;
+            font-size: 45px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .column {
+            float: left;
+            width: 23%;
+            padding: 10px 10px;
+        }
+        .row {
+            margin: 0 -5px;
+        }
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        @media screen and (max-width: 600px) {
+            .column {
+                width: 100%;
+                display: block;
+                margin-bottom: 20px;
+            }
+        }
+        .card {
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            text-align: center;
+            background-color: #7C93C3;
+            border-radius: 10px;
+        }
+        .card h4 {
+            color: black;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        .textarea {
+            display: block;
+            width: 100%;
+            height: 80px;
+            overflow: hidden;
+            resize: both;
+            min-height: 40px;
+            line-height: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            padding: 5px;
+        }
+        .btn:hover {
+            transform: scale(1.03);
+        }
+        
+        /* Responsive adjustments */
+        @media screen and (max-width: 768px) {
+            .table-wrapper {
+                padding: 1rem;
+            }
+            .dataTable thead th,
+            .dataTable tbody td {
+                padding: 8px 5px !important;
+                font-size: 12px;
+            }
+            .dataTable tbody td:last-child .btn-sm {
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+        }
+    </style>
+
+    <script type="text/javascript">
+        var currentAction = 'insert';
+        
+        function getValue() {
+            var checkboxes = document.getElementsByName('laptop');
+            var result = "";
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    if (result == "") {
+                        result = checkboxes[i].value;
+                    } else {
+                        result += "," + checkboxes[i].value;
+                    }
+                }
+            }
+            if (result == "") {
+                alert("Please select at least one record to delete");
+                return;
+            }
+            if (confirm("Are you sure you want to delete selected record(s)?")) {
+                var form = document.getElementById("myForm");
+                form.action = '<%=request.getContextPath() + "/TxnContactDetail?action=delete&srno="%>' + result;
+                form.submit();
+            }
+        }
+        
+        function deletesingle(srno) {
+            if (confirm("Are you sure you want to delete this record?")) {
+                var form = document.getElementById("myForm");
+                form.action = '<%=request.getContextPath() + "/TxnContactDetail?action=delete&srno="%>' + srno;
+                form.submit();
+            }
+        }
+        
+        function update(txn, lead, emailto, emailcc, primarySpoc, level2Contact, level3Contact, Project_Mgr, sr_no) {
+            document.getElementById("myModal").style.display = "block";
+            txn = decodeURIComponent(txn.replace(/\+/g, " "));
+            lead = decodeURIComponent(lead.replace(/\+/g, " "));
+            emailto = decodeURIComponent(emailto.replace(/\+/g, " "));
+            emailcc = decodeURIComponent(emailcc.replace(/\+/g, " "));
+            primarySpoc = decodeURIComponent(primarySpoc.replace(/\+/g, " "));
+            level2Contact = decodeURIComponent(level2Contact.replace(/\+/g, " "));
+            level3Contact = decodeURIComponent(level3Contact.replace(/\+/g, " "));
+            Project_Mgr = decodeURIComponent(Project_Mgr.replace(/\+/g, " "));
+            var form = document.getElementById("myForm");
+            form.Txn_EndPoint.value = txn;
+            form.Lead_Department.value = lead;
+            form.Email_IDTo.value = emailto;
+            form.Email_IDCC.value = emailcc;
+            form.Contact_Details.value = primarySpoc;
+            form.Level2_Contact.value = level2Contact;
+            form.Level3_Contact.value = level3Contact;
+            form.Project_Manager.value = Project_Mgr;
+            form.sr_no.value = sr_no;
+            currentAction = 'update';
+            document.getElementById("updatebtn").style.display = "block";
+            document.getElementById("submitbtn").style.display = "none";
+        }
+        
+        function submitForm() {
+            var form = document.getElementById("myForm");
+            if (form.Txn_EndPoint.value.trim() == "") {
+                alert("Please Enter TXN EndPoint Name");
+                return false;
+            }
+            if (currentAction === 'update') {
+                if (form.sr_no.value == "") {
+                    alert("Error: No record selected for update");
+                    return false;
+                }
+                form.action = '<%=request.getContextPath() + "/TxnContactDetail?action=update"%>';
+            } else {
+                form.sr_no.value = "";
+                form.action = '<%=request.getContextPath() + "/TxnContactDetail?action=insert"%>';
+            }
+            form.submit();
+            return true;
+        }
+        
+        function cleardata() {
+            var form = document.getElementById("myForm");
+            form.reset();
+            form.sr_no.value = "";
+            currentAction = 'insert';
+            document.getElementById("myModal").style.display = "block";
+            document.getElementById("submitbtn").style.display = "block";
+            document.getElementById("updatebtn").style.display = "none";
+        }
+        
+        function closeModal() {
+            document.getElementById("myModal").style.display = "none";
+            document.getElementById("myForm").reset();
+            document.getElementById("myForm").sr_no.value = "";
+            currentAction = 'insert';
+        }
+        
+        function exportToExcel() {
+            var table = $('#example').DataTable();
+            var data = table.rows({search: 'applied'}).data();
+            if (data.length === 0) {
+                alert("No data to export");
+                return;
+            }
+            var wsData = [];
+            var headers = [];
+            $('#example thead tr th').each(function(index) {
+                var headerText = $(this).find('b').text().trim();
+                if (headerText === "") {
+                    headerText = $(this).text().trim().replace('b', '').trim();
+                }
+                if (index > 0 && headerText !== "Actions") {
+                    headers.push(headerText);
+                } else if (index > 0 && headerText === "Actions") {
+                    headers.push("Actions");
+                }
+            });
+            wsData.push(headers);
+            for (var i = 0; i < data.length; i++) {
+                var rowData = [];
+                var rowNode = table.row(i).node();
+                $(rowNode).find('td').each(function(index) {
+                    if (index > 0) {
+                        var text = $(this).text().trim();
+                        if (index === $(this).parent().find('td').length - 1) {
+                            rowData.push("Update/Delete");
+                        } else {
+                            rowData.push(text);
+                        }
+                    }
+                });
+                wsData.push(rowData);
+            }
+            var ws = XLSX.utils.aoa_to_sheet(wsData);
+            var wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "TXNContactDetails");
+            var filename = "TXNContact_details_" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".xlsx";
+            XLSX.writeFile(wb, filename);
+        }
+        
+        function exportToCSV() {
+            var table = $('#example').DataTable();
+            var data = table.rows({search: 'applied'}).data();
+            if (data.length === 0) {
+                alert("No data to export");
+                return;
+            }
+            var csv = [];
+            var headers = [];
+            $('#example thead tr th').each(function(index) {
+                var headerText = $(this).find('b').text().trim();
+                if (headerText === "") headerText = $(this).text().trim().replace('b', '').trim();
+                if (index > 0 && headerText !== "Actions") {
+                    headers.push(headerText);
+                }
+            });
+            csv.push(headers.join(","));
+            for (var i = 0; i < data.length; i++) {
+                var row = [];
+                var rowNode = table.row(i).node();
+                $(rowNode).find('td').each(function(index) {
+                    if (index > 0 && index !== $(this).parent().find('td').length - 1) {
+                        var text = $(this).text().trim();
+                        if (text.indexOf(',') > -1 || text.indexOf('"') > -1) {
+                            text = '"' + text.replace(/"/g, '""') + '"';
+                        }
+                        row.push(text);
+                    }
+                });
+                csv.push(row.join(","));
+            }
+            var blob = new Blob(["\uFEFF" + csv.join("\n")], { type: "text/csv;charset=utf-8;" });
+            var link = document.createElement("a");
+            var url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute("download", "TXNContact_details_" + new Date().toISOString().replace(/[\-\:\.]/g, "") + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        $(document).ready(function() {
+            // Initialize DataTable with proper settings
+            var table = $('#example').DataTable({
+                responsive: {
+                    details: {
+                        display: $.fn.dataTable.Responsive.display.modal({
+                            header: function(row) {
+                                var data = row.data();
+                                return 'Details for ' + (data[2] || 'Record');
+                            }
+                        }),
+                        renderer: $.fn.dataTable.Responsive.renderer.tableAll()
+                    }
+                },
+                autoWidth: false,
+                scrollX: false,
+                scrollY: false,
+                pageLength: 25,
+                lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
+                order: [],
+                columnDefs: [
+                    { orderable: false, targets: [0, -1] },
+                    { responsivePriority: 1, targets: 2 },
+                    { responsivePriority: 2, targets: -1 }
+                ],
+                language: {
+                    lengthMenu: "Show _MENU_ entries",
+                    zeroRecords: "No records found",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    infoEmpty: "Showing 0 to 0 of 0 entries",
+                    infoFiltered: "(filtered from _MAX_ total entries)",
+                    search: "Search:",
+                    paginate: {
+                        first: "First",
+                        last: "Last",
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                },
+                drawCallback: function() {
+                    // Ensure alignment after each draw
+                    $('.dataTable thead th').css('text-align', function() {
+                        var index = $(this).index();
+                        if (index === 0 || index === 1 || index === 10 || index === 11) {
+                            return 'center';
+                        }
+                        return 'left';
+                    });
+                }
+            });
+            
+            // Select all checkbox functionality
+            $('#all').click(function(e) {
+                var isChecked = $(this).is(':checked');
+                $('#example tbody input[type="checkbox"]').prop('checked', isChecked);
+                e.stopImmediatePropagation();
+            });
+            
+            // Export buttons
+            $("#exportExcelBtn").click(function(e) {
+                exportToExcel();
+            });
+            
+            $("#exportCSVBtn").click(function(e) {
+                exportToCSV();
+            });
+            
+            // Modal close handlers
+            var modal = document.getElementById("myModal");
+            var span = document.getElementsByClassName("close")[0];
+            if (span) {
+                span.onclick = function() {
+                    closeModal();
+                };
+            }
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    closeModal();
+                }
+            };
+            
+            // Checkbox change handler for select all
+            $('#example tbody').on('change', 'input[type="checkbox"]', function() {
+                var allChecked = $('#example tbody input[type="checkbox"]:checked').length === $('#example tbody input[type="checkbox"]').length;
+                $('#all').prop('checked', allChecked);
+            });
+            
+            // Prevent form submit on enter key
+            $('#myForm').on('keypress', function(e) {
+                if (e.which === 13 && !$(e.target).is('textarea')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        });
+        
+        var isSubmitting = false;
+        function preventDoubleSubmit() {
+            if (isSubmitting) {
+                alert("Please wait, form is already being submitted...");
+                return false;
+            }
+            isSubmitting = true;
+            return true;
+        }
+        
+        window.onload = function() {
+            if (locationReplaced !== "null") {
+                window.history.replaceState({}, 'View Txn contact', '<%=request.getContextPath() + "/TxnContactDetail"%>');
+            }
+        };
+    </script>
+</head>
+<body>
+    <form action="" id="myForm" method="post" onsubmit="return preventDoubleSubmit() && submitForm();">
+        <input type="hidden" name="sr_no" id="sr_no">
+        <div class="table-wrapper">
+            <div class="table-title">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h2><b>EIS Destination Contact Details</b></h2>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="btn-group" style="float: right;">
+                            <button type="button" class="btn btn-success" onclick="cleardata();" style="margin-right: 5px;">
+                                <i class="material-icons">&#xE147;</i> <span>Add New</span>
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="getValue()">
+                                <i class="material-icons">&#xE15C;</i> <span>Delete</span>
+                            </button>
+                            <button type="button" id="exportExcelBtn" class="btn btn-primary">
+                                <i class="material-icons">&#xE24D;</i> <span>Export Excel</span>
+                            </button>
+                            <button type="button" id="exportCSVBtn" class="btn btn-info">
+                                <i class="material-icons">&#xE24D;</i> <span>Export CSV</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal -->
+            <div id="myModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <div class="row">
+                        <div class="column" style="width: 96%;">
+                            <h1 style="color: white;">EIS Destination Contact Detail</h1>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="column">
+                            <div class="card">
+                                <h4>Txn EndPoint <span style="color: red;">*</span></h4>
+                                <textarea class="textarea" name="Txn_EndPoint" id="Txn_EndPoint"></textarea>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="card">
+                                <h4>Lead Department</h4>
+                                <textarea class="textarea" name="Lead_Department" id="Lead_Department"></textarea>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="card">
+                                <h4>Email ID(To)</h4>
+                                <textarea class="textarea" name="Email_IDTo" id="Email_IDTo"></textarea>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="card">
+                                <h4>Email ID(CC)</h4>
+                                <textarea class="textarea" name="Email_IDCC" id="Email_IDCC"></textarea>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="card">
+                                <h4>Primary SPOC Contact Details</h4>
+                                <textarea class="textarea" name="Contact_Details" id="Contact_Details"></textarea>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="card">
+                                <h4>Level 2 Contact Details</h4>
+                                <textarea class="textarea" name="Level2_Contact" id="Level2_Contact"></textarea>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="card">
+                                <h4>Level 3 Contact Details</h4>
+                                <textarea class="textarea" name="Level3_Contact" id="Level3_Contact"></textarea>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="card">
+                                <h4>EIS Project Manager</h4>
+                                <textarea class="textarea" name="Project_Manager" id="Project_Manager"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="submit" id="submitbtn" class="btn btn-success">Save</button>
+                        <button type="submit" id="updatebtn" class="btn btn-success" style="display: none;">Update</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+            
+            <table id="example" class="table table-striped table-bordered" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="text-align: center;"><input type="checkbox" id="all" name="all_checkbox"> <b>Select</b></th>
+                        <th style="text-align: center;"><b>Creation Date</b></th>
+                        <th><b>Txn EndPoint</b></th>
+                        <th><b>Lead Dept</b></th>
+                        <th><b>Email ID(To)</b></th>
+                        <th><b>Email ID(CC)</b></th>
+                        <th><b>Primary SPOC</b></th>
+                        <th><b>Level 2 Contact</b></th>
+                        <th><b>Level 3 Contact</b></th>
+                        <th><b>Project Manager</b></th>
+                        <th style="text-align: center;"><b>Updation Date</b></th>
+                        <th style="text-align: center;"><b>Actions</b></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <%
+                        Object l_objtempObj = request.getAttribute("l_objtemp");
+                        if (l_objtempObj != null && l_objtempObj instanceof List) {
+                            List<TxnContactDetailBean> l_objtemp = (List<TxnContactDetailBean>) l_objtempObj;
+                            for (TxnContactDetailBean data : l_objtemp) {
+                    %>
+                        <tr>
+                            <td style="text-align: center;"><input type="checkbox" name="laptop" value="<%=data.getSr_no() %>"></td>
+                            <td style="text-align: center;"><%= (data.getStr_creation_date() != null) ? data.getStr_creation_date() : " " %></td>
+                            <td><%= StringEscapeUtils.escapeHtml4(data.getStr_txn_name() != null ? data.getStr_txn_name() : "") %></td>
+                            <td><%= (data.getStr_spoc_name() != null) ? StringEscapeUtils.escapeHtml4(data.getStr_spoc_name()) : " " %></td>
+                            <td style="word-break: break-all;"><%= (data.getStr_emailId_to() != null) ? StringEscapeUtils.escapeHtml4(data.getStr_emailId_to()) : " " %></td>
+                            <td style="word-break: break-all;"><%= (data.getStr_emailid_cc() != null) ? StringEscapeUtils.escapeHtml4(data.getStr_emailid_cc()) : " " %></td>
+                            <td><%= (data.getStr_contact_name() != null) ? StringEscapeUtils.escapeHtml4(data.getStr_contact_name()) : " " %></td>
+                            <td><%= (data.getStr_phone_number() != null) ? StringEscapeUtils.escapeHtml4(data.getStr_phone_number()) : " " %></td>
+                            <td><%= (data.getStr_spoc_contact() != null) ? StringEscapeUtils.escapeHtml4(data.getStr_spoc_contact()) : " " %></td>
+                            <td><%= (data.getStr_project_manager() != null) ? StringEscapeUtils.escapeHtml4(data.getStr_project_manager()) : " " %></td>
+                            <td style="text-align: center;"><%= (data.getStr_updation_date() != null) ? data.getStr_updation_date() : " " %></td>
+                            <td style="text-align: center; white-space: nowrap;">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="update(
+                                    '<%= java.net.URLEncoder.encode(data.getStr_txn_name() == null ? "" : data.getStr_txn_name(), "UTF-8") %>',
+                                    '<%= java.net.URLEncoder.encode(data.getStr_spoc_name() == null ? "" : data.getStr_spoc_name(), "UTF-8") %>',
+                                    '<%= java.net.URLEncoder.encode(data.getStr_emailId_to() == null ? "" : data.getStr_emailId_to(), "UTF-8") %>',
+                                    '<%= java.net.URLEncoder.encode(data.getStr_emailid_cc() == null ? "" : data.getStr_emailid_cc(), "UTF-8") %>',
+                                    '<%= java.net.URLEncoder.encode(data.getStr_contact_name() == null ? "" : data.getStr_contact_name(), "UTF-8") %>',
+                                    '<%= java.net.URLEncoder.encode(data.getStr_phone_number() == null ? "" : data.getStr_phone_number(), "UTF-8") %>',
+                                    '<%= java.net.URLEncoder.encode(data.getStr_spoc_contact() == null ? "" : data.getStr_spoc_contact(), "UTF-8") %>',
+                                    '<%= java.net.URLEncoder.encode(data.getStr_project_manager() == null ? "" : data.getStr_project_manager(), "UTF-8") %>',
+                                    '<%= data.getSr_no() %>'
+                                )">Update</button>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="deletesingle('<%= data.getSr_no() %>')">Delete</button>
+                            </td>
+                        </tr>
+                    <%
+                            }
+                        }
+                    %>
+                </tbody>
+            </table>
+        </div>
+    </form>
+</body>
+</html>
