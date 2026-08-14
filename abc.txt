@@ -4,6 +4,9 @@
 <%@page import="com.jdbc.DBUtilityAuto"%>
 
 <%!
+    // ================================================================
+    // ===== FIXED: Compute deadline with 45 minutes buffer =====
+    // ================================================================
     private java.util.Date computeDeadline(String taskName, java.sql.Date reportDate) {
         String[] parts = taskName.split("-");
         if (parts.length != 2) return null;
@@ -20,7 +23,8 @@
             cal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
             cal.set(Calendar.SECOND, 0);
             cal.set(Calendar.MILLISECOND, 0);
-            cal.add(Calendar.MINUTE, 30);
+            // ===== FIX: Add 45 minutes instead of 30 =====
+            cal.add(Calendar.MINUTE, 45);
             return cal.getTime();
         } catch (ParseException e) {
             e.printStackTrace();
@@ -49,7 +53,9 @@ try {
     e.printStackTrace();
 }
 
+// ================================================================
 // ===== DATE & TIME LOGIC =====
+// ================================================================
 Calendar nowCal = Calendar.getInstance();
 java.util.Date now = nowCal.getTime();
 int hour = nowCal.get(Calendar.HOUR_OF_DAY);
@@ -57,7 +63,7 @@ int minute = nowCal.get(Calendar.MINUTE);
 
 // Edit Mode: 4 PM (16:00) to next day 8 AM (08:00)
 boolean isEditable = false;
-if (hour >= 16 || hour < 10) {
+if (hour >= 16 || hour < 8) {
     isEditable = true;
 }
 
@@ -82,6 +88,7 @@ java.sql.Date displayDate = null;
 java.sql.Date saveDate = null;
 boolean isCustomView = false;
 
+// ===== FIX 1: If user selected a date manually =====
 if (viewDateParam != null && !viewDateParam.isEmpty()) {
     try {
         java.util.Date parsed = sdfParam.parse(viewDateParam);
@@ -93,13 +100,20 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
     }
 }
 
+// ===== FIX 2: Auto-select date based on time =====
 if (!isCustomView) {
-    displayDate = beforeFourPM ? yesterdaySQL : todaySQL;
-    saveDate = todaySQL;
+    if (beforeFourPM) {
+        displayDate = yesterdaySQL;
+        saveDate = yesterdaySQL;
+    } else {
+        displayDate = todaySQL;
+        saveDate = todaySQL;
+    }
 }
 
 String displayDateStr = sdfDisplay.format(displayDate);
 
+// ===== FIX 3: Frozen logic =====
 boolean globalFrozen;
 if (isCustomView) {
     if (!displayDate.equals(todaySQL)) {
@@ -111,7 +125,9 @@ if (isCustomView) {
     globalFrozen = !isEditable;
 }
 
+// ================================================================
 // ===== HANDLE SAVE =====
+// ================================================================
 String action = request.getParameter("action");
 String message = "";
 boolean showMessage = false;
@@ -353,7 +369,7 @@ try {
 String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "FAILED", "REVIEW"};
 
 // ================================================================
-// ===== EXPORT - ENHANCED WITH REVIEW & REMARKS =====
+// ===== EXPORT LOGIC =====
 // ================================================================
 
 if ("export".equals(action)) {
@@ -369,7 +385,6 @@ if ("true".equals(exportDataParam)) {
     
     Map<String, Object> exportData = new LinkedHashMap<>();
     
-    // ===== TIME SLOTS DATA WITH REVIEW & REMARKS =====
     List<Map<String, Object>> timeSlotData = new ArrayList<>();
     for (Map<String, Object> row : timeSlots) {
         Map<String, Object> slot = new LinkedHashMap<>();
@@ -385,7 +400,6 @@ if ("true".equals(exportDataParam)) {
     }
     exportData.put("timeSlots", timeSlotData);
     
-    // ===== NIGHT REPORTS DATA WITH REVIEW & REMARKS =====
     List<Map<String, Object>> reportData = new ArrayList<>();
     for (Map<String, Object> row : nightReports) {
         Map<String, Object> report = new LinkedHashMap<>();
@@ -399,10 +413,8 @@ if ("true".equals(exportDataParam)) {
     }
     exportData.put("nightReports", reportData);
     
-    // ===== DATE =====
     exportData.put("displayDate", displayDateStr);
     
-    // Convert to JSON
     String jsonData = new com.google.gson.Gson().toJson(exportData);
     out.print(jsonData);
     return;
@@ -527,7 +539,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
     <div class="search-card">
         <div class="search-group">
             <i class="fas fa-calendar-alt text-muted"></i>
-            <input type="date" name="viewDate" value="<%= viewDateParam != null ? viewDateParam : sdfParam.format(todaySQL) %>" id="viewDate">
+            <input type="date" name="viewDate" value="<%= viewDateParam != null ? viewDateParam : sdfParam.format(displayDate) %>" id="viewDate">
             <button class="btn btn-primary btn-sm" onclick="window.location.href='?' + (document.getElementById('viewDate').value ? 'viewDate=' + document.getElementById('viewDate').value : '')">
                 <i class="fas fa-eye me-1"></i> View
             </button>
@@ -566,7 +578,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
         </div>
         <div>
             <i class="fas fa-hourglass-half"></i> 
-            <span class="highlight">Slot Freeze:</span> Each time slot freezes <strong>30 min</strong> after its end time
+            <span class="highlight">Slot Freeze:</span> Each time slot freezes <strong>45 min</strong> after its end time
         </div>
         <div>
             <i class="fas fa-history"></i> 
@@ -584,7 +596,8 @@ String footerDate = sdfFooter.format(new java.util.Date());
             <i class="fas fa-shift"></i> 
             <span class="highlight">Night Shift:</span> 10:00 PM → 7:00 AM (Next Day)
             <span class="ms-3"><i class="fas fa-edit"></i> Editable from 4:00 PM same day</span>
-            <span class="ms-3"><i class="fas fa-lock"></i> Locks at 8:00 AM next day</span>
+            <span class="ms-3"><i class="fas fa-lock"></i> Each slot locks 45 min after end time</span>
+            <span class="ms-3"><i class="fas fa-lock"></i> All slots lock at 7:45 AM</span>
         </div>
     </div>
 
@@ -619,13 +632,17 @@ String footerDate = sdfFooter.format(new java.util.Date());
                         } else {
                             for (Map<String, Object> row : timeSlots) {
                                 tsCounter++;
-                                int actualRowIndex = tsCounter;
                                 String taskName = (String) row.get("task_name");
                                 boolean slotFrozen = globalFrozen;
+                                
+                                // ===== FIX: Check individual slot freeze with 45 min buffer =====
                                 if (!globalFrozen) {
                                     java.util.Date deadline = computeDeadline(taskName, displayDate);
-                                    if (deadline != null && now.after(deadline)) slotFrozen = true;
+                                    if (deadline != null && now.after(deadline)) {
+                                        slotFrozen = true;
+                                    }
                                 }
+                                
                                 String status1 = (String) row.get("status1");
                                 String status2 = (String) row.get("status2");
                                 String status3 = (String) row.get("status3");
@@ -741,7 +758,6 @@ String footerDate = sdfFooter.format(new java.util.Date());
                         } else {
                             for (Map<String, Object> row : nightReports) {
                                 nrCounter++;
-                                int actualRowIndex = 5 + nrCounter;
                                 boolean frozen = globalFrozen;
                                 String status1 = (String) row.get("status1");
                                 String doneBy = (String) row.get("done_by");
@@ -966,7 +982,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
     }
 
     // ================================================================
-    // ===== ENHANCED EXPORT FUNCTION WITH REVIEW & REMARKS =====
+    // ===== EXPORT FUNCTION =====
     // ================================================================
     function exportExcel() {
         $('#spinnerOverlay').fadeIn(200);
@@ -999,7 +1015,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
     }
 
     // ================================================================
-    // ===== ENHANCED EXPORT WITH REVIEW, REMARKS & BETTER FORMATTING =====
+    // ===== EXPORT WITH STYLED HTML =====
     // ================================================================
     function exportWithStyledHTML(data) {
         var displayDate = data.displayDate || new Date().toISOString().split('T')[0];
@@ -1010,26 +1026,16 @@ String footerDate = sdfFooter.format(new java.util.Date());
         html += '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
         html += '<style>';
         html += 'body { font-family: "Segoe UI", Arial, sans-serif; padding: 20px; background: #f8f9fc; }';
-        
-        // Main Title
         html += '.main-title { font-size: 22px; font-weight: 700; color: #0B1A30; text-align: center; padding: 15px; background: linear-gradient(135deg, #e8edf4, #d5dce6); border-radius: 8px; margin-bottom: 20px; border: 2px solid #1a237e; }';
         html += '.main-title span { color: #1a237e; }';
-        
-        // Date Header
         html += '.date-header { font-size: 16px; font-weight: bold; color: #1a237e; margin-bottom: 20px; padding: 12px 20px; background: #e8edf4; border-left: 5px solid #1a237e; border-radius: 4px; }';
-        
-        // Table Styles
         html += 'table { border-collapse: collapse; width: 100%; margin-bottom: 30px; font-family: "Segoe UI", Arial, sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }';
         html += 'th { background: #1a237e; color: #ffffff; font-weight: bold; padding: 14px 12px; text-align: center; vertical-align: middle; border: 1px solid #0d1547; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }';
         html += 'td { padding: 12px; border: 1px solid #d0d7de; text-align: center; vertical-align: middle; font-size: 12px; color: #1a2634; }';
         html += 'tr:nth-child(even) { background: #f8f9fc; }';
         html += 'tr:nth-child(odd) { background: #ffffff; }';
         html += 'tr:hover { background: #e8f0fe; }';
-        
-        // Task Name
         html += '.task-name { font-weight: 600; color: #0B1A30; text-align: left; padding-left: 15px; }';
-        
-        // Status Colors
         html += '.status-done { background: #d4edda; color: #155724; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
         html += '.status-pending { background: #fff3cd; color: #856404; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
         html += '.status-na { background: #e2e3e5; color: #383d41; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
@@ -1037,33 +1043,20 @@ String footerDate = sdfFooter.format(new java.util.Date());
         html += '.status-handover { background: #f5c6cb; color: #721c24; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
         html += '.status-failed { background: #f8d7da; color: #721c24; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
         html += '.status-review { background: #d6d8db; color: #383d41; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
-        
-        // Done By
         html += '.done-by { font-weight: 600; color: #0B1A30; }';
-        
-        // Section Title
         html += '.section-title { font-size: 18px; font-weight: bold; color: #1a237e; padding: 15px 15px 10px 15px; border-bottom: 3px solid #1a237e; margin-top: 25px; margin-bottom: 20px; background: #e8edf4; border-radius: 4px 4px 0 0; }';
-        html += '.section-title i { margin-right: 10px; }';
-        
-        // Footer
         html += '.footer { margin-top: 30px; padding: 15px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 11px; background: #f8f9fc; border-radius: 4px; }';
         html += '.footer .company { font-weight: 600; color: #1a237e; }';
-        
         html += '@media print { body { padding: 10px; } th { background: #1a237e !important; color: white !important; } }';
         html += '</style></head><body>';
         
-        // Main Title
         html += '<div class="main-title">🌙 NIGHT SHIFT CHECKLIST <span>| ' + displayDate + '</span></div>';
-        
-        // Date Header
         var currentDate = new Date().toLocaleString();
         html += '<div class="date-header">📅 Date: ' + displayDate + ' | ⏰ Generated: ' + currentDate + '</div>';
         
-        // ===== TIME SLOTS TABLE =====
         if (data.timeSlots && data.timeSlots.length > 0) {
             html += '<div class="section-title">⏰ TIME SLOTS</div>';
-            html += '<table>';
-            html += '<thead><tr>';
+            html += '<table><thead><tr>';
             html += '<th style="width:18%;">TIME SLOT</th>';
             html += '<th style="width:18%;">UNRESPONDED MAILS &amp; GIMS &amp; DPG</th>';
             html += '<th style="width:16%;">STRATEGIC MANAGEMENT</th>';
@@ -1085,15 +1078,12 @@ String footerDate = sdfFooter.format(new java.util.Date());
                 html += '<td style="text-align:left;padding-left:10px;">' + (row.remarks || '') + '</td>';
                 html += '</tr>';
             }
-            
             html += '</tbody></table>';
         }
         
-        // ===== NIGHT REPORTS TABLE =====
         if (data.nightReports && data.nightReports.length > 0) {
             html += '<div class="section-title">📋 NIGHT REPORTS</div>';
-            html += '<table>';
-            html += '<thead><tr>';
+            html += '<table><thead><tr>';
             html += '<th style="width:35%;">NIGHT REPORTS</th>';
             html += '<th style="width:18%;">STATUS</th>';
             html += '<th style="width:15%;">DONE BY</th>';
@@ -1111,24 +1101,18 @@ String footerDate = sdfFooter.format(new java.util.Date());
                 html += '<td style="text-align:left;padding-left:10px;">' + (row.remarks || '') + '</td>';
                 html += '</tr>';
             }
-            
             html += '</tbody></table>';
         }
         
-        // Footer - FIXED (removed session reference)
         var footerDate = '<%= footerDate %>';
         html += '<div class="footer">';
         html += '<div><span class="company">EIS Portal</span> | Night Shift Checklist</div>';
         html += '<div style="margin-top:5px;">Generated on: ' + footerDate + '</div>';
         html += '<div style="margin-top:5px;font-size:10px;color:#999;">This is a system generated report. Please verify all entries.</div>';
         html += '</div>';
-        
         html += '</body></html>';
         
-        // Download
-        var blob = new Blob([html], { 
-            type: 'application/vnd.ms-excel;charset=utf-8' 
-        });
+        var blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
         var link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = 'Night_Shift_Checklist_' + displayDate + '.xls';
@@ -1145,28 +1129,16 @@ String footerDate = sdfFooter.format(new java.util.Date());
     // ================================================================
     function getStatusBadge(status) {
         if (!status) return '-';
-        
         var statusUpper = status.toUpperCase().trim();
         var className = '';
-        
-        if (statusUpper === 'DONE') {
-            className = 'status-done';
-        } else if (statusUpper === 'PENDING') {
-            className = 'status-pending';
-        } else if (statusUpper === 'NA') {
-            className = 'status-na';
-        } else if (statusUpper === 'IN PROGRESS') {
-            className = 'status-inprogress';
-        } else if (statusUpper === 'HANDOVER') {
-            className = 'status-handover';
-        } else if (statusUpper === 'FAILED') {
-            className = 'status-failed';
-        } else if (statusUpper === 'REVIEW') {
-            className = 'status-review';
-        } else {
-            return status;
-        }
-        
+        if (statusUpper === 'DONE') className = 'status-done';
+        else if (statusUpper === 'PENDING') className = 'status-pending';
+        else if (statusUpper === 'NA') className = 'status-na';
+        else if (statusUpper === 'IN PROGRESS') className = 'status-inprogress';
+        else if (statusUpper === 'HANDOVER') className = 'status-handover';
+        else if (statusUpper === 'FAILED') className = 'status-failed';
+        else if (statusUpper === 'REVIEW') className = 'status-review';
+        else return status;
         return '<span class="' + className + '">' + status + '</span>';
     }
 
