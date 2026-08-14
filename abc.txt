@@ -4,9 +4,6 @@
 <%@page import="com.jdbc.DBUtilityAuto"%>
 
 <%!
-    // ================================================================
-    // ===== COMPUTE DEADLINE WITH 45 MINUTES BUFFER =====
-    // ================================================================
     private java.util.Date computeDeadline(String taskName, java.sql.Date reportDate) {
         String[] parts = taskName.split("-");
         if (parts.length != 2) return null;
@@ -23,7 +20,7 @@
             cal.set(Calendar.MINUTE, timeCal.get(Calendar.MINUTE));
             cal.set(Calendar.SECOND, 0);
             cal.set(Calendar.MILLISECOND, 0);
-            cal.add(Calendar.MINUTE, 45); // 45 minutes buffer
+            cal.add(Calendar.MINUTE, 45);
             return cal.getTime();
         } catch (ParseException e) {
             e.printStackTrace();
@@ -417,21 +414,6 @@ if ("true".equals(exportDataParam)) {
 
 SimpleDateFormat sdfFooter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 String footerDate = sdfFooter.format(new java.util.Date());
-
-// Calculate freeze times for display
-String[] slotFreezeTimes = new String[timeSlots.size()];
-int slotIndex = 0;
-for (Map<String, Object> row : timeSlots) {
-    String taskName = (String) row.get("task_name");
-    java.util.Date deadline = computeDeadline(taskName, displayDate);
-    if (deadline != null) {
-        SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
-        slotFreezeTimes[slotIndex] = sdfTime.format(deadline);
-    } else {
-        slotFreezeTimes[slotIndex] = "N/A";
-    }
-    slotIndex++;
-}
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -439,14 +421,13 @@ for (Map<String, Object> row : timeSlots) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Night Shift Checklist - <%= displayDateStr %></title>
-    <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
-    <link href="../css/all.min.css" rel="stylesheet">
-    <script src="../js/jquery-3.7.1.min.js"></script>
-    <script src="../js/xlsx.full.min.js"></script>
+    
+    <!-- ===== CSS - Using CDN ===== -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     
     <style>
-        :root { --primary-dark: #0B1A30; --primary-mid: #1A3A5C; --primary-blue: #2A5C8A; --accent-gold: #F5B041; --bg-main: #f0f4f9; --card-shadow: 0 12px 40px rgba(11,26,48,0.08); --border-radius-lg: 18px; --border-radius-md: 12px; --font-family: 'Inter', sans-serif; }
+        :root { --primary-dark: #0B1A30; --primary-mid: #1A3A5C; --primary-blue: #2A5C8A; --accent-gold: #F5B041; --bg-main: #f0f4f9; --card-shadow: 0 12px 40px rgba(11,26,48,0.08); --border-radius-lg: 18px; --border-radius-md: 12px; --font-family: 'Segoe UI', Arial, sans-serif; }
         * { box-sizing: border-box; }
         body { background: var(--bg-main); font-family: var(--font-family); padding: 24px; color: #1a2634; min-height: 100vh; }
         .main-container { max-width: 1600px; margin: 0 auto; }
@@ -468,6 +449,8 @@ for (Map<String, Object> row : timeSlots) {
         .btn-glow-warning:hover { background: #e0a800; color: #212529; }
         .btn-glow-secondary { background: #6c757d; color: #fff; }
         .btn-glow-secondary:hover { background: #5a6268; color: #fff; }
+        .btn-glow-danger { background: #dc3545; color: #fff; }
+        .btn-glow-danger:hover { background: #c82333; color: #fff; }
         
         .search-card { background: #ffffff; border-radius: var(--border-radius-md); padding: 12px 20px; margin-bottom: 28px; box-shadow: var(--card-shadow); border: 1px solid rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
         .search-card .search-group { display: flex; align-items: center; gap: 8px; background: var(--bg-main); padding: 4px 4px 4px 16px; border-radius: 50px; border: 1px solid #e2e8f0; transition: all 0.2s; }
@@ -478,7 +461,6 @@ for (Map<String, Object> row : timeSlots) {
         .search-card .status-indicator { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; flex-wrap: wrap; }
         .badge-status-mode { padding: 6px 16px; border-radius: 50px; font-weight: 600; }
         
-        /* ===== ENHANCED INFO BANNER ===== */
         .info-banner { 
             background: linear-gradient(135deg, #e6f0fa, #f0f7ff); 
             border-radius: var(--border-radius-md); 
@@ -505,56 +487,14 @@ for (Map<String, Object> row : timeSlots) {
             min-width: 20px;
             text-align: center;
         }
-        .info-banner .info-item .highlight { 
-            font-weight: 600; 
-            color: var(--primary-dark); 
-        }
-        .info-banner .info-item .time-slot { 
-            display: inline-flex; 
-            align-items: center; 
-            gap: 4px; 
-            background: #e8edf4; 
-            padding: 2px 12px; 
-            border-radius: 20px; 
-            font-weight: 600; 
-            font-size: 12px; 
-        }
-        .info-banner .info-item .badge-freeze {
-            background: #dc3545;
-            color: white;
-            padding: 1px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .info-banner .info-item .badge-edit {
-            background: #28a745;
-            color: white;
-            padding: 1px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .info-divider {
-            border-top: 1px dashed #dce3ed;
-            grid-column: 1 / -1;
-            margin: 4px 0;
-        }
-        .info-banner .info-title {
-            font-weight: 700;
-            color: var(--primary-dark);
-            font-size: 14px;
-            grid-column: 1 / -1;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .info-banner .info-title i {
-            color: var(--accent-gold);
-        }
+        .info-banner .info-item .highlight { font-weight: 600; color: var(--primary-dark); }
+        .info-banner .info-item .time-slot { display: inline-flex; align-items: center; gap: 4px; background: #e8edf4; padding: 2px 12px; border-radius: 20px; font-weight: 600; font-size: 12px; }
+        .info-banner .info-item .badge-freeze { background: #dc3545; color: white; padding: 1px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .info-banner .info-item .badge-edit { background: #28a745; color: white; padding: 1px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .info-divider { border-top: 1px dashed #dce3ed; grid-column: 1 / -1; margin: 4px 0; }
+        .info-banner .info-title { font-weight: 700; color: var(--primary-dark); font-size: 14px; grid-column: 1 / -1; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .info-banner .info-title i { color: var(--accent-gold); }
         
-        /* ===== STATUS LEGEND ===== */
         .legend-bar {
             display: flex;
             flex-wrap: wrap;
@@ -625,6 +565,32 @@ for (Map<String, Object> row : timeSlots) {
         .done-by-required { color: #dc3545; font-size: 11px; font-weight: 600; margin-left: 4px; }
         .freeze-time-tag { font-size: 9px; color: #6c7a8a; display: block; font-weight: 400; }
         
+        /* Timer Styles */
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #1a2634;
+            background: #e8edf4;
+            padding: 4px 14px;
+            border-radius: 30px;
+        }
+        .timer-container i {
+            color: var(--primary-blue);
+        }
+        .timer-container .time-remaining {
+            font-weight: 700;
+            color: var(--primary-dark);
+            min-width: 50px;
+            display: inline-block;
+        }
+        .timer-container .refresh-count {
+            font-size: 11px;
+            color: #6c7a8a;
+            margin-left: 4px;
+        }
+        
         @media (max-width: 768px) { 
             body { padding: 12px; } 
             .header-card { padding: 16px; flex-direction: column; align-items: stretch; } 
@@ -634,6 +600,7 @@ for (Map<String, Object> row : timeSlots) {
             .search-card .search-group input[type="date"] { width: 100%; } 
             .table-checklist { min-width: 1000px; font-size: 11px; }
             .info-banner { grid-template-columns: 1fr; padding: 16px; }
+            .timer-container { font-size: 11px; padding: 2px 10px; }
         }
     </style>
 </head>
@@ -656,7 +623,7 @@ for (Map<String, Object> row : timeSlots) {
                 <% } else { %>
                     <span class="badge bg-success"><i class="fas fa-edit"></i> Editable</span>
                 <% } %>
-                <span><i class="fas fa-clock"></i> Server Time: <strong id="serverTimeDisplay"><%= new SimpleDateFormat("HH:mm:ss").format(now) %></strong></span>
+                <span><i class="fas fa-clock"></i> Server: <strong id="serverTimeDisplay"><%= new SimpleDateFormat("HH:mm:ss").format(now) %></strong></span>
             </div>
         </div>
         <div class="header-right">
@@ -670,7 +637,7 @@ for (Map<String, Object> row : timeSlots) {
         </div>
     </div>
 
-    <!-- ===== SEARCH BAR ===== -->
+    <!-- ===== SEARCH BAR WITH TIMER ===== -->
     <div class="search-card">
         <div class="search-group">
             <i class="fas fa-calendar-alt text-muted"></i>
@@ -681,11 +648,15 @@ for (Map<String, Object> row : timeSlots) {
             <a href="?" class="btn btn-outline-secondary btn-sm" id="todayBtn"><i class="fas fa-calendar-day"></i> Today</a>
         </div>
         <div class="status-indicator">
-            <span><i class="fas fa-clock text-muted"></i> Server: <%= new SimpleDateFormat("HH:mm:ss").format(now) %></span>
+            <span class="timer-container" id="timerContainer">
+                <i class="fas fa-sync-alt fa-spin"></i>
+                <span>Refresh in:</span>
+                <span class="time-remaining" id="timerDisplay">30:00</span>
+                <span class="refresh-count" id="refreshCount">(0)</span>
+            </span>
             <span class="badge-status-mode <%= globalFrozen ? "bg-warning text-dark" : "bg-success text-white" %>">
                 <%= globalFrozen ? "🔒 View Only" : "✏️ Editable" %>
             </span>
-            <span id="autoRefreshStatus" style="font-size:11px;color:#6c7a8a;"><i class="fas fa-sync-alt fa-spin"></i> Auto-refresh active</span>
         </div>
     </div>
 
@@ -737,7 +708,7 @@ for (Map<String, Object> row : timeSlots) {
         
         <div class="info-item">
             <i class="fas fa-rotate"></i>
-            <div><span class="highlight">Auto-Refresh:</span> Page checks freeze status every <span class="badge-edit">30 seconds</span></div>
+            <div><span class="highlight">Auto-Refresh:</span> Page refreshes every <span class="badge-edit">30 minutes</span></div>
         </div>
         
         <div class="info-divider"></div>
@@ -753,7 +724,6 @@ for (Map<String, Object> row : timeSlots) {
             </div>
         </div>
         
-        <!-- ===== SLOT FREEZE TIMES ===== -->
         <% if (timeSlots.size() > 0) { %>
             <div class="info-divider"></div>
             <div class="info-item" style="grid-column: 1 / -1;">
@@ -849,17 +819,16 @@ for (Map<String, Object> row : timeSlots) {
                                 tsCounter++;
                                 String taskName = (String) row.get("task_name");
                                 
-                                // ===== FIX: Slot freeze independent of globalFrozen =====
                                 boolean slotFrozen = false;
                                 
-                                // Check if slot deadline has passed (45 min after end time)
+                                // 1. Check if slot deadline has passed (45 min after end time)
                                 java.util.Date deadline = computeDeadline(taskName, displayDate);
                                 if (deadline != null && now.after(deadline)) {
                                     slotFrozen = true;
                                 }
                                 
-                                // Also check if date is past (globalFrozen for past dates)
-                                if (globalFrozen) {
+                                // 2. Check if date is past (custom view)
+                                if (isCustomView && !displayDate.equals(todaySQL)) {
                                     slotFrozen = true;
                                 }
                                 
@@ -872,7 +841,6 @@ for (Map<String, Object> row : timeSlots) {
                                 Timestamp ts = (Timestamp) row.get("updated_at");
                                 String lastUpdated = (ts != null) ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "";
                                 
-                                // Get freeze time for display
                                 String freezeTimeDisplay = "N/A";
                                 if (deadline != null) {
                                     SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
@@ -1065,14 +1033,20 @@ for (Map<String, Object> row : timeSlots) {
         <i class="fas fa-database me-1"></i> Night Shift Checklist &bull; <%= displayDateStr %> &bull;
         <span id="lastSaved">Last saved: <%= new SimpleDateFormat("HH:mm:ss").format(now) %></span>
         <% if (globalFrozen) { %><span class="ms-3 text-warning"><i class="fas fa-info-circle"></i> Read-Only Mode</span><% } %>
-        <span class="ms-3" style="font-size:11px;"><i class="fas fa-sync-alt fa-spin"></i> Auto-refresh every 30s</span>
+        <span class="ms-3" style="font-size:11px;" id="refreshStatus"><i class="fas fa-sync-alt fa-spin"></i> Auto-refresh in: <span id="footerTimer">30:00</span></span>
     </div>
 </div>
 
-<script src="../js/bootstrap.bundle.min.js"></script>
+<!-- ===== JAVASCRIPT - Using CDN ===== -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
     var saveInProgress = false;
     var infoPanelVisible = true;
+    var timerInterval = null;
+    var timerSeconds = 1800; // 30 minutes = 1800 seconds
+    var refreshCount = 0;
 
     // ================================================================
     // ===== TOGGLE INFO PANEL =====
@@ -1132,36 +1106,56 @@ for (Map<String, Object> row : timeSlots) {
     }
 
     // ================================================================
-    // ===== DOCUMENT READY =====
+    // ===== TIMER FUNCTION - 30 MINUTES =====
     // ================================================================
-    $(document).ready(function() {
-        $('select.done-by-select').each(function() {
-            var name = $(this).attr('name');
-            var rowId = name.replace('done_by_display_', '');
-            if ($(this).val() && $(this).val().trim() !== '') {
-                var tr = $('#row-' + rowId);
-                tr.addClass('row-highlight');
-                $('#row-' + rowId + '-indicator').show();
-                $(this).css('border', '1.5px solid #28a745');
-                $(this).css('background-color', '#f0fff4');
-            } else {
-                $(this).css('border', '2px solid #dc3545');
-                $(this).css('background-color', '#fff5f5');
-            }
-        });
+    function startTimer() {
+        timerSeconds = 1800; // Reset to 30 minutes
+        refreshCount = 0;
+        updateTimerDisplay();
         
-        $('.status-select').each(function() {
-            var val = $(this).val();
-            if (val === 'DONE') $(this).addClass('status-done');
-            else if (val === 'PENDING' || val === 'IN PROGRESS') $(this).addClass('status-pending');
-            else if (val === 'NA') $(this).addClass('status-na');
-        });
+        if (timerInterval) {
+            clearInterval(timerInterval);
+        }
+        
+        timerInterval = setInterval(function() {
+            timerSeconds--;
+            updateTimerDisplay();
+            
+            if (timerSeconds <= 0) {
+                // Refresh the page
+                clearInterval(timerInterval);
+                refreshCount++;
+                document.getElementById('refreshCount').textContent = '(' + refreshCount + ')';
+                
+                // Show notification before refresh
+                var refreshStatus = document.getElementById('refreshStatus');
+                if (refreshStatus) {
+                    refreshStatus.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing page...';
+                }
+                
+                // Reload page after 1 second
+                setTimeout(function() {
+                    location.reload();
+                }, 1000);
+            }
+        }, 1000);
+    }
 
-        $('#todayBtn').on('click', function(e) {
-            e.preventDefault();
-            window.location.href = window.location.pathname;
-        });
-    });
+    function updateTimerDisplay() {
+        var minutes = Math.floor(timerSeconds / 60);
+        var seconds = timerSeconds % 60;
+        var timeStr = String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+        
+        var timerDisplay = document.getElementById('timerDisplay');
+        var footerTimer = document.getElementById('footerTimer');
+        
+        if (timerDisplay) {
+            timerDisplay.textContent = timeStr;
+        }
+        if (footerTimer) {
+            footerTimer.textContent = timeStr;
+        }
+    }
 
     // ================================================================
     // ===== SAVE ALL =====
@@ -1227,7 +1221,9 @@ for (Map<String, Object> row : timeSlots) {
             success: function() {
                 alert('✅ Data saved successfully!');
                 $('#lastSaved').text('Last saved: ' + new Date().toLocaleTimeString());
-                setTimeout(function(){ location.reload(); }, 500);
+                // Reset timer on save
+                timerSeconds = 1800;
+                updateTimerDisplay();
             },
             error: function(xhr, status, error) { 
                 alert('❌ Error saving: ' + error);
@@ -1395,108 +1391,46 @@ for (Map<String, Object> row : timeSlots) {
     }
 
     // ================================================================
-    // ===== AUTO-REFRESH LOGIC - Check freeze status every 30 seconds =====
+    // ===== DOCUMENT READY =====
     // ================================================================
-    (function() {
-        'use strict';
-        
-        var pageLoaded = new Date();
-        var checkCount = 0;
-        
-        function checkAndRefresh() {
-            checkCount++;
-            var now = new Date();
-            var hour = now.getHours();
-            var minute = now.getMinutes();
-            
-            // After 7:45 AM, all slots should be frozen
-            if (hour > 7 || (hour === 7 && minute >= 45)) {
-                var loadedHour = pageLoaded.getHours();
-                var loadedMinute = pageLoaded.getMinutes();
-                
-                // If page loaded before 7:45 AM and now it's after, refresh
-                if ((loadedHour < 7 || (loadedHour === 7 && loadedMinute < 45))) {
-                    console.log('🔄 7:45 AM passed. Refreshing page...');
-                    location.reload();
-                }
+    $(document).ready(function() {
+        // Initialize Done By fields
+        $('select.done-by-select').each(function() {
+            var name = $(this).attr('name');
+            var rowId = name.replace('done_by_display_', '');
+            if ($(this).val() && $(this).val().trim() !== '') {
+                var tr = $('#row-' + rowId);
+                tr.addClass('row-highlight');
+                $('#row-' + rowId + '-indicator').show();
+                $(this).css('border', '1.5px solid #28a745');
+                $(this).css('background-color', '#f0fff4');
+            } else {
+                $(this).css('border', '2px solid #dc3545');
+                $(this).css('background-color', '#fff5f5');
             }
-            
-            // Check each slot deadline
-            var rows = document.querySelectorAll('#timeSlotTable tbody tr');
-            var anyFrozen = false;
-            
-            rows.forEach(function(row) {
-                var taskNameCell = row.querySelector('.task-name');
-                if (!taskNameCell) return;
-                
-                var taskName = taskNameCell.textContent.trim();
-                // Remove lock icon if present
-                taskName = taskName.replace('🔒', '').trim();
-                // Remove freeze time tag if present
-                taskName = taskName.replace(/Freezes:.*$/, '').trim();
-                
-                var isCurrentlyFrozen = row.classList.contains('frozen-row');
-                
-                if (checkSlotDeadline(taskName, now) && !isCurrentlyFrozen) {
-                    anyFrozen = true;
-                }
-            });
-            
-            if (anyFrozen) {
-                console.log('🔄 Slot deadline passed. Refreshing page...');
-                location.reload();
-            }
-            
-            // Update auto-refresh status
-            var statusEl = document.getElementById('autoRefreshStatus');
-            if (statusEl) {
-                statusEl.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Auto-refresh active (' + checkCount + ' checks)';
-            }
-        }
-        
-        function checkSlotDeadline(taskName, now) {
-            var parts = taskName.split('-');
-            if (parts.length !== 2) return false;
-            
-            var endStr = parts[1].trim().toLowerCase();
-            var timeMatch = endStr.match(/(\d{1,2}):(\d{2})\s*(am|pm)/);
-            if (!timeMatch) return false;
-            
-            var hour = parseInt(timeMatch[1]);
-            var minute = parseInt(timeMatch[2]);
-            var ampm = timeMatch[3];
-            
-            if (ampm === 'pm' && hour !== 12) hour += 12;
-            if (ampm === 'am' && hour === 12) hour = 0;
-            
-            var freezeMinute = minute + 45;
-            var freezeHour = hour;
-            if (freezeMinute >= 60) {
-                freezeMinute -= 60;
-                freezeHour += 1;
-            }
-            
-            var currentHour = now.getHours();
-            var currentMinute = now.getMinutes();
-            
-            if (currentHour > freezeHour) return true;
-            if (currentHour === freezeHour && currentMinute >= freezeMinute) return true;
-            
-            return false;
-        }
-        
-        // Start checking after page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Check immediately after 5 seconds
-            setTimeout(function() {
-                checkAndRefresh();
-            }, 5000);
-            
-            // Then check every 30 seconds
-            setInterval(checkAndRefresh, 30000);
-            console.log('✅ Auto-refresh timer started - checking every 30 seconds');
         });
-    })();
+        
+        // Initialize status selects
+        $('.status-select').each(function() {
+            var val = $(this).val();
+            if (val === 'DONE') $(this).addClass('status-done');
+            else if (val === 'PENDING' || val === 'IN PROGRESS') $(this).addClass('status-pending');
+            else if (val === 'NA') $(this).addClass('status-na');
+        });
+
+        // Today button
+        $('#todayBtn').on('click', function(e) {
+            e.preventDefault();
+            window.location.href = window.location.pathname;
+        });
+
+        // Start the 30-minute timer
+        startTimer();
+
+        console.log('✅ Night Shift Checklist loaded successfully');
+        console.log('📌 Auto-Refresh: Every 30 minutes');
+        console.log('📌 Keyboard Shortcuts: Ctrl+S (Save), Ctrl+I (Info Panel)');
+    });
 
     // ================================================================
     // ===== KEYBOARD SHORTCUTS =====
@@ -1526,11 +1460,6 @@ for (Map<String, Object> row : timeSlots) {
     $(document).on('change', 'select.done-by-select', function() {
         checkDoneByStatus();
     });
-
-    console.log('✅ Night Shift Checklist loaded successfully');
-    console.log('📌 Keyboard Shortcuts:');
-    console.log('  Ctrl+S - Save');
-    console.log('  Ctrl+I - Toggle Info Panel');
 </script>
 </body>
 </html>
