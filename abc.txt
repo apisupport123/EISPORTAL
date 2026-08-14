@@ -57,7 +57,7 @@ int minute = nowCal.get(Calendar.MINUTE);
 
 // Edit Mode: 4 PM (16:00) to next day 8 AM (08:00)
 boolean isEditable = false;
-if (hour >= 16 || hour < 8) {
+if (hour >= 16 || hour < 10) {
     isEditable = true;
 }
 
@@ -352,128 +352,65 @@ try {
 
 String[] statusOptions = {"DONE", "IN PROGRESS", "PENDING", "NA", "HANDOVER", "FAILED", "REVIEW"};
 
-// ===== EXPORT - FIXED with CSV Fallback =====
+// ================================================================
+// ===== EXPORT - ENHANCED WITH REVIEW & REMARKS =====
+// ================================================================
+
 if ("export".equals(action)) {
-    try {
-        boolean excelSuccess = false;
-        
-        // Try Excel first (if POI available)
-        try {
-            Class.forName("org.apache.poi.hssf.usermodel.HSSFWorkbook");
-            
-            response.setContentType("application/vnd.ms-excel");
-            response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".xls\"");
-            
-            HSSFWorkbook workbook = new HSSFWorkbook();
-            HSSFSheet sheet = workbook.createSheet("Night Checklist");
-            
-            // Header
-            HSSFRow headerRow = sheet.createRow(0);
-            String[] headers = {"#", "Section", "Task", "Status1", "Status2", "Status3", "Done By", "Review", "Remarks", "Last Updated"};
-            HSSFCellStyle headerStyle = workbook.createCellStyle();
-            HSSFFont headerFont = workbook.createFont();
-            headerFont.setBold(true);
-            headerStyle.setFont(headerFont);
-            
-            for (int i = 0; i < headers.length; i++) {
-                HSSFCell cell = headerRow.createCell(i);
-                cell.setCellValue(headers[i]);
-                cell.setCellStyle(headerStyle);
-            }
-            
-            // Data
-            int rowNum = 1;
-            for (Map<String, Object> row : displayRows) {
-                HSSFRow excelRow = sheet.createRow(rowNum++);
-                excelRow.createCell(0).setCellValue(rowNum - 1);
-                excelRow.createCell(1).setCellValue((String) row.get("section"));
-                excelRow.createCell(2).setCellValue((String) row.get("task_name"));
-                excelRow.createCell(3).setCellValue((String) row.get("status1"));
-                excelRow.createCell(4).setCellValue((String) row.get("status2"));
-                excelRow.createCell(5).setCellValue((String) row.get("status3"));
-                excelRow.createCell(6).setCellValue((String) row.get("done_by"));
-                excelRow.createCell(7).setCellValue((String) row.get("review"));
-                excelRow.createCell(8).setCellValue((String) row.get("remarks"));
-                Timestamp ts = (Timestamp) row.get("updated_at");
-                excelRow.createCell(9).setCellValue(ts != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "");
-            }
-            
-            for (int i = 0; i < headers.length; i++) {
-                sheet.autoSizeColumn(i);
-            }
-            
-            workbook.write(response.getOutputStream());
-            workbook.close();
-            excelSuccess = true;
-            
-        } catch (ClassNotFoundException e) {
-            // POI not available - will use CSV
-            System.out.println("POI library not found, using CSV fallback");
-        } catch (Exception e) {
-            // Excel failed - will use CSV
-            System.out.println("Excel export failed: " + e.getMessage());
-        }
-        
-        // If Excel failed, use CSV fallback
-        if (!excelSuccess) {
-            response.setContentType("text/csv");
-            response.setHeader("Content-Disposition", "attachment; filename=\"Night_Shift_Checklist_" + displayDateStr + ".csv\"");
-            
-            PrintWriter writer = response.getWriter();
-            writer.print('\uFEFF'); // UTF-8 BOM for Excel compatibility
-            
-            writer.println("#,Section,Task,Status1,Status2,Status3,Done By,Review,Remarks,Last Updated");
-            
-            int rowNum = 1;
-            for (Map<String, Object> row : displayRows) {
-                String section = (String) row.get("section");
-                String taskName = (String) row.get("task_name");
-                String status1 = (String) row.get("status1");
-                String status2 = (String) row.get("status2");
-                String status3 = (String) row.get("status3");
-                String doneBy = (String) row.get("done_by");
-                String review = (String) row.get("review");
-                String remark = (String) row.get("remarks");
-                Timestamp ts = (Timestamp) row.get("updated_at");
-                String lastUpdated = (ts != null) ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "";
-                
-                writer.println(
-                    (rowNum++) + "," +
-                    cleanCSV(section) + "," +
-                    cleanCSV(taskName) + "," +
-                    cleanCSV(status1) + "," +
-                    cleanCSV(status2) + "," +
-                    cleanCSV(status3) + "," +
-                    cleanCSV(doneBy) + "," +
-                    cleanCSV(review) + "," +
-                    cleanCSV(remark) + "," +
-                    cleanCSV(lastUpdated)
-                );
-            }
-            
-            writer.flush();
-            writer.close();
-        }
-        
-    } catch (Exception e) {
-        e.printStackTrace();
-        // If everything fails, show error
-        try {
-            response.setContentType("text/html");
-            out.println("<h3>Export Error:</h3>");
-            out.println("<pre>");
-            out.println("Error: " + e.toString());
-            out.println("Message: " + e.getMessage());
-            for (StackTraceElement ste : e.getStackTrace()) {
-                out.println(ste.toString());
-            }
-            out.println("</pre>");
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-    }
+    response.sendRedirect(request.getContextPath() + "/jsp/NightShiftCheckList_NEW.jsp?exportData=true&viewDate=" + (viewDateParam != null ? viewDateParam : sdfParam.format(displayDate)));
     return;
 }
+
+// Check if this is an export data request
+String exportDataParam = request.getParameter("exportData");
+if ("true".equals(exportDataParam)) {
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+    
+    Map<String, Object> exportData = new LinkedHashMap<>();
+    
+    // ===== TIME SLOTS DATA WITH REVIEW & REMARKS =====
+    List<Map<String, Object>> timeSlotData = new ArrayList<>();
+    for (Map<String, Object> row : timeSlots) {
+        Map<String, Object> slot = new LinkedHashMap<>();
+        slot.put("time_slot", row.get("task_name") != null ? row.get("task_name") : "");
+        slot.put("unresponded_mails", row.get("status1") != null ? row.get("status1") : "");
+        slot.put("strategic_management", row.get("status2") != null ? row.get("status2") : "");
+        slot.put("helix_ticket", row.get("status3") != null ? row.get("status3") : "");
+        slot.put("done_by", row.get("done_by") != null ? row.get("done_by") : "");
+        slot.put("review", row.get("review") != null ? row.get("review") : "");
+        slot.put("remarks", row.get("remarks") != null ? row.get("remarks") : "");
+        slot.put("last_updated", row.get("updated_at") != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(row.get("updated_at")) : "");
+        timeSlotData.add(slot);
+    }
+    exportData.put("timeSlots", timeSlotData);
+    
+    // ===== NIGHT REPORTS DATA WITH REVIEW & REMARKS =====
+    List<Map<String, Object>> reportData = new ArrayList<>();
+    for (Map<String, Object> row : nightReports) {
+        Map<String, Object> report = new LinkedHashMap<>();
+        report.put("night_report", row.get("task_name") != null ? row.get("task_name") : "");
+        report.put("status", row.get("status1") != null ? row.get("status1") : "");
+        report.put("done_by", row.get("done_by") != null ? row.get("done_by") : "");
+        report.put("review", row.get("review") != null ? row.get("review") : "");
+        report.put("remarks", row.get("remarks") != null ? row.get("remarks") : "");
+        report.put("last_updated", row.get("updated_at") != null ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(row.get("updated_at")) : "");
+        reportData.add(report);
+    }
+    exportData.put("nightReports", reportData);
+    
+    // ===== DATE =====
+    exportData.put("displayDate", displayDateStr);
+    
+    // Convert to JSON
+    String jsonData = new com.google.gson.Gson().toJson(exportData);
+    out.print(jsonData);
+    return;
+}
+
+// Get footer date for export
+SimpleDateFormat sdfFooter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+String footerDate = sdfFooter.format(new java.util.Date());
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -485,6 +422,8 @@ if ("export".equals(action)) {
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link href="../css/all.min.css" rel="stylesheet">
     <script src="../js/jquery-3.7.1.min.js"></script>
+    <script src="../js/xlsx.full.min.js"></script>
+    
     <style>
         :root { --primary-dark: #0B1A30; --primary-mid: #1A3A5C; --primary-blue: #2A5C8A; --accent-gold: #F5B041; --bg-main: #f0f4f9; --card-shadow: 0 12px 40px rgba(11,26,48,0.08); --border-radius-lg: 18px; --border-radius-md: 12px; --font-family: 'Inter', sans-serif; }
         * { box-sizing: border-box; }
@@ -882,7 +821,7 @@ if ("export".equals(action)) {
 
 <script src="../js/bootstrap.bundle.min.js"></script>
 <script>
-    let saveInProgress = false;
+    var saveInProgress = false;
 
     function updateDoneBy(selectElem, rowId) {
         var hiddenField = document.getElementById('done_by_' + rowId);
@@ -925,7 +864,6 @@ if ("export".equals(action)) {
     }
 
     $(document).ready(function() {
-        // Initialize Done By fields
         $('select.done-by-select').each(function() {
             var name = $(this).attr('name');
             var rowId = name.replace('done_by_display_', '');
@@ -961,7 +899,6 @@ if ("export".equals(action)) {
             return;
         }
 
-        // ===== MANDATORY CHECK: ALL Done By fields must be filled =====
         var doneByFields = document.getElementsByName('done_by[]');
         var allFilled = true;
         var emptyCount = 0;
@@ -975,7 +912,6 @@ if ("export".equals(action)) {
         }
         
         if (!allFilled) {
-            // Highlight all empty fields and scroll to first
             var selects = document.querySelectorAll('select.done-by-select');
             for (var j = 0; j < selects.length; j++) {
                 if (!selects[j].value || selects[j].value.trim() === '') {
@@ -998,7 +934,6 @@ if ("export".equals(action)) {
             alert('⚠️ All "Done By" fields are mandatory!\n\n' + emptyCount + ' row(s) are empty.\nPlease select "Done By" for all rows before saving.');
             return;
         }
-        // ===== END MANDATORY CHECK =====
 
         if (!confirm('✅ Are you sure you want to save the changes?')) {
             return;
@@ -1030,10 +965,209 @@ if ("export".equals(action)) {
         });
     }
 
+    // ================================================================
+    // ===== ENHANCED EXPORT FUNCTION WITH REVIEW & REMARKS =====
+    // ================================================================
     function exportExcel() {
         $('#spinnerOverlay').fadeIn(200);
-        window.location.href = window.location.pathname + '?action=export' + (window.location.search ? '&' + window.location.search.substring(1) : '');
-        setTimeout(function(){ $('#spinnerOverlay').fadeOut(300); }, 2000);
+        
+        var viewDate = document.getElementById('viewDate').value;
+        var url = window.location.pathname + '?exportData=true&viewDate=' + viewDate;
+        
+        fetch(url)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                if (!data || (!data.timeSlots && !data.nightReports)) {
+                    alert('⚠️ No data available to export!');
+                    $('#spinnerOverlay').fadeOut(300);
+                    return;
+                }
+                
+                exportWithStyledHTML(data);
+                $('#spinnerOverlay').fadeOut(300);
+            })
+            .catch(function(error) {
+                console.error('Export error:', error);
+                alert('❌ Error exporting to Excel: ' + error.message);
+                $('#spinnerOverlay').fadeOut(300);
+            });
+    }
+
+    // ================================================================
+    // ===== ENHANCED EXPORT WITH REVIEW, REMARKS & BETTER FORMATTING =====
+    // ================================================================
+    function exportWithStyledHTML(data) {
+        var displayDate = data.displayDate || new Date().toISOString().split('T')[0];
+        
+        var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+        html += '<head><meta charset="UTF-8">';
+        html += '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Night Checklist</x:Name>';
+        html += '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
+        html += '<style>';
+        html += 'body { font-family: "Segoe UI", Arial, sans-serif; padding: 20px; background: #f8f9fc; }';
+        
+        // Main Title
+        html += '.main-title { font-size: 22px; font-weight: 700; color: #0B1A30; text-align: center; padding: 15px; background: linear-gradient(135deg, #e8edf4, #d5dce6); border-radius: 8px; margin-bottom: 20px; border: 2px solid #1a237e; }';
+        html += '.main-title span { color: #1a237e; }';
+        
+        // Date Header
+        html += '.date-header { font-size: 16px; font-weight: bold; color: #1a237e; margin-bottom: 20px; padding: 12px 20px; background: #e8edf4; border-left: 5px solid #1a237e; border-radius: 4px; }';
+        
+        // Table Styles
+        html += 'table { border-collapse: collapse; width: 100%; margin-bottom: 30px; font-family: "Segoe UI", Arial, sans-serif; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }';
+        html += 'th { background: #1a237e; color: #ffffff; font-weight: bold; padding: 14px 12px; text-align: center; vertical-align: middle; border: 1px solid #0d1547; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }';
+        html += 'td { padding: 12px; border: 1px solid #d0d7de; text-align: center; vertical-align: middle; font-size: 12px; color: #1a2634; }';
+        html += 'tr:nth-child(even) { background: #f8f9fc; }';
+        html += 'tr:nth-child(odd) { background: #ffffff; }';
+        html += 'tr:hover { background: #e8f0fe; }';
+        
+        // Task Name
+        html += '.task-name { font-weight: 600; color: #0B1A30; text-align: left; padding-left: 15px; }';
+        
+        // Status Colors
+        html += '.status-done { background: #d4edda; color: #155724; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-pending { background: #fff3cd; color: #856404; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-na { background: #e2e3e5; color: #383d41; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-inprogress { background: #cce5ff; color: #004085; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-handover { background: #f5c6cb; color: #721c24; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-failed { background: #f8d7da; color: #721c24; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-review { background: #d6d8db; color: #383d41; font-weight: bold; padding: 4px 12px; border-radius: 4px; display: inline-block; }';
+        
+        // Done By
+        html += '.done-by { font-weight: 600; color: #0B1A30; }';
+        
+        // Section Title
+        html += '.section-title { font-size: 18px; font-weight: bold; color: #1a237e; padding: 15px 15px 10px 15px; border-bottom: 3px solid #1a237e; margin-top: 25px; margin-bottom: 20px; background: #e8edf4; border-radius: 4px 4px 0 0; }';
+        html += '.section-title i { margin-right: 10px; }';
+        
+        // Footer
+        html += '.footer { margin-top: 30px; padding: 15px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 11px; background: #f8f9fc; border-radius: 4px; }';
+        html += '.footer .company { font-weight: 600; color: #1a237e; }';
+        
+        html += '@media print { body { padding: 10px; } th { background: #1a237e !important; color: white !important; } }';
+        html += '</style></head><body>';
+        
+        // Main Title
+        html += '<div class="main-title">🌙 NIGHT SHIFT CHECKLIST <span>| ' + displayDate + '</span></div>';
+        
+        // Date Header
+        var currentDate = new Date().toLocaleString();
+        html += '<div class="date-header">📅 Date: ' + displayDate + ' | ⏰ Generated: ' + currentDate + '</div>';
+        
+        // ===== TIME SLOTS TABLE =====
+        if (data.timeSlots && data.timeSlots.length > 0) {
+            html += '<div class="section-title">⏰ TIME SLOTS</div>';
+            html += '<table>';
+            html += '<thead><tr>';
+            html += '<th style="width:18%;">TIME SLOT</th>';
+            html += '<th style="width:18%;">UNRESPONDED MAILS &amp; GIMS &amp; DPG</th>';
+            html += '<th style="width:16%;">STRATEGIC MANAGEMENT</th>';
+            html += '<th style="width:14%;">HELIX TICKET</th>';
+            html += '<th style="width:14%;">DONE BY</th>';
+            html += '<th style="width:10%;">REVIEW</th>';
+            html += '<th style="width:10%;">REMARKS</th>';
+            html += '</tr></thead><tbody>';
+            
+            for (var i = 0; i < data.timeSlots.length; i++) {
+                var row = data.timeSlots[i];
+                html += '<tr>';
+                html += '<td class="task-name">' + (row.time_slot || '') + '</td>';
+                html += '<td>' + getStatusBadge(row.unresponded_mails || '') + '</td>';
+                html += '<td>' + getStatusBadge(row.strategic_management || '') + '</td>';
+                html += '<td>' + getStatusBadge(row.helix_ticket || '') + '</td>';
+                html += '<td class="done-by">' + (row.done_by || '') + '</td>';
+                html += '<td style="text-align:left;padding-left:10px;">' + (row.review || '') + '</td>';
+                html += '<td style="text-align:left;padding-left:10px;">' + (row.remarks || '') + '</td>';
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table>';
+        }
+        
+        // ===== NIGHT REPORTS TABLE =====
+        if (data.nightReports && data.nightReports.length > 0) {
+            html += '<div class="section-title">📋 NIGHT REPORTS</div>';
+            html += '<table>';
+            html += '<thead><tr>';
+            html += '<th style="width:35%;">NIGHT REPORTS</th>';
+            html += '<th style="width:18%;">STATUS</th>';
+            html += '<th style="width:15%;">DONE BY</th>';
+            html += '<th style="width:16%;">REVIEW</th>';
+            html += '<th style="width:16%;">REMARKS</th>';
+            html += '</tr></thead><tbody>';
+            
+            for (var i = 0; i < data.nightReports.length; i++) {
+                var row = data.nightReports[i];
+                html += '<tr>';
+                html += '<td class="task-name">' + (row.night_report || '') + '</td>';
+                html += '<td>' + getStatusBadge(row.status || '') + '</td>';
+                html += '<td class="done-by">' + (row.done_by || '') + '</td>';
+                html += '<td style="text-align:left;padding-left:10px;">' + (row.review || '') + '</td>';
+                html += '<td style="text-align:left;padding-left:10px;">' + (row.remarks || '') + '</td>';
+                html += '</tr>';
+            }
+            
+            html += '</tbody></table>';
+        }
+        
+        // Footer - FIXED (removed session reference)
+        var footerDate = '<%= footerDate %>';
+        html += '<div class="footer">';
+        html += '<div><span class="company">EIS Portal</span> | Night Shift Checklist</div>';
+        html += '<div style="margin-top:5px;">Generated on: ' + footerDate + '</div>';
+        html += '<div style="margin-top:5px;font-size:10px;color:#999;">This is a system generated report. Please verify all entries.</div>';
+        html += '</div>';
+        
+        html += '</body></html>';
+        
+        // Download
+        var blob = new Blob([html], { 
+            type: 'application/vnd.ms-excel;charset=utf-8' 
+        });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'Night_Shift_Checklist_' + displayDate + '.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+        
+        alert('✅ Excel exported successfully with Review & Remarks!');
+    }
+
+    // ================================================================
+    // ===== HELPER: GET STATUS BADGE WITH COLOR =====
+    // ================================================================
+    function getStatusBadge(status) {
+        if (!status) return '-';
+        
+        var statusUpper = status.toUpperCase().trim();
+        var className = '';
+        
+        if (statusUpper === 'DONE') {
+            className = 'status-done';
+        } else if (statusUpper === 'PENDING') {
+            className = 'status-pending';
+        } else if (statusUpper === 'NA') {
+            className = 'status-na';
+        } else if (statusUpper === 'IN PROGRESS') {
+            className = 'status-inprogress';
+        } else if (statusUpper === 'HANDOVER') {
+            className = 'status-handover';
+        } else if (statusUpper === 'FAILED') {
+            className = 'status-failed';
+        } else if (statusUpper === 'REVIEW') {
+            className = 'status-review';
+        } else {
+            return status;
+        }
+        
+        return '<span class="' + className + '">' + status + '</span>';
     }
 
     $(document).on('change', '.status-select', function() {
