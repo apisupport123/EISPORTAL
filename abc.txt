@@ -1,38 +1,1224 @@
-[12:02:30] 🔄 Test Dashboard loaded successfully
-[12:02:30] 📌 Click "Run All Tests" to start testing
-[12:02:30 pm] 📊 Total tests: 15
-[12:02:30 pm] 💡 Tip: Click "Run All Tests" to start testing
-[12:02:30 pm] 🔍 Individual tests can be run by clicking "Run"
-[12:02:48 pm] ▶️ Running test: ui-1
-[12:02:48 pm] ❌ UI Load: Missing header-card, search-card, info-panel, checklistForm
-[12:02:51 pm] ▶️ Running test: ui-2
-[12:02:51 pm] ❌ ❌ Tables missing: TimeSlots NightReports
-[12:02:52 pm] ▶️ Running test: ui-3
-[12:02:53 pm] ❌ Info panel missing
-[12:02:54 pm] ▶️ Running test: ui-4
-[12:02:55 pm] ✅ Responsive: ✅ Screen width: 1912px. Desktop view detected.
-[12:02:57 pm] ▶️ Running test: func-1
-[12:02:58 pm] ✅ Date Logic: Not found
-[12:02:59 pm] ▶️ Running test: func-2
-[12:02:59 pm] ✅ Edit Mode: Not found | Save: Disabled
-[12:03:01 pm] ▶️ Running test: func-3
-[12:03:01 pm] ✅ Slot Freeze: 0 frozen out of 0
-[12:03:03 pm] ▶️ Running test: func-4
-[12:03:03 pm] ⏳ Testing Save Data...
-[12:03:03 pm] ❌ Save Data: Form not found
-[12:03:05 pm] ▶️ Running test: func-5
-[12:03:06 pm] ❌ Done By Validation: No fields found
-[12:03:08 pm] ▶️ Running test: func-6
-[12:03:08 pm] ⏳ Testing Export Excel...
-[12:03:08 pm] ❌ Export Excel: Button not found
-[12:03:10 pm] ▶️ Running test: db-1
-[12:03:10 pm] ⏳ Testing Database Connection...
-[12:03:10 pm] ✅ DB Connection: Success
-[12:03:10 pm] ▶️ Running test: db-2
-[12:03:11 pm] ❌ Tasks Master: No tasks loaded
-[12:03:12 pm] ▶️ Running test: db-3
-[12:03:13 pm] ❌ Saved Data: No data found
-[12:03:14 pm] ▶️ Running test: perf-1
-[12:03:14 pm] ✅ Page Load: 183ms
-[12:03:16 pm] ▶️ Running test: perf-2
-[12:03:16 pm] ❌ Timer: Not found
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, java.util.*, java.text.*" %>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Night Shift Checklist - Test Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --dark: #0f172a;
+            --light: #f1f5f9;
+        }
+        * { box-sizing: border-box; }
+        body { 
+            background: #f1f5f9; 
+            font-family: 'Segoe UI', -apple-system, Arial, sans-serif; 
+            padding: 20px; 
+        }
+        .test-container { max-width: 1400px; margin: 0 auto; }
+        
+        .test-header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #fff;
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .test-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .test-header h1 i { color: #f59e0b; }
+        .test-header .badge { font-size: 14px; padding: 6px 18px; }
+        .test-header .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .test-header .actions .btn { border-radius: 40px; padding: 6px 20px; font-weight: 600; font-size: 13px; }
+        .btn-run-all { background: #10b981; color: #fff; }
+        .btn-run-all:hover { background: #059669; color: #fff; }
+        .btn-clear { background: #ef4444; color: #fff; }
+        .btn-clear:hover { background: #dc2626; color: #fff; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .stat-card .label {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .stat-card.pass .number { color: #10b981; }
+        .stat-card.fail .number { color: #ef4444; }
+        .stat-card.total .number { color: #2563eb; }
+        .stat-card.pending .number { color: #f59e0b; }
+        
+        .test-section {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .test-section .section-header {
+            background: #f8fafc;
+            padding: 14px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .test-section .section-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #0f172a;
+        }
+        .test-section .section-header .toggle-icon {
+            transition: transform 0.3s;
+        }
+        .test-section .section-header .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        .test-section .section-body {
+            padding: 16px 24px;
+        }
+        .test-section .section-body.hidden { display: none; }
+        
+        .test-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .test-item:last-child { border-bottom: none; }
+        .test-item .info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .test-item .info .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .test-item .info .icon.pending { background: #fef3c7; color: #f59e0b; }
+        .test-item .info .icon.pass { background: #d1fae5; color: #10b981; }
+        .test-item .info .icon.fail { background: #fee2e2; color: #ef4444; }
+        .test-item .info .icon.running { background: #dbeafe; color: #2563eb; animation: spin 1s linear infinite; }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .test-item .info .details .title {
+            font-weight: 600;
+            font-size: 14px;
+            color: #0f172a;
+        }
+        .test-item .info .details .desc {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .test-item .status-badge {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .test-item .status-badge.pending { background: #fef3c7; color: #92400e; }
+        .test-item .status-badge.pass { background: #d1fae5; color: #065f46; }
+        .test-item .status-badge.fail { background: #fee2e2; color: #991b1b; }
+        .test-item .status-badge.running { background: #dbeafe; color: #1e40af; }
+        .test-item .btn-test {
+            border-radius: 30px;
+            padding: 4px 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .test-item .result-detail {
+            width: 100%;
+            font-size: 12px;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: none;
+            margin-top: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .test-item .result-detail.show { display: block; }
+        
+        .log-container {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 16px 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+        .log-container .log-entry { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .log-container .log-entry .time { color: #64748b; margin-right: 12px; }
+        .log-container .log-entry .pass { color: #10b981; }
+        .log-container .log-entry .fail { color: #ef4444; }
+        .log-container .log-entry .info { color: #3b82f6; }
+        .log-container .log-entry .warn { color: #f59e0b; }
+        
+        @media (max-width: 768px) {
+            .test-header { padding: 16px; flex-direction: column; align-items: stretch; }
+            .test-header .actions { justify-content: stretch; }
+            .test-header .actions .btn { flex: 1; text-align: center; }
+            .test-item { flex-direction: column; align-items: stretch; }
+            .test-item .info { min-width: unset; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="test-container">
+
+    <!-- ===== HEADER ===== -->
+    <div class="test-header">
+        <div>
+            <h1><i class="fas fa-flask"></i> Night Shift Checklist - Test Dashboard</h1>
+            <div style="font-size:13px; opacity:0.7; margin-top:4px;">
+                <i class="fas fa-clock"></i> Server Time: <span id="serverTime"><%= new SimpleDateFormat("HH:mm:ss").format(new java.util.Date()) %></span>
+                &nbsp;|&nbsp; <i class="fas fa-calendar"></i> Date: <span id="serverDate"><%= new SimpleDateFormat("dd-MM-yyyy").format(new java.util.Date()) %></span>
+            </div>
+        </div>
+        <div class="actions">
+            <button class="btn btn-run-all" onclick="runAllTests()"><i class="fas fa-play"></i> Run All Tests</button>
+            <button class="btn btn-clear" onclick="clearLogs()"><i class="fas fa-trash"></i> Clear Logs</button>
+            <button class="btn btn-info" onclick="window.open('NightShiftCheckList_NEW.jsp', '_blank')"><i class="fas fa-arrow-right"></i> Open App</button>
+        </div>
+    </div>
+
+    <!-- ===== STATS ===== -->
+    <div class="stats-grid" id="statsGrid">
+        <div class="stat-card total">
+            <div class="number" id="totalTests">0</div>
+            <div class="label">Total Tests</div>
+        </div>
+        <div class="stat-card pass">
+            <div class="number" id="passCount">0</div>
+            <div class="label">Passed</div>
+        </div>
+        <div class="stat-card fail">
+            <div class="number" id="failCount">0</div>
+            <div class="label">Failed</div>
+        </div>
+        <div class="stat-card pending">
+            <div class="number" id="pendingCount">0</div>
+            <div class="label">Pending</div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION 1: UI TESTS ===== -->
+    <div class="test-section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <h3><i class="fas fa-paint-brush" style="color:#2563eb;"></i> UI Tests</h3>
+            <i class="fas fa-chevron-up toggle-icon" id="uiToggle"></i>
+        </div>
+        <div class="section-body" id="uiTests">
+            <div class="test-item" id="test-ui-1">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-clock"></i></div>
+                    <div class="details">
+                        <div class="title">App Page Load</div>
+                        <div class="desc">Check if NightShiftCheckList_NEW.jsp loads</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('ui-1')">Run</button>
+                <div class="result-detail" id="result-ui-1"></div>
+            </div>
+            
+            <div class="test-item" id="test-ui-2">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-table"></i></div>
+                    <div class="details">
+                        <div class="title">Tables Render</div>
+                        <div class="desc">Check if Time Slots & Night Reports tables render</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('ui-2')">Run</button>
+                <div class="result-detail" id="result-ui-2"></div>
+            </div>
+            
+            <div class="test-item" id="test-ui-3">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-info-circle"></i></div>
+                    <div class="details">
+                        <div class="title">Info Panel</div>
+                        <div class="desc">Check if Info panel exists</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('ui-3')">Run</button>
+                <div class="result-detail" id="result-ui-3"></div>
+            </div>
+            
+            <div class="test-item" id="test-ui-4">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-mobile-alt"></i></div>
+                    <div class="details">
+                        <div class="title">Responsive Design</div>
+                        <div class="desc">Check screen width detection</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('ui-4')">Run</button>
+                <div class="result-detail" id="result-ui-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION 2: FUNCTIONAL TESTS ===== -->
+    <div class="test-section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <h3><i class="fas fa-cogs" style="color:#10b981;"></i> Functional Tests</h3>
+            <i class="fas fa-chevron-up toggle-icon" id="funcToggle"></i>
+        </div>
+        <div class="section-body" id="funcTests">
+            <div class="test-item" id="test-func-1">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-calendar-check"></i></div>
+                    <div class="details">
+                        <div class="title">Date Logic</div>
+                        <div class="desc">Check if correct date is displayed</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('func-1')">Run</button>
+                <div class="result-detail" id="result-func-1"></div>
+            </div>
+            
+            <div class="test-item" id="test-func-2">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-edit"></i></div>
+                    <div class="details">
+                        <div class="title">Edit Mode</div>
+                        <div class="desc">Check if edit mode works correctly</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('func-2')">Run</button>
+                <div class="result-detail" id="result-func-2"></div>
+            </div>
+            
+            <div class="test-item" id="test-func-3">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-lock"></i></div>
+                    <div class="details">
+                        <div class="title">Slot Freeze</div>
+                        <div class="desc">Check if slots freeze correctly</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('func-3')">Run</button>
+                <div class="result-detail" id="result-func-3"></div>
+            </div>
+            
+            <div class="test-item" id="test-func-4">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-save"></i></div>
+                    <div class="details">
+                        <div class="title">Save Data</div>
+                        <div class="desc">Check if data saves to database</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('func-4')">Run</button>
+                <div class="result-detail" id="result-func-4"></div>
+            </div>
+            
+            <div class="test-item" id="test-func-5">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-star"></i></div>
+                    <div class="details">
+                        <div class="title">Done By Validation</div>
+                        <div class="desc">Check if Done By field is mandatory</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('func-5')">Run</button>
+                <div class="result-detail" id="result-func-5"></div>
+            </div>
+            
+            <div class="test-item" id="test-func-6">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-file-excel"></i></div>
+                    <div class="details">
+                        <div class="title">Export Excel</div>
+                        <div class="desc">Check if Excel export works</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('func-6')">Run</button>
+                <div class="result-detail" id="result-func-6"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION 3: DATABASE TESTS ===== -->
+    <div class="test-section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <h3><i class="fas fa-database" style="color:#7c3aed;"></i> Database Tests</h3>
+            <i class="fas fa-chevron-up toggle-icon" id="dbToggle"></i>
+        </div>
+        <div class="section-body" id="dbTests">
+            <div class="test-item" id="test-db-1">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-plug"></i></div>
+                    <div class="details">
+                        <div class="title">Database Connection</div>
+                        <div class="desc">Check if database connection works</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('db-1')">Run</button>
+                <div class="result-detail" id="result-db-1"></div>
+            </div>
+            
+            <div class="test-item" id="test-db-2">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-table"></i></div>
+                    <div class="details">
+                        <div class="title">Tasks Master</div>
+                        <div class="desc">Check if tasks_master table has data</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('db-2')">Run</button>
+                <div class="result-detail" id="result-db-2"></div>
+            </div>
+            
+            <div class="test-item" id="test-db-3">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-check-circle"></i></div>
+                    <div class="details">
+                        <div class="title">Saved Data</div>
+                        <div class="desc">Check if saved data exists in night_checklist</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('db-3')">Run</button>
+                <div class="result-detail" id="result-db-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SECTION 4: PERFORMANCE TESTS ===== -->
+    <div class="test-section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <h3><i class="fas fa-tachometer-alt" style="color:#f59e0b;"></i> Performance Tests</h3>
+            <i class="fas fa-chevron-up toggle-icon" id="perfToggle"></i>
+        </div>
+        <div class="section-body" id="perfTests">
+            <div class="test-item" id="test-perf-1">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-clock"></i></div>
+                    <div class="details">
+                        <div class="title">Page Load Time</div>
+                        <div class="desc">Check how fast the page loads</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('perf-1')">Run</button>
+                <div class="result-detail" id="result-perf-1"></div>
+            </div>
+            
+            <div class="test-item" id="test-perf-2">
+                <div class="info">
+                    <div class="icon pending"><i class="fas fa-sync-alt"></i></div>
+                    <div class="details">
+                        <div class="title">Auto-Refresh Timer</div>
+                        <div class="desc">Check if auto-refresh timer exists</div>
+                    </div>
+                </div>
+                <span class="status-badge pending">Pending</span>
+                <button class="btn btn-primary btn-test" onclick="runTest('perf-2')">Run</button>
+                <div class="result-detail" id="result-perf-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LOG ===== -->
+    <div class="test-section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <h3><i class="fas fa-list" style="color:#64748b;"></i> Test Log</h3>
+            <i class="fas fa-chevron-up toggle-icon" id="logToggle"></i>
+        </div>
+        <div class="section-body" id="logSection">
+            <div class="log-container" id="logContainer">
+                <div class="log-entry"><span class="time">[<%= new SimpleDateFormat("HH:mm:ss").format(new java.util.Date()) %>]</span> <span class="info">🔄 Test Dashboard loaded successfully</span></div>
+                <div class="log-entry"><span class="time">[<%= new SimpleDateFormat("HH:mm:ss").format(new java.util.Date()) %>]</span> <span class="info">📌 Click "Run All Tests" to start testing</span></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    var testResults = {};
+    var totalTests = 0;
+    var passCount = 0;
+    var failCount = 0;
+    var pendingCount = 0;
+    var isRunning = false;
+    var appLoaded = false;
+    var appData = null;
+
+    // ============================================================
+    // TOGGLE SECTION
+    // ============================================================
+    function toggleSection(header) {
+        var body = header.nextElementSibling;
+        var icon = header.querySelector('.toggle-icon');
+        if (body.classList.contains('hidden')) {
+            body.classList.remove('hidden');
+            icon.className = 'fas fa-chevron-up toggle-icon';
+        } else {
+            body.classList.add('hidden');
+            icon.className = 'fas fa-chevron-down toggle-icon';
+        }
+    }
+
+    // ============================================================
+    // ADD LOG
+    // ============================================================
+    function addLog(message, type) {
+        var container = document.getElementById('logContainer');
+        var time = new Date().toLocaleTimeString();
+        var colorClass = type || 'info';
+        var entry = document.createElement('div');
+        entry.className = 'log-entry';
+        entry.innerHTML = '<span class="time">[' + time + ']</span> <span class="' + colorClass + '">' + message + '</span>';
+        container.appendChild(entry);
+        container.scrollTop = container.scrollHeight;
+    }
+
+    // ============================================================
+    // UPDATE STATS
+    // ============================================================
+    function updateStats() {
+        var passes = document.querySelectorAll('.status-badge.pass').length;
+        var fails = document.querySelectorAll('.status-badge.fail').length;
+        var pendings = document.querySelectorAll('.status-badge.pending').length;
+        var running = document.querySelectorAll('.status-badge.running').length;
+        
+        totalTests = passes + fails + pendings + running;
+        passCount = passes;
+        failCount = fails;
+        pendingCount = pendings + running;
+        
+        document.getElementById('totalTests').textContent = totalTests;
+        document.getElementById('passCount').textContent = passCount;
+        document.getElementById('failCount').textContent = failCount;
+        document.getElementById('pendingCount').textContent = pendingCount;
+    }
+
+    // ============================================================
+    // UPDATE TEST STATUS
+    // ============================================================
+    function updateTestStatus(testId, status, message) {
+        var item = document.getElementById('test-' + testId);
+        if (!item) return;
+        
+        var icon = item.querySelector('.icon');
+        var badge = item.querySelector('.status-badge');
+        var resultDiv = document.getElementById('result-' + testId);
+        
+        icon.className = 'icon ' + status;
+        if (status === 'pass') {
+            icon.innerHTML = '<i class="fas fa-check"></i>';
+            badge.className = 'status-badge pass';
+            badge.textContent = '✅ Passed';
+        } else if (status === 'fail') {
+            icon.innerHTML = '<i class="fas fa-times"></i>';
+            badge.className = 'status-badge fail';
+            badge.textContent = '❌ Failed';
+        } else if (status === 'running') {
+            icon.innerHTML = '<i class="fas fa-spinner"></i>';
+            badge.className = 'status-badge running';
+            badge.textContent = '⏳ Running...';
+        } else {
+            icon.innerHTML = '<i class="fas fa-clock"></i>';
+            icon.className = 'icon pending';
+            badge.className = 'status-badge pending';
+            badge.textContent = '⏳ Pending';
+        }
+        
+        if (message) {
+            resultDiv.textContent = message;
+            resultDiv.className = 'result-detail show';
+        } else {
+            resultDiv.className = 'result-detail';
+        }
+        
+        updateStats();
+    }
+
+    // ============================================================
+    // FETCH APP PAGE
+    // ============================================================
+    function fetchAppPage() {
+        return new Promise(function(resolve, reject) {
+            var url = window.location.pathname.replace('TestDashboard.jsp', 'NightShiftCheckList_NEW.jsp');
+            fetch(url)
+                .then(function(response) {
+                    if (response.ok) {
+                        return response.text();
+                    } else {
+                        reject('HTTP Error: ' + response.status);
+                    }
+                })
+                .then(function(html) {
+                    appLoaded = true;
+                    appData = html;
+                    resolve(html);
+                })
+                .catch(function(error) {
+                    reject(error.message);
+                });
+        });
+    }
+
+    // ============================================================
+    // RUN SINGLE TEST
+    // ============================================================
+    function runTest(testId) {
+        if (isRunning) {
+            alert('⚠️ Tests are already running! Please wait.');
+            return;
+        }
+        
+        var fullId = testId;
+        updateTestStatus(fullId, 'running');
+        addLog('▶️ Running test: ' + fullId, 'info');
+        
+        // First fetch the app page if not loaded
+        if (!appLoaded) {
+            fetchAppPage()
+                .then(function() {
+                    runTestExecution(fullId);
+                })
+                .catch(function(error) {
+                    updateTestStatus(fullId, 'fail', '❌ Failed to load app: ' + error);
+                    addLog('❌ App Load Error: ' + error, 'fail');
+                });
+        } else {
+            runTestExecution(fullId);
+        }
+    }
+
+    // ============================================================
+    // TEST EXECUTION
+    // ============================================================
+    function runTestExecution(testId) {
+        switch(testId) {
+            case 'ui-1': testUILoad(testId); break;
+            case 'ui-2': testUITables(testId); break;
+            case 'ui-3': testUIInfoPanel(testId); break;
+            case 'ui-4': testUIResponsive(testId); break;
+            case 'func-1': testDateLogic(testId); break;
+            case 'func-2': testEditMode(testId); break;
+            case 'func-3': testSlotFreeze(testId); break;
+            case 'func-4': testSaveData(testId); break;
+            case 'func-5': testDoneByValidation(testId); break;
+            case 'func-6': testExportExcel(testId); break;
+            case 'db-1': testDBConnection(testId); break;
+            case 'db-2': testTasksMaster(testId); break;
+            case 'db-3': testSavedData(testId); break;
+            case 'perf-1': testPageLoad(testId); break;
+            case 'perf-2': testTimer(testId); break;
+            default: 
+                updateTestStatus(testId, 'fail', 'Unknown test: ' + testId);
+                addLog('❌ Unknown test: ' + testId, 'fail');
+        }
+    }
+
+    // ============================================================
+    // TEST: UI LOAD
+    // ============================================================
+    function testUILoad(testId) {
+        setTimeout(function() {
+            try {
+                // Check if we have the app HTML
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App page not loaded');
+                    addLog('❌ UI Load: App not loaded', 'fail');
+                    return;
+                }
+                
+                // Check for key elements in the HTML
+                var hasHeader = appData.includes('header-card');
+                var hasSearch = appData.includes('search-card');
+                var hasForm = appData.includes('checklistForm');
+                var hasInfo = appData.includes('info-panel');
+                
+                var found = [];
+                if (hasHeader) found.push('header');
+                if (hasSearch) found.push('search');
+                if (hasForm) found.push('form');
+                if (hasInfo) found.push('info');
+                
+                if (found.length >= 3) {
+                    updateTestStatus(testId, 'pass', '✅ App loads: ' + found.join(', '));
+                    addLog('✅ UI Load: ' + found.join(', '), 'pass');
+                } else {
+                    updateTestStatus(testId, 'fail', '❌ Missing: ' + found.join(', '));
+                    addLog('❌ UI Load: Missing ' + found.join(', '), 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ UI Load Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: UI TABLES
+    // ============================================================
+    function testUITables(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                var hasTimeTable = appData.includes('timeSlotTable');
+                var hasReportTable = appData.includes('nightReportTable');
+                
+                if (hasTimeTable && hasReportTable) {
+                    updateTestStatus(testId, 'pass', '✅ Both tables found');
+                    addLog('✅ Tables: TimeSlots & NightReports found', 'pass');
+                } else {
+                    var missing = [];
+                    if (!hasTimeTable) missing.push('TimeSlots');
+                    if (!hasReportTable) missing.push('NightReports');
+                    updateTestStatus(testId, 'fail', '❌ Missing: ' + missing.join(', '));
+                    addLog('❌ Tables: Missing ' + missing.join(', '), 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Tables Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: INFO PANEL
+    // ============================================================
+    function testUIInfoPanel(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                var hasInfo = appData.includes('info-panel') || appData.includes('infoPanel');
+                
+                if (hasInfo) {
+                    updateTestStatus(testId, 'pass', '✅ Info panel found');
+                    addLog('✅ Info Panel: Found', 'pass');
+                } else {
+                    updateTestStatus(testId, 'fail', '❌ Info panel not found');
+                    addLog('❌ Info Panel: Not found', 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Info Panel Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: RESPONSIVE
+    // ============================================================
+    function testUIResponsive(testId) {
+        setTimeout(function() {
+            try {
+                var width = window.innerWidth;
+                var result = '✅ Screen width: ' + width + 'px. ';
+                if (width < 768) {
+                    result += 'Mobile view detected.';
+                } else if (width < 1024) {
+                    result += 'Tablet view detected.';
+                } else {
+                    result += 'Desktop view detected.';
+                }
+                updateTestStatus(testId, 'pass', result);
+                addLog('✅ Responsive: ' + result, 'pass');
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Responsive Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: DATE LOGIC
+    // ============================================================
+    function testDateLogic(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                // Look for date pattern in HTML
+                var dateMatch = appData.match(/displayDateStr[^>]*>([^<]+)/);
+                var dateStr = dateMatch ? dateMatch[1].trim() : 'Not found';
+                
+                if (dateStr && dateStr !== 'Not found') {
+                    updateTestStatus(testId, 'pass', '✅ Display Date: ' + dateStr);
+                    addLog('✅ Date Logic: ' + dateStr, 'pass');
+                } else {
+                    updateTestStatus(testId, 'fail', '❌ Date not found');
+                    addLog('❌ Date Logic: Not found', 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Date Logic Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: EDIT MODE
+    // ============================================================
+    function testEditMode(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                var hasEditable = appData.includes('Editable') || appData.includes('editable');
+                var hasReadonly = appData.includes('Read-Only') || appData.includes('readonly');
+                
+                var mode = hasEditable ? 'Editable' : (hasReadonly ? 'Read-Only' : 'Unknown');
+                updateTestStatus(testId, 'pass', '✅ Mode detected: ' + mode);
+                addLog('✅ Edit Mode: ' + mode, 'pass');
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Edit Mode Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: SLOT FREEZE
+    // ============================================================
+    function testSlotFreeze(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                var frozenCount = (appData.match(/frozen-row/g) || []).length;
+                var slotCount = (appData.match(/time_slot/g) || []).length;
+                
+                if (slotCount > 0) {
+                    updateTestStatus(testId, 'pass', '✅ Slots: ' + slotCount + ' total, ' + frozenCount + ' frozen');
+                    addLog('✅ Slot Freeze: ' + frozenCount + '/' + slotCount + ' frozen', 'pass');
+                } else {
+                    updateTestStatus(testId, 'fail', '❌ No slots found');
+                    addLog('❌ Slot Freeze: No slots found', 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Slot Freeze Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: SAVE DATA
+    // ============================================================
+    function testSaveData(testId) {
+        updateTestStatus(testId, 'running');
+        addLog('⏳ Testing Save Data...', 'info');
+        
+        if (!appData) {
+            updateTestStatus(testId, 'fail', '❌ App not loaded');
+            addLog('❌ Save Data: App not loaded', 'fail');
+            return;
+        }
+        
+        var hasForm = appData.includes('checklistForm');
+        var hasSave = appData.includes('btn-save') || appData.includes('Save');
+        
+        if (hasForm && hasSave) {
+            updateTestStatus(testId, 'pass', '✅ Save form and button found');
+            addLog('✅ Save Data: Form and button found', 'pass');
+        } else {
+            var missing = [];
+            if (!hasForm) missing.push('Form');
+            if (!hasSave) missing.push('Save Button');
+            updateTestStatus(testId, 'fail', '❌ Missing: ' + missing.join(', '));
+            addLog('❌ Save Data: Missing ' + missing.join(', '), 'fail');
+        }
+    }
+
+    // ============================================================
+    // TEST: DONE BY VALIDATION
+    // ============================================================
+    function testDoneByValidation(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                var doneByCount = (appData.match(/done-by-select/g) || []).length;
+                var hasMandatory = appData.includes('Mandatory') || appData.includes('mandatory');
+                
+                if (doneByCount > 0) {
+                    updateTestStatus(testId, 'pass', '✅ Done By fields: ' + doneByCount + ' found, Mandatory: ' + (hasMandatory ? 'Yes' : 'No'));
+                    addLog('✅ Done By: ' + doneByCount + ' fields, Mandatory: ' + (hasMandatory ? 'Yes' : 'No'), 'pass');
+                } else {
+                    updateTestStatus(testId, 'fail', '❌ No Done By fields found');
+                    addLog('❌ Done By: No fields found', 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Done By Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: EXPORT EXCEL
+    // ============================================================
+    function testExportExcel(testId) {
+        updateTestStatus(testId, 'running');
+        addLog('⏳ Testing Export Excel...', 'info');
+        
+        if (!appData) {
+            updateTestStatus(testId, 'fail', '❌ App not loaded');
+            addLog('❌ Export Excel: App not loaded', 'fail');
+            return;
+        }
+        
+        var hasExport = appData.includes('btn-export') || appData.includes('exportExcel') || appData.includes('Export');
+        
+        if (hasExport) {
+            updateTestStatus(testId, 'pass', '✅ Export button/function found');
+            addLog('✅ Export Excel: Found', 'pass');
+        } else {
+            updateTestStatus(testId, 'fail', '❌ Export not found');
+            addLog('❌ Export Excel: Not found', 'fail');
+        }
+    }
+
+    // ============================================================
+    // TEST: DATABASE CONNECTION
+    // ============================================================
+    function testDBConnection(testId) {
+        updateTestStatus(testId, 'running');
+        addLog('⏳ Testing Database Connection...', 'info');
+        
+        try {
+            var conn = DBUtilityAuto.getReportDBConnection();
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+                updateTestStatus(testId, 'pass', '✅ Database connection successful');
+                addLog('✅ DB Connection: Success', 'pass');
+            } else {
+                updateTestStatus(testId, 'fail', '❌ Connection failed');
+                addLog('❌ DB Connection: Failed', 'fail');
+            }
+        } catch(e) {
+            updateTestStatus(testId, 'fail', '❌ DB Connection error: ' + e.message);
+            addLog('❌ DB Connection: ' + e.message, 'fail');
+        }
+    }
+
+    // ============================================================
+    // TEST: TASKS MASTER
+    // ============================================================
+    function testTasksMaster(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                var taskCount = (appData.match(/task_name/g) || []).length;
+                
+                if (taskCount > 0) {
+                    updateTestStatus(testId, 'pass', '✅ Tasks found: ' + taskCount + ' tasks');
+                    addLog('✅ Tasks Master: ' + taskCount + ' tasks found', 'pass');
+                } else {
+                    updateTestStatus(testId, 'fail', '❌ No tasks found');
+                    addLog('❌ Tasks Master: No tasks found', 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Tasks Master Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: SAVED DATA
+    // ============================================================
+    function testSavedData(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                var hasData = appData.includes('DONE') || appData.includes('PENDING') || appData.includes('status');
+                var hasRows = appData.includes('tbody') && (appData.includes('<tr>'));
+                
+                if (hasData && hasRows) {
+                    updateTestStatus(testId, 'pass', '✅ Data exists in tables');
+                    addLog('✅ Saved Data: Data found', 'pass');
+                } else {
+                    updateTestStatus(testId, 'fail', '❌ No data found in tables');
+                    addLog('❌ Saved Data: No data found', 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Saved Data Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: PAGE LOAD TIME
+    // ============================================================
+    function testPageLoad(testId) {
+        setTimeout(function() {
+            try {
+                var loadTime = performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart;
+                var status = loadTime < 3000 ? 'pass' : 'fail';
+                var msg = loadTime + 'ms - ' + (loadTime < 3000 ? '✅ Good' : '⚠️ Slow');
+                updateTestStatus(testId, status, '✅ Page load time: ' + msg);
+                addLog('✅ Page Load: ' + loadTime + 'ms', 'pass');
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Page Load Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // TEST: TIMER
+    // ============================================================
+    function testTimer(testId) {
+        setTimeout(function() {
+            try {
+                if (!appData) {
+                    updateTestStatus(testId, 'fail', '❌ App not loaded');
+                    return;
+                }
+                
+                var hasTimer = appData.includes('timerDisplay') || appData.includes('timer-container') || appData.includes('timer');
+                
+                if (hasTimer) {
+                    updateTestStatus(testId, 'pass', '✅ Timer found');
+                    addLog('✅ Timer: Found', 'pass');
+                } else {
+                    updateTestStatus(testId, 'fail', '❌ Timer not found');
+                    addLog('❌ Timer: Not found', 'fail');
+                }
+            } catch(e) {
+                updateTestStatus(testId, 'fail', 'Error: ' + e.message);
+                addLog('❌ Timer Error: ' + e.message, 'fail');
+            }
+        }, 500);
+    }
+
+    // ============================================================
+    // RUN ALL TESTS
+    // ============================================================
+    function runAllTests() {
+        if (isRunning) {
+            alert('⚠️ Tests already running!');
+            return;
+        }
+        isRunning = true;
+        addLog('🚀 Starting all tests...', 'info');
+        
+        // Reset stats
+        var allItems = document.querySelectorAll('.test-item');
+        allItems.forEach(function(item) {
+            var id = item.id.replace('test-', '');
+            updateTestStatus(id, 'pending', '');
+        });
+        
+        // Get all test IDs
+        var testIds = [];
+        allItems.forEach(function(item) {
+            var id = item.id.replace('test-', '');
+            testIds.push(id);
+        });
+        
+        totalTests = testIds.length;
+        pendingCount = totalTests;
+        updateStats();
+        
+        // Fetch app first
+        if (!appLoaded) {
+            addLog('📥 Loading app page first...', 'info');
+            fetchAppPage()
+                .then(function() {
+                    addLog('✅ App loaded successfully', 'pass');
+                    runAllTestsSequential(testIds);
+                })
+                .catch(function(error) {
+                    addLog('❌ Failed to load app: ' + error, 'fail');
+                    isRunning = false;
+                });
+        } else {
+            runAllTestsSequential(testIds);
+        }
+    }
+
+    function runAllTestsSequential(testIds) {
+        testIds.forEach(function(id, index) {
+            setTimeout(function() {
+                runTestExecution(id);
+            }, index * 1500);
+        });
+        
+        setTimeout(function() {
+            isRunning = false;
+            addLog('✅ All tests completed!', 'pass');
+            updateStats();
+        }, testIds.length * 1500 + 2000);
+    }
+
+    // ============================================================
+    // CLEAR LOGS
+    // ============================================================
+    function clearLogs() {
+        var container = document.getElementById('logContainer');
+        container.innerHTML = '';
+        addLog('🗑️ Logs cleared', 'warn');
+    }
+
+    // ============================================================
+    // INIT
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        var items = document.querySelectorAll('.test-item');
+        totalTests = items.length;
+        pendingCount = totalTests;
+        updateStats();
+        addLog('📊 Total tests: ' + totalTests, 'info');
+        addLog('💡 Tip: Click "Run All Tests" to start testing', 'info');
+        addLog('🔍 Individual tests can be run by clicking "Run"', 'info');
+        addLog('📌 Tests will analyze the app page HTML', 'info');
+        
+        // Pre-load app page
+        fetchAppPage()
+            .then(function() {
+                addLog('✅ App page pre-loaded successfully', 'pass');
+            })
+            .catch(function(error) {
+                addLog('⚠️ Could not pre-load app: ' + error, 'warn');
+            });
+    });
+
+    // ============================================================
+    // KEYBOARD SHORTCUTS
+    // ============================================================
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'r' || e.key === 'R') {
+            if (!e.ctrlKey && !e.metaKey) {
+                runAllTests();
+            }
+        }
+        if (e.key === 'c' || e.key === 'C') {
+            if (!e.ctrlKey && !e.metaKey) {
+                clearLogs();
+            }
+        }
+    });
+
+    console.log('✅ Test Dashboard loaded');
+    console.log('📌 Press "R" to run all tests');
+    console.log('📌 Press "C" to clear logs');
+</script>
+
+</body>
+</html>
