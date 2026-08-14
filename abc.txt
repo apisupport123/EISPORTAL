@@ -401,10 +401,20 @@ if ("true".equals(exportDataParam)) {
 SimpleDateFormat sdfFooter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 String footerDate = sdfFooter.format(new java.util.Date());
 
-// Store isCustomView in a request attribute for use in JSP
-request.setAttribute("isCustomView", isCustomView);
-request.setAttribute("todaySQL", todaySQL);
-request.setAttribute("displayDate", displayDate);
+// Calculate freeze times for display
+String[] slotFreezeTimes = new String[timeSlots.size()];
+int slotIdx = 0;
+for (Map<String, Object> row : timeSlots) {
+    String taskName = (String) row.get("task_name");
+    java.util.Date deadline = computeDeadline(taskName, displayDate);
+    if (deadline != null) {
+        SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
+        slotFreezeTimes[slotIdx] = sdfTime.format(deadline);
+    } else {
+        slotFreezeTimes[slotIdx] = "N/A";
+    }
+    slotIdx++;
+}
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -412,287 +422,499 @@ request.setAttribute("displayDate", displayDate);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Night Shift Checklist - <%= displayDateStr %></title>
+    
+    <!-- ===== CDN ===== -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     
     <style>
+        /* ============================================================
+           PREMIUM DESIGN - Complete UI Overhaul
+           ============================================================ */
+        
+        /* ===== ROOT VARIABLES ===== */
         :root {
-            --primary-dark: #0B1A30;
-            --primary-mid: #1A3A5C;
-            --primary-blue: #2A5C8A;
-            --accent-gold: #F5B041;
-            --bg-main: #f0f4f9;
-            --card-shadow: 0 8px 30px rgba(0,0,0,0.08);
-            --radius: 14px;
+            --primary-dark: #0a1628;
+            --primary-mid: #1a2a4a;
+            --primary-blue: #2563eb;
+            --primary-light: #3b82f6;
+            --accent-gold: #f59e0b;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --bg-main: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+            --shadow-xl: 0 12px 60px rgba(0,0,0,0.15);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        * { box-sizing: border-box; }
+
+        /* ===== GLOBAL ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
             background: var(--bg-main); 
-            font-family: 'Segoe UI', -apple-system, Arial, sans-serif; 
-            padding: 16px; 
-            color: #1a2634; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            padding: 20px; 
+            color: var(--text-primary); 
             min-height: 100vh;
         }
         .main-container { max-width: 1600px; margin: 0 auto; }
-        
-        /* ===== HEADER ===== */
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
         .header-card {
-            background: linear-gradient(135deg, #0B1A30, #1A3A5C);
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-mid));
             color: #fff;
-            border-radius: var(--radius);
-            padding: 18px 28px;
-            margin-bottom: 18px;
+            border-radius: var(--radius-xl);
+            padding: 22px 32px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
-            box-shadow: 0 8px 32px rgba(11,26,48,0.25);
+            gap: 16px;
+            box-shadow: var(--shadow-xl);
+            position: relative;
+            overflow: hidden;
         }
+        .header-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .header-card::after {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(245,158,11,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .header-left { position: relative; z-index: 1; }
         .header-left h1 { 
-            font-size: 22px; 
-            font-weight: 700; 
+            font-size: 24px; 
+            font-weight: 800; 
             margin: 0; 
             display: flex; 
             align-items: center; 
-            gap: 10px; 
+            gap: 12px;
+            letter-spacing: -0.5px;
         }
-        .header-left h1 i { color: var(--accent-gold); }
+        .header-left h1 i { color: var(--accent-gold); font-size: 28px; }
         .header-left .sub-meta { 
             font-size: 13px; 
-            opacity: 0.85; 
+            opacity: 0.8; 
             margin-top: 4px; 
             display: flex; 
             align-items: center; 
-            gap: 14px; 
+            gap: 18px; 
             flex-wrap: wrap; 
         }
-        .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .header-left .sub-meta .badge { padding: 4px 14px; font-size: 11px; border-radius: 20px; }
+        
+        .header-right { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            flex-wrap: wrap; 
+            position: relative; 
+            z-index: 1; 
+        }
         .date-badge { 
-            background: rgba(255,255,255,0.12); 
-            padding: 6px 18px; 
+            background: rgba(255,255,255,0.1); 
+            backdrop-filter: blur(8px);
+            padding: 6px 20px; 
             border-radius: 40px; 
             font-size: 14px;
-            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.08);
+            font-weight: 500;
         }
         .header-actions .btn { 
             border-radius: 40px; 
-            padding: 6px 18px; 
+            padding: 7px 22px; 
             font-weight: 600; 
             font-size: 13px; 
             border: none; 
-            transition: all 0.25s ease; 
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .header-actions .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
-        .btn-glow-success { background: #28a745; color: #fff; }
-        .btn-glow-success:hover { background: #218838; color: #fff; }
-        .btn-glow-info { background: #17a2b8; color: #fff; }
-        .btn-glow-info:hover { background: #138496; color: #fff; }
-        .btn-glow-warning { background: #ffc107; color: #212529; }
-        .btn-glow-warning:hover { background: #e0a800; color: #212529; }
-        .btn-glow-secondary { background: #6c757d; color: #fff; }
-        .btn-glow-secondary:hover { background: #5a6268; color: #fff; }
-        
-        /* ===== SEARCH BAR ===== */
+        .header-actions .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25); 
+        }
+        .btn-save { background: var(--accent-green); color: #fff; }
+        .btn-save:hover { background: #059669; color: #fff; }
+        .btn-export { background: var(--primary-light); color: #fff; }
+        .btn-export:hover { background: #2563eb; color: #fff; }
+        .btn-info { background: rgba(255,255,255,0.15); color: #fff; }
+        .btn-info:hover { background: rgba(255,255,255,0.25); color: #fff; }
+        .btn-manage { background: var(--accent-gold); color: #1a1a2e; }
+        .btn-manage:hover { background: #d97706; color: #1a1a2e; }
+
+        /* ============================================================
+           SEARCH BAR
+           ============================================================ */
         .search-card {
-            background: #fff;
-            border-radius: var(--radius);
-            padding: 10px 20px;
-            margin-bottom: 16px;
-            box-shadow: var(--card-shadow);
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 12px 24px;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            border: 1px solid rgba(0,0,0,0.03);
         }
-        .search-card .search-group {
+        .search-group {
             display: flex;
             align-items: center;
             gap: 6px;
-            background: #f0f4f9;
-            padding: 3px 3px 3px 14px;
+            background: #f8fafc;
+            padding: 3px 3px 3px 16px;
             border-radius: 50px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
         }
-        .search-card .search-group input[type="date"] {
+        .search-group:focus-within {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+        }
+        .search-group input[type="date"] {
             border: none;
             background: transparent;
-            padding: 6px 4px;
+            padding: 7px 4px;
             font-size: 13px;
             outline: none;
-            width: 140px;
-            color: #1a2634;
+            width: 150px;
+            color: var(--text-primary);
+            font-weight: 500;
         }
-        .search-card .search-group button {
+        .search-group input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0.5;
+            cursor: pointer;
+        }
+        .search-group .btn {
             border-radius: 50px;
-            padding: 4px 14px;
+            padding: 5px 18px;
             font-size: 12px;
             font-weight: 600;
         }
-        .search-card .status-indicator {
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+        .badge-mode {
+            padding: 5px 18px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .badge-mode.readonly { background: #fef3c7; color: #92400e; }
+        .badge-mode.editable { background: #d1fae5; color: #065f46; }
+        
+        /* ===== TIMER ===== */
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            background: #f1f5f9;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+        .timer-container i { color: var(--primary-blue); }
+        .timer-container .time-remaining {
+            font-weight: 700;
+            color: var(--primary-dark);
+            min-width: 44px;
+            display: inline-block;
+            font-variant-numeric: tabular-nums;
+        }
+        .timer-container .refresh-count {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+           INFO PANEL - DETAILED & ATTRACTIVE
+           ============================================================ */
+        .info-panel {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 0;
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .info-panel-header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-mid));
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        .info-panel-header h3 {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .info-panel-header h3 i { color: var(--accent-gold); }
+        .info-panel-header .toggle-icon {
+            color: #fff;
+            font-size: 18px;
+            transition: var(--transition);
+        }
+        .info-panel-header .toggle-icon.collapsed { transform: rotate(-90deg); }
+        
+        .info-panel-body {
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px 20px;
+        }
+        .info-panel-body.hidden { display: none; }
+        
+        .info-item {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 13px;
-            flex-wrap: wrap;
+            padding: 10px 14px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+            border-left: 3px solid var(--primary-blue);
+            transition: var(--transition);
         }
-        .badge-status-mode {
-            padding: 4px 16px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 12px;
+        .info-item:hover {
+            background: #eef2ff;
+            transform: translateX(4px);
         }
-        
-        /* ===== INFO BANNER - ATTRACTIVE ===== */
-        .info-banner {
-            background: linear-gradient(135deg, #ffffff, #f8faff);
-            border-radius: var(--radius);
-            padding: 14px 20px;
-            margin-bottom: 16px;
-            border: 1px solid #e8edf4;
-            box-shadow: var(--card-shadow);
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 4px 12px;
-        }
-        .info-banner .info-item {
+        .info-item .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 8px;
-            border-radius: 8px;
-            transition: background 0.2s;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
         }
-        .info-banner .info-item:hover {
-            background: #f0f4f9;
-        }
-        .info-banner .info-item i {
-            color: var(--primary-blue);
-            font-size: 14px;
-            width: 20px;
-            text-align: center;
-        }
-        .info-banner .info-item .highlight {
+        .info-item .icon.blue { background: #dbeafe; color: var(--primary-blue); }
+        .info-item .icon.green { background: #d1fae5; color: var(--accent-green); }
+        .info-item .icon.red { background: #fee2e2; color: var(--accent-red); }
+        .info-item .icon.gold { background: #fef3c7; color: var(--accent-gold); }
+        .info-item .icon.purple { background: #ede9fe; color: #7c3aed; }
+        .info-item .icon.pink { background: #fce7f3; color: #db2777; }
+        
+        .info-item .content { flex: 1; }
+        .info-item .content .label {
+            font-size: 10px;
             font-weight: 600;
-            color: #0B1A30;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
         }
-        .info-banner .info-item .badge-freeze {
-            background: #dc3545;
+        .info-item .content .value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .info-item .content .value .highlight { color: var(--primary-blue); }
+        .info-item .content .value .badge-freeze {
+            background: var(--accent-red);
             color: #fff;
             padding: 0px 10px;
             border-radius: 12px;
             font-size: 10px;
             font-weight: 600;
         }
-        .info-banner .info-item .badge-edit {
-            background: #28a745;
+        .info-item .content .value .badge-edit {
+            background: var(--accent-green);
             color: #fff;
             padding: 0px 10px;
             border-radius: 12px;
             font-size: 10px;
             font-weight: 600;
         }
-        .info-banner .info-item .time-slot {
-            background: #e8edf4;
+        .info-item .content .value .badge-warning {
+            background: var(--accent-gold);
+            color: #1a1a2e;
             padding: 0px 10px;
             border-radius: 12px;
-            font-weight: 600;
-            font-size: 11px;
-        }
-        .info-banner .freeze-schedule {
-            grid-column: 1 / -1;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            padding-top: 6px;
-            border-top: 1px solid #eef3f9;
-            margin-top: 4px;
-        }
-        .info-banner .freeze-schedule span {
-            background: #f0f4f9;
-            padding: 2px 10px;
-            border-radius: 12px;
             font-size: 10px;
-            border: 1px solid #e2e8f0;
-        }
-        .info-banner .freeze-schedule span strong {
-            color: #dc3545;
+            font-weight: 600;
         }
         
-        /* ===== LEGEND ===== */
+        /* ===== FREEZE SCHEDULE ===== */
+        .freeze-schedule-section {
+            grid-column: 1 / -1;
+            padding: 12px 14px;
+            background: #f1f5f9;
+            border-radius: var(--radius-sm);
+            margin-top: 4px;
+        }
+        .freeze-schedule-section .title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .freeze-schedule-section .schedule-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .freeze-schedule-section .schedule-list span {
+            background: var(--card-bg);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            border: 1px solid var(--border-color);
+            font-weight: 500;
+        }
+        .freeze-schedule-section .schedule-list span strong {
+            color: var(--accent-red);
+        }
+
+        /* ============================================================
+           LEGEND
+           ============================================================ */
         .legend-bar {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            padding: 8px 16px;
-            background: #fff;
-            border-radius: var(--radius);
-            margin-bottom: 16px;
-            border: 1px solid #eef3f9;
-            box-shadow: var(--card-shadow);
+            gap: 12px;
+            padding: 10px 18px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            margin-bottom: 18px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            align-items: center;
+        }
+        .legend-bar .legend-title {
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 5px;
             font-size: 11px;
-            color: #1a2634;
+            font-weight: 500;
+            color: var(--text-secondary);
         }
         .legend-item .color-box {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            border: 1px solid #d0d7de;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
         }
-        .legend-item .color-box.done { background: #d4edda; border-color: #28a745; }
-        .legend-item .color-box.pending { background: #fff3cd; border-color: #ffc107; }
-        .legend-item .color-box.inprogress { background: #cce5ff; border-color: #007bff; }
-        .legend-item .color-box.handover { background: #f5c6cb; border-color: #dc3545; }
-        .legend-item .color-box.failed { background: #f8d7da; border-color: #dc3545; }
-        .legend-item .color-box.review { background: #d6d8db; border-color: #6c757d; }
-        .legend-item .color-box.na { background: #e2e3e5; border-color: #6c757d; }
-        
-        /* ===== SECTION CARDS ===== */
+        .legend-item .color-box.done { background: #d1fae5; border-color: var(--accent-green); }
+        .legend-item .color-box.pending { background: #fef3c7; border-color: var(--accent-gold); }
+        .legend-item .color-box.inprogress { background: #dbeafe; border-color: var(--primary-blue); }
+        .legend-item .color-box.handover { background: #fce7f3; border-color: #db2777; }
+        .legend-item .color-box.failed { background: #fee2e2; border-color: var(--accent-red); }
+        .legend-item .color-box.review { background: #ede9fe; border-color: #7c3aed; }
+        .legend-item .color-box.na { background: #f1f5f9; border-color: var(--text-muted); }
+        .legend-item .legend-lock { color: var(--text-muted); font-size: 12px; }
+
+        /* ============================================================
+           SECTION CARDS
+           ============================================================ */
         .section-card {
-            background: #fff;
-            border-radius: var(--radius);
-            box-shadow: var(--card-shadow);
-            margin-bottom: 20px;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 22px;
             overflow: hidden;
-            border: 1px solid rgba(0,0,0,0.03);
-            transition: box-shadow 0.3s;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
         }
         .section-card:hover {
-            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-lg);
         }
-        .section-card .card-header-custom {
-            background: #fafcff;
-            padding: 12px 20px;
-            border-bottom: 2px solid #eef3f9;
+        .section-card .card-header {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            padding: 14px 22px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 8px;
         }
-        .section-card .card-header-custom h5 {
+        .section-card .card-header h5 {
             font-weight: 700;
-            color: #0B1A30;
+            color: var(--text-primary);
             margin: 0;
             font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .section-card .card-header-custom h5 i {
-            color: var(--primary-blue);
-            margin-right: 8px;
+        .section-card .card-header h5 i { color: var(--primary-blue); }
+        .section-card .card-header .badge-count {
+            background: var(--primary-blue);
+            color: #fff;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
         }
-        .section-card .card-body-custom {
-            padding: 12px 16px 16px 16px;
+        .section-card .card-header .badge-freeze-info {
+            background: #fee2e2;
+            color: var(--accent-red);
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .section-card .card-body {
+            padding: 12px 18px 18px 18px;
             overflow-x: auto;
         }
-        
-        /* ===== TABLE ===== */
+
+        /* ============================================================
+           TABLE
+           ============================================================ */
         .table-checklist {
             font-size: 12px;
             margin-bottom: 0;
@@ -701,151 +923,174 @@ request.setAttribute("displayDate", displayDate);
             border-spacing: 0 4px;
         }
         .table-checklist thead th {
-            background: #0B1A30;
+            background: var(--primary-dark);
             color: #fff;
             font-weight: 600;
-            padding: 10px 6px;
+            padding: 10px 8px;
             border: none;
             text-align: center;
             font-size: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 5;
         }
         .table-checklist thead th:first-child { border-radius: 8px 0 0 8px; }
         .table-checklist thead th:last-child { border-radius: 0 8px 8px 0; }
         .table-checklist tbody tr {
             background: #fff;
             border-radius: 8px;
-            transition: all 0.15s;
+            transition: var(--transition);
         }
         .table-checklist tbody tr:hover td {
-            background: #f4f9ff;
+            background: #f8fafc;
         }
         .table-checklist tbody td {
             padding: 8px 6px;
             vertical-align: middle;
             background: #fff;
-            border-bottom: 1px solid #f0f4f9;
+            border-bottom: 1px solid #f1f5f9;
             font-size: 11px;
         }
-        .table-checklist tbody tr:last-child td {
-            border-bottom: none;
-        }
+        .table-checklist tbody tr:last-child td { border-bottom: none; }
         .table-checklist .task-name {
             font-weight: 600;
-            color: #0B1A30;
+            color: var(--text-primary);
             font-size: 11px;
         }
         .table-checklist .row-number {
             font-weight: 700;
             text-align: center;
-            background: #e9ecef;
+            background: #f1f5f9;
             border-radius: 4px;
-            padding: 2px 6px;
+            padding: 2px 8px;
             font-size: 11px;
+            color: var(--text-secondary);
         }
         .table-checklist select.form-select-sm {
             font-size: 10px;
-            padding: 1px 16px 1px 6px;
+            padding: 1px 18px 1px 8px;
             border-radius: 20px;
-            border: 1.5px solid #e2e8f0;
+            border: 1.5px solid var(--border-color);
             min-width: 80px;
             height: 26px;
             cursor: pointer;
             font-weight: 500;
             background-color: #fff;
+            transition: var(--transition);
         }
         .table-checklist select.form-select-sm:focus {
             border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(42,92,138,0.1);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
         }
         .table-checklist select.form-select-sm.status-done {
-            background-color: #d4edda;
-            border-color: #28a745;
-            color: #155724;
+            background-color: #d1fae5;
+            border-color: var(--accent-green);
+            color: #065f46;
         }
         .table-checklist select.form-select-sm.status-pending {
-            background-color: #fff3cd;
-            border-color: #ffc107;
-            color: #856404;
+            background-color: #fef3c7;
+            border-color: var(--accent-gold);
+            color: #92400e;
         }
         .table-checklist select.form-select-sm.status-na {
-            background-color: #e2e3e5;
-            border-color: #6c757d;
-            color: #383d41;
+            background-color: #f1f5f9;
+            border-color: var(--text-muted);
+            color: var(--text-secondary);
         }
         .table-checklist textarea.form-control-sm {
             font-size: 10px;
-            padding: 2px 6px;
+            padding: 3px 6px;
             border-radius: 6px;
-            border: 1.5px solid #e2e8f0;
+            border: 1.5px solid var(--border-color);
             resize: vertical;
             min-height: 24px;
             width: 100%;
             min-width: 80px;
             background: #fafbfc;
+            transition: var(--transition);
         }
         .table-checklist textarea.form-control-sm:focus {
             background: #fff;
             border-color: var(--primary-blue);
-            box-shadow: 0 0 0 3px rgba(42,92,138,0.08);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
         }
         .frozen-row td {
-            background: #f7f9fc !important;
-            opacity: 0.85;
+            background: #f8fafc !important;
+            opacity: 0.8;
         }
         .frozen-row .badge-status {
             font-size: 10px;
-            padding: 2px 10px;
+            padding: 2px 12px;
             border-radius: 20px;
             font-weight: 500;
+            background: #e2e8f0;
+            color: var(--text-secondary);
         }
         .frozen-row .lock-icon {
-            color: #8898aa;
+            color: var(--text-muted);
             margin-right: 4px;
         }
         .last-updated {
             font-size: 9px;
-            color: #6c7a8a;
+            color: var(--text-muted);
             white-space: nowrap;
         }
         .freeze-time-tag {
             font-size: 8px;
-            color: #6c7a8a;
+            color: var(--text-muted);
             display: block;
             font-weight: 400;
         }
         .done-by-required {
-            color: #dc3545;
+            color: var(--accent-red);
             font-size: 10px;
             font-weight: 600;
             margin-left: 4px;
         }
-        
-        /* ===== TIMER ===== */
-        .timer-container {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            background: #e8edf4;
-            padding: 2px 14px;
-            border-radius: 30px;
+        .row-highlight { background-color: #fef3c7 !important; }
+        .text-danger { color: var(--accent-red) !important; }
+
+        /* ============================================================
+           ALERT
+           ============================================================ */
+        .alert-custom {
+            border-radius: var(--radius-md);
+            padding: 12px 20px;
+            margin-bottom: 16px;
             font-weight: 500;
+            display: none;
+            font-size: 13px;
+            border: 1px solid transparent;
         }
-        .timer-container .time-remaining {
-            font-weight: 700;
-            color: #0B1A30;
-            min-width: 40px;
-            display: inline-block;
+        .alert-custom.alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-color: #a7f3d0;
+            display: block;
         }
-        .timer-container .refresh-count {
+        .alert-custom.alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+            display: block;
+        }
+        .alert-custom.alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+            display: block;
+        }
+        .alert-custom .btn-close {
             font-size: 10px;
-            color: #6c7a8a;
+            padding: 4px;
         }
-        
-        /* ===== SPINNER ===== */
+
+        /* ============================================================
+           SPINNER
+           ============================================================ */
         .spinner-overlay {
             display: none;
             position: fixed;
@@ -853,79 +1098,82 @@ request.setAttribute("displayDate", displayDate);
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(4px);
-            z-index: 9998;
+            background: rgba(15,23,42,0.5);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
             justify-content: center;
             align-items: center;
         }
-        .spinner-overlay .spinner-border {
+        .spinner-overlay .spinner-box {
+            background: #fff;
+            padding: 30px 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            text-align: center;
+        }
+        .spinner-overlay .spinner-box .spinner-border {
             width: 50px;
             height: 50px;
             color: var(--primary-blue);
         }
-        
-        /* ===== ALERTS ===== */
-        .alert-custom {
-            border-radius: 10px;
-            padding: 10px 16px;
-            margin-bottom: 16px;
-            font-weight: 500;
-            display: none;
-            font-size: 13px;
+        .spinner-overlay .spinner-box p {
+            margin-top: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 14px;
         }
-        .alert-custom.alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-        .alert-custom.alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-        .alert-custom.alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-            display: block;
-        }
-        .row-highlight { background-color: #fff9e6 !important; }
-        
-        /* ===== FOOTER ===== */
+
+        /* ============================================================
+           FOOTER
+           ============================================================ */
         .footer-bar {
             text-align: center;
-            padding: 10px;
+            padding: 14px;
             font-size: 12px;
-            color: #6c7a8a;
-            border-top: 1px solid #e2e8f0;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
             margin-top: 10px;
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
         }
-        
-        /* ===== RESPONSIVE ===== */
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
         @media (max-width: 768px) {
             body { padding: 10px; }
-            .header-card { padding: 14px; flex-direction: column; align-items: stretch; }
+            .header-card { padding: 16px; flex-direction: column; align-items: stretch; }
             .header-right { justify-content: space-between; }
-            .search-card { flex-direction: column; align-items: stretch; }
-            .search-card .search-group { width: 100%; }
-            .search-card .search-group input[type="date"] { width: 100%; }
-            .info-banner { grid-template-columns: 1fr; padding: 12px 16px; }
+            .search-card { flex-direction: column; align-items: stretch; padding: 14px; }
+            .search-group { width: 100%; }
+            .search-group input[type="date"] { width: 100%; }
+            .info-panel-body { grid-template-columns: 1fr; padding: 14px; }
             .table-checklist { min-width: 900px; font-size: 10px; }
+            .legend-bar { gap: 6px; }
+        }
+        @media (max-width: 480px) {
+            .header-left h1 { font-size: 18px; }
+            .header-actions .btn { padding: 5px 12px; font-size: 11px; }
+            .timer-container { font-size: 11px; padding: 2px 10px; }
         }
     </style>
 </head>
 <body>
 
+<!-- ===== SPINNER ===== -->
 <div class="spinner-overlay" id="spinnerOverlay">
-    <div class="spinner-border" role="status"></div>
+    <div class="spinner-box">
+        <div class="spinner-border" role="status"></div>
+        <p>Loading...</p>
+    </div>
 </div>
 
 <div class="main-container">
 
-    <!-- ===== HEADER ===== -->
+    <!-- ============================================================
+    HEADER
+    ============================================================ -->
     <div class="header-card">
         <div class="header-left">
             <h1><i class="fas fa-moon"></i> Night Shift Checklist</h1>
@@ -942,15 +1190,17 @@ request.setAttribute("displayDate", displayDate);
         <div class="header-right">
             <span class="date-badge"><i class="fas fa-calendar-day"></i> <%= displayDateStr %></span>
             <div class="header-actions">
-                <button class="btn btn-glow-info" onclick="toggleInfoPanel()"><i class="fas fa-info-circle"></i> Info</button>
-                <a href="TaskManagement.jsp" class="btn btn-glow-warning"><i class="fas fa-tasks"></i></a>
-                <button class="btn btn-glow-success" onclick="saveAll()" <%= globalFrozen ? "disabled" : "" %>><i class="fas fa-save"></i> Save</button>
-                <button class="btn btn-glow-secondary" onclick="exportExcel()"><i class="fas fa-file-excel"></i></button>
+                <button class="btn btn-info" onclick="toggleInfoPanel()"><i class="fas fa-info-circle"></i> Info</button>
+                <a href="TaskManagement.jsp" class="btn btn-manage"><i class="fas fa-tasks"></i> Manage</a>
+                <button class="btn btn-save" onclick="saveAll()" <%= globalFrozen ? "disabled" : "" %>><i class="fas fa-save"></i> Save</button>
+                <button class="btn btn-export" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Export</button>
             </div>
         </div>
     </div>
 
-    <!-- ===== SEARCH BAR ===== -->
+    <!-- ============================================================
+    SEARCH BAR
+    ============================================================ -->
     <div class="search-card">
         <div class="search-group">
             <i class="fas fa-calendar-alt text-muted"></i>
@@ -958,47 +1208,151 @@ request.setAttribute("displayDate", displayDate);
             <button class="btn btn-primary btn-sm" onclick="window.location.href='?' + (document.getElementById('viewDate').value ? 'viewDate=' + document.getElementById('viewDate').value : '')">
                 <i class="fas fa-eye"></i> View
             </button>
-            <a href="?" class="btn btn-outline-secondary btn-sm" id="todayBtn"><i class="fas fa-calendar-day"></i></a>
+            <a href="?" class="btn btn-outline-secondary btn-sm" id="todayBtn"><i class="fas fa-calendar-day"></i> Today</a>
         </div>
         <div class="status-indicator">
             <span class="timer-container">
                 <i class="fas fa-sync-alt fa-spin"></i>
+                <span>Refresh in:</span>
                 <span class="time-remaining" id="timerDisplay">30:00</span>
                 <span class="refresh-count" id="refreshCount">(0)</span>
             </span>
-            <span class="badge-status-mode <%= globalFrozen ? "bg-warning text-dark" : "bg-success text-white" %>">
+            <span class="badge-mode <%= globalFrozen ? "readonly" : "editable" %>">
                 <%= globalFrozen ? "🔒 View Only" : "✏️ Editable" %>
             </span>
         </div>
     </div>
 
-    <!-- ===== INFO BANNER - ATTRACTIVE ===== -->
-    <div id="infoPanel" class="info-banner">
-        <div class="info-item"><i class="fas fa-clock"></i> <span class="highlight">Edit:</span> <span class="time-slot">4PM</span> → <span class="time-slot">8AM</span></div>
-        <div class="info-item"><i class="fas fa-hourglass-half"></i> <span class="highlight">Freeze:</span> <span class="badge-freeze">45 min</span> after end</div>
-        <div class="info-item"><i class="fas fa-lock"></i> <span class="highlight">All Lock:</span> <span class="badge-freeze">7:45 AM</span></div>
-        <div class="info-item"><i class="fas fa-history"></i> <span class="highlight">Past:</span> <span class="badge-freeze">Read-Only</span></div>
-        <div class="info-item"><i class="fas fa-star text-warning"></i> <span class="highlight">Done By:</span> <span class="badge-edit">Mandatory</span></div>
-        <div class="info-item"><i class="fas fa-shift"></i> <span class="highlight">Shift:</span> 10PM → 7AM</div>
-        <div class="info-item"><i class="fas fa-rotate"></i> <span class="highlight">Refresh:</span> <span class="badge-edit">30 min</span></div>
-        <div class="info-item"><i class="fas fa-keyboard"></i> <span class="highlight">Shortcut:</span> <kbd style="font-size:10px;padding:1px 6px;">Ctrl+S</kbd></div>
-        
-        <div class="freeze-schedule">
-            <% for (Map<String, Object> row : timeSlots) { 
-                String taskName = (String) row.get("task_name");
-                java.util.Date deadline = computeDeadline(taskName, displayDate);
-                String freezeTime = "N/A";
-                if (deadline != null) {
-                    SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
-                    freezeTime = sdfTime.format(deadline);
-                }
-            %>
-            <span><%= taskName %> → <strong><%= freezeTime %></strong></span>
-            <% } %>
+    <!-- ============================================================
+    INFO PANEL - DETAILED
+    ============================================================ -->
+    <div class="info-panel" id="infoPanel">
+        <div class="info-panel-header" onclick="toggleInfoPanel()">
+            <h3><i class="fas fa-info-circle"></i> Checklist Information</h3>
+            <i class="fas fa-chevron-up toggle-icon" id="infoToggleIcon"></i>
+        </div>
+        <div class="info-panel-body" id="infoPanelBody">
+            <!-- Row 1: Edit Window -->
+            <div class="info-item">
+                <div class="icon blue"><i class="fas fa-clock"></i></div>
+                <div class="content">
+                    <div class="label">Edit Window</div>
+                    <div class="value"><span class="highlight">4:00 PM</span> → <span class="highlight">8:00 AM</span> (Next Day)</div>
+                </div>
+            </div>
+            
+            <!-- Row 2: Slot Freeze -->
+            <div class="info-item">
+                <div class="icon red"><i class="fas fa-hourglass-half"></i></div>
+                <div class="content">
+                    <div class="label">Slot Freeze</div>
+                    <div class="value">Each slot freezes <span class="badge-freeze">45 min</span> after end time</div>
+                </div>
+            </div>
+            
+            <!-- Row 3: All Slots Lock -->
+            <div class="info-item">
+                <div class="icon red"><i class="fas fa-lock"></i></div>
+                <div class="content">
+                    <div class="label">All Slots Lock</div>
+                    <div class="value">All time slots freeze at <span class="badge-freeze">7:45 AM</span></div>
+                </div>
+            </div>
+            
+            <!-- Row 4: Past Dates -->
+            <div class="info-item">
+                <div class="icon gold"><i class="fas fa-history"></i></div>
+                <div class="content">
+                    <div class="label">Past Dates</div>
+                    <div class="value">Past dates are <span class="badge-warning">Read-Only</span></div>
+                </div>
+            </div>
+            
+            <!-- Row 5: Mandatory Field -->
+            <div class="info-item">
+                <div class="icon green"><i class="fas fa-star"></i></div>
+                <div class="content">
+                    <div class="label">Mandatory Field</div>
+                    <div class="value"><span class="badge-edit">Done By</span> is mandatory for all rows</div>
+                </div>
+            </div>
+            
+            <!-- Row 6: Night Shift -->
+            <div class="info-item">
+                <div class="icon purple"><i class="fas fa-shift"></i></div>
+                <div class="content">
+                    <div class="label">Night Shift</div>
+                    <div class="value"><span class="highlight">10:00 PM</span> → <span class="highlight">7:00 AM</span> (Next Day)</div>
+                </div>
+            </div>
+            
+            <!-- Row 7: Auto Refresh -->
+            <div class="info-item">
+                <div class="icon blue"><i class="fas fa-rotate"></i></div>
+                <div class="content">
+                    <div class="label">Auto Refresh</div>
+                    <div class="value">Page refreshes every <span class="badge-edit">30 minutes</span></div>
+                </div>
+            </div>
+            
+            <!-- Row 8: Keyboard Shortcut -->
+            <div class="info-item">
+                <div class="icon pink"><i class="fas fa-keyboard"></i></div>
+                <div class="content">
+                    <div class="label">Shortcut</div>
+                    <div class="value">Press <kbd style="background:#e2e8f0;padding:1px 8px;border-radius:4px;font-size:11px;font-weight:600;">Ctrl+S</kbd> to save</div>
+                </div>
+            </div>
+            
+            <!-- Row 9: Edit Status -->
+            <div class="info-item">
+                <div class="icon green"><i class="fas fa-edit"></i></div>
+                <div class="content">
+                    <div class="label">Current Status</div>
+                    <div class="value">
+                        <% if (globalFrozen) { %>
+                            <span class="badge-warning">🔒 Read-Only Mode</span>
+                        <% } else { %>
+                            <span class="badge-edit">✏️ Editable Mode</span>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Row 10: Last Updated -->
+            <div class="info-item">
+                <div class="icon purple"><i class="fas fa-database"></i></div>
+                <div class="content">
+                    <div class="label">Data Status</div>
+                    <div class="value">Last saved: <span class="highlight"><%= new SimpleDateFormat("HH:mm:ss").format(now) %></span></div>
+                </div>
+            </div>
+            
+            <!-- ===== FREEZE SCHEDULE ===== -->
+            <div class="freeze-schedule-section">
+                <div class="title"><i class="fas fa-clock" style="margin-right:6px;"></i> Slot Freeze Schedule</div>
+                <div class="schedule-list">
+                    <% 
+                    int idx = 0;
+                    for (Map<String, Object> row : timeSlots) { 
+                        String taskName = (String) row.get("task_name");
+                        java.util.Date deadline = computeDeadline(taskName, displayDate);
+                        String freezeTime = "N/A";
+                        if (deadline != null) {
+                            SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
+                            freezeTime = sdfTime.format(deadline);
+                        }
+                    %>
+                    <span><%= taskName %> → <strong><%= freezeTime %></strong></span>
+                    <% } %>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- ===== ALERT ===== -->
+    <!-- ============================================================
+    ALERT
+    ============================================================ -->
     <% if (showMessage && message != null && !message.isEmpty()) { %>
         <div class="alert-custom <%= message.startsWith("✅") ? "alert-success" : message.startsWith("❌") ? "alert-danger" : "alert-warning" %>">
             <i class="fas <%= message.startsWith("✅") ? "fa-check-circle" : message.startsWith("❌") ? "fa-exclamation-circle" : "fa-exclamation-triangle" %> me-2"></i> <%= message %>
@@ -1006,9 +1360,11 @@ request.setAttribute("displayDate", displayDate);
         </div>
     <% } %>
 
-    <!-- ===== LEGEND ===== -->
+    <!-- ============================================================
+    LEGEND
+    ============================================================ -->
     <div class="legend-bar">
-        <span style="font-weight:600;font-size:11px;color:#0B1A30;">Status:</span>
+        <span class="legend-title"><i class="fas fa-palette"></i> Status</span>
         <div class="legend-item"><span class="color-box done"></span> DONE</div>
         <div class="legend-item"><span class="color-box pending"></span> PENDING</div>
         <div class="legend-item"><span class="color-box inprogress"></span> IN PROGRESS</div>
@@ -1016,23 +1372,25 @@ request.setAttribute("displayDate", displayDate);
         <div class="legend-item"><span class="color-box failed"></span> FAILED</div>
         <div class="legend-item"><span class="color-box review"></span> REVIEW</div>
         <div class="legend-item"><span class="color-box na"></span> NA</div>
-        <div class="legend-item"><i class="fas fa-lock" style="color:#8898aa;"></i> Frozen</div>
+        <div class="legend-item"><i class="fas fa-lock legend-lock"></i> Frozen</div>
     </div>
 
-    <!-- ===== FORM ===== -->
+    <!-- ============================================================
+    FORM
+    ============================================================ -->
     <form id="checklistForm" method="post">
         <input type="hidden" name="action" value="save">
 
         <!-- ===== TIME SLOTS ===== -->
         <div class="section-card">
-            <div class="card-header-custom">
+            <div class="card-header">
                 <h5><i class="fas fa-clock"></i> Time Slots <span class="done-by-required">* Done By mandatory</span></h5>
                 <div>
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill"><%= timeSlots.size() %> Slots</span>
-                    <span class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1 rounded-pill ms-1"><i class="fas fa-lock"></i> 45 min</span>
+                    <span class="badge-count"><%= timeSlots.size() %> Slots</span>
+                    <span class="badge-freeze-info"><i class="fas fa-lock"></i> 45 min freeze</span>
                 </div>
             </div>
-            <div class="card-body-custom">
+            <div class="card-body">
                 <table class="table table-checklist" id="timeSlotTable">
                     <thead>
                         <tr>
@@ -1057,27 +1415,20 @@ request.setAttribute("displayDate", displayDate);
                                 tsCounter++;
                                 String taskName = (String) row.get("task_name");
                                 
-                                // ============================================================
-                                // ===== FIX: Slot freeze logic - INDEPENDENT of globalFrozen =====
-                                // ============================================================
                                 boolean slotFrozen = false;
                                 
-                                // 1. Check if deadline passed (45 min after end time)
                                 java.util.Date deadline = computeDeadline(taskName, displayDate);
                                 if (deadline != null && now.after(deadline)) {
                                     slotFrozen = true;
                                 }
                                 
-                                // 2. Check if custom view with past date
                                 if (isCustomView && !displayDate.equals(todaySQL)) {
                                     slotFrozen = true;
                                 }
                                 
-                                // 3. Check if date is before today (globalFrozen for past dates)
                                 if (displayDate.before(todaySQL)) {
                                     slotFrozen = true;
                                 }
-                                // ============================================================
                                 
                                 String status1 = (String) row.get("status1");
                                 String status2 = (String) row.get("status2");
@@ -1103,7 +1454,7 @@ request.setAttribute("displayDate", displayDate);
                             </td>
                             <td>
                                 <% if (slotFrozen) { %>
-                                    <span class="badge bg-secondary badge-status"><%= status1 %></span>
+                                    <span class="badge-status"><%= status1 %></span>
                                     <input type="hidden" name="status1[]" value="<%= status1 %>">
                                 <% } else { %>
                                     <select class="form-select form-select-sm status-select" name="status1[]">
@@ -1115,7 +1466,7 @@ request.setAttribute("displayDate", displayDate);
                             </td>
                             <td>
                                 <% if (slotFrozen) { %>
-                                    <span class="badge bg-secondary badge-status"><%= status2 %></span>
+                                    <span class="badge-status"><%= status2 %></span>
                                     <input type="hidden" name="status2[]" value="<%= status2 %>">
                                 <% } else { %>
                                     <select class="form-select form-select-sm status-select" name="status2[]">
@@ -1127,7 +1478,7 @@ request.setAttribute("displayDate", displayDate);
                             </td>
                             <td>
                                 <% if (slotFrozen) { %>
-                                    <span class="badge bg-secondary badge-status"><%= status3 %></span>
+                                    <span class="badge-status"><%= status3 %></span>
                                     <input type="hidden" name="status3[]" value="<%= status3 %>">
                                 <% } else { %>
                                     <select class="form-select form-select-sm status-select" name="status3[]">
@@ -1180,11 +1531,11 @@ request.setAttribute("displayDate", displayDate);
 
         <!-- ===== NIGHT REPORTS ===== -->
         <div class="section-card">
-            <div class="card-header-custom">
+            <div class="card-header">
                 <h5><i class="fas fa-file-alt"></i> Night Reports <span class="done-by-required">* Done By mandatory</span></h5>
-                <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1 rounded-pill"><%= nightReports.size() %> Reports</span>
+                <span class="badge-count"><%= nightReports.size() %> Reports</span>
             </div>
-            <div class="card-body-custom">
+            <div class="card-body">
                 <table class="table table-checklist" id="nightReportTable">
                     <thead>
                         <tr>
@@ -1218,7 +1569,7 @@ request.setAttribute("displayDate", displayDate);
                             <td class="task-name"><%= row.get("task_name") %></td>
                             <td>
                                 <% if (frozen) { %>
-                                    <span class="badge bg-secondary badge-status"><%= status1 %></span>
+                                    <span class="badge-status"><%= status1 %></span>
                                     <input type="hidden" name="status1[]" value="<%= status1 %>">
                                     <input type="hidden" name="status2[]" value="">
                                     <input type="hidden" name="status3[]" value="">
@@ -1275,15 +1626,22 @@ request.setAttribute("displayDate", displayDate);
 
     </form>
 
-    <!-- ===== FOOTER ===== -->
+    <!-- ============================================================
+    FOOTER
+    ============================================================ -->
     <div class="footer-bar">
         <i class="fas fa-database me-1"></i> <%= displayDateStr %> &bull;
         <span id="lastSaved">Saved: <%= new SimpleDateFormat("HH:mm:ss").format(now) %></span>
-        <% if (globalFrozen) { %><span class="ms-2 text-warning"><i class="fas fa-info-circle"></i> Read-Only</span><% } %>
+        <% if (globalFrozen) { %>
+            <span class="ms-2 text-warning"><i class="fas fa-info-circle"></i> Read-Only</span>
+        <% } %>
         <span class="ms-2" id="refreshStatus"><i class="fas fa-sync-alt fa-spin"></i> <span id="footerTimer">30:00</span></span>
     </div>
 </div>
 
+<!-- ============================================================
+SCRIPTS
+============================================================ -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1294,17 +1652,27 @@ request.setAttribute("displayDate", displayDate);
     var timerSeconds = 1800;
     var refreshCount = 0;
 
+    // ============================================================
+    // TOGGLE INFO PANEL
+    // ============================================================
     function toggleInfoPanel() {
-        var panel = document.getElementById('infoPanel');
+        var body = document.getElementById('infoPanelBody');
+        var icon = document.getElementById('infoToggleIcon');
+        
         if (infoPanelVisible) {
-            panel.style.display = 'none';
+            body.classList.add('hidden');
+            icon.className = 'fas fa-chevron-down toggle-icon';
             infoPanelVisible = false;
         } else {
-            panel.style.display = 'grid';
+            body.classList.remove('hidden');
+            icon.className = 'fas fa-chevron-up toggle-icon';
             infoPanelVisible = true;
         }
     }
 
+    // ============================================================
+    // UPDATE DONE BY
+    // ============================================================
     function updateDoneBy(selectElem, rowId) {
         var hiddenField = document.getElementById('done_by_' + rowId);
         if (hiddenField) {
@@ -1316,13 +1684,13 @@ request.setAttribute("displayDate", displayDate);
         if (selectElem.value && selectElem.value.trim() !== '') {
             tr.classList.add('row-highlight');
             if (indicator) indicator.style.display = 'inline';
-            selectElem.style.border = '1.5px solid #28a745';
-            selectElem.style.backgroundColor = '#f0fff4';
+            selectElem.style.border = '1.5px solid #10b981';
+            selectElem.style.backgroundColor = '#f0fdf4';
         } else {
             tr.classList.remove('row-highlight');
             if (indicator) indicator.style.display = 'none';
-            selectElem.style.border = '2px solid #dc3545';
-            selectElem.style.backgroundColor = '#fff5f5';
+            selectElem.style.border = '2px solid #ef4444';
+            selectElem.style.backgroundColor = '#fef2f2';
         }
         checkDoneByStatus();
     }
@@ -1333,11 +1701,11 @@ request.setAttribute("displayDate", displayDate);
         var allSelects = document.querySelectorAll('select.done-by-select');
         allSelects.forEach(function(select) {
             if (select.value && select.value.trim() !== '') {
-                select.style.border = '1.5px solid #28a745';
-                select.style.backgroundColor = '#f0fff4';
+                select.style.border = '1.5px solid #10b981';
+                select.style.backgroundColor = '#f0fdf4';
             } else {
-                select.style.border = '2px solid #dc3545';
-                select.style.backgroundColor = '#fff5f5';
+                select.style.border = '2px solid #ef4444';
+                select.style.backgroundColor = '#fef2f2';
                 allFilled = false;
                 emptyCount++;
             }
@@ -1345,6 +1713,9 @@ request.setAttribute("displayDate", displayDate);
         return { allFilled: allFilled, emptyCount: emptyCount };
     }
 
+    // ============================================================
+    // TIMER - 30 MINUTES
+    // ============================================================
     function startTimer() {
         timerSeconds = 1800;
         refreshCount = 0;
@@ -1360,6 +1731,10 @@ request.setAttribute("displayDate", displayDate);
                 clearInterval(timerInterval);
                 refreshCount++;
                 document.getElementById('refreshCount').textContent = '(' + refreshCount + ')';
+                
+                var refreshStatus = document.getElementById('refreshStatus');
+                if (refreshStatus) refreshStatus.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing...';
+                
                 setTimeout(function() { location.reload(); }, 1000);
             }
         }, 1000);
@@ -1377,9 +1752,12 @@ request.setAttribute("displayDate", displayDate);
         if (footerTimer) footerTimer.textContent = timeStr;
     }
 
+    // ============================================================
+    // SAVE ALL
+    // ============================================================
     function saveAll() {
         if (saveInProgress) return;
-        if ($('button.btn-success').prop('disabled')) {
+        if ($('button.btn-save').prop('disabled')) {
             alert('⚠️ Cannot save: View is read-only.');
             return;
         }
@@ -1400,8 +1778,8 @@ request.setAttribute("displayDate", displayDate);
             var selects = document.querySelectorAll('select.done-by-select');
             for (var j = 0; j < selects.length; j++) {
                 if (!selects[j].value || selects[j].value.trim() === '') {
-                    selects[j].style.border = '3px solid #dc3545';
-                    selects[j].style.backgroundColor = '#fff0f0';
+                    selects[j].style.border = '3px solid #ef4444';
+                    selects[j].style.backgroundColor = '#fef2f2';
                     if (!firstEmptySelect) firstEmptySelect = selects[j];
                 }
             }
@@ -1444,6 +1822,9 @@ request.setAttribute("displayDate", displayDate);
         });
     }
 
+    // ============================================================
+    // EXPORT EXCEL
+    // ============================================================
     function exportExcel() {
         $('#spinnerOverlay').fadeIn(200);
         
@@ -1590,6 +1971,9 @@ request.setAttribute("displayDate", displayDate);
         return '<span class="' + className + '">' + status + '</span>';
     }
 
+    // ============================================================
+    // DOCUMENT READY
+    // ============================================================
     $(document).ready(function() {
         $('select.done-by-select').each(function() {
             var name = $(this).attr('name');
@@ -1598,11 +1982,11 @@ request.setAttribute("displayDate", displayDate);
                 var tr = $('#row-' + rowId);
                 tr.addClass('row-highlight');
                 $('#row-' + rowId + '-indicator').show();
-                $(this).css('border', '1.5px solid #28a745');
-                $(this).css('background-color', '#f0fff4');
+                $(this).css('border', '1.5px solid #10b981');
+                $(this).css('background-color', '#f0fdf4');
             } else {
-                $(this).css('border', '2px solid #dc3545');
-                $(this).css('background-color', '#fff5f5');
+                $(this).css('border', '2px solid #ef4444');
+                $(this).css('background-color', '#fef2f2');
             }
         });
         
@@ -1622,13 +2006,26 @@ request.setAttribute("displayDate", displayDate);
         console.log('✅ Night Shift Checklist loaded successfully');
         console.log('📌 Auto-Refresh: Every 30 minutes');
         console.log('📌 Shortcut: Ctrl+S to save');
+        console.log('📌 Toggle Info: Ctrl+I');
     });
 
+    // ============================================================
+    // KEYBOARD SHORTCUTS
+    // ============================================================
     $(document).on('keydown', function(e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveAll(); }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'i') { e.preventDefault(); toggleInfoPanel(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') { 
+            e.preventDefault(); 
+            saveAll(); 
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'i') { 
+            e.preventDefault(); 
+            toggleInfoPanel(); 
+        }
     });
 
+    // ============================================================
+    // STATUS SELECT CHANGE
+    // ============================================================
     $(document).on('change', '.status-select', function() {
         var val = $(this).val();
         $(this).removeClass('status-done status-pending status-na');
