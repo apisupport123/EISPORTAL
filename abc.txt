@@ -400,6 +400,11 @@ if ("true".equals(exportDataParam)) {
 
 SimpleDateFormat sdfFooter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 String footerDate = sdfFooter.format(new java.util.Date());
+
+// Store isCustomView in a request attribute for use in JSP
+request.setAttribute("isCustomView", isCustomView);
+request.setAttribute("todaySQL", todaySQL);
+request.setAttribute("displayDate", displayDate);
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -411,141 +416,504 @@ String footerDate = sdfFooter.format(new java.util.Date());
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     
     <style>
-        :root { --primary-dark: #0B1A30; --primary-mid: #1A3A5C; --primary-blue: #2A5C8A; --bg-main: #f0f4f9; }
+        :root {
+            --primary-dark: #0B1A30;
+            --primary-mid: #1A3A5C;
+            --primary-blue: #2A5C8A;
+            --accent-gold: #F5B041;
+            --bg-main: #f0f4f9;
+            --card-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            --radius: 14px;
+        }
         * { box-sizing: border-box; }
-        body { background: var(--bg-main); font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; color: #1a2634; }
+        body { 
+            background: var(--bg-main); 
+            font-family: 'Segoe UI', -apple-system, Arial, sans-serif; 
+            padding: 16px; 
+            color: #1a2634; 
+            min-height: 100vh;
+        }
         .main-container { max-width: 1600px; margin: 0 auto; }
         
-        .header-card { background: linear-gradient(145deg, #0B1A30, #1A3A5C); color: #fff; border-radius: 16px; padding: 20px 28px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .header-left h1 { font-size: 22px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 10px; }
-        .header-left h1 i { color: #F5B041; }
-        .header-left .sub-meta { font-size: 13px; opacity: 0.8; margin-top: 4px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        /* ===== HEADER ===== */
+        .header-card {
+            background: linear-gradient(135deg, #0B1A30, #1A3A5C);
+            color: #fff;
+            border-radius: var(--radius);
+            padding: 18px 28px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 8px 32px rgba(11,26,48,0.25);
+        }
+        .header-left h1 { 
+            font-size: 22px; 
+            font-weight: 700; 
+            margin: 0; 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+        }
+        .header-left h1 i { color: var(--accent-gold); }
+        .header-left .sub-meta { 
+            font-size: 13px; 
+            opacity: 0.85; 
+            margin-top: 4px; 
+            display: flex; 
+            align-items: center; 
+            gap: 14px; 
+            flex-wrap: wrap; 
+        }
         .header-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .date-badge { background: rgba(255,255,255,0.12); padding: 6px 16px; border-radius: 40px; font-size: 14px; }
-        .header-actions .btn { border-radius: 40px; padding: 6px 18px; font-weight: 600; font-size: 13px; border: none; transition: all 0.2s; }
-        .header-actions .btn:hover { transform: translateY(-2px); }
+        .date-badge { 
+            background: rgba(255,255,255,0.12); 
+            padding: 6px 18px; 
+            border-radius: 40px; 
+            font-size: 14px;
+            backdrop-filter: blur(4px);
+        }
+        .header-actions .btn { 
+            border-radius: 40px; 
+            padding: 6px 18px; 
+            font-weight: 600; 
+            font-size: 13px; 
+            border: none; 
+            transition: all 0.25s ease; 
+        }
+        .header-actions .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
         .btn-glow-success { background: #28a745; color: #fff; }
+        .btn-glow-success:hover { background: #218838; color: #fff; }
         .btn-glow-info { background: #17a2b8; color: #fff; }
+        .btn-glow-info:hover { background: #138496; color: #fff; }
         .btn-glow-warning { background: #ffc107; color: #212529; }
+        .btn-glow-warning:hover { background: #e0a800; color: #212529; }
         .btn-glow-secondary { background: #6c757d; color: #fff; }
+        .btn-glow-secondary:hover { background: #5a6268; color: #fff; }
         
-        .search-card { background: #fff; border-radius: 12px; padding: 10px 18px; margin-bottom: 18px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-        .search-card .search-group { display: flex; align-items: center; gap: 6px; background: #f0f4f9; padding: 3px 3px 3px 14px; border-radius: 50px; border: 1px solid #e2e8f0; }
-        .search-card .search-group input[type="date"] { border: none; background: transparent; padding: 6px 4px; font-size: 13px; outline: none; width: 140px; }
-        .search-card .search-group button { border-radius: 50px; padding: 4px 14px; font-size: 12px; font-weight: 600; }
-        .search-card .status-indicator { display: flex; align-items: center; gap: 10px; font-size: 13px; flex-wrap: wrap; }
-        .badge-status-mode { padding: 4px 14px; border-radius: 50px; font-weight: 600; font-size: 12px; }
-        
-        /* ===== COMPACT INFO BANNER ===== */
-        .info-banner { 
-            background: linear-gradient(135deg, #e6f0fa, #f0f7ff); 
-            border-radius: 12px; 
-            padding: 12px 18px; 
-            margin-bottom: 18px; 
-            border-left: 4px solid #2A5C8A;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 4px 16px;
+        /* ===== SEARCH BAR ===== */
+        .search-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 10px 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .search-card .search-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0f4f9;
+            padding: 3px 3px 3px 14px;
+            border-radius: 50px;
+            border: 1px solid #e2e8f0;
+        }
+        .search-card .search-group input[type="date"] {
+            border: none;
+            background: transparent;
+            padding: 6px 4px;
+            font-size: 13px;
+            outline: none;
+            width: 140px;
+            color: #1a2634;
+        }
+        .search-card .search-group button {
+            border-radius: 50px;
+            padding: 4px 14px;
             font-size: 12px;
+            font-weight: 600;
+        }
+        .search-card .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 13px;
+            flex-wrap: wrap;
+        }
+        .badge-status-mode {
+            padding: 4px 16px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        /* ===== INFO BANNER - ATTRACTIVE ===== */
+        .info-banner {
+            background: linear-gradient(135deg, #ffffff, #f8faff);
+            border-radius: var(--radius);
+            padding: 14px 20px;
+            margin-bottom: 16px;
+            border: 1px solid #e8edf4;
+            box-shadow: var(--card-shadow);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 4px 12px;
         }
         .info-banner .info-item {
             display: flex;
             align-items: center;
             gap: 6px;
-            padding: 3px 0;
-            color: #1a2a3a;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .info-banner .info-item:hover {
+            background: #f0f4f9;
         }
         .info-banner .info-item i {
-            color: #2A5C8A;
-            font-size: 13px;
-            width: 18px;
+            color: var(--primary-blue);
+            font-size: 14px;
+            width: 20px;
             text-align: center;
         }
-        .info-banner .info-item .highlight { font-weight: 600; color: #0B1A30; }
-        .info-banner .info-item .badge-freeze { background: #dc3545; color: white; padding: 0px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-        .info-banner .info-item .badge-edit { background: #28a745; color: white; padding: 0px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
-        .info-banner .info-item .time-slot { background: #e8edf4; padding: 0px 10px; border-radius: 12px; font-weight: 600; font-size: 11px; }
-        .info-divider { display: none; }
-        .info-title { display: none; }
-        .info-banner .freeze-schedule { 
-            grid-column: 1 / -1; 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 4px; 
-            padding-top: 4px; 
-            border-top: 1px solid #dce3ed; 
-            margin-top: 2px;
+        .info-banner .info-item .highlight {
+            font-weight: 600;
+            color: #0B1A30;
+        }
+        .info-banner .info-item .badge-freeze {
+            background: #dc3545;
+            color: #fff;
+            padding: 0px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .info-banner .info-item .badge-edit {
+            background: #28a745;
+            color: #fff;
+            padding: 0px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .info-banner .info-item .time-slot {
+            background: #e8edf4;
+            padding: 0px 10px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .info-banner .freeze-schedule {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding-top: 6px;
+            border-top: 1px solid #eef3f9;
+            margin-top: 4px;
         }
         .info-banner .freeze-schedule span {
-            background: #eef3f9; 
-            padding: 1px 8px; 
-            border-radius: 10px; 
-            font-size: 10px; 
-            border: 1px solid #dce3ed;
+            background: #f0f4f9;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            border: 1px solid #e2e8f0;
         }
-        .info-banner .freeze-schedule span strong { color: #dc3545; }
+        .info-banner .freeze-schedule span strong {
+            color: #dc3545;
+        }
         
-        .legend-bar { display: flex; flex-wrap: wrap; gap: 10px; padding: 6px 14px; background: #fff; border-radius: 10px; margin-bottom: 16px; border: 1px solid #eef3f9; }
-        .legend-item { display: flex; align-items: center; gap: 4px; font-size: 11px; }
-        .legend-item .color-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #d0d7de; }
+        /* ===== LEGEND ===== */
+        .legend-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 8px 16px;
+            background: #fff;
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+            border: 1px solid #eef3f9;
+            box-shadow: var(--card-shadow);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #1a2634;
+        }
+        .legend-item .color-box {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid #d0d7de;
+        }
         .legend-item .color-box.done { background: #d4edda; border-color: #28a745; }
         .legend-item .color-box.pending { background: #fff3cd; border-color: #ffc107; }
-        .legend-item .color-box.na { background: #e2e3e5; border-color: #6c757d; }
         .legend-item .color-box.inprogress { background: #cce5ff; border-color: #007bff; }
         .legend-item .color-box.handover { background: #f5c6cb; border-color: #dc3545; }
         .legend-item .color-box.failed { background: #f8d7da; border-color: #dc3545; }
         .legend-item .color-box.review { background: #d6d8db; border-color: #6c757d; }
+        .legend-item .color-box.na { background: #e2e3e5; border-color: #6c757d; }
         
-        .section-card { background: #fff; border-radius: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.06); margin-bottom: 24px; overflow: hidden; }
-        .section-card .card-header-custom { background: #fafcff; padding: 12px 20px; border-bottom: 2px solid #eef3f9; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-        .section-card .card-header-custom h5 { font-weight: 700; color: #0B1A30; margin: 0; font-size: 16px; }
-        .section-card .card-header-custom h5 i { color: #2A5C8A; margin-right: 8px; }
-        .section-card .card-body-custom { padding: 12px 16px 16px 16px; overflow-x: auto; }
+        /* ===== SECTION CARDS ===== */
+        .section-card {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.03);
+            transition: box-shadow 0.3s;
+        }
+        .section-card:hover {
+            box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+        }
+        .section-card .card-header-custom {
+            background: #fafcff;
+            padding: 12px 20px;
+            border-bottom: 2px solid #eef3f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .section-card .card-header-custom h5 {
+            font-weight: 700;
+            color: #0B1A30;
+            margin: 0;
+            font-size: 16px;
+        }
+        .section-card .card-header-custom h5 i {
+            color: var(--primary-blue);
+            margin-right: 8px;
+        }
+        .section-card .card-body-custom {
+            padding: 12px 16px 16px 16px;
+            overflow-x: auto;
+        }
         
-        .table-checklist { font-size: 12px; margin-bottom: 0; min-width: 1100px; border-collapse: separate; border-spacing: 0 4px; }
-        .table-checklist thead th { background: #0B1A30; color: #fff; font-weight: 600; padding: 10px 6px; border: none; text-align: center; font-size: 10px; text-transform: uppercase; white-space: nowrap; }
+        /* ===== TABLE ===== */
+        .table-checklist {
+            font-size: 12px;
+            margin-bottom: 0;
+            min-width: 1100px;
+            border-collapse: separate;
+            border-spacing: 0 4px;
+        }
+        .table-checklist thead th {
+            background: #0B1A30;
+            color: #fff;
+            font-weight: 600;
+            padding: 10px 6px;
+            border: none;
+            text-align: center;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
         .table-checklist thead th:first-child { border-radius: 8px 0 0 8px; }
         .table-checklist thead th:last-child { border-radius: 0 8px 8px 0; }
-        .table-checklist tbody tr { background: #fff; border-radius: 8px; transition: all 0.15s; }
-        .table-checklist tbody tr:hover td { background: #f4f9ff; }
-        .table-checklist tbody td { padding: 8px 6px; vertical-align: middle; background: #fff; border-bottom: 1px solid #f0f4f9; font-size: 11px; }
-        .table-checklist tbody tr:last-child td { border-bottom: none; }
-        .table-checklist .task-name { font-weight: 600; color: #0B1A30; font-size: 11px; }
-        .table-checklist .row-number { font-weight: 700; text-align: center; background: #e9ecef; border-radius: 4px; padding: 2px 6px; }
-        .table-checklist select.form-select-sm { font-size: 10px; padding: 1px 16px 1px 6px; border-radius: 20px; border: 1.5px solid #e2e8f0; min-width: 80px; height: 26px; cursor: pointer; font-weight: 500; }
-        .table-checklist select.form-select-sm:focus { border-color: #2A5C8A; }
-        .table-checklist select.form-select-sm.status-done { background-color: #d4edda; border-color: #28a745; color: #155724; }
-        .table-checklist select.form-select-sm.status-pending { background-color: #fff3cd; border-color: #ffc107; color: #856404; }
-        .table-checklist select.form-select-sm.status-na { background-color: #e2e3e5; border-color: #6c757d; color: #383d41; }
-        .table-checklist textarea.form-control-sm { font-size: 10px; padding: 2px 6px; border-radius: 6px; border: 1.5px solid #e2e8f0; resize: vertical; min-height: 24px; width: 100%; min-width: 80px; background: #fafbfc; }
-        .table-checklist textarea.form-control-sm:focus { background: #fff; border-color: #2A5C8A; }
-        .frozen-row td { background: #f7f9fc !important; opacity: 0.85; }
-        .frozen-row .badge-status { font-size: 10px; padding: 2px 10px; border-radius: 20px; font-weight: 500; }
-        .frozen-row .lock-icon { color: #8898aa; margin-right: 4px; }
-        .last-updated { font-size: 9px; color: #6c7a8a; white-space: nowrap; }
-        .spinner-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.6); z-index: 9998; justify-content: center; align-items: center; }
-        .spinner-overlay .spinner-border { width: 50px; height: 50px; color: #2A5C8A; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .table-checklist tbody tr {
+            background: #fff;
+            border-radius: 8px;
+            transition: all 0.15s;
+        }
+        .table-checklist tbody tr:hover td {
+            background: #f4f9ff;
+        }
+        .table-checklist tbody td {
+            padding: 8px 6px;
+            vertical-align: middle;
+            background: #fff;
+            border-bottom: 1px solid #f0f4f9;
+            font-size: 11px;
+        }
+        .table-checklist tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .table-checklist .task-name {
+            font-weight: 600;
+            color: #0B1A30;
+            font-size: 11px;
+        }
+        .table-checklist .row-number {
+            font-weight: 700;
+            text-align: center;
+            background: #e9ecef;
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 11px;
+        }
+        .table-checklist select.form-select-sm {
+            font-size: 10px;
+            padding: 1px 16px 1px 6px;
+            border-radius: 20px;
+            border: 1.5px solid #e2e8f0;
+            min-width: 80px;
+            height: 26px;
+            cursor: pointer;
+            font-weight: 500;
+            background-color: #fff;
+        }
+        .table-checklist select.form-select-sm:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(42,92,138,0.1);
+        }
+        .table-checklist select.form-select-sm.status-done {
+            background-color: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .table-checklist select.form-select-sm.status-pending {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        .table-checklist select.form-select-sm.status-na {
+            background-color: #e2e3e5;
+            border-color: #6c757d;
+            color: #383d41;
+        }
+        .table-checklist textarea.form-control-sm {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 6px;
+            border: 1.5px solid #e2e8f0;
+            resize: vertical;
+            min-height: 24px;
+            width: 100%;
+            min-width: 80px;
+            background: #fafbfc;
+        }
+        .table-checklist textarea.form-control-sm:focus {
+            background: #fff;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(42,92,138,0.08);
+        }
+        .frozen-row td {
+            background: #f7f9fc !important;
+            opacity: 0.85;
+        }
+        .frozen-row .badge-status {
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .frozen-row .lock-icon {
+            color: #8898aa;
+            margin-right: 4px;
+        }
+        .last-updated {
+            font-size: 9px;
+            color: #6c7a8a;
+            white-space: nowrap;
+        }
+        .freeze-time-tag {
+            font-size: 8px;
+            color: #6c7a8a;
+            display: block;
+            font-weight: 400;
+        }
+        .done-by-required {
+            color: #dc3545;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+        
+        /* ===== TIMER ===== */
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            background: #e8edf4;
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+        .timer-container .time-remaining {
+            font-weight: 700;
+            color: #0B1A30;
+            min-width: 40px;
+            display: inline-block;
+        }
+        .timer-container .refresh-count {
+            font-size: 10px;
+            color: #6c7a8a;
+        }
+        
+        /* ===== SPINNER ===== */
+        .spinner-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner-overlay .spinner-border {
+            width: 50px;
+            height: 50px;
+            color: var(--primary-blue);
+        }
+        
+        /* ===== ALERTS ===== */
+        .alert-custom {
+            border-radius: 10px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            font-weight: 500;
+            display: none;
+            font-size: 13px;
+        }
+        .alert-custom.alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .alert-custom.alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        .alert-custom.alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            display: block;
+        }
         .row-highlight { background-color: #fff9e6 !important; }
-        .alert-custom { border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; font-weight: 500; display: none; font-size: 13px; }
-        .alert-custom.alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
-        .alert-custom.alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
-        .alert-custom.alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; display: block; }
-        .done-by-required { color: #dc3545; font-size: 10px; font-weight: 600; margin-left: 4px; }
-        .freeze-time-tag { font-size: 8px; color: #6c7a8a; display: block; font-weight: 400; }
         
-        .timer-container { display: flex; align-items: center; gap: 6px; font-size: 12px; background: #e8edf4; padding: 2px 12px; border-radius: 30px; }
-        .timer-container .time-remaining { font-weight: 700; color: #0B1A30; min-width: 40px; display: inline-block; }
-        .timer-container .refresh-count { font-size: 10px; color: #6c7a8a; }
+        /* ===== FOOTER ===== */
+        .footer-bar {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: #6c7a8a;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 10px;
+        }
         
-        @media (max-width: 768px) { 
-            body { padding: 10px; } 
-            .header-card { padding: 14px; flex-direction: column; align-items: stretch; } 
-            .header-right { justify-content: space-between; } 
-            .search-card { flex-direction: column; align-items: stretch; } 
-            .search-card .search-group { width: 100%; } 
-            .search-card .search-group input[type="date"] { width: 100%; } 
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .header-card { padding: 14px; flex-direction: column; align-items: stretch; }
+            .header-right { justify-content: space-between; }
+            .search-card { flex-direction: column; align-items: stretch; }
+            .search-card .search-group { width: 100%; }
+            .search-card .search-group input[type="date"] { width: 100%; }
+            .info-banner { grid-template-columns: 1fr; padding: 12px 16px; }
             .table-checklist { min-width: 900px; font-size: 10px; }
-            .info-banner { grid-template-columns: 1fr; padding: 10px 14px; }
         }
     </style>
 </head>
@@ -574,7 +942,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
         <div class="header-right">
             <span class="date-badge"><i class="fas fa-calendar-day"></i> <%= displayDateStr %></span>
             <div class="header-actions">
-                <button class="btn btn-glow-info" onclick="toggleInfoPanel()"><i class="fas fa-info-circle"></i></button>
+                <button class="btn btn-glow-info" onclick="toggleInfoPanel()"><i class="fas fa-info-circle"></i> Info</button>
                 <a href="TaskManagement.jsp" class="btn btn-glow-warning"><i class="fas fa-tasks"></i></a>
                 <button class="btn btn-glow-success" onclick="saveAll()" <%= globalFrozen ? "disabled" : "" %>><i class="fas fa-save"></i> Save</button>
                 <button class="btn btn-glow-secondary" onclick="exportExcel()"><i class="fas fa-file-excel"></i></button>
@@ -604,7 +972,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
         </div>
     </div>
 
-    <!-- ===== COMPACT INFO BANNER ===== -->
+    <!-- ===== INFO BANNER - ATTRACTIVE ===== -->
     <div id="infoPanel" class="info-banner">
         <div class="info-item"><i class="fas fa-clock"></i> <span class="highlight">Edit:</span> <span class="time-slot">4PM</span> → <span class="time-slot">8AM</span></div>
         <div class="info-item"><i class="fas fa-hourglass-half"></i> <span class="highlight">Freeze:</span> <span class="badge-freeze">45 min</span> after end</div>
@@ -613,7 +981,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
         <div class="info-item"><i class="fas fa-star text-warning"></i> <span class="highlight">Done By:</span> <span class="badge-edit">Mandatory</span></div>
         <div class="info-item"><i class="fas fa-shift"></i> <span class="highlight">Shift:</span> 10PM → 7AM</div>
         <div class="info-item"><i class="fas fa-rotate"></i> <span class="highlight">Refresh:</span> <span class="badge-edit">30 min</span></div>
-        <div class="info-item"><i class="fas fa-keyboard"></i> <span class="highlight">Shortcut:</span> <kbd>Ctrl+S</kbd></div>
+        <div class="info-item"><i class="fas fa-keyboard"></i> <span class="highlight">Shortcut:</span> <kbd style="font-size:10px;padding:1px 6px;">Ctrl+S</kbd></div>
         
         <div class="freeze-schedule">
             <% for (Map<String, Object> row : timeSlots) { 
@@ -630,7 +998,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
         </div>
     </div>
 
-    <!-- ===== MESSAGE ===== -->
+    <!-- ===== ALERT ===== -->
     <% if (showMessage && message != null && !message.isEmpty()) { %>
         <div class="alert-custom <%= message.startsWith("✅") ? "alert-success" : message.startsWith("❌") ? "alert-danger" : "alert-warning" %>">
             <i class="fas <%= message.startsWith("✅") ? "fa-check-circle" : message.startsWith("❌") ? "fa-exclamation-circle" : "fa-exclamation-triangle" %> me-2"></i> <%= message %>
@@ -640,7 +1008,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
 
     <!-- ===== LEGEND ===== -->
     <div class="legend-bar">
-        <span style="font-weight:600;font-size:11px;">Status:</span>
+        <span style="font-weight:600;font-size:11px;color:#0B1A30;">Status:</span>
         <div class="legend-item"><span class="color-box done"></span> DONE</div>
         <div class="legend-item"><span class="color-box pending"></span> PENDING</div>
         <div class="legend-item"><span class="color-box inprogress"></span> IN PROGRESS</div>
@@ -689,19 +1057,27 @@ String footerDate = sdfFooter.format(new java.util.Date());
                                 tsCounter++;
                                 String taskName = (String) row.get("task_name");
                                 
-                                // ===== FIX: Slot freeze independent =====
+                                // ============================================================
+                                // ===== FIX: Slot freeze logic - INDEPENDENT of globalFrozen =====
+                                // ============================================================
                                 boolean slotFrozen = false;
                                 
-                                // Check deadline (45 min after end time)
+                                // 1. Check if deadline passed (45 min after end time)
                                 java.util.Date deadline = computeDeadline(taskName, displayDate);
                                 if (deadline != null && now.after(deadline)) {
                                     slotFrozen = true;
                                 }
                                 
-                                // Check custom view with past date
+                                // 2. Check if custom view with past date
                                 if (isCustomView && !displayDate.equals(todaySQL)) {
                                     slotFrozen = true;
                                 }
+                                
+                                // 3. Check if date is before today (globalFrozen for past dates)
+                                if (displayDate.before(todaySQL)) {
+                                    slotFrozen = true;
+                                }
+                                // ============================================================
                                 
                                 String status1 = (String) row.get("status1");
                                 String status2 = (String) row.get("status2");
@@ -900,7 +1276,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
     </form>
 
     <!-- ===== FOOTER ===== -->
-    <div class="text-center text-muted py-2" style="font-size:12px; border-top:1px solid #e2e8f0;">
+    <div class="footer-bar">
         <i class="fas fa-database me-1"></i> <%= displayDateStr %> &bull;
         <span id="lastSaved">Saved: <%= new SimpleDateFormat("HH:mm:ss").format(now) %></span>
         <% if (globalFrozen) { %><span class="ms-2 text-warning"><i class="fas fa-info-circle"></i> Read-Only</span><% } %>
@@ -984,10 +1360,6 @@ String footerDate = sdfFooter.format(new java.util.Date());
                 clearInterval(timerInterval);
                 refreshCount++;
                 document.getElementById('refreshCount').textContent = '(' + refreshCount + ')';
-                
-                var refreshStatus = document.getElementById('refreshStatus');
-                if (refreshStatus) refreshStatus.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing...';
-                
                 setTimeout(function() { location.reload(); }, 1000);
             }
         }, 1000);
@@ -1247,7 +1619,9 @@ String footerDate = sdfFooter.format(new java.util.Date());
         });
 
         startTimer();
-        console.log('✅ Night Shift Checklist loaded');
+        console.log('✅ Night Shift Checklist loaded successfully');
+        console.log('📌 Auto-Refresh: Every 30 minutes');
+        console.log('📌 Shortcut: Ctrl+S to save');
     });
 
     $(document).on('keydown', function(e) {
