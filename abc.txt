@@ -1,277 +1,715 @@
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Failed: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV - Listener refused the connection with the following error:
-ORA-12514, TNS:listener does not currently know of service requested in connect descriptor
- 
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.108:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getSIDBConnection - flagStatus: PR
-Connecting to SI PR Database
-SI PR Connected to URL 1
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per,CASE WHEN ( SUM(td_per) <> 0 ) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60
-select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select  trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND  trim(temp.error_code ) not in (select  DISTINCT ERRCODE from cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from  si_ServiceWise_fail temp_in where  temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60
-select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Failed: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV - Listener refused the connection with the following error:
-ORA-12514, TNS:listener does not currently know of service requested in connect descriptor
- 
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.108:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getSIDBConnection - flagStatus: PR
-Connecting to SI PR Database
-SI PR Connected to URL 1
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per,CASE WHEN ( SUM(td_per) <> 0 ) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60
-select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select  trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND  trim(temp.error_code ) not in (select  DISTINCT ERRCODE from cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from  si_ServiceWise_fail temp_in where  temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60
-select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60
-select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60
-SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60
-SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per,CASE WHEN ( SUM(TD_PERCENT) <> 0 ) THEN round(round(AVG(TD_PERCENT), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR  FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60
-select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60
-SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60
-SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per,CASE WHEN ( SUM(TD_PERCENT) <> 0 ) THEN round(round(AVG(TD_PERCENT), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR  FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Failed: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV - Listener refused the connection with the following error:
-ORA-12514, TNS:listener does not currently know of service requested in connect descriptor
- 
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.108:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getSIDBConnection - flagStatus: PR
-Connecting to SI PR Database
-SI PR Connected to URL 1
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per,CASE WHEN ( SUM(td_per) <> 0 ) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60
-select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select  trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND  trim(temp.error_code ) not in (select  DISTINCT ERRCODE from cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from  si_ServiceWise_fail temp_in where  temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60
-select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60
-select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60
-SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60
-SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per,CASE WHEN ( SUM(TD_PERCENT) <> 0 ) THEN round(round(AVG(TD_PERCENT), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR  FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Failed: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV - Listener refused the connection with the following error:
-ORA-12514, TNS:listener does not currently know of service requested in connect descriptor
- 
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.108:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getSIDBConnection - flagStatus: PR
-Connecting to SI PR Database
-SI PR Connected to URL 1
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per,CASE WHEN ( SUM(td_per) <> 0 ) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60
-select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select  trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND  trim(temp.error_code ) not in (select  DISTINCT ERRCODE from cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from  si_ServiceWise_fail temp_in where  temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60
-select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60
-select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60
-SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60
-SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per,CASE WHEN ( SUM(TD_PERCENT) <> 0 ) THEN round(round(AVG(TD_PERCENT), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR  FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-java.sql.SQLException: Invalid column name
-	at oracle.jdbc.driver.OracleStatement.getColumnIndexPrimitive(OracleStatement.java:3899)
-	at oracle.jdbc.driver.OracleStatement.getColumnIndex(OracleStatement.java:3857)
-	at oracle.jdbc.driver.InsensitiveScrollableResultSet.findColumn(InsensitiveScrollableResultSet.java:270)
-	at oracle.jdbc.driver.GeneratedResultSet.getInt(GeneratedResultSet.java:556)
-	at org.apache.jsp.jsp.ServiceWiseFailure_jsp._jspService(ServiceWiseFailure_jsp.java:1278)
-	at org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:67)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
-	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
-	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
-	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1791)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-null
-null
-null
-null
-null
-null
-1
-2026-08-17 13:05:30.768
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-java.sql.SQLException: Invalid column name
-	at oracle.jdbc.driver.OracleStatement.getColumnIndexPrimitive(OracleStatement.java:3899)
-	at oracle.jdbc.driver.OracleStatement.getColumnIndex(OracleStatement.java:3857)
-	at oracle.jdbc.driver.InsensitiveScrollableResultSet.findColumn(InsensitiveScrollableResultSet.java:270)
-	at oracle.jdbc.driver.GeneratedResultSet.getInt(GeneratedResultSet.java:556)
-	at org.apache.jsp.jsp.ServiceWiseFailure_jsp._jspService(ServiceWiseFailure_jsp.java:1278)
-	at org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:67)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
-	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
-	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
-	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1791)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
+<%@page import="java.util.Calendar"%>
+<%@page import="java.text.SimpleDateFormat"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib uri="http://struts.apache.org/tags-html" prefix="html"%>
+<%@taglib uri="http://struts.apache.org/tags-bean" prefix="bean"%>
+<%@taglib uri="http://struts.apache.org/tags-logic" prefix="logic"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="java.sql.SQLException"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.List"%>
+<%@page import="java.sql.DriverManager"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.sql.Statement"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+<%@page import="java.time.LocalDate,java.time.format.DateTimeFormatter,java.time.LocalDateTime,java.util.Date,java.util.Calendar"%>
+<%@page import="java.sql.Timestamp"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="300">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<title>ServiceWise · Enterprise Monitor</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: #080c14; color: #e8edf5; min-height: 100vh; padding: 12px 16px 16px 16px; }
+    .bg-glow { position: fixed; top: -30%; left: -20%; width: 70%; height: 70%; background: radial-gradient(ellipse, rgba(79,156,247,0.04) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+    .bg-glow-2 { position: fixed; bottom: -30%; right: -20%; width: 70%; height: 70%; background: radial-gradient(ellipse, rgba(124,58,237,0.03) 0%, transparent 70%); pointer-events: none; z-index: 0; }
+    .wrapper { position: relative; z-index: 1; max-width: 2000px; margin: 0 auto; }
+    
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(10,14,22,0.6); backdrop-filter: blur(20px); border-radius: 16px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand .logo { width: 40px; height: 40px; background: linear-gradient(135deg, #4f9cf7, #7c3aed); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 17px; color: white; box-shadow: 0 4px 20px rgba(79,156,247,0.25); }
+    .brand .logo::after { content: ''; position: absolute; inset: -2px; border-radius: 14px; background: linear-gradient(135deg, #4f9cf7, #7c3aed); opacity: 0.3; filter: blur(10px); z-index: -1; }
+    .brand .name { font-weight: 800; font-size: 18px; letter-spacing: -0.3px; color: #ffffff; }
+    .brand .name span { color: #4f9cf7; }
+    .brand .sub { font-size: 9px; font-weight: 600; color: #4a6a8a; letter-spacing: 1.5px; text-transform: uppercase; }
+    .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .live-badge { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; color: #0f973d; padding: 4px 14px 4px 10px; border-radius: 40px; background: rgba(15,151,61,0.06); border: 1px solid rgba(15,151,61,0.08); }
+    .live-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #0f973d; animation: pulse-dot 1.5s infinite; }
+    @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.7); } }
+    .timer-glass { font-weight: 700; font-size: 13px; color: #4f9cf7; padding: 4px 12px; border-radius: 40px; background: rgba(79,156,247,0.04); border: 1px solid rgba(79,156,247,0.04); font-variant-numeric: tabular-nums; }
+    .btn-glass { padding: 5px 16px; border-radius: 40px; font-weight: 700; font-size: 10px; border: none; cursor: pointer; transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Inter', sans-serif; }
+    .btn-primary-glass { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: white; box-shadow: 0 4px 15px rgba(79,156,247,0.15); }
+    .btn-primary-glass:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,156,247,0.25); }
+    .btn-ghost-glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color: #8aaac0; }
+    .btn-ghost-glass:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); }
+    
+    .stats-bar { display: flex; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(255,255,255,0.01); border-radius: 12px; border: 1px solid rgba(255,255,255,0.02); margin-bottom: 10px; flex-wrap: wrap; }
+    .stat-item { display: flex; align-items: center; gap: 6px; padding: 3px 14px 3px 10px; border-radius: 40px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.02); }
+    .stat-item .icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+    .stat-item .icon.red { background: rgba(255,71,87,0.12); color: #ff4757; }
+    .stat-item .icon.blue { background: rgba(79,156,247,0.12); color: #4f9cf7; }
+    .stat-item .icon.green { background: rgba(15,151,61,0.12); color: #0f973d; }
+    .stat-item .label { font-size: 9px; font-weight: 600; color: #6a8aaa; text-transform: uppercase; letter-spacing: 0.3px; }
+    .stat-item .value { font-size: 16px; font-weight: 900; color: #ffffff; }
+    .stat-item .value.red { color: #ff4757; }
+    .stat-item .value.blue { color: #4f9cf7; }
+    .stat-item .value.green { color: #0f973d; }
+    .ticker-wrap { flex: 1; overflow: hidden; padding: 0 8px; min-width: 100px; }
+    .ticker-text { display: inline-block; white-space: nowrap; animation: marquee 30s linear infinite; font-size: 10px; font-weight: 500; color: #5a7a9a; }
+    .ticker-text span { margin: 0 16px; color: #8aaac0; }
+    .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
+    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    
+    .info-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 0 8px 0; border-bottom: 1px solid rgba(255,255,255,0.02); margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; }
+    .legend .item { display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 700; color: #8aaac0; text-transform: uppercase; letter-spacing: 0.3px; }
+    .legend .swatch { width: 10px; height: 10px; border-radius: 2px; }
+    .sw-crit { background: #ff4757; box-shadow: 0 0 12px rgba(255,71,87,0.2); }
+    .sw-warn { background: #ffa502; box-shadow: 0 0 12px rgba(255,165,2,0.2); }
+    .sw-mix { background: #7c3aed; box-shadow: 0 0 12px rgba(124,58,237,0.2); }
+    .sw-health { background: #0f973d; box-shadow: 0 0 12px rgba(15,151,61,0.15); }
+    .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 12px; }
+    .timestamp-display i { margin-right: 5px; color: #4f9cf7; }
+    
+    .grid-main { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .card-modern { background: rgba(10,14,22,0.5); backdrop-filter: blur(16px); border-radius: 14px; border: 1px solid rgba(255,255,255,0.02); overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+    .card-modern:hover { border-color: rgba(79,156,247,0.04); box-shadow: 0 8px 40px rgba(0,0,0,0.2); transform: translateY(-2px); }
+    .card-header-modern { padding: 6px 14px 4px 14px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 32px; background: rgba(255,255,255,0.01); border-bottom: 1px solid rgba(255,255,255,0.02); }
+    .card-header-modern .title { font-weight: 700; font-size: 11px; display: flex; align-items: center; gap: 6px; color: #c8d8f0; }
+    .card-header-modern .title i { color: #4f9cf7; font-size: 12px; }
+    .card-header-modern .badge-count { font-size: 8px; font-weight: 700; padding: 1px 10px; border-radius: 40px; background: rgba(79,156,247,0.04); color: #4f9cf7; border: 1px solid rgba(79,156,247,0.04); }
+    .card-body-modern { flex: 1; padding: 3px 8px 8px 8px; display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 1fr; gap: 4px; min-height: 0; }
+    
+    .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.15s ease; cursor: pointer; position: relative; aspect-ratio: 1; min-height: 34px; padding: 2px; border: 2px solid rgba(255,255,255,0.02); background: rgba(255,255,255,0.01); }
+    .tile:hover { transform: scale(1.08) translateY(-3px); z-index: 5; box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+    .tile:active { transform: scale(0.92); }
+    .tile .val { font-size: 13px; font-weight: 900; position: relative; z-index: 2; line-height: 1; letter-spacing: -0.3px; }
+    .tile .suffix { font-size: 6px; font-weight: 700; opacity: 0.5; position: relative; z-index: 2; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px; }
+    .tile .bar { position: absolute; bottom: 2px; left: 20%; right: 20%; height: 2px; border-radius: 2px; background: rgba(255,255,255,0.03); overflow: hidden; }
+    .tile .bar .fill { height: 100%; border-radius: 2px; transition: width 0.8s ease; }
+    
+    .tile-critical { background: rgba(255,71,87,0.10); border-color: rgba(255,71,87,0.15); }
+    .tile-critical .val { color: #ff4757; font-size: 15px; }
+    .tile-critical .bar .fill { background: #ff4757; width: 80%; }
+    .tile-critical.pulse { animation: crit-pulse 2s ease-in-out infinite; }
+    @keyframes crit-pulse { 0%,100% { border-color: rgba(255,71,87,0.15); box-shadow: 0 0 8px rgba(255,71,87,0.02); } 50% { border-color: rgba(255,71,87,0.35); box-shadow: 0 0 20px rgba(255,71,87,0.06); } }
+    
+    .tile-warning { background: rgba(255,165,2,0.07); border-color: rgba(255,165,2,0.10); }
+    .tile-warning .val { color: #ffa502; font-size: 14px; }
+    .tile-warning .bar .fill { background: #ffa502; width: 50%; }
+    
+    .tile-mixed { background: rgba(124,58,237,0.07); border-color: rgba(124,58,237,0.10); }
+    .tile-mixed .val { color: #7c3aed; font-size: 14px; }
+    .tile-mixed .bar .fill { background: #7c3aed; width: 35%; }
+    
+    .tile-healthy { background: rgba(15,151,61,0.03); border-color: rgba(15,151,61,0.02); }
+    .tile-healthy .val { color: #0f973d; font-size: 13px; }
+    .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
+    
+    .tile-empty { background: rgba(255,255,255,0.005); border-color: rgba(255,255,255,0.005); cursor: default; }
+    .tile-empty:hover { transform: none; box-shadow: none; }
+    .tile-empty .val { color: #1a2a3a; font-weight: 400; font-size: 11px; }
+    
+    @media (max-width: 1600px) { .card-body-modern { grid-template-columns: repeat(5, 1fr); } }
+    @media (max-width: 1400px) { .card-body-modern { grid-template-columns: repeat(4, 1fr); } .grid-main { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 1100px) { .card-body-modern { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; } .stats-bar { flex-wrap: wrap; } }
+    @media (max-width: 768px) { .card-body-modern { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 8px; } }
+    
+    #modalContainer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.82); backdrop-filter: blur(16px); display: none; align-items: center; justify-content: center; z-index: 99999; animation: modal-in 0.25s ease; }
+    @keyframes modal-in { from { opacity: 0; transform: scale(0.94) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+    #alertBox { background: linear-gradient(145deg, #111a26, #090e16); border-radius: 18px; max-width: 540px; width: 92%; padding: 22px 24px 24px 24px; border: 1px solid rgba(255,255,255,0.03); box-shadow: 0 40px 80px rgba(0,0,0,0.6); max-height: 85vh; overflow-y: auto; }
+    #alertBox .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+    #alertBox .head h3 { font-size: 15px; font-weight: 800; color: #ff4757; display: flex; align-items: center; gap: 8px; }
+    #alertBox .head .close-btn { background: none; border: none; color: #4a6a8a; font-size: 20px; cursor: pointer; transition: 0.2s; padding: 0 4px; line-height: 1; }
+    #alertBox .head .close-btn:hover { color: white; transform: rotate(90deg); }
+    #alertBox .body-text { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 8px 12px; margin: 4px 0 10px 0; border-left: 2px solid #4f9cf7; font-size: 11px; line-height: 1.6; color: #b0c8e0; max-height: 140px; overflow-y: auto; }
+    #alertBox .body-text b { color: #ffffff; }
+    #alertBox .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #alertBox .field { margin-bottom: 4px; }
+    #alertBox .field label { display: block; font-size: 8px; font-weight: 700; color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+    #alertBox .field select, #alertBox .field textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.03); border-radius: 6px; padding: 5px 10px; color: #ffffff; font-size: 11px; font-family: 'Inter', sans-serif; transition: 0.2s; }
+    #alertBox .field select:focus, #alertBox .field textarea:focus { outline: none; border-color: #4f9cf7; box-shadow: 0 0 0 3px rgba(79,156,247,0.04); }
+    #alertBox .field textarea { min-height: 34px; resize: vertical; }
+    #alertBox .field.full { grid-column: 1 / -1; }
+    .modal-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 10px; flex-wrap: wrap; }
+    .modal-actions .btn-m { padding: 4px 16px; border-radius: 40px; font-weight: 700; font-size: 9px; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Inter', sans-serif; }
+    .modal-actions .btn-m-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: white; box-shadow: 0 4px 15px rgba(79,156,247,0.15); }
+    .modal-actions .btn-m-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,156,247,0.2); }
+    .modal-actions .btn-m-danger { background: linear-gradient(135deg, #ff4757, #c0392b); color: white; }
+    .modal-actions .btn-m-secondary { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); color: #8aaac0; }
+    .modal-actions .btn-m-secondary:hover { background: rgba(255,255,255,0.04); }
+    #alertBox::-webkit-scrollbar { width: 3px; }
+    #alertBox::-webkit-scrollbar-track { background: transparent; }
+    #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<div class="bg-glow"></div>
+<div class="bg-glow-2"></div>
+
+<div class="wrapper">
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="brand">
+            <div class="logo"><i class="fas fa-chart-simple"></i></div>
+            <div>
+                <div class="name">Service<span>Wise</span></div>
+                <div class="sub">Command Center</div>
+            </div>
+        </div>
+        <div class="top-actions">
+            <div class="live-badge"><span class="dot"></span> LIVE</div>
+            <span class="timer-glass" id="ten-countdown">5:00</span>
+            <button class="btn-glass btn-primary-glass" id="openPopupButton"><i class="fas fa-list"></i> Closed</button>
+            <button class="btn-glass btn-ghost-glass" id="openPopup"><i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.04); padding:0 6px; border-radius:6px; font-weight:700;">0</span></button>
+        </div>
+    </div>
+
+    <!-- STATS BAR -->
+    <%
+        Connection con = DBUtilityAuto.getReportDBConnection();
+        int totalFailures = 0;
+        try {
+            Statement stmt = con.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT COUNT(*) as cnt FROM gen5_servicewise_fail WHERE td_per > 1");
+            if(rs.next()) totalFailures = rs.getInt("cnt");
+            rs.close(); stmt.close();
+        } catch(Exception e) { e.printStackTrace(); }
+    %>
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="icon red"><i class="fas fa-exclamation-triangle"></i></div>
+            <span class="label">Failures</span>
+            <span class="value red" id="totalFailures"><%= totalFailures %></span>
+        </div>
+        <div class="stat-item">
+            <div class="icon blue"><i class="fas fa-server"></i></div>
+            <span class="label">Services</span>
+            <span class="value blue" id="totalServices">0</span>
+        </div>
+        <div class="stat-item">
+            <div class="icon green"><i class="fas fa-check-circle"></i></div>
+            <span class="label">Healthy</span>
+            <span class="value green" id="totalHealthy">0</span>
+        </div>
+        <div class="ticker-wrap">
+            <div class="ticker-text">
+                <span>● <span class="hl">STATUS:</span> Monitoring active</span>
+                <span>● <span class="hl">FAILURES:</span> Real-time detection</span>
+                <span>● <span class="hl">REFRESH:</span> Every 5 minutes</span>
+                <span>● <span class="hl">THRESHOLD:</span> EIS-TD &gt; 1%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- INFO BAR -->
+    <div class="info-bar">
+        <div class="legend">
+            <span class="item"><span class="swatch sw-crit"></span> Critical</span>
+            <span class="item"><span class="swatch sw-warn"></span> Warning</span>
+            <span class="item"><span class="swatch sw-mix"></span> Mixed</span>
+            <span class="item"><span class="swatch sw-health"></span> Healthy</span>
+        </div>
+        <div class="timestamp-display">
+            <i class="fas fa-clock"></i>
+            <%
+                try {
+                    Statement st = con.createStatement();
+                    ResultSet rs = st.executeQuery("select INSERT_TIME from gen5_servicewise_fail ORDER BY insert_time desc");
+                    if(rs.next()) {
+                        Timestamp ts = rs.getTimestamp("INSERT_TIME");
+                        Date d = new Date(ts.getTime());
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+                        out.print("Last Update: " + sdf.format(d));
+                    }
+                    rs.close(); st.close();
+                } catch(Exception e) { out.print("—"); }
+            %>
+        </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="grid-main">
+        
+        <!-- GEN-5 -->
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <span class="title"><i class="fas fa-server"></i> GEN-5</span>
+                <span class="badge-count" id="gen5count">0</span>
+            </div>
+            <div class="card-body-modern" id="panel-gen5">
+                <%
+                    Statement l_bjst = null;
+                    ResultSet l_bjres = null;
+                    List<Double> gen5_per = new ArrayList<>();
+                    List<String> gen5_name = new ArrayList<>();
+                    List<String> gen5_source = new ArrayList<>();
+                    List<String> gen5_error = new ArrayList<>();
+                    List<Integer> gen5_hits = new ArrayList<>();
+                    List<Integer> gen5_td = new ArrayList<>();
+                    List<String> gen5_time = new ArrayList<>();
+                    List<Integer> gen5_siCount = new ArrayList<>();
+                    List<Double> gen5_siPr = new ArrayList<>();
+                    
+                    try {
+                        String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name)";
+                        l_bjst = con.createStatement();
+                        l_bjres = l_bjst.executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                gen5_per.add(l_bjres.getDouble("TD_PER"));
+                                gen5_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                gen5_source.add(nvl(l_bjres.getString("SOURCE_ID"), "N/A"));
+                                gen5_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                gen5_hits.add(l_bjres.getInt("TOTAL_HITS"));
+                                gen5_td.add(l_bjres.getInt("TD"));
+                                gen5_time.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
+                                // FIX: Safe column access
+                                try { gen5_siCount.add(l_bjres.getInt("SI_EEROR")); } catch(Exception e) { gen5_siCount.add(0); }
+                                try { gen5_siPr.add(l_bjres.getDouble("SI_EEROR_PR")); } catch(Exception e) { gen5_siPr.add(0.0); }
+                            }
+                        }
+                    } catch(Exception e) { e.printStackTrace(); }
+                    
+                    for(int i = 0; i < 48; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = String.valueOf(i + 1);
+                        String suffix = "";
+                        String onclick = "";
+                        String alertMsg = "";
+                        
+                        if(i < gen5_per.size()) {
+                            Double pct = gen5_per.get(i);
+                            if(pct >= 5) { cls = "tile tile-critical pulse"; }
+                            else if(pct >= 3) { cls = "tile tile-warning"; }
+                            else if(pct > 0) { cls = "tile tile-mixed"; }
+                            
+                            val = String.valueOf(pct);
+                            suffix = "%";
+                            
+                            alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD:</b> "+gen5_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+gen5_time.get(i);
+                            onclick = "onclick=\"openModernModal('"+alertMsg.replace("'","\\'")+"','"+gen5_name.get(i).replace("'","\\'")+"','GEN-5','"+gen5_source.get(i).replace("'","\\'")+"','"+gen5_error.get(i).replace("'","\\'")+"','"+gen5_hits.get(i)+"','"+gen5_td.get(i)+"','"+gen5_time.get(i).replace("'","\\'")+"')\"";
+                        }
+                        
+                        out.print("<div class='"+cls+"' "+onclick+">");
+                        out.print("<span class='val'>"+val+"</span>");
+                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
+                        out.print("<div class='bar'><div class='fill'></div></div>");
+                        out.print("</div>");
+                    }
+                %>
+            </div>
+        </div>
+
+        <!-- SI -->
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <span class="title"><i class="fas fa-code"></i> SI Services</span>
+                <span class="badge-count" id="sicount">0</span>
+            </div>
+            <div class="card-body-modern" id="panel-si">
+                <%
+                    List<Double> si_per = new ArrayList<>();
+                    List<String> si_name = new ArrayList<>();
+                    List<String> si_error = new ArrayList<>();
+                    List<Integer> si_hits = new ArrayList<>();
+                    List<Integer> si_td = new ArrayList<>();
+                    List<String> si_time = new ArrayList<>();
+                    
+                    try {
+                        String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name)";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if(l_bjres.getDouble("TD") >= 50) {
+                                si_per.add(l_bjres.getDouble("TD_PER"));
+                                si_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                si_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                si_hits.add(l_bjres.getInt("TOTAL_HITS"));
+                                si_td.add(l_bjres.getInt("TD"));
+                                si_time.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
+                            }
+                        }
+                    } catch(Exception e) { e.printStackTrace(); }
+                    
+                    for(int i = 0; i < 48; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = String.valueOf(i + 1);
+                        String suffix = "";
+                        String onclick = "";
+                        String alertMsg = "";
+                        
+                        if(i < si_per.size()) {
+                            Double pct = si_per.get(i);
+                            if(pct >= 5) { cls = "tile tile-critical pulse"; }
+                            else if(pct >= 3) { cls = "tile tile-warning"; }
+                            else if(pct > 0) { cls = "tile tile-mixed"; }
+                            
+                            val = String.valueOf(pct);
+                            suffix = "%";
+                            
+                            alertMsg = "<b>Service:</b> "+si_name.get(i)+"<br><b>Error:</b> "+si_error.get(i)+"<br><b>Hits:</b> "+si_hits.get(i)+"<br><b>TD:</b> "+si_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+si_time.get(i);
+                            onclick = "onclick=\"openModernModal('"+alertMsg.replace("'","\\'")+"','"+si_name.get(i).replace("'","\\'")+"','SI','','"+si_error.get(i).replace("'","\\'")+"','"+si_hits.get(i)+"','"+si_td.get(i)+"','"+si_time.get(i).replace("'","\\'")+"')\"";
+                        }
+                        
+                        out.print("<div class='"+cls+"' "+onclick+">");
+                        out.print("<span class='val'>"+val+"</span>");
+                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
+                        out.print("<div class='bar'><div class='fill'></div></div>");
+                        out.print("</div>");
+                    }
+                %>
+            </div>
+        </div>
+
+        <!-- ThirdParty -->
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
+                <span class="badge-count" id="thirdcount">0</span>
+            </div>
+            <div class="card-body-modern" id="panel-third">
+                <%
+                    List<Double> third_per = new ArrayList<>();
+                    List<String> third_name = new ArrayList<>();
+                    List<String> third_source = new ArrayList<>();
+                    List<String> third_error = new ArrayList<>();
+                    List<Integer> third_hits = new ArrayList<>();
+                    List<Integer> third_td = new ArrayList<>();
+                    List<String> third_time = new ArrayList<>();
+                    
+                    try {
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                third_per.add(l_bjres.getDouble("TD_PERCENT"));
+                                third_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
+                                third_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                third_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
+                                third_hits.add(l_bjres.getInt("TOTAL_HITS"));
+                                third_td.add(l_bjres.getInt("TD"));
+                                third_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
+                            }
+                        }
+                    } catch(Exception e) { e.printStackTrace(); }
+                    
+                    for(int i = 0; i < 48; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = String.valueOf(i + 1);
+                        String suffix = "";
+                        String onclick = "";
+                        String alertMsg = "";
+                        
+                        if(i < third_per.size()) {
+                            Double pct = third_per.get(i);
+                            if(pct >= 5) { cls = "tile tile-critical pulse"; }
+                            else if(pct >= 3) { cls = "tile tile-warning"; }
+                            else if(pct > 0) { cls = "tile tile-mixed"; }
+                            
+                            val = String.valueOf(pct);
+                            suffix = "%";
+                            
+                            alertMsg = "<b>Service:</b> "+third_name.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD:</b> "+third_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+third_time.get(i);
+                            onclick = "onclick=\"openModernModal('"+alertMsg.replace("'","\\'")+"','"+third_name.get(i).replace("'","\\'")+"','ThirdParty','"+third_source.get(i).replace("'","\\'")+"','"+third_error.get(i).replace("'","\\'")+"','"+third_hits.get(i)+"','"+third_td.get(i)+"','"+third_time.get(i).replace("'","\\'")+"')\"";
+                        }
+                        
+                        out.print("<div class='"+cls+"' "+onclick+">");
+                        out.print("<span class='val'>"+val+"</span>");
+                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
+                        out.print("<div class='bar'><div class='fill'></div></div>");
+                        out.print("</div>");
+                    }
+                %>
+            </div>
+        </div>
+
+        <!-- Combined -->
+        <div class="card-modern">
+            <div class="card-header-modern">
+                <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
+                <span class="badge-count" id="mixedcount">0</span>
+            </div>
+            <div class="card-body-modern" id="panel-mixed">
+                <%
+                    List<Double> mix_per = new ArrayList<>();
+                    List<String> mix_name = new ArrayList<>();
+                    List<String> mix_cat = new ArrayList<>();
+                    List<String> mix_source = new ArrayList<>();
+                    List<String> mix_error = new ArrayList<>();
+                    List<String> mix_hits = new ArrayList<>();
+                    List<String> mix_td = new ArrayList<>();
+                    List<String> mix_time = new ArrayList<>();
+                    
+                    try {
+                        // I4C
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                mix_per.add(l_bjres.getDouble("TD_PERCENT"));
+                                mix_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
+                                mix_cat.add("I4C");
+                                mix_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                mix_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
+                                mix_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                mix_td.add(String.valueOf(l_bjres.getInt("TD")));
+                                mix_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
+                            }
+                        }
+                        // IVR
+                        l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name)";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
+                                mix_per.add(l_bjres.getDouble("TD_PER"));
+                                mix_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                mix_cat.add("IVR");
+                                mix_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                mix_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                mix_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                mix_td.add(String.valueOf(l_bjres.getInt("TD")));
+                                mix_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
+                            }
+                        }
+                        // SBICAPS
+                        l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name)";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
+                                mix_per.add(l_bjres.getDouble("TD_PER"));
+                                mix_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                mix_cat.add("SBICAPS");
+                                mix_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
+                                mix_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                mix_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                mix_td.add(String.valueOf(l_bjres.getInt("TD")));
+                                mix_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
+                            }
+                        }
+                    } catch(Exception e) { e.printStackTrace(); }
+                    
+                    for(int i = 0; i < 48; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = String.valueOf(i + 1);
+                        String suffix = "";
+                        String onclick = "";
+                        String alertMsg = "";
+                        
+                        if(i < mix_per.size()) {
+                            Double pct = mix_per.get(i);
+                            if(pct >= 5) { cls = "tile tile-critical pulse"; }
+                            else if(pct >= 3) { cls = "tile tile-warning"; }
+                            else if(pct > 0) { cls = "tile tile-mixed"; }
+                            
+                            val = String.valueOf(pct);
+                            suffix = "%";
+                            
+                            alertMsg = "<b>Service:</b> "+mix_name.get(i)+"<br><b>Category:</b> "+mix_cat.get(i)+"<br><b>Error:</b> "+mix_error.get(i)+"<br><b>Source:</b> "+mix_source.get(i)+"<br><b>Hits:</b> "+mix_hits.get(i)+"<br><b>TD:</b> "+mix_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+mix_time.get(i);
+                            onclick = "onclick=\"openModernModal('"+alertMsg.replace("'","\\'")+"','"+mix_name.get(i).replace("'","\\'")+"','"+mix_cat.get(i)+"','"+mix_source.get(i).replace("'","\\'")+"','"+mix_error.get(i).replace("'","\\'")+"','"+mix_hits.get(i)+"','"+mix_td.get(i)+"','"+mix_time.get(i).replace("'","\\'")+"')\"";
+                        }
+                        
+                        out.print("<div class='"+cls+"' "+onclick+">");
+                        out.print("<span class='val'>"+val+"</span>");
+                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
+                        out.print("<div class='bar'><div class='fill'></div></div>");
+                        out.print("</div>");
+                    }
+                %>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- MODAL -->
+<div id="modalContainer">
+    <div id="alertBox">
+        <div class="head">
+            <h3><i class="fas fa-exclamation-triangle"></i> Service Alert</h3>
+            <button class="close-btn" onclick="closeModernModal()">✕</button>
+        </div>
+        <div class="body-text" id="modalMsg"></div>
+        
+        <div class="form-row">
+            <div class="field">
+                <label>Closed Time</label>
+                <select id="pasuseTime">
+                    <option value="1">1 Hour</option><option value="2">2 Hours</option>
+                    <option value="3">3 Hours</option><option value="4">4 Hours</option>
+                    <option value="5">5 Hours</option><option value="6">6 Hours</option>
+                    <option value="7">7 Hours</option><option value="8">8 Hours</option>
+                    <option value="9">9 Hours</option><option value="10">10 Hours</option>
+                    <option value="11">11 Hours</option><option value="12">12 Hours</option>
+                    <option value="13">13 Hours</option><option value="14">14 Hours</option>
+                    <option value="15">15 Hours</option><option value="16">16 Hours</option>
+                    <option value="17">17 Hours</option><option value="18">18 Hours</option>
+                    <option value="19">19 Hours</option><option value="20">20 Hours</option>
+                    <option value="21">21 Hours</option><option value="22">22 Hours</option>
+                    <option value="23">23 Hours</option><option value="24">24 Hours</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Closed By</label>
+                <select id="closeName">
+                    <option value="">Select</option>
+                    <%
+                        try {
+                            Connection connn = DBUtilityAuto.getReportDBConnection();
+                            String sql1="select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";
+                            Statement stmt1=connn.createStatement();
+                            ResultSet rs1= stmt1.executeQuery(sql1);
+                            while(rs1.next()){
+                                String name = rs1.getString("Fullname");
+                                out.print("<option value='"+name+"'>"+name+"</option>");
+                            }
+                            rs1.close(); stmt1.close(); connn.close();
+                        } catch(Exception e) { }
+                    %>
+                </select>
+            </div>
+        </div>
+        <div class="field full">
+            <label>Comment</label>
+            <textarea id="TextArea" placeholder="Enter closure comments..."></textarea>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn-m btn-m-primary" id="closeBtn"><i class="fas fa-check"></i> Close</button>
+            <button class="btn-m btn-m-danger" id="detailsBtn"><i class="fas fa-eye"></i> View</button>
+            <button class="btn-m btn-m-secondary" onclick="closeModernModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<%!
+    public static String nvl(String value, String defaultValue) {
+        return (value == null || value.trim().isEmpty()) ? defaultValue : value;
+    }
+%>
+
+<script>
+    var mApi = '', mCat = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
+    
+    function openModernModal(msg, api, cat, src, err, hits, td, time) {
+        mApi = api || '';
+        mCat = cat || 'GEN-5';
+        mSource = src || '';
+        mError = err || '';
+        mHits = hits || '';
+        mTD = td || '';
+        mTime = time || '';
+        
+        document.getElementById('modalMsg').innerHTML = msg;
+        document.getElementById('modalContainer').style.display = 'flex';
+        document.getElementById('TextArea').value = '';
+        document.getElementById('closeName').value = '';
+    }
+    
+    function closeModernModal() {
+        document.getElementById('modalContainer').style.display = 'none';
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('gen5count').textContent = document.querySelectorAll('#panel-gen5 .tile-critical, #panel-gen5 .tile-warning, #panel-gen5 .tile-mixed').length || 0;
+        document.getElementById('sicount').textContent = document.querySelectorAll('#panel-si .tile-critical, #panel-si .tile-warning, #panel-si .tile-mixed').length || 0;
+        document.getElementById('thirdcount').textContent = document.querySelectorAll('#panel-third .tile-critical, #panel-third .tile-warning, #panel-third .tile-mixed').length || 0;
+        document.getElementById('mixedcount').textContent = document.querySelectorAll('#panel-mixed .tile-critical, #panel-mixed .tile-warning, #panel-mixed .tile-mixed').length || 0;
+        
+        var totalServices = document.querySelectorAll('.tile:not(.tile-empty)').length || 0;
+        var healthy = document.querySelectorAll('.tile-healthy').length || 0;
+        
+        document.getElementById('totalServices').textContent = totalServices;
+        document.getElementById('totalHealthy').textContent = healthy;
+        
+        fetchClosedCount();
+        
+        document.getElementById('closeBtn').addEventListener('click', function() {
+            var comment = document.getElementById('TextArea').value;
+            var closer = document.getElementById('closeName').value;
+            var pTime = document.getElementById('pasuseTime').value;
+            
+            if(comment.trim() == '' || closer == '') {
+                alert('⚠️ Please fill Comment and Closed By');
+                return;
+            }
+            
+            var url = '<%=request.getContextPath() %>/jsp/ServiceWiseFailureAction.jsp?Api_Name=' 
+                + encodeURIComponent(mApi)
+                + '&SourceID=' + encodeURIComponent(mSource)
+                + '&TextArea=' + encodeURIComponent(comment)
+                + '&pasuseTime=' + encodeURIComponent(pTime)
+                + '&ErrorCode=' + encodeURIComponent(mError)
+                + '&closeName=' + encodeURIComponent(closer)
+                + '&ServiceCategory=' + encodeURIComponent(mCat);
+            
+            closeModernModal();
+            location.replace(url);
+        });
+        
+        document.getElementById('detailsBtn').addEventListener('click', function() {
+            if(mCat != 'SI' && mCat != 'SIServices') {
+                var url = '<%=request.getContextPath() %>/showFailureServicesWise.do?action=showFailureServicesWise&url=' 
+                    + encodeURIComponent(mApi) 
+                    + '&ServiceCategory=' + encodeURIComponent(mCat);
+                window.open(url, '_blank');
+            }
+        });
+        
+        document.getElementById('openPopupButton').addEventListener('click', function() {
+            window.open('<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp', '_blank');
+        });
+        
+        document.getElementById('openPopup').addEventListener('click', function() {
+            window.open('DisplayTodayServiceWiseFailure.jsp', 'DataPopup', 'width=800,height=600');
+        });
+    });
+    
+    function fetchClosedCount() {
+        fetch('<%=request.getContextPath() %>/jsp/ServiceWiseFailureAction.jsp?action=getTodayClosedCount')
+            .then(response => response.text())
+            .then(count => {
+                document.getElementById('closedCountBadge').textContent = count || '0';
+            })
+            .catch(() => {
+                document.getElementById('closedCountBadge').textContent = '0';
+            });
+    }
+    
+    function countdownTimer(el, minutes, seconds) {
+        var element = document.getElementById(el);
+        if(!element) return;
+        var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
+        function update() {
+            var msLeft = endTime - (+new Date);
+            if (msLeft < 1000) { element.innerHTML = "⟳"; }
+            else {
+                var t = new Date(msLeft);
+                var m = t.getUTCMinutes();
+                var s = t.getUTCSeconds();
+                element.innerHTML = (m ? m + ':' : '') + (m ? String(s).padStart(2,'0') : s);
+                setTimeout(update, 100);
+            }
+        }
+        update();
+    }
+    countdownTimer('ten-countdown', 5, 0);
+    
+    document.getElementById('modalContainer').addEventListener('click', function(e) {
+        if(e.target === this) closeModernModal();
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if(e.key === 'Escape') closeModernModal();
+    });
+</script>
+
+</body>
+</html>
