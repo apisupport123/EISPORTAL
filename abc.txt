@@ -55,9 +55,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <title>EIS ServiceWise · Command Center</title>
 <style>
-    /* ============================================================
-       ULTRA DARK - PURE BLACKOUT
-       ============================================================ */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     html, body {
@@ -274,7 +271,7 @@
     }
     
     /* ============================================================
-       HEXAGON TILES - SIRF TD (RED) + HEALTHY (GREEN)
+       HEXAGON TILES - SIRF TD (RED) + BAAKI GREEN (✓)
        ============================================================ */
     .tile {
         display: flex;
@@ -350,14 +347,14 @@
         50% { border-color: rgba(255, 71, 87, 0.40); box-shadow: 0 0 50px rgba(255, 71, 87, 0.12); }
     }
     
-    /* HEALTHY - GREEN with TICK */
+    /* HEALTHY - GREEN with TICK (✓) - NO COUNT */
     .tile-healthy {
         background: rgba(15, 151, 61, 0.15);
         border-color: rgba(15, 151, 61, 0.10);
     }
     .tile-healthy .val { 
         color: #0f973d; 
-        font-size: 24px; 
+        font-size: 28px; 
         font-weight: 900;
         text-shadow: 0 0 30px rgba(15, 151, 61, 0.2);
     }
@@ -605,9 +602,7 @@
                         
                         if(i < gen5_per.size()) {
                             Double pct = gen5_per.get(i);
-                            if(pct >= 5) { cls = "tile tile-critical pulse"; }
-                            else { cls = "tile tile-healthy"; }
-                            
+                            cls = "tile tile-critical pulse";
                             val = String.valueOf(pct);
                             suffix = "%";
                             tooltipText = gen5_name.get(i);
@@ -669,9 +664,7 @@
                         
                         if(i < si_per.size()) {
                             Double pct = si_per.get(i);
-                            if(pct >= 5) { cls = "tile tile-critical pulse"; }
-                            else { cls = "tile tile-healthy"; }
-                            
+                            cls = "tile tile-critical pulse";
                             val = String.valueOf(pct);
                             suffix = "%";
                             tooltipText = si_name.get(i);
@@ -737,9 +730,7 @@
                         
                         if(i < third_per.size()) {
                             Double pct = third_per.get(i);
-                            if(pct >= 5) { cls = "tile tile-critical pulse"; }
-                            else { cls = "tile tile-healthy"; }
-                            
+                            cls = "tile tile-critical pulse";
                             val = String.valueOf(pct);
                             suffix = "%";
                             tooltipText = third_name.get(i);
@@ -836,9 +827,7 @@
                         
                         if(i < mix_per.size()) {
                             Double pct = mix_per.get(i);
-                            if(pct >= 5) { cls = "tile tile-critical pulse"; }
-                            else { cls = "tile tile-healthy"; }
-                            
+                            cls = "tile tile-critical pulse";
                             val = String.valueOf(pct);
                             suffix = "%";
                             tooltipText = mix_name.get(i);
