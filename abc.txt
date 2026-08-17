@@ -55,9 +55,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <title>EIS ServiceWise · Command Center</title>
 <style>
-    /* ============================================================
-       ULTRA DARK THEME - SQUARE TILES
-       ============================================================ */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     html, body {
@@ -264,7 +261,7 @@
     }
     
     /* ============================================================
-       SQUARE TILES - MODERN & CLEAN
+       SQUARE TILES
        ============================================================ */
     .tile-grid {
         flex: 1;
@@ -282,7 +279,7 @@
         align-items: center;
         justify-content: center;
         border-radius: 8px;
-        transition: all 0.15s ease;
+        transition: all 0.2s ease;
         cursor: pointer;
         position: relative;
         aspect-ratio: 1;
@@ -294,10 +291,10 @@
     }
     
     .tile:hover {
-        transform: scale(1.06) translateY(-3px);
+        transform: scale(1.08) translateY(-4px);
         z-index: 10;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        border-color: rgba(79, 156, 247, 0.08);
+        box-shadow: 0 12px 50px rgba(0, 0, 0, 0.6);
+        border-color: rgba(79, 156, 247, 0.10);
     }
     
     .tile:active { transform: scale(0.95); }
@@ -307,14 +304,14 @@
         font-weight: 900;
         position: relative;
         z-index: 2;
-        line-height: 1;
+        line-height: 1.2;
         letter-spacing: -0.5px;
     }
     
-    .tile .suffix {
-        font-size: 7px;
-        font-weight: 700;
-        opacity: 0.5;
+    .tile .sub-text {
+        font-size: 9px;
+        font-weight: 600;
+        opacity: 0.6;
         position: relative;
         z-index: 2;
         text-transform: uppercase;
@@ -345,6 +342,7 @@
         border-color: rgba(255, 71, 87, 0.18);
     }
     .tile-critical .val { color: #ff4757; font-size: 20px; }
+    .tile-critical .sub-text { color: #ff4757; opacity: 0.7; }
     .tile-critical .bar .fill { background: #ff4757; width: 80%; }
     .tile-critical.pulse { animation: crit-pulse 2s ease-in-out infinite; }
     @keyframes crit-pulse {
@@ -352,32 +350,38 @@
         50% { border-color: rgba(255, 71, 87, 0.35); box-shadow: 0 0 50px rgba(255, 71, 87, 0.12); }
     }
     
-    /* HEALTHY - GREEN with TICK */
+    /* HEALTHY - GREEN */
     .tile-healthy {
-        background: rgba(15, 151, 61, 0.12);
-        border-color: rgba(15, 151, 61, 0.08);
+        background: rgba(15, 151, 61, 0.10);
+        border-color: rgba(15, 151, 61, 0.06);
     }
     .tile-healthy .val { 
         color: #0f973d; 
-        font-size: 28px; 
-        font-weight: 900;
-        text-shadow: 0 0 30px rgba(15, 151, 61, 0.15);
+        font-size: 16px; 
+        font-weight: 800;
+    }
+    .tile-healthy .sub-text {
+        color: #0f973d;
+        opacity: 0.7;
+        font-size: 10px;
     }
     .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
     
-    /* TOOLTIP - HOVER PE SERVICE NAME */
-    .tile .tooltip-text {
+    /* TOOLTIP - HOVER PE DETAILS */
+    .tile .tooltip-box {
         visibility: hidden;
         opacity: 0;
         width: auto;
-        max-width: 300px;
+        max-width: 320px;
+        min-width: 180px;
         background: rgba(0, 0, 0, 0.95);
         color: #ffffff;
-        text-align: center;
-        padding: 8px 18px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 700;
+        text-align: left;
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.6;
         position: absolute;
         bottom: calc(100% + 16px);
         left: 50%;
@@ -385,15 +389,41 @@
         z-index: 99999;
         border: 1px solid rgba(255, 255, 255, 0.06);
         box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
-        white-space: nowrap;
-        transition: opacity 0.2s ease;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
         pointer-events: none;
         font-family: 'Inter', sans-serif;
-        letter-spacing: 0.5px;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
     
-    .tile .tooltip-text::after {
+    .tile .tooltip-box .tt-title {
+        font-weight: 700;
+        font-size: 14px;
+        color: #ffffff;
+        margin-bottom: 4px;
+        display: block;
+    }
+    
+    .tile .tooltip-box .tt-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 2px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    
+    .tile .tooltip-box .tt-label {
+        color: #6a8aaa;
+        font-weight: 400;
+    }
+    
+    .tile .tooltip-box .tt-value {
+        color: #e8edf5;
+        font-weight: 600;
+    }
+    
+    .tile .tooltip-box .tt-value.critical { color: #ff4757; }
+    .tile .tooltip-box .tt-value.healthy { color: #0f973d; }
+    
+    .tile .tooltip-box::after {
         content: '';
         position: absolute;
         top: 100%;
@@ -403,7 +433,7 @@
         border-top-color: rgba(0, 0, 0, 0.95);
     }
     
-    .tile:hover .tooltip-text {
+    .tile:hover .tooltip-box {
         visibility: visible;
         opacity: 1;
     }
@@ -599,30 +629,44 @@
                     
                     for(int i = 0; i < 60; i++) {
                         String cls = "tile tile-healthy";
-                        String val = "✓";
-                        String suffix = "";
+                        String val = "Healthy";
+                        String subText = "✓ OK";
+                        String barFill = "15%";
                         String onclick = "";
                         String alertMsg = "";
-                        String tooltipText = "";
+                        String tooltipHtml = "";
                         
                         if(i < gen5_per.size()) {
                             Double pct = gen5_per.get(i);
                             cls = "tile tile-critical pulse";
-                            val = String.valueOf(pct);
-                            suffix = "%";
-                            tooltipText = gen5_name.get(i);
+                            val = pct + "%";
+                            subText = "TD FAILURE";
+                            barFill = "80%";
                             
-                            alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD:</b> "+gen5_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>SI Error:</b> "+gen5_siCount.get(i)+"<br><b>Time:</b> "+gen5_time.get(i);
+                            // Build tooltip HTML
+                            tooltipHtml = "<span class='tt-title'>⚠️ " + gen5_name.get(i) + "</span>" +
+                                "<div class='tt-row'><span class='tt-label'>Service</span><span class='tt-value'>" + gen5_name.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Source</span><span class='tt-value'>" + gen5_source.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Error</span><span class='tt-value'>" + gen5_error.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Hits</span><span class='tt-value'>" + gen5_hits.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>TD Count</span><span class='tt-value critical'>" + gen5_td.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Fail %</span><span class='tt-value critical'>" + pct + "%</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Time</span><span class='tt-value'>" + gen5_time.get(i) + "</span></div>";
+                            
+                            alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD:</b> "+gen5_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+gen5_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+gen5_name.get(i).replace("'","\\'")+"','GEN-5','"+gen5_source.get(i).replace("'","\\'")+"','"+gen5_error.get(i).replace("'","\\'")+"','"+gen5_hits.get(i)+"','"+gen5_td.get(i)+"','"+gen5_time.get(i).replace("'","\\'")+"')\"";
+                        } else {
+                            // Healthy tile tooltip
+                            tooltipHtml = "<span class='tt-title'>✅ Healthy</span>" +
+                                "<div class='tt-row'><span class='tt-label'>Status</span><span class='tt-value healthy'>Operational</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>No Failures</span><span class='tt-value healthy'>✓</span></div>";
                         }
                         
                         out.print("<div class='"+cls+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
-                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        if(!tooltipText.isEmpty()) {
-                            out.print("<span class='tooltip-text'>"+tooltipText+"</span>");
-                        }
+                        out.print("<span class='sub-text'>"+subText+"</span>");
+                        out.print("<div class='bar'><div class='fill' style='width:"+barFill+";'></div></div>");
+                        out.print("<div class='tooltip-box'>"+tooltipHtml+"</div>");
                         out.print("</div>");
                     }
                 %>
@@ -661,30 +705,41 @@
                     
                     for(int i = 0; i < 60; i++) {
                         String cls = "tile tile-healthy";
-                        String val = "✓";
-                        String suffix = "";
+                        String val = "Healthy";
+                        String subText = "✓ OK";
+                        String barFill = "15%";
                         String onclick = "";
                         String alertMsg = "";
-                        String tooltipText = "";
+                        String tooltipHtml = "";
                         
                         if(i < si_per.size()) {
                             Double pct = si_per.get(i);
                             cls = "tile tile-critical pulse";
-                            val = String.valueOf(pct);
-                            suffix = "%";
-                            tooltipText = si_name.get(i);
+                            val = pct + "%";
+                            subText = "TD FAILURE";
+                            barFill = "80%";
+                            
+                            tooltipHtml = "<span class='tt-title'>⚠️ " + si_name.get(i) + "</span>" +
+                                "<div class='tt-row'><span class='tt-label'>Service</span><span class='tt-value'>" + si_name.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Error</span><span class='tt-value'>" + si_error.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Hits</span><span class='tt-value'>" + si_hits.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>TD Count</span><span class='tt-value critical'>" + si_td.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Fail %</span><span class='tt-value critical'>" + pct + "%</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Time</span><span class='tt-value'>" + si_time.get(i) + "</span></div>";
                             
                             alertMsg = "<b>Service:</b> "+si_name.get(i)+"<br><b>Error:</b> "+si_error.get(i)+"<br><b>Hits:</b> "+si_hits.get(i)+"<br><b>TD:</b> "+si_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+si_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+si_name.get(i).replace("'","\\'")+"','SI','','"+si_error.get(i).replace("'","\\'")+"','"+si_hits.get(i)+"','"+si_td.get(i)+"','"+si_time.get(i).replace("'","\\'")+"')\"";
+                        } else {
+                            tooltipHtml = "<span class='tt-title'>✅ Healthy</span>" +
+                                "<div class='tt-row'><span class='tt-label'>Status</span><span class='tt-value healthy'>Operational</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>No Failures</span><span class='tt-value healthy'>✓</span></div>";
                         }
                         
                         out.print("<div class='"+cls+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
-                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        if(!tooltipText.isEmpty()) {
-                            out.print("<span class='tooltip-text'>"+tooltipText+"</span>");
-                        }
+                        out.print("<span class='sub-text'>"+subText+"</span>");
+                        out.print("<div class='bar'><div class='fill' style='width:"+barFill+";'></div></div>");
+                        out.print("<div class='tooltip-box'>"+tooltipHtml+"</div>");
                         out.print("</div>");
                     }
                 %>
@@ -727,30 +782,42 @@
                     
                     for(int i = 0; i < 60; i++) {
                         String cls = "tile tile-healthy";
-                        String val = "✓";
-                        String suffix = "";
+                        String val = "Healthy";
+                        String subText = "✓ OK";
+                        String barFill = "15%";
                         String onclick = "";
                         String alertMsg = "";
-                        String tooltipText = "";
+                        String tooltipHtml = "";
                         
                         if(i < third_per.size()) {
                             Double pct = third_per.get(i);
                             cls = "tile tile-critical pulse";
-                            val = String.valueOf(pct);
-                            suffix = "%";
-                            tooltipText = third_name.get(i);
+                            val = pct + "%";
+                            subText = "TD FAILURE";
+                            barFill = "80%";
                             
-                            alertMsg = "<b>Service:</b> "+third_name.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD:</b> "+third_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>SI Error:</b> "+third_siCount.get(i)+"<br><b>Time:</b> "+third_time.get(i);
+                            tooltipHtml = "<span class='tt-title'>⚠️ " + third_name.get(i) + "</span>" +
+                                "<div class='tt-row'><span class='tt-label'>Service</span><span class='tt-value'>" + third_name.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Source</span><span class='tt-value'>" + third_source.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Error</span><span class='tt-value'>" + third_error.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Hits</span><span class='tt-value'>" + third_hits.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>TD Count</span><span class='tt-value critical'>" + third_td.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Fail %</span><span class='tt-value critical'>" + pct + "%</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Time</span><span class='tt-value'>" + third_time.get(i) + "</span></div>";
+                            
+                            alertMsg = "<b>Service:</b> "+third_name.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD:</b> "+third_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+third_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+third_name.get(i).replace("'","\\'")+"','ThirdParty','"+third_source.get(i).replace("'","\\'")+"','"+third_error.get(i).replace("'","\\'")+"','"+third_hits.get(i)+"','"+third_td.get(i)+"','"+third_time.get(i).replace("'","\\'")+"')\"";
+                        } else {
+                            tooltipHtml = "<span class='tt-title'>✅ Healthy</span>" +
+                                "<div class='tt-row'><span class='tt-label'>Status</span><span class='tt-value healthy'>Operational</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>No Failures</span><span class='tt-value healthy'>✓</span></div>";
                         }
                         
                         out.print("<div class='"+cls+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
-                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        if(!tooltipText.isEmpty()) {
-                            out.print("<span class='tooltip-text'>"+tooltipText+"</span>");
-                        }
+                        out.print("<span class='sub-text'>"+subText+"</span>");
+                        out.print("<div class='bar'><div class='fill' style='width:"+barFill+";'></div></div>");
+                        out.print("<div class='tooltip-box'>"+tooltipHtml+"</div>");
                         out.print("</div>");
                     }
                 %>
@@ -824,30 +891,42 @@
                     
                     for(int i = 0; i < 60; i++) {
                         String cls = "tile tile-healthy";
-                        String val = "✓";
-                        String suffix = "";
+                        String val = "Healthy";
+                        String subText = "✓ OK";
+                        String barFill = "15%";
                         String onclick = "";
                         String alertMsg = "";
-                        String tooltipText = "";
+                        String tooltipHtml = "";
                         
                         if(i < mix_per.size()) {
                             Double pct = mix_per.get(i);
                             cls = "tile tile-critical pulse";
-                            val = String.valueOf(pct);
-                            suffix = "%";
-                            tooltipText = mix_name.get(i);
+                            val = pct + "%";
+                            subText = "TD FAILURE";
+                            barFill = "80%";
+                            
+                            tooltipHtml = "<span class='tt-title'>⚠️ " + mix_name.get(i) + "</span>" +
+                                "<div class='tt-row'><span class='tt-label'>Service</span><span class='tt-value'>" + mix_name.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Category</span><span class='tt-value'>" + mix_cat.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Error</span><span class='tt-value'>" + mix_error.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Hits</span><span class='tt-value'>" + mix_hits.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>TD Count</span><span class='tt-value critical'>" + mix_td.get(i) + "</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Fail %</span><span class='tt-value critical'>" + pct + "%</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>Time</span><span class='tt-value'>" + mix_time.get(i) + "</span></div>";
                             
                             alertMsg = "<b>Service:</b> "+mix_name.get(i)+"<br><b>Category:</b> "+mix_cat.get(i)+"<br><b>Error:</b> "+mix_error.get(i)+"<br><b>Source:</b> "+mix_source.get(i)+"<br><b>Hits:</b> "+mix_hits.get(i)+"<br><b>TD:</b> "+mix_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+mix_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+mix_name.get(i).replace("'","\\'")+"','"+mix_cat.get(i)+"','"+mix_source.get(i).replace("'","\\'")+"','"+mix_error.get(i).replace("'","\\'")+"','"+mix_hits.get(i)+"','"+mix_td.get(i)+"','"+mix_time.get(i).replace("'","\\'")+"')\"";
+                        } else {
+                            tooltipHtml = "<span class='tt-title'>✅ Healthy</span>" +
+                                "<div class='tt-row'><span class='tt-label'>Status</span><span class='tt-value healthy'>Operational</span></div>" +
+                                "<div class='tt-row'><span class='tt-label'>No Failures</span><span class='tt-value healthy'>✓</span></div>";
                         }
                         
                         out.print("<div class='"+cls+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
-                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        if(!tooltipText.isEmpty()) {
-                            out.print("<span class='tooltip-text'>"+tooltipText+"</span>");
-                        }
+                        out.print("<span class='sub-text'>"+subText+"</span>");
+                        out.print("<div class='bar'><div class='fill' style='width:"+barFill+";'></div></div>");
+                        out.print("<div class='tooltip-box'>"+tooltipHtml+"</div>");
                         out.print("</div>");
                     }
                 %>
