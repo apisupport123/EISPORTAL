@@ -26,7 +26,7 @@
     <title>ServiceWise · Enterprise Command Center</title>
     <style>
         /* ================================================================
-           ULTRA PROFESSIONAL · HIGH VISIBILITY · NO HIDING
+           PERFECT DASHBOARD - SAB DIKHEGA
            ================================================================ */
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,23 +40,17 @@
             color: #ffffff;
         }
         
-        /* ================================================================
-           BACKGROUND
-           ================================================================ */
         .bg-pro {
             position: fixed;
             top: 0; left: 0;
             width: 100vw; height: 100vh;
             background: 
-                radial-gradient(ellipse at 10% 20%, rgba(30, 80, 160, 0.06) 0%, transparent 60%),
-                radial-gradient(ellipse at 90% 80%, rgba(100, 40, 180, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 10% 20%, rgba(30, 80, 160, 0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 90% 80%, rgba(100, 40, 180, 0.03) 0%, transparent 50%),
                 #080c14;
             z-index: 0;
         }
         
-        /* ================================================================
-           WRAPPER
-           ================================================================ */
         .wrapper {
             position: relative;
             z-index: 1;
@@ -68,9 +62,7 @@
             overflow: hidden;
         }
         
-        /* ================================================================
-           TOP BAR - PROFESSIONAL
-           ================================================================ */
+        /* TOP BAR */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -182,9 +174,7 @@
         }
         .btn-ghost:hover { background: rgba(255, 255, 255, 0.04); }
         
-        /* ================================================================
-           STATS BAR - SIRF FAILURE COUNT
-           ================================================================ */
+        /* STATS BAR */
         .stats-bar {
             display: flex;
             justify-content: space-between;
@@ -242,7 +232,6 @@
         .stat-card .value.green { color: #0f973d; }
         .stat-card .value.blue { color: #4f9cf7; }
         
-        /* Ticker */
         .ticker-wrap {
             flex: 1;
             overflow: hidden;
@@ -264,9 +253,7 @@
         
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         
-        /* ================================================================
-           LEGEND
-           ================================================================ */
+        /* LEGEND */
         .legend-bar {
             display: flex;
             justify-content: center;
@@ -307,9 +294,7 @@
         
         .legend-bar .timestamp i { margin-right: 4px; color: #4f9cf7; }
         
-        /* ================================================================
-           MAIN GRID - SAB KUCH DIKHEGA
-           ================================================================ */
+        /* MAIN GRID - 4 CARDS */
         .grid-main {
             flex: 1;
             display: grid;
@@ -367,6 +352,7 @@
             border: 1px solid rgba(79, 156, 247, 0.04);
         }
         
+        /* PANEL BODY - FIXED 48 BLOCKS (6x8) */
         .panel-body {
             flex: 1;
             padding: 3px 8px 8px 8px;
@@ -375,11 +361,10 @@
             grid-auto-rows: 1fr;
             gap: 4px;
             min-height: 0;
-            overflow: hidden;
         }
         
         /* ================================================================
-           TILES - HAR EK ERROR DIKHEGA
+           TILES - SAB DIKHEGA
            ================================================================ */
         .tile {
             display: flex;
@@ -442,7 +427,7 @@
             transition: width 0.8s ease;
         }
         
-        /* CRITICAL - HIGHLY VISIBLE */
+        /* CRITICAL - RED */
         .tile-critical {
             background: rgba(255, 71, 87, 0.12);
             border-color: rgba(255, 71, 87, 0.2);
@@ -467,7 +452,7 @@
             50% { border-color: rgba(255, 71, 87, 0.4); box-shadow: 0 0 20px rgba(255, 71, 87, 0.06); }
         }
         
-        /* WARNING */
+        /* WARNING - ORANGE */
         .tile-warning {
             background: rgba(255, 165, 2, 0.08);
             border-color: rgba(255, 165, 2, 0.12);
@@ -483,7 +468,7 @@
             width: 50%;
         }
         
-        /* MIXED */
+        /* MIXED - PURPLE */
         .tile-mixed {
             background: rgba(124, 58, 237, 0.08);
             border-color: rgba(124, 58, 237, 0.12);
@@ -515,7 +500,7 @@
             width: 15%;
         }
         
-        /* EMPTY - THODA DIM */
+        /* EMPTY - DIM (show index) */
         .tile-empty {
             background: rgba(255, 255, 255, 0.005);
             border-color: rgba(255, 255, 255, 0.005);
@@ -701,7 +686,7 @@
         .modal-actions .btn-m-secondary:hover { background: rgba(255, 255, 255, 0.04); }
         
         /* ================================================================
-           RESPONSIVE - SAB KUCH FIT
+           RESPONSIVE
            ================================================================ */
         @media (max-width: 1600px) {
             .panel-body { grid-template-columns: repeat(5, 1fr); }
@@ -751,22 +736,22 @@
         </div>
     </div>
 
-    <!-- STATS BAR - SIRF FAILURE COUNT -->
+    <!-- STATS BAR -->
     <div class="stats-bar">
         <div class="stat-card">
             <div class="icon-box red"><i class="fas fa-exclamation-triangle"></i></div>
-            <span class="label">Total Failures</span>
-            <span class="value red" id="totalFailures">--</span>
+            <span class="label">Failures</span>
+            <span class="value red" id="totalFailures">0</span>
         </div>
         <div class="stat-card">
             <div class="icon-box blue"><i class="fas fa-server"></i></div>
             <span class="label">Services</span>
-            <span class="value blue" id="totalServices">--</span>
+            <span class="value blue" id="totalServices">0</span>
         </div>
         <div class="stat-card">
             <div class="icon-box green"><i class="fas fa-check-circle"></i></div>
             <span class="label">Healthy</span>
-            <span class="value green" id="totalHealthy">--</span>
+            <span class="value green" id="totalHealthy">0</span>
         </div>
         <div class="ticker-wrap">
             <div class="ticker-text">
@@ -806,7 +791,7 @@
     <!-- MAIN GRID -->
     <div class="grid-main">
         
-        <!-- GEN-5 -->
+        <!-- ====== GEN-5 ====== -->
         <div class="card-panel">
             <div class="panel-header">
                 <span class="title"><i class="fas fa-server"></i> GEN-5</span>
@@ -817,54 +802,70 @@
                     Connection con = DBUtilityAuto.getReportDBConnection();
                     Statement l_bjst = null;
                     ResultSet l_bjres = null;
-                    int gen5Count = 0;
+                    List<Double> gen5_per = new ArrayList<>();
+                    List<String> gen5_name = new ArrayList<>();
+                    List<String> gen5_source = new ArrayList<>();
+                    List<String> gen5_error = new ArrayList<>();
+                    List<Integer> gen5_hits = new ArrayList<>();
+                    List<Integer> gen5_td = new ArrayList<>();
+                    List<String> gen5_time = new ArrayList<>();
+                    
                     try {
                         String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per, SUM(SI_EEROR) AS SI_EEROR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name)";
                         l_bjst = con.createStatement();
                         l_bjres = l_bjst.executeQuery(l_strQuery);
-                        List<String> API_NAME = new ArrayList<>();
-                        List<String> SOURCE_ID = new ArrayList<>();
-                        List<String> ERROR_CODE = new ArrayList<>();
-                        List<Integer> TOTAL_HITS = new ArrayList<>();
-                        List<Integer> EIS_TD = new ArrayList<>();
-                        List<Double> EIS_TD_PER = new ArrayList<>();
-                        List<String> ISSUE_TIME = new ArrayList<>();
-                        List<Integer> SI_EEROR_Count = new ArrayList<>();
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
-                                API_NAME.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
-                                SOURCE_ID.add(nvl(l_bjres.getString("SOURCE_ID"), "N/A"));
-                                ERROR_CODE.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
-                                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                                EIS_TD.add(l_bjres.getInt("TD"));
-                                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-                                ISSUE_TIME.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
-                                SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
-                                gen5Count++;
-                            }
-                        }
-                        if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
-                            for(int i=0; i<EIS_TD_PER.size(); i++) {
-                                String safeSrc = SOURCE_ID.get(i) != null ? SOURCE_ID.get(i) : "N/A";
-                                String safeErr = ERROR_CODE.get(i) != null ? ERROR_CODE.get(i) : "N/A";
-                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Source:</b> "+safeSrc+"<br><b>Error:</b> "+safeErr+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>Fail %:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI Error:</b> "+SI_EEROR_Count.get(i)+"<br><b>Time:</b> "+ISSUE_TIME.get(i);
-                                String cls = "tile tile-critical";
-                                if(EIS_TD_PER.get(i) < 5) cls = "tile tile-warning";
-                                if(EIS_TD_PER.get(i) > 0 && EIS_TD_PER.get(i) < 3) cls = "tile tile-mixed";
-                                if(i % 4 == 0 && EIS_TD_PER.get(i) > 3) cls += " pulse";
-                                out.print("<div class='"+cls+"' onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+safeSrc+"','"+safeErr+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
-                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span>");
-                                out.print("<span class='suffix'>%</span>");
-                                out.print("<div class='bar'><div class='fill'></div></div>");
-                                out.print("</div>");
+                                gen5_per.add(l_bjres.getDouble("TD_PER"));
+                                gen5_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                gen5_source.add(nvl(l_bjres.getString("SOURCE_ID"), "N/A"));
+                                gen5_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                gen5_hits.add(l_bjres.getInt("TOTAL_HITS"));
+                                gen5_td.add(l_bjres.getInt("TD"));
+                                gen5_time.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
                             }
                         }
                     } catch(Exception e) { e.printStackTrace(); }
+                    
+                    // ALWAYS SHOW 48 BLOCKS
+                    int totalBlocks = 48;
+                    for(int i = 0; i < totalBlocks; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = String.valueOf(i + 1);
+                        String suffix = "";
+                        String onclick = "";
+                        String alertMsg = "";
+                        
+                        if(i < gen5_per.size()) {
+                            Double pct = gen5_per.get(i);
+                            if(pct >= 5) {
+                                cls = "tile tile-critical pulse";
+                            } else if(pct >= 3) {
+                                cls = "tile tile-warning";
+                            } else if(pct > 0) {
+                                cls = "tile tile-mixed";
+                            } else {
+                                cls = "tile tile-healthy";
+                            }
+                            
+                            val = String.valueOf(pct);
+                            suffix = "%";
+                            
+                            alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD:</b> "+gen5_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+gen5_time.get(i);
+                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+gen5_name.get(i)+"','GEN-5','"+gen5_source.get(i)+"','"+gen5_error.get(i)+"','"+gen5_hits.get(i)+"','"+gen5_td.get(i)+"','"+gen5_time.get(i)+"')\"";
+                        }
+                        
+                        out.print("<div class='"+cls+"' "+onclick+">");
+                        out.print("<span class='val'>"+val+"</span>");
+                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
+                        out.print("<div class='bar'><div class='fill'></div></div>");
+                        out.print("</div>");
+                    }
                 %>
             </div>
         </div>
 
-        <!-- SI -->
+        <!-- ====== SI ====== -->
         <div class="card-panel">
             <div class="panel-header">
                 <span class="title"><i class="fas fa-code"></i> SI Services</span>
@@ -872,44 +873,65 @@
             </div>
             <div class="panel-body" id="panel-si">
                 <%
-                    int siCount = 0;
+                    List<Double> si_per = new ArrayList<>();
+                    List<String> si_name = new ArrayList<>();
+                    List<String> si_error = new ArrayList<>();
+                    List<Integer> si_hits = new ArrayList<>();
+                    List<Integer> si_td = new ArrayList<>();
+                    List<String> si_time = new ArrayList<>();
+                    
                     try {
                         String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name)";
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
-                        List<String> API_NAME = new ArrayList<>();
-                        List<String> ERROR_CODE = new ArrayList<>();
-                        List<Integer> TOTAL_HITS = new ArrayList<>();
-                        List<Integer> EIS_TD = new ArrayList<>();
-                        List<Double> EIS_TD_PER = new ArrayList<>();
-                        List<String> ISSUE_TIME = new ArrayList<>();
                         while(l_bjres.next()) {
                             if(l_bjres.getDouble("TD") >= 50) {
-                                API_NAME.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
-                                ERROR_CODE.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
-                                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                                EIS_TD.add(l_bjres.getInt("TD"));
-                                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-                                ISSUE_TIME.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
-                                siCount++;
-                            }
-                        }
-                        if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
-                            for(int i=0; i<EIS_TD_PER.size(); i++) {
-                                String safeErr = ERROR_CODE.get(i) != null ? ERROR_CODE.get(i) : "N/A";
-                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Error:</b> "+safeErr+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>Fail %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Time:</b> "+ISSUE_TIME.get(i);
-                                String cls = "tile tile-critical";
-                                if(EIS_TD_PER.get(i) < 5) cls = "tile tile-warning";
-                                if(i % 4 == 0 && EIS_TD_PER.get(i) > 3) cls += " pulse";
-                                out.print("<div class='"+cls+"' onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+safeErr+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
-                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span><div class='bar'><div class='fill'></div></div></div>");
+                                si_per.add(l_bjres.getDouble("TD_PER"));
+                                si_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                si_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                si_hits.add(l_bjres.getInt("TOTAL_HITS"));
+                                si_td.add(l_bjres.getInt("TD"));
+                                si_time.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
                             }
                         }
                     } catch(Exception e) { e.printStackTrace(); }
+                    
+                    for(int i = 0; i < 48; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = String.valueOf(i + 1);
+                        String suffix = "";
+                        String onclick = "";
+                        String alertMsg = "";
+                        
+                        if(i < si_per.size()) {
+                            Double pct = si_per.get(i);
+                            if(pct >= 5) {
+                                cls = "tile tile-critical pulse";
+                            } else if(pct >= 3) {
+                                cls = "tile tile-warning";
+                            } else if(pct > 0) {
+                                cls = "tile tile-mixed";
+                            } else {
+                                cls = "tile tile-healthy";
+                            }
+                            
+                            val = String.valueOf(pct);
+                            suffix = "%";
+                            
+                            alertMsg = "<b>Service:</b> "+si_name.get(i)+"<br><b>Error:</b> "+si_error.get(i)+"<br><b>Hits:</b> "+si_hits.get(i)+"<br><b>TD:</b> "+si_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+si_time.get(i);
+                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+si_name.get(i)+"','SI','','"+si_error.get(i)+"','"+si_hits.get(i)+"','"+si_td.get(i)+"','"+si_time.get(i)+"')\"";
+                        }
+                        
+                        out.print("<div class='"+cls+"' "+onclick+">");
+                        out.print("<span class='val'>"+val+"</span>");
+                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
+                        out.print("<div class='bar'><div class='fill'></div></div>");
+                        out.print("</div>");
+                    }
                 %>
             </div>
         </div>
 
-        <!-- ThirdParty -->
+        <!-- ====== ThirdParty ====== -->
         <div class="card-panel">
             <div class="panel-header">
                 <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
@@ -917,47 +939,67 @@
             </div>
             <div class="panel-body" id="panel-third">
                 <%
-                    int thirdCount = 0;
+                    List<Double> third_per = new ArrayList<>();
+                    List<String> third_name = new ArrayList<>();
+                    List<String> third_source = new ArrayList<>();
+                    List<String> third_error = new ArrayList<>();
+                    List<Integer> third_hits = new ArrayList<>();
+                    List<Integer> third_td = new ArrayList<>();
+                    List<String> third_time = new ArrayList<>();
+                    
                     try {
                         String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
-                        List<Double> TD_Per = new ArrayList<>();
-                        List<Integer> TOTAL_HITS_TD = new ArrayList<>();
-                        List<Integer> TD_Count = new ArrayList<>();
-                        List<String> Original_URN_TD = new ArrayList<>();
-                        List<String> TD_Issue_Time = new ArrayList<>();
-                        List<String> Source_Id_TD = new ArrayList<>();
-                        List<String> Error_Code_TD = new ArrayList<>();
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
-                                TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
-                                TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
-                                TD_Count.add(l_bjres.getInt("TD"));
-                                Original_URN_TD.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                TD_Issue_Time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                Source_Id_TD.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                Error_Code_TD.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                thirdCount++;
-                            }
-                        }
-                        if(TD_Per != null && !TD_Per.isEmpty()) {
-                            for(int i=0; i<TD_Per.size(); i++) {
-                                String safeErr = Error_Code_TD.get(i) != null ? Error_Code_TD.get(i) : "N/A";
-                                String safeSrc = Source_Id_TD.get(i) != null ? Source_Id_TD.get(i) : "N/A";
-                                String alertMsg = "<b>Service:</b> "+Original_URN_TD.get(i)+"<br><b>Error:</b> "+safeErr+"<br><b>Source:</b> "+safeSrc+"<br><b>Hits:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD:</b> "+TD_Count.get(i)+"<br><b>Time:</b> "+TD_Issue_Time.get(i);
-                                String cls = "tile tile-critical";
-                                if(TD_Per.get(i) < 5) cls = "tile tile-warning";
-                                if(i % 4 == 0 && TD_Per.get(i) > 3) cls += " pulse";
-                                out.print("<div class='"+cls+"' onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+safeSrc+"','"+safeErr+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
-                                out.print("<span class='val'>"+TD_Per.get(i)+"</span><span class='suffix'>%</span><div class='bar'><div class='fill'></div></div></div>");
+                                third_per.add(l_bjres.getDouble("TD_PERCENT"));
+                                third_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
+                                third_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                third_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
+                                third_hits.add(l_bjres.getInt("TOTAL_HITS"));
+                                third_td.add(l_bjres.getInt("TD"));
+                                third_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
                             }
                         }
                     } catch(Exception e) { e.printStackTrace(); }
+                    
+                    for(int i = 0; i < 48; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = String.valueOf(i + 1);
+                        String suffix = "";
+                        String onclick = "";
+                        String alertMsg = "";
+                        
+                        if(i < third_per.size()) {
+                            Double pct = third_per.get(i);
+                            if(pct >= 5) {
+                                cls = "tile tile-critical pulse";
+                            } else if(pct >= 3) {
+                                cls = "tile tile-warning";
+                            } else if(pct > 0) {
+                                cls = "tile tile-mixed";
+                            } else {
+                                cls = "tile tile-healthy";
+                            }
+                            
+                            val = String.valueOf(pct);
+                            suffix = "%";
+                            
+                            alertMsg = "<b>Service:</b> "+third_name.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD:</b> "+third_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+third_time.get(i);
+                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+third_name.get(i)+"','ThirdParty','"+third_source.get(i)+"','"+third_error.get(i)+"','"+third_hits.get(i)+"','"+third_td.get(i)+"','"+third_time.get(i)+"')\"";
+                        }
+                        
+                        out.print("<div class='"+cls+"' "+onclick+">");
+                        out.print("<span class='val'>"+val+"</span>");
+                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
+                        out.print("<div class='bar'><div class='fill'></div></div>");
+                        out.print("</div>");
+                    }
                 %>
             </div>
         </div>
 
-        <!-- I4C + IVR + SBICAPS -->
+        <!-- ====== I4C + IVR + CAPS ====== -->
         <div class="card-panel">
             <div class="panel-header">
                 <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
@@ -965,35 +1007,29 @@
             </div>
             <div class="panel-body" id="panel-mixed">
                 <%
-                    int mixedCount = 0;
+                    List<Double> mix_per = new ArrayList<>();
+                    List<String> mix_name = new ArrayList<>();
+                    List<String> mix_cat = new ArrayList<>();
+                    List<String> mix_source = new ArrayList<>();
+                    List<String> mix_error = new ArrayList<>();
+                    List<String> mix_hits = new ArrayList<>();
+                    List<String> mix_td = new ArrayList<>();
+                    List<String> mix_time = new ArrayList<>();
+                    
                     try {
-                        List<Double> allPct = new ArrayList<>();
-                        List<String> allNames = new ArrayList<>();
-                        List<String> allMsgs = new ArrayList<>();
-                        List<String> allCats = new ArrayList<>();
-                        List<String> allSources = new ArrayList<>();
-                        List<String> allErrors = new ArrayList<>();
-                        List<String> allHits = new ArrayList<>();
-                        List<String> allTDs = new ArrayList<>();
-                        List<String> allTimes = new ArrayList<>();
-                        
                         // I4C
                         String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
-                                allPct.add(l_bjres.getDouble("TD_PERCENT"));
-                                allNames.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                allCats.add("I4C");
-                                allSources.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                allErrors.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
-                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
-                                allTimes.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                String err = l_bjres.getString("error_code");
-                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
-                                allMsgs.add("<b>I4C:</b> "+nvl(l_bjres.getString("original_urn"), "N/A")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+nvl(l_bjres.getString("Source_id"), "N/A")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+nvl(l_bjres.getString("issue_time"), "N/A"));
-                                mixedCount++;
+                                mix_per.add(l_bjres.getDouble("TD_PERCENT"));
+                                mix_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
+                                mix_cat.add("I4C");
+                                mix_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                mix_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
+                                mix_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                mix_td.add(String.valueOf(l_bjres.getInt("TD")));
+                                mix_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
                             }
                         }
                         // IVR
@@ -1001,18 +1037,14 @@
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
-                                allPct.add(l_bjres.getDouble("TD_PER"));
-                                allNames.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
-                                allCats.add("IVR");
-                                allSources.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                allErrors.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
-                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
-                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
-                                allTimes.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                String err = l_bjres.getString("ERROR_CODE");
-                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
-                                allMsgs.add("<b>IVR:</b> "+nvl(l_bjres.getString("API_NAME"), "N/A")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+nvl(l_bjres.getString("Source_id"), "N/A")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+nvl(l_bjres.getString("issue_time"), "N/A"));
-                                mixedCount++;
+                                mix_per.add(l_bjres.getDouble("TD_PER"));
+                                mix_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                mix_cat.add("IVR");
+                                mix_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                mix_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                mix_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                mix_td.add(String.valueOf(l_bjres.getInt("TD")));
+                                mix_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
                             }
                         }
                         // SBICAPS
@@ -1020,31 +1052,50 @@
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
-                                allPct.add(l_bjres.getDouble("TD_PER"));
-                                allNames.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
-                                allCats.add("SBICAPS");
-                                allSources.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                allErrors.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
-                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
-                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
-                                allTimes.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                String err = l_bjres.getString("ERROR_CODE");
-                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
-                                allMsgs.add("<b>SBICAPS:</b> "+nvl(l_bjres.getString("API_NAME"), "N/A")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+nvl(l_bjres.getString("source_id"), "N/A")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+nvl(l_bjres.getString("issue_time"), "N/A"));
-                                mixedCount++;
-                            }
-                        }
-                        if(allPct != null && !allPct.isEmpty()) {
-                            for(int i=0; i<allPct.size(); i++) {
-                                String cls = "tile tile-critical";
-                                if(allPct.get(i) < 5) cls = "tile tile-warning";
-                                if(allPct.get(i) > 0 && allPct.get(i) < 3) cls = "tile tile-mixed";
-                                if(i % 4 == 0 && allPct.get(i) > 3) cls += " pulse";
-                                out.print("<div class='"+cls+"' onclick=\"openModal('"+allMsgs.get(i).replace("'","\\'")+"','"+allNames.get(i)+"','"+allCats.get(i)+"','"+allSources.get(i)+"','"+allErrors.get(i)+"','"+allHits.get(i)+"','"+allTDs.get(i)+"','"+allTimes.get(i)+"')\">");
-                                out.print("<span class='val'>"+allPct.get(i)+"</span><span class='suffix'>%</span><div class='bar'><div class='fill'></div></div></div>");
+                                mix_per.add(l_bjres.getDouble("TD_PER"));
+                                mix_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                mix_cat.add("SBICAPS");
+                                mix_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
+                                mix_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                mix_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                mix_td.add(String.valueOf(l_bjres.getInt("TD")));
+                                mix_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
                             }
                         }
                     } catch(Exception e) { e.printStackTrace(); }
+                    
+                    for(int i = 0; i < 48; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = String.valueOf(i + 1);
+                        String suffix = "";
+                        String onclick = "";
+                        String alertMsg = "";
+                        
+                        if(i < mix_per.size()) {
+                            Double pct = mix_per.get(i);
+                            if(pct >= 5) {
+                                cls = "tile tile-critical pulse";
+                            } else if(pct >= 3) {
+                                cls = "tile tile-warning";
+                            } else if(pct > 0) {
+                                cls = "tile tile-mixed";
+                            } else {
+                                cls = "tile tile-healthy";
+                            }
+                            
+                            val = String.valueOf(pct);
+                            suffix = "%";
+                            
+                            alertMsg = "<b>Service:</b> "+mix_name.get(i)+"<br><b>Category:</b> "+mix_cat.get(i)+"<br><b>Error:</b> "+mix_error.get(i)+"<br><b>Source:</b> "+mix_source.get(i)+"<br><b>Hits:</b> "+mix_hits.get(i)+"<br><b>TD:</b> "+mix_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+mix_time.get(i);
+                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+mix_name.get(i)+"','"+mix_cat.get(i)+"','"+mix_source.get(i)+"','"+mix_error.get(i)+"','"+mix_hits.get(i)+"','"+mix_td.get(i)+"','"+mix_time.get(i)+"')\"";
+                        }
+                        
+                        out.print("<div class='"+cls+"' "+onclick+">");
+                        out.print("<span class='val'>"+val+"</span>");
+                        if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
+                        out.print("<div class='bar'><div class='fill'></div></div>");
+                        out.print("</div>");
+                    }
                 %>
             </div>
         </div>
@@ -1052,9 +1103,7 @@
     </div>
 </div>
 
-<!-- ================================================================
-     MODAL
-     ================================================================ -->
+<!-- MODAL -->
 <div id="modalContainer">
     <div id="alertBox">
         <div class="head">
@@ -1143,13 +1192,12 @@
     }
     
     document.addEventListener('DOMContentLoaded', function() {
-        // Update counts
+        // Count failures in each panel
         document.getElementById('gen5count').textContent = document.querySelectorAll('#panel-gen5 .tile-critical, #panel-gen5 .tile-warning, #panel-gen5 .tile-mixed').length || 0;
         document.getElementById('sicount').textContent = document.querySelectorAll('#panel-si .tile-critical, #panel-si .tile-warning, #panel-si .tile-mixed').length || 0;
         document.getElementById('thirdcount').textContent = document.querySelectorAll('#panel-third .tile-critical, #panel-third .tile-warning, #panel-third .tile-mixed').length || 0;
         document.getElementById('mixedcount').textContent = document.querySelectorAll('#panel-mixed .tile-critical, #panel-mixed .tile-warning, #panel-mixed .tile-mixed').length || 0;
         
-        // Stats
         var totalFailures = document.querySelectorAll('.tile-critical, .tile-warning, .tile-mixed').length || 0;
         var totalServices = document.querySelectorAll('.tile:not(.tile-empty)').length || 0;
         var healthy = document.querySelectorAll('.tile-healthy').length || 0;
