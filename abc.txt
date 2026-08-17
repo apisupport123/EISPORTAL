@@ -214,7 +214,7 @@
         text-transform: uppercase; letter-spacing: 0.5px;
     }
     .legend .swatch { width: 14px; height: 14px; border-radius: 4px; }
-    .sw-crit { background: #ff4757; box-shadow: 0 0 25px rgba(255,71,87,0.15); }
+    .sw-crit { background: #c0392b; box-shadow: 0 0 25px rgba(192, 57, 43, 0.15); }
     .sw-health { background: #0f973d; box-shadow: 0 0 25px rgba(15,151,61,0.1); }
     .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 12px; }
     .timestamp-display i { margin-right: 5px; color: #4f9cf7; }
@@ -337,19 +337,21 @@
         transition: width 0.8s ease;
     }
     
+    /* DARK RED - PROFESSIONAL */
     .tile-critical {
-        background: rgba(255, 71, 87, 0.12);
-        border-color: rgba(255, 71, 87, 0.18);
+        background: rgba(192, 57, 43, 0.12);
+        border-color: rgba(192, 57, 43, 0.18);
     }
-    .tile-critical .val { color: #ff4757; font-size: 18px; }
-    .tile-critical .sub-text { color: #ff4757; opacity: 0.7; font-size: 8px; }
-    .tile-critical .bar .fill { background: #ff4757; width: 80%; }
+    .tile-critical .val { color: #c0392b; font-size: 18px; }
+    .tile-critical .sub-text { color: #c0392b; opacity: 0.7; font-size: 8px; }
+    .tile-critical .bar .fill { background: #c0392b; width: 80%; }
     .tile-critical.pulse { animation: crit-pulse 2s ease-in-out infinite; }
     @keyframes crit-pulse {
-        0%, 100% { border-color: rgba(255, 71, 87, 0.18); box-shadow: 0 0 25px rgba(255, 71, 87, 0.05); }
-        50% { border-color: rgba(255, 71, 87, 0.35); box-shadow: 0 0 50px rgba(255, 71, 87, 0.12); }
+        0%, 100% { border-color: rgba(192, 57, 43, 0.18); box-shadow: 0 0 25px rgba(192, 57, 43, 0.05); }
+        50% { border-color: rgba(192, 57, 43, 0.35); box-shadow: 0 0 50px rgba(192, 57, 43, 0.12); }
     }
     
+    /* HEALTHY - GREEN */
     .tile-healthy {
         background: rgba(15, 151, 61, 0.10);
         border-color: rgba(15, 151, 61, 0.06);
@@ -393,7 +395,7 @@
         border-top-color: rgba(8, 10, 16, 0.95);
     }
     
-    #customTooltip.tip-critical { color: #ff4757; }
+    #customTooltip.tip-critical { color: #c0392b; }
     #customTooltip.tip-healthy { color: #0f973d; }
     
     /* RESPONSIVE */
@@ -443,7 +445,7 @@
     #alertBox .head h3 {
         font-size: 26px;
         font-weight: 800;
-        color: #ff4757;
+        color: #c0392b;
         display: flex;
         align-items: center;
         gap: 14px;
@@ -474,7 +476,7 @@
         overflow-y: auto;
     }
     #alertBox .body-text b { color: #ffffff; }
-    #alertBox .body-text .highlight-red { color: #ff4757; font-weight: 700; }
+    #alertBox .body-text .highlight-red { color: #c0392b; font-weight: 700; }
     #alertBox .body-text .highlight-green { color: #0f973d; font-weight: 700; }
     
     #alertBox .form-row {
@@ -535,7 +537,7 @@
     }
     .modal-actions .btn-m-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; box-shadow: 0 4px 20px rgba(79,156,247,0.12); }
     .modal-actions .btn-m-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,156,247,0.2); }
-    .modal-actions .btn-m-danger { background: linear-gradient(135deg, #ff4757, #c0392b); color: #fff; }
+    .modal-actions .btn-m-danger { background: linear-gradient(135deg, #c0392b, #922b21); color: #fff; }
     .modal-actions .btn-m-secondary { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color: #6a8aaa; }
     .modal-actions .btn-m-secondary:hover { background: rgba(255,255,255,0.04); }
 </style>
@@ -648,12 +650,11 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            tooltipText = "⚠️ " + gen5_name.get(i) + " | TD: " + gen5_td.get(i) + " | Fail: " + String.format("%.2f", pct) + "%";
+                            tooltipText = "⚠ " + gen5_name.get(i) + " | TD: " + gen5_td.get(i) + " | Fail: " + String.format("%.2f", pct) + "%";
                             tooltipClass = "tip-critical";
                             
                             alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD Count:</b> <span class='highlight-red'>"+gen5_td.get(i)+"</span><br><b>Fail %:</b> <span class='highlight-red'>"+String.format("%.2f", pct)+"%</span><br><b>SI Error:</b> "+gen5_siCount.get(i)+"<br><b>Time:</b> "+gen5_time.get(i);
                             
-                            // FIX: Properly escape all parameters for onclick
                             String apiName = gen5_name.get(i).replace("'", "\\'");
                             String source = gen5_source.get(i).replace("'", "\\'");
                             String error = gen5_error.get(i).replace("'", "\\'");
@@ -719,7 +720,7 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            tooltipText = "⚠️ " + si_name.get(i) + " | TD: " + si_td.get(i) + " | Fail: " + String.format("%.2f", pct) + "%";
+                            tooltipText = "⚠ " + si_name.get(i) + " | TD: " + si_td.get(i) + " | Fail: " + String.format("%.2f", pct) + "%";
                             tooltipClass = "tip-critical";
                             
                             alertMsg = "<b>Service:</b> "+si_name.get(i)+"<br><b>Error:</b> "+si_error.get(i)+"<br><b>Hits:</b> "+si_hits.get(i)+"<br><b>TD Count:</b> <span class='highlight-red'>"+si_td.get(i)+"</span><br><b>Fail %:</b> <span class='highlight-red'>"+String.format("%.2f", pct)+"%</span><br><b>Time:</b> "+si_time.get(i);
@@ -796,7 +797,7 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            tooltipText = "⚠️ " + third_original.get(i) + " | TD: " + third_td.get(i) + " | Fail: " + String.format("%.2f", pct) + "%";
+                            tooltipText = "⚠ " + third_original.get(i) + " | TD: " + third_td.get(i) + " | Fail: " + String.format("%.2f", pct) + "%";
                             tooltipClass = "tip-critical";
                             
                             alertMsg = "<b>Service:</b> "+third_original.get(i)+"<br><b>Transaction URN:</b> "+third_transaction.get(i)+"<br><b>SUP URL:</b> "+third_supurl.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD Count:</b> <span class='highlight-red'>"+third_td.get(i)+"</span><br><b>Fail %:</b> <span class='highlight-red'>"+String.format("%.2f", pct)+"%</span><br><b>SI Error:</b> "+third_siCount.get(i)+"<br><b>Time:</b> "+third_time.get(i);
@@ -903,7 +904,7 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            tooltipText = "⚠️ " + mix_name.get(i) + " | TD: " + mix_td.get(i) + " | Fail: " + String.format("%.2f", pct) + "%";
+                            tooltipText = "⚠ " + mix_name.get(i) + " | TD: " + mix_td.get(i) + " | Fail: " + String.format("%.2f", pct) + "%";
                             tooltipClass = "tip-critical";
                             
                             alertMsg = "<b>Service:</b> "+mix_name.get(i)+"<br><b>Category:</b> "+mix_cat.get(i)+"<br><b>Error:</b> "+mix_error.get(i)+"<br><b>Source:</b> "+mix_source.get(i)+"<br><b>Hits:</b> "+mix_hits.get(i)+"<br><b>TD Count:</b> <span class='highlight-red'>"+mix_td.get(i)+"</span><br><b>Fail %:</b> <span class='highlight-red'>"+String.format("%.2f", pct)+"%</span><br><b>Time:</b> "+mix_time.get(i);
@@ -1008,9 +1009,7 @@
     var mApi = '', mCat = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
     var mTransaction = '', mSupUrl = '', mOriginalUrn = '';
     
-    // ============================================================
     // CUSTOM TOOLTIP
-    // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         var tooltip = document.getElementById('customTooltip');
         var tiles = document.querySelectorAll('.tile[data-tip]');
@@ -1066,9 +1065,7 @@
         });
     });
     
-    // ============================================================
     // MODAL
-    // ============================================================
     function openModal(msg, api, cat, src, err, hits, td, time, transaction, supurl, originalurn) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
