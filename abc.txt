@@ -366,7 +366,7 @@
     .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
     
     /* ============================================================
-       TOOLTIP - HOVER PE SERVICE NAME
+       TOOLTIP - HOVER PE SERVICE NAME (FIXED)
        ============================================================ */
     .tile .tooltip-text {
         visibility: hidden;
@@ -377,18 +377,18 @@
         transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.92);
         color: #ffffff;
-        padding: 5px 12px;
+        padding: 6px 14px;
         border-radius: 6px;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         white-space: nowrap;
         z-index: 99999;
-        border: 1px solid rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
         pointer-events: none;
         font-family: 'Inter', sans-serif;
         letter-spacing: 0.3px;
-        transition: opacity 0.2s ease;
+        transition: opacity 0.25s ease;
     }
     
     .tile .tooltip-text::after {
@@ -402,8 +402,8 @@
     }
     
     .tile:hover .tooltip-text {
-        visibility: visible;
-        opacity: 1;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     
     /* RESPONSIVE */
@@ -610,12 +610,12 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            tooltipText = gen5_name.get(i);
+                            tooltipText = gen5_name.get(i) + " | " + gen5_td.get(i) + " TD";
                             
                             alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD:</b> "+gen5_td.get(i)+"<br><b>Fail %:</b> "+String.format("%.2f", pct)+"%<br><b>SI Error:</b> "+gen5_siCount.get(i)+"<br><b>Time:</b> "+gen5_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+gen5_name.get(i).replace("'","\\'")+"','GEN-5','"+gen5_source.get(i).replace("'","\\'")+"','"+gen5_error.get(i).replace("'","\\'")+"','"+gen5_hits.get(i)+"','"+gen5_td.get(i)+"','"+gen5_time.get(i).replace("'","\\'")+"')\"";
                         } else {
-                            tooltipText = "Healthy";
+                            tooltipText = "✅ Healthy • No failures";
                         }
                         
                         out.print("<div class='"+cls+"' "+onclick+">");
@@ -674,12 +674,12 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            tooltipText = si_name.get(i);
+                            tooltipText = si_name.get(i) + " | " + si_td.get(i) + " TD";
                             
                             alertMsg = "<b>Service:</b> "+si_name.get(i)+"<br><b>Error:</b> "+si_error.get(i)+"<br><b>Hits:</b> "+si_hits.get(i)+"<br><b>TD:</b> "+si_td.get(i)+"<br><b>Fail %:</b> "+String.format("%.2f", pct)+"%<br><b>Time:</b> "+si_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+si_name.get(i).replace("'","\\'")+"','SI','','"+si_error.get(i).replace("'","\\'")+"','"+si_hits.get(i)+"','"+si_td.get(i)+"','"+si_time.get(i).replace("'","\\'")+"')\"";
                         } else {
-                            tooltipText = "Healthy";
+                            tooltipText = "✅ Healthy • No failures";
                         }
                         
                         out.print("<div class='"+cls+"' "+onclick+">");
@@ -742,12 +742,12 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            tooltipText = third_name.get(i);
+                            tooltipText = third_name.get(i) + " | " + third_td.get(i) + " TD";
                             
                             alertMsg = "<b>Service:</b> "+third_name.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD:</b> "+third_td.get(i)+"<br><b>Fail %:</b> "+String.format("%.2f", pct)+"%<br><b>SI Error:</b> "+third_siCount.get(i)+"<br><b>Time:</b> "+third_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+third_name.get(i).replace("'","\\'")+"','ThirdParty','"+third_source.get(i).replace("'","\\'")+"','"+third_error.get(i).replace("'","\\'")+"','"+third_hits.get(i)+"','"+third_td.get(i)+"','"+third_time.get(i).replace("'","\\'")+"')\"";
                         } else {
-                            tooltipText = "Healthy";
+                            tooltipText = "✅ Healthy • No failures";
                         }
                         
                         out.print("<div class='"+cls+"' "+onclick+">");
@@ -841,12 +841,12 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            tooltipText = mix_name.get(i);
+                            tooltipText = mix_name.get(i) + " | " + mix_td.get(i) + " TD";
                             
                             alertMsg = "<b>Service:</b> "+mix_name.get(i)+"<br><b>Category:</b> "+mix_cat.get(i)+"<br><b>Error:</b> "+mix_error.get(i)+"<br><b>Source:</b> "+mix_source.get(i)+"<br><b>Hits:</b> "+mix_hits.get(i)+"<br><b>TD:</b> "+mix_td.get(i)+"<br><b>Fail %:</b> "+String.format("%.2f", pct)+"%<br><b>Time:</b> "+mix_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+mix_name.get(i).replace("'","\\'")+"','"+mix_cat.get(i)+"','"+mix_source.get(i).replace("'","\\'")+"','"+mix_error.get(i).replace("'","\\'")+"','"+mix_hits.get(i)+"','"+mix_td.get(i)+"','"+mix_time.get(i).replace("'","\\'")+"')\"";
                         } else {
-                            tooltipText = "Healthy";
+                            tooltipText = "✅ Healthy • No failures";
                         }
                         
                         out.print("<div class='"+cls+"' "+onclick+">");
