@@ -21,14 +21,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="300">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>DynaStyle · Command Center</title>
+    <title>ServiceWise · Dynatrace Command Center</title>
     <style>
-        /* ============================================================
-           DYNASTYLE - INTERCONNECTED HEXAGON DASHBOARD
-           Inspired by Dynatrace Monitoring
-           ============================================================ */
+        /* ================================================================
+           DYANTRACE-INSPIRED · ULTRA PROFESSIONAL
+           ================================================================ */
         
         * {
             margin: 0;
@@ -41,32 +40,31 @@
             height: 100vh;
             overflow: hidden;
             font-family: 'Inter', sans-serif;
-            background: #080c14;
-            color: #e0e8f0;
+            background: #0b0e14;
+            color: #e8edf5;
         }
         
-        /* ============================================================
-           PREMIUM DARK BACKGROUND
-           ============================================================ */
-        .bg-layer {
+        /* ================================================================
+           BACKGROUND - DYANTRACE DARK
+           ================================================================ */
+        .bg-dynatrace {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
             background: 
-                radial-gradient(ellipse at 15% 20%, rgba(20, 60, 120, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 85% 80%, rgba(60, 20, 120, 0.10) 0%, transparent 50%),
-                #080c14;
+                radial-gradient(ellipse at 15% 20%, rgba(10, 40, 80, 0.3) 0%, transparent 60%),
+                radial-gradient(ellipse at 85% 80%, rgba(40, 10, 80, 0.2) 0%, transparent 50%),
+                #0b0e14;
             z-index: 0;
         }
         
-        /* Grid pattern overlay */
-        .bg-layer::after {
+        /* Subtle grid pattern */
+        .bg-dynatrace::after {
             content: '';
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background-image: 
                 linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
@@ -74,207 +72,210 @@
             pointer-events: none;
         }
         
-        /* ============================================================
-           MAIN LAYOUT - FULL SCREEN
-           ============================================================ */
-        .dynastyle {
+        /* ================================================================
+           MAIN WRAPPER
+           ================================================================ */
+        .dynatrace-wrapper {
             position: relative;
             z-index: 1;
             width: 100vw;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 10px 18px 14px 18px;
+            padding: 10px 18px 12px 18px;
             overflow: hidden;
         }
         
-        /* ============================================================
-           TOP HEADER - DYNASTYLE
-           ============================================================ */
-        .dyna-header {
+        /* ================================================================
+           TOP BAR - CLEAN & MINIMAL
+           ================================================================ */
+        .top-nav {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 4px 12px 4px;
-            border-bottom: 1px solid rgba(79, 156, 247, 0.06);
+            padding: 6px 0 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
             flex-shrink: 0;
-            height: 64px;
+            height: 60px;
         }
         
-        .dyna-brand {
+        .nav-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
         }
         
-        .dyna-brand .icon {
-            width: 38px;
-            height: 38px;
+        .nav-left .logo-icon {
+            width: 36px;
+            height: 36px;
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 16px;
             color: white;
-            box-shadow: 0 0 30px rgba(79,156,247,0.15);
         }
         
-        .dyna-brand h1 {
-            font-size: 18px;
+        .nav-left .brand {
             font-weight: 800;
+            font-size: 18px;
             letter-spacing: -0.3px;
             color: #e8edf5;
         }
         
-        .dyna-brand h1 span {
+        .nav-left .brand span {
             color: #4f9cf7;
         }
         
-        .dyna-brand .sub {
-            font-size: 9px;
+        .nav-left .env-badge {
+            font-size: 10px;
             font-weight: 600;
-            color: #4a6a8a;
+            padding: 2px 12px;
+            border-radius: 40px;
+            background: rgba(15,151,61,0.12);
+            color: #0f973d;
+            border: 1px solid rgba(15,151,61,0.08);
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            letter-spacing: 2px;
         }
         
-        .dyna-controls {
+        .nav-right {
             display: flex;
             align-items: center;
             gap: 12px;
         }
         
-        .dyna-pill {
+        .nav-right .status-indicator {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.04);
-            padding: 5px 14px 5px 12px;
-            border-radius: 30px;
+            gap: 6px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 500;
             color: #6a8aaa;
         }
         
-        .dyna-pill .live-dot {
+        .nav-right .status-indicator .dot {
             width: 7px;
             height: 7px;
-            background: #0f973d;
             border-radius: 50%;
-            animation: pulse-dot 1.8s infinite;
+            background: #0f973d;
+            animation: pulse-dot 2s infinite;
         }
         
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.7); }
+            50% { opacity: 0.4; transform: scale(0.7); }
         }
         
-        .dyna-pill .num {
-            color: #e8edf5;
-            font-weight: 700;
-            font-size: 14px;
-        }
-        
-        .dyna-timer {
+        .nav-right .timer {
             font-family: 'Inter', monospace;
-            font-weight: 700;
-            font-size: 15px;
+            font-weight: 600;
+            font-size: 14px;
             color: #4f9cf7;
-            letter-spacing: 0.5px;
+            background: rgba(79,156,247,0.06);
+            padding: 2px 12px;
+            border-radius: 40px;
+            border: 1px solid rgba(79,156,247,0.04);
         }
         
-        .btn-dyna {
-            padding: 6px 18px;
-            border-radius: 30px;
+        .btn-dynatrace {
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-weight: 600;
             font-size: 11px;
-            font-weight: 700;
             border: none;
             cursor: pointer;
-            transition: all 0.25s ease;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             font-family: 'Inter', sans-serif;
         }
         
-        .btn-dyna-primary {
+        .btn-dynatrace-primary {
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
             color: white;
-            box-shadow: 0 3px 20px rgba(79,156,247,0.2);
         }
         
-        .btn-dyna-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(79,156,247,0.3);
+        .btn-dynatrace-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(79,156,247,0.25);
         }
         
-        .btn-dyna-ghost {
+        .btn-dynatrace-ghost {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.05);
             color: #8aaac0;
         }
         
-        .btn-dyna-ghost:hover {
+        .btn-dynatrace-ghost:hover {
             background: rgba(255,255,255,0.06);
         }
         
-        /* ============================================================
-           LEGEND - COMPACT
-           ============================================================ */
-        .dyna-legend {
+        /* ================================================================
+           LEGEND - DYANTRACE STYLE
+           ================================================================ */
+        .legend-dynatrace {
             display: flex;
             justify-content: center;
-            gap: 18px;
+            gap: 20px;
             padding: 6px 0 8px 0;
             flex-shrink: 0;
-            height: 34px;
+            height: 36px;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
         }
         
-        .dyna-legend .item {
+        .legend-dynatrace .item {
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 9px;
-            font-weight: 700;
+            font-size: 10px;
+            font-weight: 600;
             color: #5a7a9a;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.5px;
         }
         
-        .dyna-legend .dot {
+        .legend-dynatrace .item .swatch {
             width: 10px;
             height: 10px;
-            border-radius: 3px;
+            border-radius: 2px;
         }
         
-        .dot-critical { background: #ff4757; box-shadow: 0 0 12px rgba(255,71,87,0.25); }
-        .dot-warning { background: #ffa502; box-shadow: 0 0 12px rgba(255,165,2,0.2); }
-        .dot-mixed { background: #7c3aed; box-shadow: 0 0 12px rgba(124,58,237,0.2); }
-        .dot-healthy { background: #0f973d; box-shadow: 0 0 12px rgba(15,151,61,0.15); }
+        .swatch-critical { background: #ff4757; box-shadow: 0 0 8px rgba(255,71,87,0.2); }
+        .swatch-warning { background: #ffa502; box-shadow: 0 0 8px rgba(255,165,2,0.2); }
+        .swatch-mixed { background: #7c3aed; box-shadow: 0 0 8px rgba(124,58,237,0.2); }
+        .swatch-healthy { background: #0f973d; box-shadow: 0 0 8px rgba(15,151,61,0.15); }
         
-        /* ============================================================
-           FOUR CORNER GRID - DYNASTYLE
-           Each panel has interconnected hexagons
-           ============================================================ */
-        .dyna-grid {
+        .legend-dynatrace .timestamp {
+            color: #3a5a7a;
+            font-weight: 400;
+            font-size: 10px;
+            text-transform: none;
+        }
+        
+        .legend-dynatrace .timestamp i {
+            margin-right: 4px;
+            color: #4f9cf7;
+        }
+        
+        /* ================================================================
+           INTERCONNECTED HEXAGON GRID - DYANTRACE STYLE
+           ================================================================ */
+        .hex-grid-dynatrace {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
+            grid-template-columns: repeat(4, 1fr);
             gap: 14px;
+            padding: 8px 0 0 0;
             min-height: 0;
-            padding: 2px 0 0 0;
         }
         
-        /* ============================================================
-           PANEL - DYNASTYLE
-           ============================================================ */
-        .dyna-panel {
-            background: rgba(10, 14, 22, 0.7);
+        .hex-panel-dynatrace {
+            background: rgba(12, 16, 24, 0.6);
             backdrop-filter: blur(10px);
             border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.03);
@@ -285,75 +286,69 @@
             position: relative;
         }
         
-        .dyna-panel::before {
+        .hex-panel-dynatrace::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 10%;
-            right: 10%;
+            left: 20%;
+            right: 20%;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(79,156,247,0.1), transparent);
+            background: linear-gradient(90deg, transparent, rgba(79,156,247,0.15), transparent);
         }
         
-        .dyna-panel:hover {
+        .hex-panel-dynatrace:hover {
             border-color: rgba(79,156,247,0.06);
             box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
         
-        .dyna-panel-header {
+        .panel-head-dynatrace {
             padding: 8px 14px 4px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
-            height: 34px;
+            height: 38px;
         }
         
-        .dyna-panel-header .title {
-            font-size: 11px;
+        .panel-head-dynatrace .title {
             font-weight: 700;
-            color: #8aaac0;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
+            font-size: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: #b0c8e0;
+            letter-spacing: 0.2px;
         }
         
-        .dyna-panel-header .title i {
+        .panel-head-dynatrace .title i {
             color: #4f9cf7;
-            font-size: 12px;
+            font-size: 13px;
         }
         
-        .dyna-panel-header .status-badge {
-            font-size: 8px;
-            font-weight: 700;
+        .panel-head-dynatrace .count-badge {
+            font-size: 9px;
+            font-weight: 600;
             padding: 2px 10px;
-            border-radius: 20px;
-            background: rgba(15,151,61,0.08);
-            color: #0f973d;
-            border: 1px solid rgba(15,151,61,0.06);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            border-radius: 40px;
+            background: rgba(79,156,247,0.06);
+            color: #4f9cf7;
+            border: 1px solid rgba(79,156,247,0.04);
         }
         
-        /* ============================================================
-           HEXAGON GRID INSIDE PANEL - SMALL & INTERCONNECTED
-           ============================================================ */
-        .hex-dyna-grid {
+        /* ================================================================
+           SMALL INTERCONNECTED HEXAGONS
+           ================================================================ */
+        .hex-grid-small {
             flex: 1;
+            padding: 4px 8px 8px 8px;
             display: grid;
-            grid-template-columns: repeat(10, 1fr);
+            grid-template-columns: repeat(8, 1fr);
             grid-auto-rows: 1fr;
             gap: 6px;
-            padding: 4px 10px 10px 10px;
             min-height: 0;
         }
         
-        /* ============================================================
-           HEXAGON - SMALL, PREMIUM, INTERCONNECTED FEEL
-           ============================================================ */
-        .hex-dyna {
+        .hex-small {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -363,65 +358,90 @@
             cursor: pointer;
             position: relative;
             aspect-ratio: 1;
-            min-height: 40px;
+            min-height: 48px;
             font-weight: 700;
             color: white;
-            text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+            text-shadow: 0 1px 8px rgba(0,0,0,0.4);
             border: 1px solid rgba(255,255,255,0.02);
+            background: rgba(255,255,255,0.02);
         }
         
-        /* Interconnected effect - subtle glow between hexagons */
-        .hex-dyna::before {
+        /* Connected hexagon effect - subtle border glow */
+        .hex-small::before {
             content: '';
             position: absolute;
             inset: -1px;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 60%);
             pointer-events: none;
+            z-index: 1;
         }
         
-        .hex-dyna::after {
+        .hex-small::after {
             content: '';
             position: absolute;
             inset: 0;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            background: linear-gradient(180deg, transparent 70%, rgba(0,0,0,0.2) 100%);
+            background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.2) 100%);
             pointer-events: none;
+            z-index: 1;
         }
         
-        .hex-dyna:hover {
-            transform: scale(1.18) translateY(-3px);
-            z-index: 10;
-            filter: brightness(1.25);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-        }
-        
-        .hex-dyna:active {
-            transform: scale(0.92);
-        }
-        
-        .hex-dyna .val {
+        .hex-small .val {
             font-size: 14px;
             font-weight: 800;
             position: relative;
             z-index: 2;
-            line-height: 1.1;
+            line-height: 1;
+            letter-spacing: -0.5px;
         }
         
-        .hex-dyna .suffix {
+        .hex-small .suffix {
             font-size: 7px;
             font-weight: 600;
             opacity: 0.6;
             position: relative;
             z-index: 2;
             letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
         
-        /* Status Colors - Dynatrace Inspired */
-        .hex-critical { background: linear-gradient(145deg, #ff4757, #cc2233); box-shadow: 0 0 15px rgba(255,71,87,0.12); }
-        .hex-warning { background: linear-gradient(145deg, #ffa502, #d68910); box-shadow: 0 0 15px rgba(255,165,2,0.10); }
-        .hex-mixed { background: linear-gradient(145deg, #7c3aed, #5b2d8e); box-shadow: 0 0 15px rgba(124,58,237,0.10); }
-        .hex-healthy { background: linear-gradient(145deg, #0f973d, #0a7a30); box-shadow: 0 0 10px rgba(15,151,61,0.05); }
+        .hex-small:hover {
+            transform: scale(1.12) translateY(-3px);
+            z-index: 10;
+            filter: brightness(1.2);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+        }
+        
+        .hex-small:active {
+            transform: scale(0.92);
+        }
+        
+        /* Status colors */
+        .hex-critical { 
+            background: linear-gradient(145deg, #ff4757, #c0392b); 
+            box-shadow: 0 0 15px rgba(255,71,87,0.1);
+        }
+        .hex-critical.pulse {
+            animation: pulse-critical 2.5s ease-in-out infinite;
+        }
+        @keyframes pulse-critical {
+            0%, 100% { box-shadow: 0 0 15px rgba(255,71,87,0.1); }
+            50% { box-shadow: 0 0 30px rgba(255,71,87,0.25), 0 0 60px rgba(255,71,87,0.05); }
+        }
+        
+        .hex-warning { 
+            background: linear-gradient(145deg, #ffa502, #d68910); 
+            box-shadow: 0 0 15px rgba(255,165,2,0.08);
+        }
+        .hex-mixed { 
+            background: linear-gradient(145deg, #7c3aed, #5b2d8e); 
+            box-shadow: 0 0 15px rgba(124,58,237,0.08);
+        }
+        .hex-healthy { 
+            background: linear-gradient(145deg, #0f973d, #0a7a30); 
+            box-shadow: 0 0 10px rgba(15,151,61,0.04);
+        }
         .hex-empty { 
             background: rgba(255,255,255,0.015); 
             cursor: default;
@@ -429,19 +449,9 @@
         }
         .hex-empty:hover { transform: none; filter: none; box-shadow: none; }
         
-        /* Critical pulse animation for attention */
-        .hex-critical.pulse {
-            animation: dyna-pulse 2.5s ease-in-out infinite;
-        }
-        
-        @keyframes dyna-pulse {
-            0%, 100% { box-shadow: 0 0 15px rgba(255,71,87,0.12); }
-            50% { box-shadow: 0 0 30px rgba(255,71,87,0.25), 0 0 60px rgba(255,71,87,0.05); }
-        }
-        
-        /* ============================================================
-           MODAL - DYNASTYLE
-           ============================================================ */
+        /* ================================================================
+           MODAL - DYANTRACE STYLE
+           ================================================================ */
         #modalContainer {
             position: fixed;
             top: 0;
@@ -454,22 +464,22 @@
             align-items: center;
             justify-content: center;
             z-index: 99999;
-            animation: dyna-modal-in 0.25s ease;
+            animation: modal-in 0.25s ease;
         }
         
-        @keyframes dyna-modal-in {
+        @keyframes modal-in {
             from { opacity: 0; transform: scale(0.94) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
         
         #alertBox {
-            background: linear-gradient(145deg, #0e1622, #080c16);
-            border-radius: 24px;
-            max-width: 560px;
+            background: linear-gradient(145deg, #111a24, #0a0f16);
+            border-radius: 20px;
+            max-width: 580px;
             width: 92%;
-            padding: 28px 30px 30px 30px;
+            padding: 26px 28px 28px 28px;
             border: 1px solid rgba(255,255,255,0.04);
-            box-shadow: 0 50px 100px rgba(0,0,0,0.7);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
             max-height: 85vh;
             overflow-y: auto;
         }
@@ -481,17 +491,18 @@
             margin-bottom: 8px;
         }
         
-        #alertBox .modal-head h2 {
+        #alertBox .modal-head h3 {
             font-size: 16px;
-            font-weight: 800;
+            font-weight: 700;
             color: #ff4757;
             display: flex;
             align-items: center;
             gap: 10px;
-            letter-spacing: -0.3px;
         }
         
-        #alertBox .modal-head h2 i { font-size: 18px; }
+        #alertBox .modal-head h3 i {
+            font-size: 18px;
+        }
         
         #alertBox .modal-head .close-x {
             background: none;
@@ -501,6 +512,7 @@
             cursor: pointer;
             transition: 0.2s;
             padding: 0 4px;
+            line-height: 1;
         }
         
         #alertBox .modal-head .close-x:hover {
@@ -509,22 +521,30 @@
         }
         
         #alertBox .modal-body-text {
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.25);
             border-radius: 12px;
             padding: 12px 16px;
             margin: 8px 0 14px 0;
-            border-left: 3px solid #4f9cf7;
+            border-left: 2px solid #4f9cf7;
             font-size: 12px;
             line-height: 1.6;
-            color: #a0b8d0;
+            color: #b0c8e0;
             max-height: 160px;
             overflow-y: auto;
         }
         
-        #alertBox .modal-body-text b { color: #e8edf5; }
+        #alertBox .modal-body-text b {
+            color: #e8edf5;
+        }
+        
+        #alertBox .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
         
         #alertBox .form-group {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         #alertBox .form-group label {
@@ -542,8 +562,8 @@
             width: 100%;
             background: rgba(0,0,0,0.35);
             border: 1px solid rgba(255,255,255,0.04);
-            border-radius: 10px;
-            padding: 8px 12px;
+            border-radius: 8px;
+            padding: 7px 12px;
             color: #e8edf5;
             font-size: 12px;
             font-family: 'Inter', sans-serif;
@@ -562,13 +582,11 @@
             resize: vertical;
         }
         
-        #alertBox .form-row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+        #alertBox .form-group.full {
+            grid-column: 1 / -1;
         }
         
-        .modal-actions-dyna {
+        .modal-actions {
             display: flex;
             gap: 8px;
             justify-content: flex-end;
@@ -576,11 +594,11 @@
             flex-wrap: wrap;
         }
         
-        .modal-actions-dyna .btn {
-            padding: 7px 22px;
-            border-radius: 30px;
+        .modal-actions .btn-modal {
+            padding: 6px 20px;
+            border-radius: 40px;
             font-weight: 700;
-            font-size: 10px;
+            font-size: 11px;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
@@ -588,106 +606,133 @@
             align-items: center;
             gap: 6px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             font-family: 'Inter', sans-serif;
         }
         
-        .modal-actions-dyna .btn-primary {
+        .modal-actions .btn-modal-primary {
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
             color: white;
-            box-shadow: 0 3px 15px rgba(79,156,247,0.2);
         }
         
-        .modal-actions-dyna .btn-primary:hover { transform: translateY(-2px); }
+        .modal-actions .btn-modal-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(79,156,247,0.25);
+        }
         
-        .modal-actions-dyna .btn-danger {
-            background: linear-gradient(135deg, #ff4757, #cc2233);
+        .modal-actions .btn-modal-danger {
+            background: linear-gradient(135deg, #ff4757, #c0392b);
             color: white;
         }
         
-        .modal-actions-dyna .btn-danger:hover { transform: translateY(-2px); }
+        .modal-actions .btn-modal-danger:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(255,71,87,0.2);
+        }
         
-        .modal-actions-dyna .btn-secondary {
+        .modal-actions .btn-modal-secondary {
             background: rgba(255,255,255,0.03);
             border: 1px solid rgba(255,255,255,0.04);
             color: #8aaac0;
         }
         
-        .modal-actions-dyna .btn-secondary:hover { background: rgba(255,255,255,0.06); }
+        .modal-actions .btn-modal-secondary:hover {
+            background: rgba(255,255,255,0.06);
+        }
         
-        /* ============================================================
+        /* ================================================================
            RESPONSIVE
-           ============================================================ */
+           ================================================================ */
+        @media (max-width: 1600px) {
+            .hex-grid-small { grid-template-columns: repeat(7, 1fr); }
+        }
         @media (max-width: 1400px) {
-            .hex-dyna-grid { grid-template-columns: repeat(8, 1fr); }
+            .hex-grid-small { grid-template-columns: repeat(6, 1fr); }
+            .hex-grid-dynatrace { grid-template-columns: repeat(3, 1fr); }
         }
-        @media (max-width: 1200px) {
-            .hex-dyna-grid { grid-template-columns: repeat(7, 1fr); }
-            .dyna-grid { gap: 10px; }
+        @media (max-width: 1100px) {
+            .hex-grid-small { grid-template-columns: repeat(5, 1fr); }
+            .hex-grid-dynatrace { grid-template-columns: repeat(2, 1fr); }
+            .top-nav { flex-wrap: wrap; height: auto; gap: 6px; }
         }
-        @media (max-width: 992px) {
-            .hex-dyna-grid { grid-template-columns: repeat(6, 1fr); }
-            .dyna-grid { grid-template-columns: 1fr; grid-template-rows: auto; gap: 8px; }
-            .dyna-panel { min-height: 200px; }
-            .dyna-header { flex-wrap: wrap; height: auto; gap: 6px; }
-        }
-        @media (max-width: 600px) {
-            .hex-dyna-grid { grid-template-columns: repeat(4, 1fr); }
-            .dyna-controls .dyna-pill span:not(.num) { display: none; }
-            #alertBox .form-row-2 { grid-template-columns: 1fr; }
+        @media (max-width: 768px) {
+            .hex-grid-small { grid-template-columns: repeat(4, 1fr); }
+            .hex-grid-dynatrace { grid-template-columns: 1fr; }
+            .legend-dynatrace { flex-wrap: wrap; height: auto; gap: 8px; }
+            #alertBox .form-grid { grid-template-columns: 1fr; }
         }
         
         /* Scrollbar */
         #alertBox::-webkit-scrollbar { width: 3px; }
         #alertBox::-webkit-scrollbar-track { background: transparent; }
         #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
+        
+        /* ================================================================
+           CONNECTION LINES VISUAL (CSS only)
+           ================================================================ */
+        .hex-small.connected::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120%;
+            height: 120%;
+            transform: translate(-50%, -50%);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            background: transparent;
+            border: 1px solid rgba(79,156,247,0.02);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* subtle connection glow between hexagons */
+        .hex-grid-small .hex-small:not(.hex-empty):hover ~ .hex-small:not(.hex-empty) {
+            filter: brightness(1.05);
+        }
     </style>
 </head>
 <body>
 
-<!-- Background -->
-<div class="bg-layer"></div>
+<!-- ================================================================
+     BACKGROUND
+     ================================================================ -->
+<div class="bg-dynatrace"></div>
 
-<!-- ============================================================
-     DYNASTYLE COMMAND CENTER
-     ============================================================ -->
-<div class="dynastyle">
+<!-- ================================================================
+     MAIN WRAPPER
+     ================================================================ -->
+<div class="dynatrace-wrapper">
 
-    <!-- ===== HEADER ===== -->
-    <div class="dyna-header">
-        <div class="dyna-brand">
-            <div class="icon"><i class="fas fa-hexagon"></i></div>
-            <div>
-                <h1>Dyna<span>Style</span></h1>
-                <div class="sub">Command Center</div>
-            </div>
+    <!-- ===== TOP NAV ===== -->
+    <div class="top-nav">
+        <div class="nav-left">
+            <div class="logo-icon"><i class="fas fa-hexagon"></i></div>
+            <div class="brand">Service<span>Wise</span></div>
+            <span class="env-badge"><i class="fas fa-circle" style="font-size:5px; margin-right:4px; color:#0f973d;"></i> Production</span>
         </div>
-        <div class="dyna-controls">
-            <div class="dyna-pill">
-                <span class="live-dot"></span>
-                <span>LIVE</span>
+        <div class="nav-right">
+            <div class="status-indicator">
+                <span class="dot"></span>
+                <span>All Systems</span>
             </div>
-            <div class="dyna-pill">
-                <i class="far fa-clock" style="color:#4f9cf7;"></i>
-                <span class="dyna-timer" id="ten-countdown">5:00</span>
-            </div>
-            <button class="btn-dyna btn-dyna-primary" id="openPopupButton">
-                <i class="fas fa-list-check"></i> CLOSED
+            <span class="timer" id="ten-countdown">5:00</span>
+            <button class="btn-dynatrace btn-dynatrace-primary" id="openPopupButton">
+                <i class="fas fa-list"></i> Closed
             </button>
-            <button class="btn-dyna btn-dyna-ghost" id="openPopup">
+            <button class="btn-dynatrace btn-dynatrace-ghost" id="openPopup">
                 <i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.08); padding:0 8px; border-radius:10px; font-weight:700;">0</span>
             </button>
         </div>
     </div>
 
     <!-- ===== LEGEND ===== -->
-    <div class="dyna-legend">
-        <span class="item"><span class="dot dot-critical"></span> Critical</span>
-        <span class="item"><span class="dot dot-warning"></span> Warning</span>
-        <span class="item"><span class="dot dot-mixed"></span> Mixed</span>
-        <span class="item"><span class="dot dot-healthy"></span> Healthy</span>
-        <span class="item" style="color:#4a6a8a; font-weight:400; text-transform:none; letter-spacing:0;">
-            <i class="fas fa-sync-alt fa-fw" style="color:#4f9cf7;"></i> 
+    <div class="legend-dynatrace">
+        <span class="item"><span class="swatch swatch-critical"></span> Critical</span>
+        <span class="item"><span class="swatch swatch-warning"></span> Warning</span>
+        <span class="item"><span class="swatch swatch-mixed"></span> Mixed</span>
+        <span class="item"><span class="swatch swatch-healthy"></span> Healthy</span>
+        <span class="item timestamp">
+            <i class="far fa-clock"></i> 
             <%
                 try {
                     Connection conStamp = DBUtilityAuto.getReportDBConnection();
@@ -697,24 +742,27 @@
                         Timestamp ts = rsStamp.getTimestamp("INSERT_TIME");
                         Date d = new Date(ts.getTime());
                         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-                        out.print(sdf.format(d));
+                        out.print("Last update: " + sdf.format(d));
                     }
                     rsStamp.close(); stStamp.close(); conStamp.close();
                 } catch(Exception e) { out.print("—"); }
             %>
         </span>
+        <span class="item" style="color:#3a5a7a; font-weight:400;">
+            <i class="fas fa-sync-alt fa-fw" style="color:#4f9cf7;"></i> 5m
+        </span>
     </div>
 
-    <!-- ===== 4 CORNER GRID ===== -->
-    <div class="dyna-grid">
-
-        <!-- ===== PANEL 1: GEN-5 ===== -->
-        <div class="dyna-panel">
-            <div class="dyna-panel-header">
+    <!-- ===== HEX GRID ===== -->
+    <div class="hex-grid-dynatrace">
+        
+        <!-- GEN-5 -->
+        <div class="hex-panel-dynatrace">
+            <div class="panel-head-dynatrace">
                 <span class="title"><i class="fas fa-server"></i> GEN-5</span>
-                <span class="status-badge"><i class="fas fa-circle" style="font-size:5px; color:#0f973d;"></i> 48</span>
+                <span class="count-badge">48</span>
             </div>
-            <div class="hex-dyna-grid" id="panel-gen5">
+            <div class="hex-grid-small" id="panel-gen5">
                 <%
                     Connection con = DBUtilityAuto.getReportDBConnection();
                     Statement l_bjst = null;
@@ -770,30 +818,32 @@
                                     groupedSourceIds.append(source);
                                     countSource++;
                                 }
-                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Source:</b> "+groupedSourceIds.toString()+"<br><b>Error:</b> "+m_strErrorcode.toString()+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>%:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI Err:</b> "+SI_EEROR_Count.get(i)+"<br><b>Time:</b> "+ISSUE_TIME.get(i);
-                                String cls = "hex-dyna hex-critical";
-                                if(EIS_TD_PER.get(i) < 5) cls = "hex-dyna hex-warning";
-                                out.print("<div class='"+cls+"' onclick=\"openDynaModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+groupedSourceIds.toString()+"','"+m_strErrorcode.toString()+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Source:</b> "+groupedSourceIds.toString()+"<br><b>Error:</b> "+m_strErrorcode.toString()+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>Fail %:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI Error:</b> "+SI_EEROR_Count.get(i)+"<br><b>Time:</b> "+ISSUE_TIME.get(i);
+                                String cls = "hex-small hex-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "hex-small hex-warning";
+                                if(EIS_TD_PER.get(i) > 0 && EIS_TD_PER.get(i) < 3) cls = "hex-small hex-mixed";
+                                if(i % 3 == 0 && EIS_TD_PER.get(i) > 3) cls += " pulse";
+                                out.print("<div class='"+cls+"' onclick=\"openDynatraceModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+groupedSourceIds.toString()+"','"+m_strErrorcode.toString()+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
                                 out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span></div>");
                             }
                             for(int k=EIS_TD_PER.size(); k<maxHex; k++) {
-                                out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                                out.print("<div class='hex-small hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
                             }
                         } else {
-                            for(int i=0; i<maxHex; i++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(i+1)+"</span></div>");
+                            for(int i=0; i<maxHex; i++) out.print("<div class='hex-small hex-healthy'><span class='val'>"+(i+1)+"</span></div>");
                         }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
-        <!-- ===== PANEL 2: SI ===== -->
-        <div class="dyna-panel">
-            <div class="dyna-panel-header">
-                <span class="title"><i class="fas fa-code"></i> SI</span>
-                <span class="status-badge"><i class="fas fa-circle" style="font-size:5px; color:#0f973d;"></i> 48</span>
+        <!-- SI -->
+        <div class="hex-panel-dynatrace">
+            <div class="panel-head-dynatrace">
+                <span class="title"><i class="fas fa-code"></i> SI Services</span>
+                <span class="count-badge">48</span>
             </div>
-            <div class="hex-dyna-grid" id="panel-si">
+            <div class="hex-grid-small" id="panel-si">
                 <%
                     try {
                         String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 48";
@@ -826,26 +876,27 @@
                                         else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>,"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
                                     }
                                 } else { m_strErrorcode = ERROR_CODE.get(i); }
-                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Error:</b> "+m_strErrorcode+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>%:</b> "+EIS_TD_PER.get(i)+"%<br><b>Time:</b> "+ISSUE_TIME.get(i);
-                                String cls = "hex-dyna hex-critical";
-                                if(EIS_TD_PER.get(i) < 5) cls = "hex-dyna hex-warning";
-                                out.print("<div class='"+cls+"' onclick=\"openDynaModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+m_strErrorcode+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Error:</b> "+m_strErrorcode+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>Fail %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Time:</b> "+ISSUE_TIME.get(i);
+                                String cls = "hex-small hex-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "hex-small hex-warning";
+                                if(i % 3 == 0 && EIS_TD_PER.get(i) > 3) cls += " pulse";
+                                out.print("<div class='"+cls+"' onclick=\"openDynatraceModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+m_strErrorcode+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
                                 out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span></div>");
                             }
-                            for(int k=EIS_TD_PER.size(); k<maxHex; k++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
-                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                            for(int k=EIS_TD_PER.size(); k<maxHex; k++) out.print("<div class='hex-small hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-small hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
-        <!-- ===== PANEL 3: ThirdParty ===== -->
-        <div class="dyna-panel">
-            <div class="dyna-panel-header">
+        <!-- ThirdParty -->
+        <div class="hex-panel-dynatrace">
+            <div class="panel-head-dynatrace">
                 <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
-                <span class="status-badge"><i class="fas fa-circle" style="font-size:5px; color:#0f973d;"></i> 48</span>
+                <span class="count-badge">48</span>
             </div>
-            <div class="hex-dyna-grid" id="panel-third">
+            <div class="hex-grid-small" id="panel-third">
                 <%
                     try {
                         String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 48";
@@ -883,25 +934,26 @@
                                     }
                                 } else { m_strErrorcode = Error_Code_TD.get(i); }
                                 String alertMsg = "<b>Service:</b> "+Original_URN_TD.get(i)+"<br><b>Error:</b> "+m_strErrorcode+"<br><b>Source:</b> "+Source_Id_TD.get(i)+"<br><b>Hits:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD:</b> "+TD_Count.get(i)+"<br><b>Time:</b> "+TD_Issue_Time.get(i);
-                                String cls = "hex-dyna hex-critical";
-                                if(TD_Per.get(i) < 5) cls = "hex-dyna hex-warning";
-                                out.print("<div class='"+cls+"' onclick=\"openDynaModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+Source_Id_TD.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
+                                String cls = "hex-small hex-critical";
+                                if(TD_Per.get(i) < 5) cls = "hex-small hex-warning";
+                                if(i % 3 == 0 && TD_Per.get(i) > 3) cls += " pulse";
+                                out.print("<div class='"+cls+"' onclick=\"openDynatraceModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+Source_Id_TD.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
                                 out.print("<span class='val'>"+TD_Per.get(i)+"</span><span class='suffix'>%</span></div>");
                             }
-                            for(int k=TD_Per.size(); k<maxHex; k++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
-                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                            for(int k=TD_Per.size(); k<maxHex; k++) out.print("<div class='hex-small hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-small hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
-        <!-- ===== PANEL 4: I4C + IVR + CAPS ===== -->
-        <div class="dyna-panel">
-            <div class="dyna-panel-header">
+        <!-- I4C + IVR + SBICAPS -->
+        <div class="hex-panel-dynatrace">
+            <div class="panel-head-dynatrace">
                 <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
-                <span class="status-badge"><i class="fas fa-circle" style="font-size:5px; color:#0f973d;"></i> 48</span>
+                <span class="count-badge">48</span>
             </div>
-            <div class="hex-dyna-grid" id="panel-mixed">
+            <div class="hex-grid-small" id="panel-mixed">
                 <%
                     try {
                         // I4C
@@ -911,11 +963,21 @@
                         List<String> allNames = new ArrayList<>();
                         List<String> allMsgs = new ArrayList<>();
                         List<String> allCats = new ArrayList<>();
+                        List<String> allSources = new ArrayList<>();
+                        List<String> allErrors = new ArrayList<>();
+                        List<String> allHits = new ArrayList<>();
+                        List<String> allTDs = new ArrayList<>();
+                        List<String> allTimes = new ArrayList<>();
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
                                 allPct.add(l_bjres.getDouble("TD_PERCENT"));
                                 allNames.add(l_bjres.getString("original_urn"));
                                 allCats.add("I4C");
+                                allSources.add(l_bjres.getString("Source_id"));
+                                allErrors.add(l_bjres.getString("error_code"));
+                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
+                                allTimes.add(l_bjres.getString("issue_time"));
                                 String err = l_bjres.getString("error_code");
                                 if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
                                 allMsgs.add("<b>I4C:</b> "+l_bjres.getString("original_urn")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+l_bjres.getString("Source_id")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+l_bjres.getString("issue_time"));
@@ -929,6 +991,11 @@
                                 allPct.add(l_bjres.getDouble("TD_PER"));
                                 allNames.add(l_bjres.getString("API_NAME"));
                                 allCats.add("IVR");
+                                allSources.add(l_bjres.getString("Source_id"));
+                                allErrors.add(l_bjres.getString("ERROR_CODE"));
+                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
+                                allTimes.add(l_bjres.getString("issue_time"));
                                 String err = l_bjres.getString("ERROR_CODE");
                                 if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
                                 allMsgs.add("<b>IVR:</b> "+l_bjres.getString("API_NAME")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+l_bjres.getString("Source_id")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+l_bjres.getString("issue_time"));
@@ -942,6 +1009,11 @@
                                 allPct.add(l_bjres.getDouble("TD_PER"));
                                 allNames.add(l_bjres.getString("API_NAME"));
                                 allCats.add("SBICAPS");
+                                allSources.add(l_bjres.getString("source_id"));
+                                allErrors.add(l_bjres.getString("ERROR_CODE"));
+                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
+                                allTimes.add(l_bjres.getString("issue_time"));
                                 String err = l_bjres.getString("ERROR_CODE");
                                 if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
                                 allMsgs.add("<b>SBICAPS:</b> "+l_bjres.getString("API_NAME")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+l_bjres.getString("source_id")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+l_bjres.getString("issue_time"));
@@ -950,36 +1022,43 @@
                         int maxHex = 48;
                         if(allPct != null && !allPct.isEmpty()) {
                             for(int i=0; i<Math.min(allPct.size(), maxHex); i++) {
-                                String cls = "hex-dyna hex-critical";
-                                if(allPct.get(i) < 5) cls = "hex-dyna hex-warning";
+                                String cls = "hex-small hex-critical";
+                                if(allPct.get(i) < 5) cls = "hex-small hex-warning";
+                                if(allPct.get(i) > 0 && allPct.get(i) < 3) cls = "hex-small hex-mixed";
+                                if(i % 3 == 0 && allPct.get(i) > 3) cls += " pulse";
                                 String finalMsg = allMsgs.get(i);
                                 String finalName = allNames.get(i);
                                 String finalCat = allCats.get(i);
-                                out.print("<div class='"+cls+"' onclick=\"openDynaModal('"+finalMsg.replace("'","\\'")+"','"+finalName+"','"+finalCat+"','','','','','')\">");
+                                String finalSrc = allSources.get(i);
+                                String finalErr = allErrors.get(i);
+                                String finalHit = allHits.get(i);
+                                String finalTD = allTDs.get(i);
+                                String finalTime = allTimes.get(i);
+                                out.print("<div class='"+cls+"' onclick=\"openDynatraceModal('"+finalMsg.replace("'","\\'")+"','"+finalName+"','"+finalCat+"','"+finalSrc+"','"+finalErr+"','"+finalHit+"','"+finalTD+"','"+finalTime+"')\">");
                                 out.print("<span class='val'>"+allPct.get(i)+"</span><span class='suffix'>%</span></div>");
                             }
-                            for(int k=allPct.size(); k<maxHex; k++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
-                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                            for(int k=allPct.size(); k<maxHex; k++) out.print("<div class='hex-small hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-small hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
-    </div><!-- end dyna-grid -->
-</div><!-- end dynastyle -->
+    </div><!-- end hex-grid-dynatrace -->
+</div><!-- end dynatrace-wrapper -->
 
-<!-- ============================================================
-     MODAL - DYNASTYLE
-     ============================================================ -->
+<!-- ================================================================
+     DYANTRACE MODAL
+     ================================================================ -->
 <div id="modalContainer">
     <div id="alertBox">
         <div class="modal-head">
-            <h2><i class="fas fa-exclamation-triangle"></i> FAILURE</h2>
-            <button class="close-x" onclick="closeDynaModal()">✕</button>
+            <h3><i class="fas fa-exclamation-triangle"></i> Service Alert</h3>
+            <button class="close-x" onclick="closeDynatraceModal()">✕</button>
         </div>
         <div class="modal-body-text" id="modalMsg"></div>
         
-        <div class="form-row-2">
+        <div class="form-grid">
             <div class="form-group">
                 <label>Closed Time</label>
                 <select id="pasuseTime">
@@ -1017,34 +1096,34 @@
                 </select>
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group full">
             <label>Comment</label>
-            <textarea id="TextArea" placeholder="Enter closure comment..."></textarea>
+            <textarea id="TextArea" placeholder="Enter closure comments..."></textarea>
         </div>
         
-        <div class="modal-actions-dyna">
-            <button class="btn btn-primary" id="closeBtn"><i class="fas fa-check"></i> CLOSE</button>
-            <button class="btn btn-danger" id="detailsBtn"><i class="fas fa-eye"></i> VIEW</button>
-            <button class="btn btn-secondary" onclick="closeDynaModal()">CANCEL</button>
+        <div class="modal-actions">
+            <button class="btn-modal btn-modal-primary" id="closeBtn"><i class="fas fa-check"></i> Close</button>
+            <button class="btn-modal btn-modal-danger" id="detailsBtn"><i class="fas fa-eye"></i> View</button>
+            <button class="btn-modal btn-modal-secondary" onclick="closeDynatraceModal()">Cancel</button>
         </div>
     </div>
 </div>
 
-<!-- ============================================================
+<!-- ================================================================
      SCRIPTS
-     ============================================================ -->
+     ================================================================ -->
 <script>
-    // ===== Dyna Modal State =====
-    var dApi = '', dCat = '', dSource = '', dError = '', dHits = '', dTD = '', dTime = '';
+    // ===== Dynatrace Modal State =====
+    var dtApi = '', dtCat = '', dtSource = '', dtError = '', dtHits = '', dtTD = '', dtTime = '';
     
-    function openDynaModal(msg, api, cat, src, err, hits, td, time) {
-        dApi = api || '';
-        dCat = cat || 'GEN-5';
-        dSource = src || '';
-        dError = err || '';
-        dHits = hits || '';
-        dTD = td || '';
-        dTime = time || '';
+    function openDynatraceModal(msg, api, cat, src, err, hits, td, time) {
+        dtApi = api || '';
+        dtCat = cat || 'GEN-5';
+        dtSource = src || '';
+        dtError = err || '';
+        dtHits = hits || '';
+        dtTD = td || '';
+        dtTime = time || '';
         
         document.getElementById('modalMsg').innerHTML = msg;
         document.getElementById('modalContainer').style.display = 'flex';
@@ -1052,7 +1131,7 @@
         document.getElementById('closeName').value = '';
     }
     
-    function closeDynaModal() {
+    function closeDynatraceModal() {
         document.getElementById('modalContainer').style.display = 'none';
     }
     
@@ -1069,23 +1148,23 @@
             }
             
             var url = '<%=request.getContextPath() + "/jsp/ServiceWiseFailureAction.jsp?Api_Name="%>' 
-                + encodeURIComponent(dApi)
-                + '&SourceID=' + encodeURIComponent(dSource)
+                + encodeURIComponent(dtApi)
+                + '&SourceID=' + encodeURIComponent(dtSource)
                 + '&TextArea=' + encodeURIComponent(comment)
                 + '&pasuseTime=' + encodeURIComponent(pTime)
-                + '&ErrorCode=' + encodeURIComponent(dError)
+                + '&ErrorCode=' + encodeURIComponent(dtError)
                 + '&closeName=' + encodeURIComponent(closer)
-                + '&ServiceCategory=' + encodeURIComponent(dCat);
+                + '&ServiceCategory=' + encodeURIComponent(dtCat);
             
-            closeDynaModal();
+            closeDynatraceModal();
             location.replace(url);
         });
         
         document.getElementById('detailsBtn').addEventListener('click', function() {
-            if(dCat != 'SI' && dCat != 'SIServices') {
+            if(dtCat != 'SI' && dtCat != 'SIServices') {
                 var url = '<%=request.getContextPath() + "/showFailureServicesWise.do?action=showFailureServicesWise&url="%>' 
-                    + encodeURIComponent(dApi) 
-                    + '&ServiceCategory=' + encodeURIComponent(dCat);
+                    + encodeURIComponent(dtApi) 
+                    + '&ServiceCategory=' + encodeURIComponent(dtCat);
                 window.open(url, '_blank');
             }
         });
@@ -1100,7 +1179,7 @@
     });
     
     // ===== Timer =====
-    function countdownDyna(el, minutes, seconds) {
+    function countdownDynatrace(el, minutes, seconds) {
         var element = document.getElementById(el);
         if(!element) return;
         var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
@@ -1117,15 +1196,15 @@
         }
         update();
     }
-    countdownDyna('ten-countdown', 5, 0);
+    countdownDynatrace('ten-countdown', 5, 0);
     
     // ===== Click outside =====
     document.getElementById('modalContainer').addEventListener('click', function(e) {
-        if(e.target === this) closeDynaModal();
+        if(e.target === this) closeDynatraceModal();
     });
     
     document.addEventListener('keydown', function(e) {
-        if(e.key === 'Escape') closeDynaModal();
+        if(e.key === 'Escape') closeDynatraceModal();
     });
 </script>
 
