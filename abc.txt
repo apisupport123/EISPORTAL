@@ -56,7 +56,7 @@
 <title>EIS ServiceWise · Command Center</title>
 <style>
     /* ============================================================
-       ULTRA DARK - PURE BLACKOUT
+       ULTRA DARK
        ============================================================ */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -88,14 +88,11 @@
         overflow: hidden;
     }
     
-    /* ============================================================
-       LOADER
-       ============================================================ */
+    /* LOADER */
     #loaderWrapper {
         position: fixed;
         top: 0; left: 0;
-        width: 100vw;
-        height: 100vh;
+        width: 100vw; height: 100vh;
         background: #000000;
         display: flex;
         flex-direction: column;
@@ -115,12 +112,9 @@
         box-shadow: 0 0 40px rgba(79,156,247,0.1);
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    
     .loader-text { margin-top: 20px; font-size: 16px; font-weight: 700; color: #4a6a8a; letter-spacing: 2px; text-transform: uppercase; }
     
-    /* ============================================================
-       TOP BAR
-       ============================================================ */
+    /* TOP BAR */
     .top-bar {
         display: flex;
         justify-content: space-between;
@@ -189,9 +183,7 @@
     .btn-ghost-glass:hover { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06); }
     .badge-count-glass { background: rgba(79,156,247,0.04); padding: 0 8px; border-radius: 4px; font-weight: 700; font-size: 12px; }
     
-    /* ============================================================
-       TICKER
-       ============================================================ */
+    /* TICKER */
     .ticker-bar {
         display: flex; align-items: center;
         padding: 4px 14px;
@@ -210,9 +202,7 @@
     .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
     @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
     
-    /* ============================================================
-       LEGEND + TIMESTAMP
-       ============================================================ */
+    /* LEGEND + TIMESTAMP */
     .info-bar {
         display: flex; justify-content: center; align-items: center;
         padding: 3px 0 6px 0;
@@ -234,9 +224,7 @@
     .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 12px; }
     .timestamp-display i { margin-right: 5px; color: #4f9cf7; }
     
-    /* ============================================================
-       GRID
-       ============================================================ */
+    /* GRID */
     .grid-main {
         flex: 1;
         display: grid;
@@ -288,7 +276,7 @@
     }
     
     /* ============================================================
-       HEXAGON TILES - SOLID COLORS
+       HEXAGON TILES
        ============================================================ */
     .tile {
         display: flex;
@@ -351,7 +339,7 @@
         transition: width 0.8s ease;
     }
     
-    /* CRITICAL - SOLID RED */
+    /* CRITICAL - RED */
     .tile-critical {
         background: rgba(255, 71, 87, 0.12);
         border-color: rgba(255, 71, 87, 0.18);
@@ -364,7 +352,7 @@
         50% { border-color: rgba(255, 71, 87, 0.35); box-shadow: 0 0 40px rgba(255, 71, 87, 0.08); }
     }
     
-    /* WARNING - SOLID ORANGE */
+    /* WARNING - ORANGE */
     .tile-warning {
         background: rgba(255, 165, 2, 0.08);
         border-color: rgba(255, 165, 2, 0.12);
@@ -372,7 +360,7 @@
     .tile-warning .val { color: #ffa502; font-size: 19px; }
     .tile-warning .bar .fill { background: #ffa502; width: 50%; }
     
-    /* MIXED - SOLID PURPLE */
+    /* MIXED - PURPLE */
     .tile-mixed {
         background: rgba(124, 58, 237, 0.08);
         border-color: rgba(124, 58, 237, 0.12);
@@ -380,14 +368,14 @@
     .tile-mixed .val { color: #7c3aed; font-size: 19px; }
     .tile-mixed .bar .fill { background: #7c3aed; width: 35%; }
     
-    /* HEALTHY - SOLID DARK GREEN (PURA BLOCK GREEN) */
+    /* HEALTHY - GREEN with TICK MARK */
     .tile-healthy {
         background: rgba(15, 151, 61, 0.15);
         border-color: rgba(15, 151, 61, 0.10);
     }
     .tile-healthy .val { 
         color: #0f973d; 
-        font-size: 20px; 
+        font-size: 24px; 
         font-weight: 900;
         text-shadow: 0 0 30px rgba(15, 151, 61, 0.2);
     }
@@ -396,44 +384,46 @@
     /* ============================================================
        TOOLTIP - HOVER PE SERVICE NAME (FIXED)
        ============================================================ */
-    .tile[data-tooltip]:hover::after {
-        content: attr(data-tooltip);
+    .tile .tooltip-text {
+        visibility: hidden;
+        opacity: 0;
+        width: auto;
+        max-width: 300px;
+        background: rgba(0, 0, 0, 0.95);
+        color: #ffffff;
+        text-align: center;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
         position: absolute;
         bottom: calc(100% + 16px);
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.95);
-        color: #ffffff;
-        padding: 8px 20px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 700;
-        white-space: nowrap;
         z-index: 99999;
         border: 1px solid rgba(255, 255, 255, 0.06);
         box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+        white-space: nowrap;
+        transition: opacity 0.2s ease;
         pointer-events: none;
         font-family: 'Inter', sans-serif;
         letter-spacing: 0.5px;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        max-width: 350px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        opacity: 1 !important;
-        visibility: visible !important;
-        display: block !important;
     }
     
-    .tile[data-tooltip]:hover::before {
+    .tile .tooltip-text::after {
         content: '';
         position: absolute;
-        bottom: calc(100% + 8px);
+        top: 100%;
         left: 50%;
         transform: translateX(-50%);
         border: 8px solid transparent;
         border-top-color: rgba(0, 0, 0, 0.95);
-        z-index: 99999;
-        pointer-events: none;
+    }
+    
+    .tile:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
     }
     
     /* ============================================================
@@ -444,9 +434,7 @@
     @media (max-width: 1100px) { .card-body-modern { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
     @media (max-width: 768px) { .card-body-modern { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 4px; } }
     
-    /* ============================================================
-       MODAL
-       ============================================================ */
+    /* MODAL */
     #modalContainer {
         position: fixed; top: 0; left: 0;
         width: 100vw; height: 100vh;
@@ -633,11 +621,11 @@
                     
                     for(int i = 0; i < 60; i++) {
                         String cls = "tile tile-healthy";
-                        String val = "●";
+                        String val = "✓";
                         String suffix = "";
                         String onclick = "";
                         String alertMsg = "";
-                        String tooltip = "";
+                        String tooltipText = "";
                         
                         if(i < gen5_per.size()) {
                             Double pct = gen5_per.get(i);
@@ -647,16 +635,19 @@
                             
                             val = String.valueOf(pct);
                             suffix = "%";
-                            tooltip = gen5_name.get(i);
+                            tooltipText = gen5_name.get(i);
                             
                             alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD:</b> "+gen5_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>SI Error:</b> "+gen5_siCount.get(i)+"<br><b>Time:</b> "+gen5_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+gen5_name.get(i).replace("'","\\'")+"','GEN-5','"+gen5_source.get(i).replace("'","\\'")+"','"+gen5_error.get(i).replace("'","\\'")+"','"+gen5_hits.get(i)+"','"+gen5_td.get(i)+"','"+gen5_time.get(i).replace("'","\\'")+"')\"";
                         }
                         
-                        out.print("<div class='"+cls+"' "+onclick+" data-tooltip='"+tooltip+"'>");
+                        out.print("<div class='"+cls+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
                         if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
+                        if(!tooltipText.isEmpty()) {
+                            out.print("<span class='tooltip-text'>"+tooltipText+"</span>");
+                        }
                         out.print("</div>");
                     }
                 %>
@@ -695,11 +686,11 @@
                     
                     for(int i = 0; i < 60; i++) {
                         String cls = "tile tile-healthy";
-                        String val = "●";
+                        String val = "✓";
                         String suffix = "";
                         String onclick = "";
                         String alertMsg = "";
-                        String tooltip = "";
+                        String tooltipText = "";
                         
                         if(i < si_per.size()) {
                             Double pct = si_per.get(i);
@@ -709,16 +700,19 @@
                             
                             val = String.valueOf(pct);
                             suffix = "%";
-                            tooltip = si_name.get(i);
+                            tooltipText = si_name.get(i);
                             
                             alertMsg = "<b>Service:</b> "+si_name.get(i)+"<br><b>Error:</b> "+si_error.get(i)+"<br><b>Hits:</b> "+si_hits.get(i)+"<br><b>TD:</b> "+si_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+si_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+si_name.get(i).replace("'","\\'")+"','SI','','"+si_error.get(i).replace("'","\\'")+"','"+si_hits.get(i)+"','"+si_td.get(i)+"','"+si_time.get(i).replace("'","\\'")+"')\"";
                         }
                         
-                        out.print("<div class='"+cls+"' "+onclick+" data-tooltip='"+tooltip+"'>");
+                        out.print("<div class='"+cls+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
                         if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
+                        if(!tooltipText.isEmpty()) {
+                            out.print("<span class='tooltip-text'>"+tooltipText+"</span>");
+                        }
                         out.print("</div>");
                     }
                 %>
@@ -761,11 +755,11 @@
                     
                     for(int i = 0; i < 60; i++) {
                         String cls = "tile tile-healthy";
-                        String val = "●";
+                        String val = "✓";
                         String suffix = "";
                         String onclick = "";
                         String alertMsg = "";
-                        String tooltip = "";
+                        String tooltipText = "";
                         
                         if(i < third_per.size()) {
                             Double pct = third_per.get(i);
@@ -775,16 +769,19 @@
                             
                             val = String.valueOf(pct);
                             suffix = "%";
-                            tooltip = third_name.get(i);
+                            tooltipText = third_name.get(i);
                             
                             alertMsg = "<b>Service:</b> "+third_name.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD:</b> "+third_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>SI Error:</b> "+third_siCount.get(i)+"<br><b>Time:</b> "+third_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+third_name.get(i).replace("'","\\'")+"','ThirdParty','"+third_source.get(i).replace("'","\\'")+"','"+third_error.get(i).replace("'","\\'")+"','"+third_hits.get(i)+"','"+third_td.get(i)+"','"+third_time.get(i).replace("'","\\'")+"')\"";
                         }
                         
-                        out.print("<div class='"+cls+"' "+onclick+" data-tooltip='"+tooltip+"'>");
+                        out.print("<div class='"+cls+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
                         if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
+                        if(!tooltipText.isEmpty()) {
+                            out.print("<span class='tooltip-text'>"+tooltipText+"</span>");
+                        }
                         out.print("</div>");
                     }
                 %>
@@ -858,11 +855,11 @@
                     
                     for(int i = 0; i < 60; i++) {
                         String cls = "tile tile-healthy";
-                        String val = "●";
+                        String val = "✓";
                         String suffix = "";
                         String onclick = "";
                         String alertMsg = "";
-                        String tooltip = "";
+                        String tooltipText = "";
                         
                         if(i < mix_per.size()) {
                             Double pct = mix_per.get(i);
@@ -872,16 +869,19 @@
                             
                             val = String.valueOf(pct);
                             suffix = "%";
-                            tooltip = mix_name.get(i);
+                            tooltipText = mix_name.get(i);
                             
                             alertMsg = "<b>Service:</b> "+mix_name.get(i)+"<br><b>Category:</b> "+mix_cat.get(i)+"<br><b>Error:</b> "+mix_error.get(i)+"<br><b>Source:</b> "+mix_source.get(i)+"<br><b>Hits:</b> "+mix_hits.get(i)+"<br><b>TD:</b> "+mix_td.get(i)+"<br><b>Fail %:</b> "+pct+"%<br><b>Time:</b> "+mix_time.get(i);
                             onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+mix_name.get(i).replace("'","\\'")+"','"+mix_cat.get(i)+"','"+mix_source.get(i).replace("'","\\'")+"','"+mix_error.get(i).replace("'","\\'")+"','"+mix_hits.get(i)+"','"+mix_td.get(i)+"','"+mix_time.get(i).replace("'","\\'")+"')\"";
                         }
                         
-                        out.print("<div class='"+cls+"' "+onclick+" data-tooltip='"+tooltip+"'>");
+                        out.print("<div class='"+cls+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
                         if(!suffix.isEmpty()) out.print("<span class='suffix'>"+suffix+"</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
+                        if(!tooltipText.isEmpty()) {
+                            out.print("<span class='tooltip-text'>"+tooltipText+"</span>");
+                        }
                         out.print("</div>");
                     }
                 %>
@@ -970,7 +970,7 @@
         });
     });
     
-    // MODAL FUNCTIONS
+    // MODAL
     function openModal(msg, api, cat, src, err, hits, td, time) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
@@ -990,7 +990,7 @@
         document.getElementById('modalContainer').style.display = 'none';
     }
     
-    // COUNTS UPDATE
+    // COUNTS
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('gen5count').textContent = document.querySelectorAll('#panel-gen5 .tile-critical, #panel-gen5 .tile-warning, #panel-gen5 .tile-mixed').length || 0;
         document.getElementById('sicount').textContent = document.querySelectorAll('#panel-si .tile-critical, #panel-si .tile-warning, #panel-si .tile-mixed').length || 0;
@@ -1058,7 +1058,6 @@
     }
     countdownTimer('ten-countdown', 5, 0);
     
-    // MODAL CLOSE EVENTS
     document.getElementById('modalContainer').addEventListener('click', function(e) {
         if(e.target === this) closeModal();
     });
