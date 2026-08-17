@@ -1,51 +1,711 @@
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-java.lang.NullPointerException: Cannot invoke "String.split(String)" because "m_strSourceId" is null
-	at org.apache.jsp.jsp.ServiceWiseFailure_jsp._jspService(ServiceWiseFailure_jsp.java:1137)
-	at org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:67)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
-	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
-	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
-	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1791)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
+<%@page import="java.util.Calendar"%>
+<%@page import="java.text.SimpleDateFormat"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib uri="http://struts.apache.org/tags-html" prefix="html"%>
+<%@taglib uri="http://struts.apache.org/tags-bean" prefix="bean"%>
+<%@taglib uri="http://struts.apache.org/tags-logic" prefix="logic"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="java.sql.SQLException"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.List"%>
+<%@page import="java.sql.DriverManager"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.sql.Statement"%>
+<%@page import="java.sql.Connection"%>
+<%@page import="java.sql.Timestamp"%>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+<%@page import="java.time.LocalDate,java.time.format.DateTimeFormatter,java.time.LocalDateTime,java.util.Date,java.util.Calendar"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="300">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>ServiceWise · Command Center</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100vw; height: 100vh; overflow: hidden; font-family: 'Inter', sans-serif; background: #07090e; color: #e8edf5; }
+        
+        .bg-premium {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(ellipse at 10% 20%, rgba(20,60,120,0.2) 0%, transparent 60%),
+                        radial-gradient(ellipse at 90% 80%, rgba(80,20,120,0.15) 0%, transparent 50%), #07090e;
+            z-index: 0;
+        }
+        
+        .command-wrapper {
+            position: relative; z-index: 1; width: 100vw; height: 100vh;
+            display: flex; flex-direction: column; padding: 8px 16px 10px 16px; overflow: hidden;
+        }
+        
+        /* TOP BAR */
+        .top-bar-glass {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 6px 16px 8px 16px;
+            background: rgba(10,14,22,0.6); backdrop-filter: blur(20px);
+            border-radius: 14px; border: 1px solid rgba(255,255,255,0.03);
+            flex-shrink: 0; height: 56px; margin-bottom: 4px;
+        }
+        
+        .brand-premium { display: flex; align-items: center; gap: 12px; }
+        .brand-premium .logo { width: 34px; height: 34px; background: linear-gradient(135deg, #4f9cf7, #7c3aed); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: white; box-shadow: 0 4px 20px rgba(79,156,247,0.2); }
+        .brand-premium .brand-text { font-weight: 800; font-size: 17px; letter-spacing: -0.3px; background: linear-gradient(90deg, #fff 30%, #94b8ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand-premium .brand-sub { font-size: 8px; font-weight: 600; color: #4a6a8a; letter-spacing: 2px; text-transform: uppercase; }
+        
+        .top-right { display: flex; align-items: center; gap: 10px; }
+        .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; color: #6a8aaa; padding: 3px 12px 3px 8px; border-radius: 40px; border: 1px solid rgba(15,151,61,0.06); background: rgba(15,151,61,0.04); }
+        .live-indicator .dot { width: 6px; height: 6px; border-radius: 50%; background: #0f973d; animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
+        .timer { font-weight: 700; font-size: 14px; color: #4f9cf7; padding: 2px 12px; border-radius: 40px; border: 1px solid rgba(79,156,247,0.04); background: rgba(79,156,247,0.03); font-variant-numeric: tabular-nums; }
+        .btn-glass { padding: 4px 14px; border-radius: 40px; font-weight: 700; font-size: 10px; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Inter', sans-serif; }
+        .btn-glass-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: white; box-shadow: 0 4px 15px rgba(79,156,247,0.15); }
+        .btn-glass-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(79,156,247,0.25); }
+        .btn-glass-ghost { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color: #8aaac0; }
+        .btn-glass-ghost:hover { background: rgba(255,255,255,0.04); }
+        
+        /* STATS ROW */
+        .stats-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 3px 4px 4px 4px; flex-shrink: 0; gap: 8px; flex-wrap: wrap;
+        }
+        .stat-item { display: flex; align-items: center; gap: 6px; padding: 2px 12px 2px 8px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.02); background: rgba(255,255,255,0.01); }
+        .stat-item .icon { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+        .stat-item .icon.blue { background: rgba(79,156,247,0.08); color: #4f9cf7; }
+        .stat-item .icon.red { background: rgba(255,71,87,0.08); color: #ff4757; }
+        .stat-item .icon.green { background: rgba(15,151,61,0.08); color: #0f973d; }
+        .stat-item .label { font-size: 9px; font-weight: 600; color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.3px; }
+        .stat-item .value { font-size: 14px; font-weight: 800; color: #e8edf5; }
+        .stat-item .value.green { color: #0f973d; }
+        .stat-item .value.red { color: #ff4757; }
+        .stat-item .value.blue { color: #4f9cf7; }
+        
+        .ticker-wrap { flex: 1; overflow: hidden; padding: 0 8px; min-width: 100px; }
+        .ticker-text { display: inline-block; white-space: nowrap; animation: marquee 25s linear infinite; font-size: 10px; font-weight: 500; color: #5a7a9a; }
+        .ticker-text span { margin: 0 20px; color: #8aaac0; }
+        .ticker-text .hl { color: #4f9cf7; font-weight: 600; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        
+        /* LEGEND */
+        .legend-minimal {
+            display: flex; justify-content: center; gap: 14px; padding: 3px 0 5px 0;
+            flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+        .legend-minimal .item { display: flex; align-items: center; gap: 5px; font-size: 8px; font-weight: 600; color: #5a7a9a; text-transform: uppercase; letter-spacing: 0.3px; }
+        .legend-minimal .swatch { width: 8px; height: 8px; border-radius: 2px; }
+        .sw-crit { background: #ff4757; }
+        .sw-warn { background: #ffa502; }
+        .sw-mix { background: #7c3aed; }
+        .sw-health { background: #0f973d; }
+        
+        /* MAIN GRID */
+        .card-grid {
+            flex: 1; display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 10px; padding: 4px 0 0 0; min-height: 0;
+        }
+        
+        .service-card {
+            background: rgba(10,14,22,0.5); backdrop-filter: blur(16px);
+            border-radius: 14px; border: 1px solid rgba(255,255,255,0.02);
+            overflow: hidden; display: flex; flex-direction: column;
+            transition: all 0.3s ease; position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .service-card:hover { transform: translateY(-3px); border-color: rgba(79,156,247,0.05); box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
+        
+        .card-header {
+            padding: 6px 12px 3px 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 34px;
+        }
+        .card-header .title { font-weight: 700; font-size: 11px; display: flex; align-items: center; gap: 8px; color: #b0c8e0; }
+        .card-header .title i { color: #4f9cf7; font-size: 12px; }
+        .card-header .badge { font-size: 7px; font-weight: 700; padding: 1px 10px; border-radius: 40px; background: rgba(15,151,61,0.06); color: #0f973d; border: 1px solid rgba(15,151,61,0.04); text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .card-body {
+            flex: 1; padding: 3px 10px 10px 10px;
+            display: grid; grid-template-columns: repeat(8, 1fr);
+            grid-auto-rows: 1fr; gap: 4px; min-height: 0;
+        }
+        
+        /* METRIC TILES */
+        .metric-tile {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.01); border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.015);
+            transition: all 0.15s ease; cursor: pointer;
+            position: relative; aspect-ratio: 1; min-height: 38px; padding: 2px;
+        }
+        .metric-tile:hover { transform: scale(1.06) translateY(-2px); z-index: 5; border-color: rgba(79,156,247,0.06); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .metric-tile:active { transform: scale(0.92); }
+        
+        .metric-tile .val { font-size: 13px; font-weight: 800; position: relative; z-index: 2; line-height: 1; letter-spacing: -0.3px; }
+        .metric-tile .suffix { font-size: 6px; font-weight: 600; opacity: 0.4; position: relative; z-index: 2; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px; }
+        .metric-tile .mini-bar { position: absolute; bottom: 2px; left: 20%; right: 20%; height: 2px; border-radius: 2px; background: rgba(255,255,255,0.02); overflow: hidden; }
+        .metric-tile .mini-bar .fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+        
+        .tile-critical { background: rgba(255,71,87,0.06); border-color: rgba(255,71,87,0.05); }
+        .tile-critical .val { color: #ff4757; }
+        .tile-critical .mini-bar .fill { background: #ff4757; width: 75%; }
+        .tile-critical.pulse { animation: tile-pulse 2.5s ease-in-out infinite; }
+        @keyframes tile-pulse { 0%,100% { box-shadow: 0 0 8px rgba(255,71,87,0.02); } 50% { box-shadow: 0 0 20px rgba(255,71,87,0.06); } }
+        
+        .tile-warning { background: rgba(255,165,2,0.04); border-color: rgba(255,165,2,0.04); }
+        .tile-warning .val { color: #ffa502; }
+        .tile-warning .mini-bar .fill { background: #ffa502; width: 45%; }
+        
+        .tile-mixed { background: rgba(124,58,237,0.04); border-color: rgba(124,58,237,0.04); }
+        .tile-mixed .val { color: #7c3aed; }
+        .tile-mixed .mini-bar .fill { background: #7c3aed; width: 30%; }
+        
+        .tile-healthy { background: rgba(15,151,61,0.03); border-color: rgba(15,151,61,0.02); }
+        .tile-healthy .val { color: #0f973d; }
+        .tile-healthy .mini-bar .fill { background: #0f973d; width: 10%; }
+        
+        .tile-empty { background: rgba(255,255,255,0.005); border-color: rgba(255,255,255,0.005); cursor: default; }
+        .tile-empty:hover { transform: none; box-shadow: none; }
+        .tile-empty .val { color: #2a3a50; font-weight: 400; }
+        
+        /* MODAL */
+        #modalContainer {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 99999; animation: modal-in 0.25s ease;
+        }
+        @keyframes modal-in { from { opacity: 0; transform: scale(0.94) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        
+        #alertBox {
+            background: linear-gradient(145deg, #111a24, #090e16);
+            border-radius: 20px; max-width: 580px; width: 92%;
+            padding: 24px 26px 26px 26px;
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+            max-height: 85vh; overflow-y: auto;
+        }
+        #alertBox .modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        #alertBox .modal-head h3 { font-size: 16px; font-weight: 800; color: #ff4757; display: flex; align-items: center; gap: 10px; }
+        #alertBox .modal-head h3 i { font-size: 18px; }
+        #alertBox .modal-head .close-btn { background: none; border: none; color: #4a6a8a; font-size: 22px; cursor: pointer; transition: 0.2s; padding: 0 4px; line-height: 1; }
+        #alertBox .modal-head .close-btn:hover { color: white; transform: rotate(90deg); }
+        
+        #alertBox .modal-body { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px 14px; margin: 6px 0 12px 0; border-left: 2px solid #4f9cf7; font-size: 12px; line-height: 1.6; color: #b0c8e0; max-height: 150px; overflow-y: auto; }
+        #alertBox .modal-body b { color: #e8edf5; }
+        
+        #alertBox .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        #alertBox .form-group { margin-bottom: 4px; }
+        #alertBox .form-group label { display: block; font-size: 8px; font-weight: 700; color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        #alertBox .form-group select, #alertBox .form-group textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.03); border-radius: 8px; padding: 6px 12px; color: #e8edf5; font-size: 12px; font-family: 'Inter', sans-serif; transition: 0.2s; }
+        #alertBox .form-group select:focus, #alertBox .form-group textarea:focus { outline: none; border-color: #4f9cf7; box-shadow: 0 0 0 3px rgba(79,156,247,0.04); }
+        #alertBox .form-group textarea { min-height: 40px; resize: vertical; }
+        #alertBox .form-group.full { grid-column: 1 / -1; }
+        
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
+        .modal-actions .btn-modal { padding: 6px 18px; border-radius: 40px; font-weight: 700; font-size: 10px; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Inter', sans-serif; }
+        .modal-actions .btn-modal-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: white; box-shadow: 0 4px 15px rgba(79,156,247,0.15); }
+        .modal-actions .btn-modal-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(79,156,247,0.25); }
+        .modal-actions .btn-modal-danger { background: linear-gradient(135deg, #ff4757, #c0392b); color: white; }
+        .modal-actions .btn-modal-danger:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255,71,87,0.15); }
+        .modal-actions .btn-modal-secondary { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); color: #8aaac0; }
+        .modal-actions .btn-modal-secondary:hover { background: rgba(255,255,255,0.04); }
+        
+        @media (max-width: 1600px) { .card-body { grid-template-columns: repeat(7, 1fr); } }
+        @media (max-width: 1400px) { .card-body { grid-template-columns: repeat(6, 1fr); } .card-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 1100px) { .card-body { grid-template-columns: repeat(5, 1fr); } .card-grid { grid-template-columns: repeat(2, 1fr); } .top-bar-glass { flex-wrap: wrap; height: auto; gap: 4px; } .stats-row { flex-wrap: wrap; } }
+        @media (max-width: 768px) { .card-body { grid-template-columns: repeat(4, 1fr); } .card-grid { grid-template-columns: 1fr; } .legend-minimal { flex-wrap: wrap; gap: 6px; } #alertBox .form-grid { grid-template-columns: 1fr; } }
+        
+        #alertBox::-webkit-scrollbar { width: 3px; }
+        #alertBox::-webkit-scrollbar-track { background: transparent; }
+        #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="bg-premium"></div>
+
+<div class="command-wrapper">
+
+    <!-- TOP BAR -->
+    <div class="top-bar-glass">
+        <div class="brand-premium">
+            <div class="logo"><i class="fas fa-chart-simple"></i></div>
+            <div>
+                <div class="brand-text">ServiceWise</div>
+                <div class="brand-sub">Command Center</div>
+            </div>
+        </div>
+        <div class="top-right">
+            <div class="live-indicator"><span class="dot"></span> LIVE</div>
+            <span class="timer" id="ten-countdown">5:00</span>
+            <button class="btn-glass btn-glass-primary" id="openPopupButton"><i class="fas fa-list"></i> Closed</button>
+            <button class="btn-glass btn-glass-ghost" id="openPopup"><i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.04); padding:0 6px; border-radius:6px; font-weight:700;">0</span></button>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row">
+        <div class="stat-item"><div class="icon blue"><i class="fas fa-server"></i></div><span class="label">Services</span><span class="value blue" id="totalServices">--</span></div>
+        <div class="stat-item"><div class="icon red"><i class="fas fa-exclamation-triangle"></i></div><span class="label">Critical</span><span class="value red" id="totalCritical">--</span></div>
+        <div class="stat-item"><div class="icon green"><i class="fas fa-check-circle"></i></div><span class="label">Healthy</span><span class="value green" id="totalHealthy">--</span></div>
+        <div class="ticker-wrap">
+            <div class="ticker-text">
+                <span>● <span class="hl">STATUS:</span> All systems operational</span>
+                <span>● <span class="hl">MONITORING:</span> Real-time failure detection</span>
+                <span>● <span class="hl">ALERT:</span> Auto-refresh 5 min</span>
+                <span>● <span class="hl">THRESHOLD:</span> EIS-TD &gt; 1%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend-minimal">
+        <span class="item"><span class="swatch sw-crit"></span> Critical</span>
+        <span class="item"><span class="swatch sw-warn"></span> Warning</span>
+        <span class="item"><span class="swatch sw-mix"></span> Mixed</span>
+        <span class="item"><span class="swatch sw-health"></span> Healthy</span>
+        <span class="item" style="color:#3a5a7a;font-weight:400;">
+            <i class="fas fa-sync-alt fa-fw" style="color:#4f9cf7;"></i>
+            <%
+                try {
+                    Connection conStamp = DBUtilityAuto.getReportDBConnection();
+                    Statement stStamp = conStamp.createStatement();
+                    ResultSet rsStamp = stStamp.executeQuery("select INSERT_TIME from gen5_servicewise_fail ORDER BY insert_time desc");
+                    if(rsStamp.next()) {
+                        Timestamp ts = rsStamp.getTimestamp("INSERT_TIME");
+                        Date d = new Date(ts.getTime());
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                        out.print(sdf.format(d));
+                    }
+                    rsStamp.close(); stStamp.close(); conStamp.close();
+                } catch(Exception e) { out.print("—"); }
+            %>
+        </span>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="card-grid">
+        
+        <!-- GEN-5 -->
+        <div class="service-card">
+            <div class="card-header">
+                <span class="title"><i class="fas fa-server"></i> GEN-5</span>
+                <span class="badge">48</span>
+            </div>
+            <div class="card-body" id="panel-gen5">
+                <%
+                    Connection con = DBUtilityAuto.getReportDBConnection();
+                    Statement l_bjst = null;
+                    ResultSet l_bjres = null;
+                    try {
+                        String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 48";
+                        l_bjst = con.createStatement();
+                        l_bjres = l_bjst.executeQuery(l_strQuery);
+                        List<String> API_NAME = new ArrayList<>();
+                        List<String> SOURCE_ID = new ArrayList<>();
+                        List<String> ERROR_CODE = new ArrayList<>();
+                        List<Integer> TOTAL_HITS = new ArrayList<>();
+                        List<Integer> EIS_TD = new ArrayList<>();
+                        List<Double> EIS_TD_PER = new ArrayList<>();
+                        List<String> ISSUE_TIME = new ArrayList<>();
+                        List<Integer> SI_EEROR_Count = new ArrayList<>();
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                API_NAME.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                SOURCE_ID.add(nvl(l_bjres.getString("SOURCE_ID"), "N/A"));
+                                ERROR_CODE.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+                                EIS_TD.add(l_bjres.getInt("TD"));
+                                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
+                                ISSUE_TIME.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
+                                SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+                            }
+                        }
+                        int maxTile = 48;
+                        if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
+                            for(int i=0; i<Math.min(ERROR_CODE.size(), maxTile); i++) {
+                                String safeSrc = SOURCE_ID.get(i) != null ? SOURCE_ID.get(i) : "N/A";
+                                String safeErr = ERROR_CODE.get(i) != null ? ERROR_CODE.get(i) : "N/A";
+                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Source:</b> "+safeSrc+"<br><b>Error:</b> "+safeErr+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>Fail %:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI Error:</b> "+SI_EEROR_Count.get(i)+"<br><b>Time:</b> "+ISSUE_TIME.get(i);
+                                String cls = "metric-tile tile-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "metric-tile tile-warning";
+                                if(EIS_TD_PER.get(i) > 0 && EIS_TD_PER.get(i) < 3) cls = "metric-tile tile-mixed";
+                                if(i % 4 == 0 && EIS_TD_PER.get(i) > 3) cls += " pulse";
+                                out.print("<div class='"+cls+"' onclick=\"openPremiumModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+safeSrc+"','"+safeErr+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                            }
+                            for(int k=EIS_TD_PER.size(); k<maxTile; k++) {
+                                out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                            }
+                        } else {
+                            for(int i=0; i<maxTile; i++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                        }
+                    } catch(Exception e) { e.printStackTrace(); }
+                %>
+            </div>
+        </div>
+
+        <!-- SI -->
+        <div class="service-card">
+            <div class="card-header">
+                <span class="title"><i class="fas fa-code"></i> SI Services</span>
+                <span class="badge">48</span>
+            </div>
+            <div class="card-body" id="panel-si">
+                <%
+                    try {
+                        String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 48";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        List<String> API_NAME = new ArrayList<>();
+                        List<String> ERROR_CODE = new ArrayList<>();
+                        List<Integer> TOTAL_HITS = new ArrayList<>();
+                        List<Integer> EIS_TD = new ArrayList<>();
+                        List<Double> EIS_TD_PER = new ArrayList<>();
+                        List<String> ISSUE_TIME = new ArrayList<>();
+                        while(l_bjres.next()) {
+                            if(l_bjres.getDouble("TD") >= 50) {
+                                API_NAME.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                ERROR_CODE.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+                                EIS_TD.add(l_bjres.getInt("TD"));
+                                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
+                                ISSUE_TIME.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
+                            }
+                        }
+                        int maxTile = 48;
+                        if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
+                            for(int i=0; i<Math.min(ERROR_CODE.size(), maxTile); i++) {
+                                String safeErr = ERROR_CODE.get(i) != null ? ERROR_CODE.get(i) : "N/A";
+                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Error:</b> "+safeErr+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>Fail %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Time:</b> "+ISSUE_TIME.get(i);
+                                String cls = "metric-tile tile-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "metric-tile tile-warning";
+                                if(i % 4 == 0 && EIS_TD_PER.get(i) > 3) cls += " pulse";
+                                out.print("<div class='"+cls+"' onclick=\"openPremiumModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+safeErr+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                            }
+                            for(int k=EIS_TD_PER.size(); k<maxTile; k++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>"); }
+                    } catch(Exception e) { e.printStackTrace(); }
+                %>
+            </div>
+        </div>
+
+        <!-- ThirdParty -->
+        <div class="service-card">
+            <div class="card-header">
+                <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
+                <span class="badge">48</span>
+            </div>
+            <div class="card-body" id="panel-third">
+                <%
+                    try {
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 48";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        List<Double> TD_Per = new ArrayList<>();
+                        List<Integer> TOTAL_HITS_TD = new ArrayList<>();
+                        List<Integer> TD_Count = new ArrayList<>();
+                        List<String> Original_URN_TD = new ArrayList<>();
+                        List<String> TD_Issue_Time = new ArrayList<>();
+                        List<String> Source_Id_TD = new ArrayList<>();
+                        List<String> Error_Code_TD = new ArrayList<>();
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
+                                TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
+                                TD_Count.add(l_bjres.getInt("TD"));
+                                Original_URN_TD.add(nvl(l_bjres.getString("original_urn"), "N/A"));
+                                TD_Issue_Time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
+                                Source_Id_TD.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                Error_Code_TD.add(nvl(l_bjres.getString("error_code"), "N/A"));
+                            }
+                        }
+                        int maxTile = 48;
+                        if(TD_Per != null && !TD_Per.isEmpty()) {
+                            for(int i=0; i<Math.min(Error_Code_TD.size(), maxTile); i++) {
+                                String safeErr = Error_Code_TD.get(i) != null ? Error_Code_TD.get(i) : "N/A";
+                                String safeSrc = Source_Id_TD.get(i) != null ? Source_Id_TD.get(i) : "N/A";
+                                String alertMsg = "<b>Service:</b> "+Original_URN_TD.get(i)+"<br><b>Error:</b> "+safeErr+"<br><b>Source:</b> "+safeSrc+"<br><b>Hits:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD:</b> "+TD_Count.get(i)+"<br><b>Time:</b> "+TD_Issue_Time.get(i);
+                                String cls = "metric-tile tile-critical";
+                                if(TD_Per.get(i) < 5) cls = "metric-tile tile-warning";
+                                if(i % 4 == 0 && TD_Per.get(i) > 3) cls += " pulse";
+                                out.print("<div class='"+cls+"' onclick=\"openPremiumModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+safeSrc+"','"+safeErr+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
+                                out.print("<span class='val'>"+TD_Per.get(i)+"</span><span class='suffix'>%</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                            }
+                            for(int k=TD_Per.size(); k<maxTile; k++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>"); }
+                    } catch(Exception e) { e.printStackTrace(); }
+                %>
+            </div>
+        </div>
+
+        <!-- I4C + IVR + SBICAPS -->
+        <div class="service-card">
+            <div class="card-header">
+                <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
+                <span class="badge">48</span>
+            </div>
+            <div class="card-body" id="panel-mixed">
+                <%
+                    try {
+                        List<Double> allPct = new ArrayList<>();
+                        List<String> allNames = new ArrayList<>();
+                        List<String> allMsgs = new ArrayList<>();
+                        List<String> allCats = new ArrayList<>();
+                        List<String> allSources = new ArrayList<>();
+                        List<String> allErrors = new ArrayList<>();
+                        List<String> allHits = new ArrayList<>();
+                        List<String> allTDs = new ArrayList<>();
+                        List<String> allTimes = new ArrayList<>();
+                        
+                        // I4C
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 16";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                allPct.add(l_bjres.getDouble("TD_PERCENT"));
+                                allNames.add(nvl(l_bjres.getString("original_urn"), "N/A"));
+                                allCats.add("I4C");
+                                allSources.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                allErrors.add(nvl(l_bjres.getString("error_code"), "N/A"));
+                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
+                                allTimes.add(nvl(l_bjres.getString("issue_time"), "N/A"));
+                                String err = l_bjres.getString("error_code");
+                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
+                                allMsgs.add("<b>I4C:</b> "+nvl(l_bjres.getString("original_urn"), "N/A")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+nvl(l_bjres.getString("Source_id"), "N/A")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+nvl(l_bjres.getString("issue_time"), "N/A"));
+                            }
+                        }
+                        // IVR
+                        l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 16";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
+                                allPct.add(l_bjres.getDouble("TD_PER"));
+                                allNames.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                allCats.add("IVR");
+                                allSources.add(nvl(l_bjres.getString("Source_id"), "N/A"));
+                                allErrors.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
+                                allTimes.add(nvl(l_bjres.getString("issue_time"), "N/A"));
+                                String err = l_bjres.getString("ERROR_CODE");
+                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
+                                allMsgs.add("<b>IVR:</b> "+nvl(l_bjres.getString("API_NAME"), "N/A")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+nvl(l_bjres.getString("Source_id"), "N/A")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+nvl(l_bjres.getString("issue_time"), "N/A"));
+                            }
+                        }
+                        // SBICAPS
+                        l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 16";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
+                                allPct.add(l_bjres.getDouble("TD_PER"));
+                                allNames.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
+                                allCats.add("SBICAPS");
+                                allSources.add(nvl(l_bjres.getString("source_id"), "N/A"));
+                                allErrors.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
+                                allHits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
+                                allTDs.add(String.valueOf(l_bjres.getInt("TD")));
+                                allTimes.add(nvl(l_bjres.getString("issue_time"), "N/A"));
+                                String err = l_bjres.getString("ERROR_CODE");
+                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
+                                allMsgs.add("<b>SBICAPS:</b> "+nvl(l_bjres.getString("API_NAME"), "N/A")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+nvl(l_bjres.getString("source_id"), "N/A")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+nvl(l_bjres.getString("issue_time"), "N/A"));
+                            }
+                        }
+                        int maxTile = 48;
+                        if(allPct != null && !allPct.isEmpty()) {
+                            for(int i=0; i<Math.min(allPct.size(), maxTile); i++) {
+                                String cls = "metric-tile tile-critical";
+                                if(allPct.get(i) < 5) cls = "metric-tile tile-warning";
+                                if(allPct.get(i) > 0 && allPct.get(i) < 3) cls = "metric-tile tile-mixed";
+                                if(i % 4 == 0 && allPct.get(i) > 3) cls += " pulse";
+                                out.print("<div class='"+cls+"' onclick=\"openPremiumModal('"+allMsgs.get(i).replace("'","\\'")+"','"+allNames.get(i)+"','"+allCats.get(i)+"','"+allSources.get(i)+"','"+allErrors.get(i)+"','"+allHits.get(i)+"','"+allTDs.get(i)+"','"+allTimes.get(i)+"')\">");
+                                out.print("<span class='val'>"+allPct.get(i)+"</span><span class='suffix'>%</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                            }
+                            for(int k=allPct.size(); k<maxTile; k++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>"); }
+                    } catch(Exception e) { e.printStackTrace(); }
+                %>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================================================================
+     MODAL
+     ================================================================ -->
+<div id="modalContainer">
+    <div id="alertBox">
+        <div class="modal-head">
+            <h3><i class="fas fa-exclamation-triangle"></i> Service Alert</h3>
+            <button class="close-btn" onclick="closePremiumModal()">✕</button>
+        </div>
+        <div class="modal-body" id="modalMsg"></div>
+        
+        <div class="form-grid">
+            <div class="form-group">
+                <label>Closed Time</label>
+                <select id="pasuseTime">
+                    <option value="1">1 Hour</option><option value="2">2 Hours</option>
+                    <option value="3">3 Hours</option><option value="4">4 Hours</option>
+                    <option value="5">5 Hours</option><option value="6">6 Hours</option>
+                    <option value="7">7 Hours</option><option value="8">8 Hours</option>
+                    <option value="9">9 Hours</option><option value="10">10 Hours</option>
+                    <option value="11">11 Hours</option><option value="12">12 Hours</option>
+                    <option value="13">13 Hours</option><option value="14">14 Hours</option>
+                    <option value="15">15 Hours</option><option value="16">16 Hours</option>
+                    <option value="17">17 Hours</option><option value="18">18 Hours</option>
+                    <option value="19">19 Hours</option><option value="20">20 Hours</option>
+                    <option value="21">21 Hours</option><option value="22">22 Hours</option>
+                    <option value="23">23 Hours</option><option value="24">24 Hours</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Closed By</label>
+                <select id="closeName">
+                    <option value="">Select</option>
+                    <%
+                        try {
+                            Connection connn = DBUtilityAuto.getReportDBConnection();
+                            String sql1="select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";
+                            Statement stmt1=connn.createStatement();
+                            ResultSet rs1= stmt1.executeQuery(sql1);
+                            while(rs1.next()){
+                                String name = rs1.getString("Fullname");
+                                out.print("<option value='"+name+"'>"+name+"</option>");
+                            }
+                            rs1.close(); stmt1.close(); connn.close();
+                        } catch(Exception e) { }
+                    %>
+                </select>
+            </div>
+        </div>
+        <div class="form-group full">
+            <label>Comment</label>
+            <textarea id="TextArea" placeholder="Enter closure comments..."></textarea>
+        </div>
+        
+        <div class="modal-actions">
+            <button class="btn-modal btn-modal-primary" id="closeBtn"><i class="fas fa-check"></i> Close</button>
+            <button class="btn-modal btn-modal-danger" id="detailsBtn"><i class="fas fa-eye"></i> View</button>
+            <button class="btn-modal btn-modal-secondary" onclick="closePremiumModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<%!
+    // Helper method to handle null values
+    public static String nvl(String value, String defaultValue) {
+        return (value == null || value.trim().isEmpty()) ? defaultValue : value;
+    }
+%>
+
+<!-- ================================================================
+     SCRIPTS
+     ================================================================ -->
+<script>
+    var pmApi = '', pmCat = '', pmSource = '', pmError = '', pmHits = '', pmTD = '', pmTime = '';
+    
+    function openPremiumModal(msg, api, cat, src, err, hits, td, time) {
+        pmApi = api || '';
+        pmCat = cat || 'GEN-5';
+        pmSource = src || '';
+        pmError = err || '';
+        pmHits = hits || '';
+        pmTD = td || '';
+        pmTime = time || '';
+        
+        document.getElementById('modalMsg').innerHTML = msg;
+        document.getElementById('modalContainer').style.display = 'flex';
+        document.getElementById('TextArea').value = '';
+        document.getElementById('closeName').value = '';
+    }
+    
+    function closePremiumModal() {
+        document.getElementById('modalContainer').style.display = 'none';
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('closeBtn').addEventListener('click', function() {
+            var comment = document.getElementById('TextArea').value;
+            var closer = document.getElementById('closeName').value;
+            var pTime = document.getElementById('pasuseTime').value;
+            
+            if(comment.trim() == '' || closer == '') {
+                alert('⚠️ Please fill Comment and Closed By');
+                return;
+            }
+            
+            var url = '<%=request.getContextPath() + "/jsp/ServiceWiseFailureAction.jsp?Api_Name="%>' 
+                + encodeURIComponent(pmApi)
+                + '&SourceID=' + encodeURIComponent(pmSource)
+                + '&TextArea=' + encodeURIComponent(comment)
+                + '&pasuseTime=' + encodeURIComponent(pTime)
+                + '&ErrorCode=' + encodeURIComponent(pmError)
+                + '&closeName=' + encodeURIComponent(closer)
+                + '&ServiceCategory=' + encodeURIComponent(pmCat);
+            
+            closePremiumModal();
+            location.replace(url);
+        });
+        
+        document.getElementById('detailsBtn').addEventListener('click', function() {
+            if(pmCat != 'SI' && pmCat != 'SIServices') {
+                var url = '<%=request.getContextPath() + "/showFailureServicesWise.do?action=showFailureServicesWise&url="%>' 
+                    + encodeURIComponent(pmApi) 
+                    + '&ServiceCategory=' + encodeURIComponent(pmCat);
+                window.open(url, '_blank');
+            }
+        });
+        
+        document.getElementById('openPopupButton').addEventListener('click', function() {
+            window.open('<%=request.getContextPath() + "/jsp/DisplayHundredPercentFailure.jsp"%>', '_blank');
+        });
+        
+        document.getElementById('openPopup').addEventListener('click', function() {
+            window.open('DisplayTodayServiceWiseFailure.jsp', 'DataPopup', 'width=800,height=600');
+        });
+        
+        updateStats();
+    });
+    
+    function updateStats() {
+        var tiles = document.querySelectorAll('.metric-tile:not(.tile-empty)');
+        var total = tiles.length;
+        var critical = document.querySelectorAll('.tile-critical').length;
+        var healthy = document.querySelectorAll('.tile-healthy').length;
+        
+        document.getElementById('totalServices').textContent = total || '0';
+        document.getElementById('totalCritical').textContent = critical || '0';
+        document.getElementById('totalHealthy').textContent = healthy || '0';
+    }
+    
+    function countdownPremium(el, minutes, seconds) {
+        var element = document.getElementById(el);
+        if(!element) return;
+        var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
+        function update() {
+            var msLeft = endTime - (+new Date);
+            if (msLeft < 1000) { element.innerHTML = "⟳"; }
+            else {
+                var t = new Date(msLeft);
+                var m = t.getUTCMinutes();
+                var s = t.getUTCSeconds();
+                element.innerHTML = (m ? m + ':' : '') + (m ? String(s).padStart(2,'0') : s);
+                setTimeout(update, 100);
+            }
+        }
+        update();
+    }
+    countdownPremium('ten-countdown', 5, 0);
+    
+    document.getElementById('modalContainer').addEventListener('click', function(e) {
+        if(e.target === this) closePremiumModal();
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if(e.key === 'Escape') closePremiumModal();
+    });
+</script>
+
+</body>
+</html>
