@@ -21,198 +21,737 @@
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="300">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>ServiceWise · Command Center</title>
+    <title>ServiceWise · Enterprise Dashboard</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100vw; height: 100vh; overflow: hidden; font-family: 'Inter', sans-serif; background: #07090e; color: #e8edf5; }
+        /* ================================================================
+           HIGH CONTRAST · CLEAR VISIBILITY · PROFESSIONAL
+           ================================================================ */
         
-        .bg-premium {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: radial-gradient(ellipse at 10% 20%, rgba(20,60,120,0.2) 0%, transparent 60%),
-                        radial-gradient(ellipse at 90% 80%, rgba(80,20,120,0.15) 0%, transparent 50%), #07090e;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #0a0e17;
+            color: #ffffff;
+        }
+        
+        /* ================================================================
+           CLEAN BACKGROUND
+           ================================================================ */
+        .bg-clean {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: 
+                radial-gradient(ellipse at 15% 20%, rgba(30, 80, 160, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 85% 80%, rgba(100, 40, 180, 0.05) 0%, transparent 50%),
+                #0a0e17;
             z-index: 0;
         }
         
-        .command-wrapper {
-            position: relative; z-index: 1; width: 100vw; height: 100vh;
-            display: flex; flex-direction: column; padding: 8px 16px 10px 16px; overflow: hidden;
+        /* ================================================================
+           MAIN WRAPPER
+           ================================================================ */
+        .wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 16px 10px 16px;
+            overflow: hidden;
         }
         
-        /* TOP BAR */
-        .top-bar-glass {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 6px 16px 8px 16px;
-            background: rgba(10,14,22,0.6); backdrop-filter: blur(20px);
-            border-radius: 14px; border: 1px solid rgba(255,255,255,0.03);
-            flex-shrink: 0; height: 56px; margin-bottom: 4px;
+        /* ================================================================
+           TOP BAR - CRYSTAL CLEAR
+           ================================================================ */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 18px 8px 18px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 2px solid rgba(79, 156, 247, 0.15);
+            flex-shrink: 0;
+            height: 56px;
+            margin-bottom: 4px;
         }
         
-        .brand-premium { display: flex; align-items: center; gap: 12px; }
-        .brand-premium .logo { width: 34px; height: 34px; background: linear-gradient(135deg, #4f9cf7, #7c3aed); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 15px; color: white; box-shadow: 0 4px 20px rgba(79,156,247,0.2); }
-        .brand-premium .brand-text { font-weight: 800; font-size: 17px; letter-spacing: -0.3px; background: linear-gradient(90deg, #fff 30%, #94b8ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .brand-premium .brand-sub { font-size: 8px; font-weight: 600; color: #4a6a8a; letter-spacing: 2px; text-transform: uppercase; }
-        
-        .top-right { display: flex; align-items: center; gap: 10px; }
-        .live-indicator { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; color: #6a8aaa; padding: 3px 12px 3px 8px; border-radius: 40px; border: 1px solid rgba(15,151,61,0.06); background: rgba(15,151,61,0.04); }
-        .live-indicator .dot { width: 6px; height: 6px; border-radius: 50%; background: #0f973d; animation: pulse-dot 2s infinite; }
-        @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-        
-        .timer { font-weight: 700; font-size: 14px; color: #4f9cf7; padding: 2px 12px; border-radius: 40px; border: 1px solid rgba(79,156,247,0.04); background: rgba(79,156,247,0.03); font-variant-numeric: tabular-nums; }
-        .btn-glass { padding: 4px 14px; border-radius: 40px; font-weight: 700; font-size: 10px; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Inter', sans-serif; }
-        .btn-glass-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: white; box-shadow: 0 4px 15px rgba(79,156,247,0.15); }
-        .btn-glass-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(79,156,247,0.25); }
-        .btn-glass-ghost { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color: #8aaac0; }
-        .btn-glass-ghost:hover { background: rgba(255,255,255,0.04); }
-        
-        /* STATS ROW */
-        .stats-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 3px 4px 4px 4px; flex-shrink: 0; gap: 8px; flex-wrap: wrap;
-        }
-        .stat-item { display: flex; align-items: center; gap: 6px; padding: 2px 12px 2px 8px; border-radius: 40px; border: 1px solid rgba(255,255,255,0.02); background: rgba(255,255,255,0.01); }
-        .stat-item .icon { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; }
-        .stat-item .icon.blue { background: rgba(79,156,247,0.08); color: #4f9cf7; }
-        .stat-item .icon.red { background: rgba(255,71,87,0.08); color: #ff4757; }
-        .stat-item .icon.green { background: rgba(15,151,61,0.08); color: #0f973d; }
-        .stat-item .label { font-size: 9px; font-weight: 600; color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.3px; }
-        .stat-item .value { font-size: 14px; font-weight: 800; color: #e8edf5; }
-        .stat-item .value.green { color: #0f973d; }
-        .stat-item .value.red { color: #ff4757; }
-        .stat-item .value.blue { color: #4f9cf7; }
-        
-        .ticker-wrap { flex: 1; overflow: hidden; padding: 0 8px; min-width: 100px; }
-        .ticker-text { display: inline-block; white-space: nowrap; animation: marquee 25s linear infinite; font-size: 10px; font-weight: 500; color: #5a7a9a; }
-        .ticker-text span { margin: 0 20px; color: #8aaac0; }
-        .ticker-text .hl { color: #4f9cf7; font-weight: 600; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        
-        /* LEGEND */
-        .legend-minimal {
-            display: flex; justify-content: center; gap: 14px; padding: 3px 0 5px 0;
-            flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.02);
-        }
-        .legend-minimal .item { display: flex; align-items: center; gap: 5px; font-size: 8px; font-weight: 600; color: #5a7a9a; text-transform: uppercase; letter-spacing: 0.3px; }
-        .legend-minimal .swatch { width: 8px; height: 8px; border-radius: 2px; }
-        .sw-crit { background: #ff4757; }
-        .sw-warn { background: #ffa502; }
-        .sw-mix { background: #7c3aed; }
-        .sw-health { background: #0f973d; }
-        
-        /* MAIN GRID */
-        .card-grid {
-            flex: 1; display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 10px; padding: 4px 0 0 0; min-height: 0;
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
         
-        .service-card {
-            background: rgba(10,14,22,0.5); backdrop-filter: blur(16px);
-            border-radius: 14px; border: 1px solid rgba(255,255,255,0.02);
-            overflow: hidden; display: flex; flex-direction: column;
-            transition: all 0.3s ease; position: relative;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .service-card:hover { transform: translateY(-3px); border-color: rgba(79,156,247,0.05); box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
-        
-        .card-header {
-            padding: 6px 12px 3px 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 34px;
-        }
-        .card-header .title { font-weight: 700; font-size: 11px; display: flex; align-items: center; gap: 8px; color: #b0c8e0; }
-        .card-header .title i { color: #4f9cf7; font-size: 12px; }
-        .card-header .badge { font-size: 7px; font-weight: 700; padding: 1px 10px; border-radius: 40px; background: rgba(15,151,61,0.06); color: #0f973d; border: 1px solid rgba(15,151,61,0.04); text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .card-body {
-            flex: 1; padding: 3px 10px 10px 10px;
-            display: grid; grid-template-columns: repeat(8, 1fr);
-            grid-auto-rows: 1fr; gap: 4px; min-height: 0;
+        .brand .logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+            box-shadow: 0 0 30px rgba(79, 156, 247, 0.2);
         }
         
-        /* METRIC TILES */
-        .metric-tile {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(255,255,255,0.01); border-radius: 6px;
-            border: 1px solid rgba(255,255,255,0.015);
-            transition: all 0.15s ease; cursor: pointer;
-            position: relative; aspect-ratio: 1; min-height: 38px; padding: 2px;
+        .brand .name {
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+            color: #ffffff;
         }
-        .metric-tile:hover { transform: scale(1.06) translateY(-2px); z-index: 5; border-color: rgba(79,156,247,0.06); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .metric-tile:active { transform: scale(0.92); }
         
-        .metric-tile .val { font-size: 13px; font-weight: 800; position: relative; z-index: 2; line-height: 1; letter-spacing: -0.3px; }
-        .metric-tile .suffix { font-size: 6px; font-weight: 600; opacity: 0.4; position: relative; z-index: 2; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px; }
-        .metric-tile .mini-bar { position: absolute; bottom: 2px; left: 20%; right: 20%; height: 2px; border-radius: 2px; background: rgba(255,255,255,0.02); overflow: hidden; }
-        .metric-tile .mini-bar .fill { height: 100%; border-radius: 2px; transition: width 1s ease; }
+        .brand .name span {
+            color: #4f9cf7;
+        }
         
-        .tile-critical { background: rgba(255,71,87,0.06); border-color: rgba(255,71,87,0.05); }
-        .tile-critical .val { color: #ff4757; }
-        .tile-critical .mini-bar .fill { background: #ff4757; width: 75%; }
-        .tile-critical.pulse { animation: tile-pulse 2.5s ease-in-out infinite; }
-        @keyframes tile-pulse { 0%,100% { box-shadow: 0 0 8px rgba(255,71,87,0.02); } 50% { box-shadow: 0 0 20px rgba(255,71,87,0.06); } }
+        .brand .sub {
+            font-size: 9px;
+            font-weight: 600;
+            color: #6a8aaa;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
         
-        .tile-warning { background: rgba(255,165,2,0.04); border-color: rgba(255,165,2,0.04); }
-        .tile-warning .val { color: #ffa502; }
-        .tile-warning .mini-bar .fill { background: #ffa502; width: 45%; }
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         
-        .tile-mixed { background: rgba(124,58,237,0.04); border-color: rgba(124,58,237,0.04); }
-        .tile-mixed .val { color: #7c3aed; }
-        .tile-mixed .mini-bar .fill { background: #7c3aed; width: 30%; }
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0f973d;
+            padding: 4px 14px 4px 10px;
+            border-radius: 40px;
+            background: rgba(15, 151, 61, 0.08);
+            border: 1px solid rgba(15, 151, 61, 0.15);
+        }
         
-        .tile-healthy { background: rgba(15,151,61,0.03); border-color: rgba(15,151,61,0.02); }
-        .tile-healthy .val { color: #0f973d; }
-        .tile-healthy .mini-bar .fill { background: #0f973d; width: 10%; }
+        .live-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #0f973d;
+            animation: blink 1.5s infinite;
+        }
         
-        .tile-empty { background: rgba(255,255,255,0.005); border-color: rgba(255,255,255,0.005); cursor: default; }
-        .tile-empty:hover { transform: none; box-shadow: none; }
-        .tile-empty .val { color: #2a3a50; font-weight: 400; }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
         
-        /* MODAL */
+        .timer-display {
+            font-weight: 700;
+            font-size: 15px;
+            color: #4f9cf7;
+            padding: 4px 14px;
+            border-radius: 40px;
+            background: rgba(79, 156, 247, 0.04);
+            border: 1px solid rgba(79, 156, 247, 0.06);
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .btn-action {
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 11px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 20px rgba(79, 156, 247, 0.15);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(79, 156, 247, 0.25);
+        }
+        
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            color: #8aaac0;
+        }
+        
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        /* ================================================================
+           STATS BAR - HIGH CONTRAST
+           ================================================================ */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px 6px 8px;
+            flex-shrink: 0;
+            gap: 10px;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            margin-bottom: 4px;
+        }
+        
+        .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 16px 4px 12px;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        
+        .stat-card .icon-box {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .stat-card .icon-box.blue { background: rgba(79, 156, 247, 0.12); color: #4f9cf7; }
+        .stat-card .icon-box.red { background: rgba(255, 71, 87, 0.12); color: #ff4757; }
+        .stat-card .icon-box.green { background: rgba(15, 151, 61, 0.12); color: #0f973d; }
+        
+        .stat-card .label {
+            font-size: 10px;
+            font-weight: 600;
+            color: #6a8aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-card .value {
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffffff;
+        }
+        
+        .stat-card .value.blue { color: #4f9cf7; }
+        .stat-card .value.red { color: #ff4757; }
+        .stat-card .value.green { color: #0f973d; }
+        
+        /* Ticker */
+        .ticker-wrap {
+            flex: 1;
+            overflow: hidden;
+            padding: 0 10px;
+            min-width: 120px;
+        }
+        
+        .ticker-text {
+            display: inline-block;
+            white-space: nowrap;
+            animation: marquee 30s linear infinite;
+            font-size: 11px;
+            font-weight: 500;
+            color: #6a8aaa;
+        }
+        
+        .ticker-text span { margin: 0 25px; color: #8aaac0; }
+        .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
+        .ticker-text .danger { color: #ff4757; font-weight: 700; }
+        
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* ================================================================
+           LEGEND - CLEAR VISIBILITY
+           ================================================================ */
+        .legend-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 4px 0 6px 0;
+            flex-shrink: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        
+        .legend-bar .item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #8aaac0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .legend-bar .swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
+        .sw-crit { background: #ff4757; box-shadow: 0 0 15px rgba(255, 71, 87, 0.2); }
+        .sw-warn { background: #ffa502; box-shadow: 0 0 15px rgba(255, 165, 2, 0.2); }
+        .sw-mix { background: #7c3aed; box-shadow: 0 0 15px rgba(124, 58, 237, 0.2); }
+        .sw-health { background: #0f973d; box-shadow: 0 0 15px rgba(15, 151, 61, 0.15); }
+        
+        .legend-bar .timestamp {
+            color: #4a6a8a;
+            font-weight: 400;
+            font-size: 10px;
+            text-transform: none;
+        }
+        
+        /* ================================================================
+           MAIN GRID - HIGH CONTRAST TILES
+           ================================================================ */
+        .grid-main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 6px 0 0 0;
+            min-height: 0;
+        }
+        
+        .card-panel {
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-panel:hover {
+            border-color: rgba(79, 156, 247, 0.06);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .panel-header {
+            padding: 6px 14px 4px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.01);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        }
+        
+        .panel-header .title {
+            font-weight: 700;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #c8d8f0;
+        }
+        
+        .panel-header .title i {
+            color: #4f9cf7;
+            font-size: 13px;
+        }
+        
+        .panel-header .count {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 12px;
+            border-radius: 40px;
+            background: rgba(79, 156, 247, 0.04);
+            color: #4f9cf7;
+            border: 1px solid rgba(79, 156, 247, 0.04);
+        }
+        
+        .panel-body {
+            flex: 1;
+            padding: 4px 10px 10px 10px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-auto-rows: 1fr;
+            gap: 5px;
+            min-height: 0;
+        }
+        
+        /* ================================================================
+           HIGH CONTRAST TILES - CLEARLY VISIBLE
+           ================================================================ */
+        .tile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.15s ease;
+            cursor: pointer;
+            position: relative;
+            aspect-ratio: 1;
+            min-height: 42px;
+            padding: 2px;
+            border: 2px solid rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.01);
+        }
+        
+        .tile:hover {
+            transform: scale(1.08) translateY(-3px);
+            z-index: 5;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .tile:active {
+            transform: scale(0.92);
+        }
+        
+        .tile .val {
+            font-size: 16px;
+            font-weight: 900;
+            position: relative;
+            z-index: 2;
+            line-height: 1;
+            letter-spacing: -0.5px;
+        }
+        
+        .tile .suffix {
+            font-size: 7px;
+            font-weight: 700;
+            opacity: 0.6;
+            position: relative;
+            z-index: 2;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-top: 1px;
+        }
+        
+        .tile .bar {
+            position: absolute;
+            bottom: 3px;
+            left: 15%;
+            right: 15%;
+            height: 3px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        }
+        
+        .tile .bar .fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+        
+        /* CRITICAL - HIGH VISIBILITY */
+        .tile-critical {
+            background: rgba(255, 71, 87, 0.12);
+            border-color: rgba(255, 71, 87, 0.2);
+        }
+        
+        .tile-critical .val {
+            color: #ff4757;
+            font-size: 18px;
+        }
+        
+        .tile-critical .bar .fill {
+            background: #ff4757;
+            width: 80%;
+        }
+        
+        .tile-critical.pulse {
+            animation: crit-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes crit-pulse {
+            0%, 100% { border-color: rgba(255, 71, 87, 0.2); box-shadow: 0 0 10px rgba(255, 71, 87, 0.02); }
+            50% { border-color: rgba(255, 71, 87, 0.4); box-shadow: 0 0 25px rgba(255, 71, 87, 0.06); }
+        }
+        
+        /* WARNING */
+        .tile-warning {
+            background: rgba(255, 165, 2, 0.08);
+            border-color: rgba(255, 165, 2, 0.15);
+        }
+        
+        .tile-warning .val {
+            color: #ffa502;
+            font-size: 17px;
+        }
+        
+        .tile-warning .bar .fill {
+            background: #ffa502;
+            width: 50%;
+        }
+        
+        /* MIXED */
+        .tile-mixed {
+            background: rgba(124, 58, 237, 0.08);
+            border-color: rgba(124, 58, 237, 0.15);
+        }
+        
+        .tile-mixed .val {
+            color: #7c3aed;
+            font-size: 17px;
+        }
+        
+        .tile-mixed .bar .fill {
+            background: #7c3aed;
+            width: 35%;
+        }
+        
+        /* HEALTHY */
+        .tile-healthy {
+            background: rgba(15, 151, 61, 0.04);
+            border-color: rgba(15, 151, 61, 0.04);
+        }
+        
+        .tile-healthy .val {
+            color: #0f973d;
+            font-size: 16px;
+        }
+        
+        .tile-healthy .bar .fill {
+            background: #0f973d;
+            width: 15%;
+        }
+        
+        /* EMPTY */
+        .tile-empty {
+            background: rgba(255, 255, 255, 0.005);
+            border-color: rgba(255, 255, 255, 0.005);
+            cursor: default;
+        }
+        
+        .tile-empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .tile-empty .val {
+            color: #2a3a50;
+            font-weight: 400;
+            font-size: 14px;
+        }
+        
+        /* ================================================================
+           MODAL - CLEAR
+           ================================================================ */
         #modalContainer {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
-            display: none; align-items: center; justify-content: center;
-            z-index: 99999; animation: modal-in 0.25s ease;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            animation: modal-in 0.25s ease;
         }
-        @keyframes modal-in { from { opacity: 0; transform: scale(0.94) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        
+        @keyframes modal-in {
+            from { opacity: 0; transform: scale(0.94) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
         
         #alertBox {
-            background: linear-gradient(145deg, #111a24, #090e16);
-            border-radius: 20px; max-width: 580px; width: 92%;
-            padding: 24px 26px 26px 26px;
-            border: 1px solid rgba(255,255,255,0.03);
-            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
-            max-height: 85vh; overflow-y: auto;
+            background: #121a26;
+            border-radius: 20px;
+            max-width: 580px;
+            width: 92%;
+            padding: 24px 28px 28px 28px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+            max-height: 85vh;
+            overflow-y: auto;
         }
-        #alertBox .modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-        #alertBox .modal-head h3 { font-size: 16px; font-weight: 800; color: #ff4757; display: flex; align-items: center; gap: 10px; }
-        #alertBox .modal-head h3 i { font-size: 18px; }
-        #alertBox .modal-head .close-btn { background: none; border: none; color: #4a6a8a; font-size: 22px; cursor: pointer; transition: 0.2s; padding: 0 4px; line-height: 1; }
-        #alertBox .modal-head .close-btn:hover { color: white; transform: rotate(90deg); }
         
-        #alertBox .modal-body { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px 14px; margin: 6px 0 12px 0; border-left: 2px solid #4f9cf7; font-size: 12px; line-height: 1.6; color: #b0c8e0; max-height: 150px; overflow-y: auto; }
-        #alertBox .modal-body b { color: #e8edf5; }
+        #alertBox .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
         
-        #alertBox .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        #alertBox .form-group { margin-bottom: 4px; }
-        #alertBox .form-group label { display: block; font-size: 8px; font-weight: 700; color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-        #alertBox .form-group select, #alertBox .form-group textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.03); border-radius: 8px; padding: 6px 12px; color: #e8edf5; font-size: 12px; font-family: 'Inter', sans-serif; transition: 0.2s; }
-        #alertBox .form-group select:focus, #alertBox .form-group textarea:focus { outline: none; border-color: #4f9cf7; box-shadow: 0 0 0 3px rgba(79,156,247,0.04); }
-        #alertBox .form-group textarea { min-height: 40px; resize: vertical; }
-        #alertBox .form-group.full { grid-column: 1 / -1; }
+        #alertBox .head h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ff4757;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         
-        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
-        .modal-actions .btn-modal { padding: 6px 18px; border-radius: 40px; font-weight: 700; font-size: 10px; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Inter', sans-serif; }
-        .modal-actions .btn-modal-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: white; box-shadow: 0 4px 15px rgba(79,156,247,0.15); }
-        .modal-actions .btn-modal-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(79,156,247,0.25); }
-        .modal-actions .btn-modal-danger { background: linear-gradient(135deg, #ff4757, #c0392b); color: white; }
-        .modal-actions .btn-modal-danger:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(255,71,87,0.15); }
-        .modal-actions .btn-modal-secondary { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); color: #8aaac0; }
-        .modal-actions .btn-modal-secondary:hover { background: rgba(255,255,255,0.04); }
+        #alertBox .head .close-btn {
+            background: none;
+            border: none;
+            color: #4a6a8a;
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.2s;
+            padding: 0 4px;
+            line-height: 1;
+        }
         
-        @media (max-width: 1600px) { .card-body { grid-template-columns: repeat(7, 1fr); } }
-        @media (max-width: 1400px) { .card-body { grid-template-columns: repeat(6, 1fr); } .card-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 1100px) { .card-body { grid-template-columns: repeat(5, 1fr); } .card-grid { grid-template-columns: repeat(2, 1fr); } .top-bar-glass { flex-wrap: wrap; height: auto; gap: 4px; } .stats-row { flex-wrap: wrap; } }
-        @media (max-width: 768px) { .card-body { grid-template-columns: repeat(4, 1fr); } .card-grid { grid-template-columns: 1fr; } .legend-minimal { flex-wrap: wrap; gap: 6px; } #alertBox .form-grid { grid-template-columns: 1fr; } }
+        #alertBox .head .close-btn:hover {
+            color: white;
+            transform: rotate(90deg);
+        }
+        
+        #alertBox .body-text {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin: 6px 0 14px 0;
+            border-left: 3px solid #4f9cf7;
+            font-size: 13px;
+            line-height: 1.7;
+            color: #b0c8e0;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+        
+        #alertBox .body-text b {
+            color: #ffffff;
+        }
+        
+        #alertBox .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        #alertBox .field {
+            margin-bottom: 4px;
+        }
+        
+        #alertBox .field label {
+            display: block;
+            font-size: 9px;
+            font-weight: 700;
+            color: #4a6a8a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 3px;
+        }
+        
+        #alertBox .field select,
+        #alertBox .field textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 8px 14px;
+            color: #ffffff;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            transition: 0.2s;
+        }
+        
+        #alertBox .field select:focus,
+        #alertBox .field textarea:focus {
+            outline: none;
+            border-color: #4f9cf7;
+            box-shadow: 0 0 0 3px rgba(79, 156, 247, 0.04);
+        }
+        
+        #alertBox .field textarea {
+            min-height: 44px;
+            resize: vertical;
+        }
+        
+        #alertBox .field.full {
+            grid-column: 1 / -1;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .modal-actions .btn-m {
+            padding: 7px 22px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 11px;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .modal-actions .btn-m-primary {
+            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 156, 247, 0.15);
+        }
+        
+        .modal-actions .btn-m-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 156, 247, 0.25);
+        }
+        
+        .modal-actions .btn-m-danger {
+            background: linear-gradient(135deg, #ff4757, #c0392b);
+            color: white;
+        }
+        
+        .modal-actions .btn-m-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 71, 87, 0.15);
+        }
+        
+        .modal-actions .btn-m-secondary {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            color: #8aaac0;
+        }
+        
+        .modal-actions .btn-m-secondary:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        
+        /* ================================================================
+           RESPONSIVE
+           ================================================================ */
+        @media (max-width: 1600px) { .panel-body { grid-template-columns: repeat(7, 1fr); } }
+        @media (max-width: 1400px) { .panel-body { grid-template-columns: repeat(6, 1fr); } .grid-main { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 1100px) { .panel-body { grid-template-columns: repeat(5, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; gap: 6px; } .stats-bar { flex-wrap: wrap; } }
+        @media (max-width: 768px) { .panel-body { grid-template-columns: repeat(4, 1fr); } .grid-main { grid-template-columns: 1fr; } .legend-bar { flex-wrap: wrap; gap: 10px; } #alertBox .form-row { grid-template-columns: 1fr; } }
         
         #alertBox::-webkit-scrollbar { width: 3px; }
         #alertBox::-webkit-scrollbar-track { background: transparent; }
@@ -221,50 +760,64 @@
 </head>
 <body>
 
-<div class="bg-premium"></div>
+<div class="bg-clean"></div>
 
-<div class="command-wrapper">
+<div class="wrapper">
 
     <!-- TOP BAR -->
-    <div class="top-bar-glass">
-        <div class="brand-premium">
+    <div class="top-bar">
+        <div class="brand">
             <div class="logo"><i class="fas fa-chart-simple"></i></div>
             <div>
-                <div class="brand-text">ServiceWise</div>
-                <div class="brand-sub">Command Center</div>
+                <div class="name">Service<span>Wise</span></div>
+                <div class="sub">Command Center</div>
             </div>
         </div>
-        <div class="top-right">
-            <div class="live-indicator"><span class="dot"></span> LIVE</div>
-            <span class="timer" id="ten-countdown">5:00</span>
-            <button class="btn-glass btn-glass-primary" id="openPopupButton"><i class="fas fa-list"></i> Closed</button>
-            <button class="btn-glass btn-glass-ghost" id="openPopup"><i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.04); padding:0 6px; border-radius:6px; font-weight:700;">0</span></button>
+        <div class="top-actions">
+            <div class="live-badge">
+                <span class="dot"></span> LIVE
+            </div>
+            <span class="timer-display" id="ten-countdown">5:00</span>
+            <button class="btn-action btn-primary" id="openPopupButton"><i class="fas fa-list"></i> Closed</button>
+            <button class="btn-action btn-ghost" id="openPopup"><i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.04); padding:0 6px; border-radius:6px; font-weight:700;">0</span></button>
         </div>
     </div>
 
-    <!-- STATS -->
-    <div class="stats-row">
-        <div class="stat-item"><div class="icon blue"><i class="fas fa-server"></i></div><span class="label">Services</span><span class="value blue" id="totalServices">--</span></div>
-        <div class="stat-item"><div class="icon red"><i class="fas fa-exclamation-triangle"></i></div><span class="label">Critical</span><span class="value red" id="totalCritical">--</span></div>
-        <div class="stat-item"><div class="icon green"><i class="fas fa-check-circle"></i></div><span class="label">Healthy</span><span class="value green" id="totalHealthy">--</span></div>
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="icon-box blue"><i class="fas fa-server"></i></div>
+            <span class="label">Services</span>
+            <span class="value blue" id="totalServices">--</span>
+        </div>
+        <div class="stat-card">
+            <div class="icon-box red"><i class="fas fa-exclamation-triangle"></i></div>
+            <span class="label">Critical</span>
+            <span class="value red" id="totalCritical">--</span>
+        </div>
+        <div class="stat-card">
+            <div class="icon-box green"><i class="fas fa-check-circle"></i></div>
+            <span class="label">Healthy</span>
+            <span class="value green" id="totalHealthy">--</span>
+        </div>
         <div class="ticker-wrap">
             <div class="ticker-text">
                 <span>● <span class="hl">STATUS:</span> All systems operational</span>
-                <span>● <span class="hl">MONITORING:</span> Real-time failure detection</span>
-                <span>● <span class="hl">ALERT:</span> Auto-refresh 5 min</span>
+                <span>● <span class="hl">MONITOR:</span> Real-time failure detection</span>
+                <span>● <span class="hl">REFRESH:</span> Auto every 5 minutes</span>
                 <span>● <span class="hl">THRESHOLD:</span> EIS-TD &gt; 1%</span>
             </div>
         </div>
     </div>
 
     <!-- LEGEND -->
-    <div class="legend-minimal">
+    <div class="legend-bar">
         <span class="item"><span class="swatch sw-crit"></span> Critical</span>
         <span class="item"><span class="swatch sw-warn"></span> Warning</span>
         <span class="item"><span class="swatch sw-mix"></span> Mixed</span>
         <span class="item"><span class="swatch sw-health"></span> Healthy</span>
-        <span class="item" style="color:#3a5a7a;font-weight:400;">
-            <i class="fas fa-sync-alt fa-fw" style="color:#4f9cf7;"></i>
+        <span class="item timestamp">
+            <i class="far fa-clock"></i>
             <%
                 try {
                     Connection conStamp = DBUtilityAuto.getReportDBConnection();
@@ -283,15 +836,15 @@
     </div>
 
     <!-- MAIN GRID -->
-    <div class="card-grid">
+    <div class="grid-main">
         
         <!-- GEN-5 -->
-        <div class="service-card">
-            <div class="card-header">
+        <div class="card-panel">
+            <div class="panel-header">
                 <span class="title"><i class="fas fa-server"></i> GEN-5</span>
-                <span class="badge">48</span>
+                <span class="count">48</span>
             </div>
-            <div class="card-body" id="panel-gen5">
+            <div class="panel-body" id="panel-gen5">
                 <%
                     Connection con = DBUtilityAuto.getReportDBConnection();
                     Statement l_bjst = null;
@@ -326,18 +879,21 @@
                                 String safeSrc = SOURCE_ID.get(i) != null ? SOURCE_ID.get(i) : "N/A";
                                 String safeErr = ERROR_CODE.get(i) != null ? ERROR_CODE.get(i) : "N/A";
                                 String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Source:</b> "+safeSrc+"<br><b>Error:</b> "+safeErr+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>Fail %:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI Error:</b> "+SI_EEROR_Count.get(i)+"<br><b>Time:</b> "+ISSUE_TIME.get(i);
-                                String cls = "metric-tile tile-critical";
-                                if(EIS_TD_PER.get(i) < 5) cls = "metric-tile tile-warning";
-                                if(EIS_TD_PER.get(i) > 0 && EIS_TD_PER.get(i) < 3) cls = "metric-tile tile-mixed";
+                                String cls = "tile tile-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "tile tile-warning";
+                                if(EIS_TD_PER.get(i) > 0 && EIS_TD_PER.get(i) < 3) cls = "tile tile-mixed";
                                 if(i % 4 == 0 && EIS_TD_PER.get(i) > 3) cls += " pulse";
-                                out.print("<div class='"+cls+"' onclick=\"openPremiumModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+safeSrc+"','"+safeErr+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
-                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                                out.print("<div class='"+cls+"' onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+safeSrc+"','"+safeErr+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span>");
+                                out.print("<span class='suffix'>%</span>");
+                                out.print("<div class='bar'><div class='fill'></div></div>");
+                                out.print("</div>");
                             }
                             for(int k=EIS_TD_PER.size(); k<maxTile; k++) {
-                                out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                                out.print("<div class='tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='bar'><div class='fill'></div></div></div>");
                             }
                         } else {
-                            for(int i=0; i<maxTile; i++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                            for(int i=0; i<maxTile; i++) out.print("<div class='tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='bar'><div class='fill'></div></div></div>");
                         }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
@@ -345,12 +901,12 @@
         </div>
 
         <!-- SI -->
-        <div class="service-card">
-            <div class="card-header">
+        <div class="card-panel">
+            <div class="panel-header">
                 <span class="title"><i class="fas fa-code"></i> SI Services</span>
-                <span class="badge">48</span>
+                <span class="count">48</span>
             </div>
-            <div class="card-body" id="panel-si">
+            <div class="panel-body" id="panel-si">
                 <%
                     try {
                         String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 48";
@@ -376,29 +932,29 @@
                             for(int i=0; i<Math.min(ERROR_CODE.size(), maxTile); i++) {
                                 String safeErr = ERROR_CODE.get(i) != null ? ERROR_CODE.get(i) : "N/A";
                                 String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Error:</b> "+safeErr+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>Fail %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Time:</b> "+ISSUE_TIME.get(i);
-                                String cls = "metric-tile tile-critical";
-                                if(EIS_TD_PER.get(i) < 5) cls = "metric-tile tile-warning";
+                                String cls = "tile tile-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "tile tile-warning";
                                 if(i % 4 == 0 && EIS_TD_PER.get(i) > 3) cls += " pulse";
-                                out.print("<div class='"+cls+"' onclick=\"openPremiumModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+safeErr+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
-                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                                out.print("<div class='"+cls+"' onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+safeErr+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span><div class='bar'><div class='fill'></div></div></div>");
                             }
-                            for(int k=EIS_TD_PER.size(); k<maxTile; k++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
-                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>"); }
+                            for(int k=EIS_TD_PER.size(); k<maxTile; k++) out.print("<div class='tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='bar'><div class='fill'></div></div></div>");
+                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='bar'><div class='fill'></div></div></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
         <!-- ThirdParty -->
-        <div class="service-card">
-            <div class="card-header">
+        <div class="card-panel">
+            <div class="panel-header">
                 <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
-                <span class="badge">48</span>
+                <span class="count">48</span>
             </div>
-            <div class="card-body" id="panel-third">
+            <div class="panel-body" id="panel-third">
                 <%
                     try {
-                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 48";
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 48";
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
                         List<Double> TD_Per = new ArrayList<>();
                         List<Integer> TOTAL_HITS_TD = new ArrayList<>();
@@ -424,26 +980,26 @@
                                 String safeErr = Error_Code_TD.get(i) != null ? Error_Code_TD.get(i) : "N/A";
                                 String safeSrc = Source_Id_TD.get(i) != null ? Source_Id_TD.get(i) : "N/A";
                                 String alertMsg = "<b>Service:</b> "+Original_URN_TD.get(i)+"<br><b>Error:</b> "+safeErr+"<br><b>Source:</b> "+safeSrc+"<br><b>Hits:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD:</b> "+TD_Count.get(i)+"<br><b>Time:</b> "+TD_Issue_Time.get(i);
-                                String cls = "metric-tile tile-critical";
-                                if(TD_Per.get(i) < 5) cls = "metric-tile tile-warning";
+                                String cls = "tile tile-critical";
+                                if(TD_Per.get(i) < 5) cls = "tile tile-warning";
                                 if(i % 4 == 0 && TD_Per.get(i) > 3) cls += " pulse";
-                                out.print("<div class='"+cls+"' onclick=\"openPremiumModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+safeSrc+"','"+safeErr+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
-                                out.print("<span class='val'>"+TD_Per.get(i)+"</span><span class='suffix'>%</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                                out.print("<div class='"+cls+"' onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+safeSrc+"','"+safeErr+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
+                                out.print("<span class='val'>"+TD_Per.get(i)+"</span><span class='suffix'>%</span><div class='bar'><div class='fill'></div></div></div>");
                             }
-                            for(int k=TD_Per.size(); k<maxTile; k++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
-                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>"); }
+                            for(int k=TD_Per.size(); k<maxTile; k++) out.print("<div class='tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='bar'><div class='fill'></div></div></div>");
+                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='bar'><div class='fill'></div></div></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
         <!-- I4C + IVR + SBICAPS -->
-        <div class="service-card">
-            <div class="card-header">
+        <div class="card-panel">
+            <div class="panel-header">
                 <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
-                <span class="badge">48</span>
+                <span class="count">48</span>
             </div>
-            <div class="card-body" id="panel-mixed">
+            <div class="panel-body" id="panel-mixed">
                 <%
                     try {
                         List<Double> allPct = new ArrayList<>();
@@ -513,15 +1069,15 @@
                         int maxTile = 48;
                         if(allPct != null && !allPct.isEmpty()) {
                             for(int i=0; i<Math.min(allPct.size(), maxTile); i++) {
-                                String cls = "metric-tile tile-critical";
-                                if(allPct.get(i) < 5) cls = "metric-tile tile-warning";
-                                if(allPct.get(i) > 0 && allPct.get(i) < 3) cls = "metric-tile tile-mixed";
+                                String cls = "tile tile-critical";
+                                if(allPct.get(i) < 5) cls = "tile tile-warning";
+                                if(allPct.get(i) > 0 && allPct.get(i) < 3) cls = "tile tile-mixed";
                                 if(i % 4 == 0 && allPct.get(i) > 3) cls += " pulse";
-                                out.print("<div class='"+cls+"' onclick=\"openPremiumModal('"+allMsgs.get(i).replace("'","\\'")+"','"+allNames.get(i)+"','"+allCats.get(i)+"','"+allSources.get(i)+"','"+allErrors.get(i)+"','"+allHits.get(i)+"','"+allTDs.get(i)+"','"+allTimes.get(i)+"')\">");
-                                out.print("<span class='val'>"+allPct.get(i)+"</span><span class='suffix'>%</span><div class='mini-bar'><div class='fill'></div></div></div>");
+                                out.print("<div class='"+cls+"' onclick=\"openModal('"+allMsgs.get(i).replace("'","\\'")+"','"+allNames.get(i)+"','"+allCats.get(i)+"','"+allSources.get(i)+"','"+allErrors.get(i)+"','"+allHits.get(i)+"','"+allTDs.get(i)+"','"+allTimes.get(i)+"')\">");
+                                out.print("<span class='val'>"+allPct.get(i)+"</span><span class='suffix'>%</span><div class='bar'><div class='fill'></div></div></div>");
                             }
-                            for(int k=allPct.size(); k<maxTile; k++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>");
-                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='metric-tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='mini-bar'><div class='fill'></div></div></div>"); }
+                            for(int k=allPct.size(); k<maxTile; k++) out.print("<div class='tile tile-healthy'><span class='val'>"+(k+1)+"</span><div class='bar'><div class='fill'></div></div></div>");
+                        } else { for(int i=0; i<maxTile; i++) out.print("<div class='tile tile-healthy'><span class='val'>"+(i+1)+"</span><div class='bar'><div class='fill'></div></div></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
@@ -535,14 +1091,14 @@
      ================================================================ -->
 <div id="modalContainer">
     <div id="alertBox">
-        <div class="modal-head">
+        <div class="head">
             <h3><i class="fas fa-exclamation-triangle"></i> Service Alert</h3>
-            <button class="close-btn" onclick="closePremiumModal()">✕</button>
+            <button class="close-btn" onclick="closeModal()">✕</button>
         </div>
-        <div class="modal-body" id="modalMsg"></div>
+        <div class="body-text" id="modalMsg"></div>
         
-        <div class="form-grid">
-            <div class="form-group">
+        <div class="form-row">
+            <div class="field">
                 <label>Closed Time</label>
                 <select id="pasuseTime">
                     <option value="1">1 Hour</option><option value="2">2 Hours</option>
@@ -559,7 +1115,7 @@
                     <option value="23">23 Hours</option><option value="24">24 Hours</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="field">
                 <label>Closed By</label>
                 <select id="closeName">
                     <option value="">Select</option>
@@ -579,15 +1135,15 @@
                 </select>
             </div>
         </div>
-        <div class="form-group full">
+        <div class="field full">
             <label>Comment</label>
             <textarea id="TextArea" placeholder="Enter closure comments..."></textarea>
         </div>
         
         <div class="modal-actions">
-            <button class="btn-modal btn-modal-primary" id="closeBtn"><i class="fas fa-check"></i> Close</button>
-            <button class="btn-modal btn-modal-danger" id="detailsBtn"><i class="fas fa-eye"></i> View</button>
-            <button class="btn-modal btn-modal-secondary" onclick="closePremiumModal()">Cancel</button>
+            <button class="btn-m btn-m-primary" id="closeBtn"><i class="fas fa-check"></i> Close</button>
+            <button class="btn-m btn-m-danger" id="detailsBtn"><i class="fas fa-eye"></i> View</button>
+            <button class="btn-m btn-m-secondary" onclick="closeModal()">Cancel</button>
         </div>
     </div>
 </div>
@@ -603,16 +1159,16 @@
      SCRIPTS
      ================================================================ -->
 <script>
-    var pmApi = '', pmCat = '', pmSource = '', pmError = '', pmHits = '', pmTD = '', pmTime = '';
+    var mApi = '', mCat = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
     
-    function openPremiumModal(msg, api, cat, src, err, hits, td, time) {
-        pmApi = api || '';
-        pmCat = cat || 'GEN-5';
-        pmSource = src || '';
-        pmError = err || '';
-        pmHits = hits || '';
-        pmTD = td || '';
-        pmTime = time || '';
+    function openModal(msg, api, cat, src, err, hits, td, time) {
+        mApi = api || '';
+        mCat = cat || 'GEN-5';
+        mSource = src || '';
+        mError = err || '';
+        mHits = hits || '';
+        mTD = td || '';
+        mTime = time || '';
         
         document.getElementById('modalMsg').innerHTML = msg;
         document.getElementById('modalContainer').style.display = 'flex';
@@ -620,7 +1176,7 @@
         document.getElementById('closeName').value = '';
     }
     
-    function closePremiumModal() {
+    function closeModal() {
         document.getElementById('modalContainer').style.display = 'none';
     }
     
@@ -636,23 +1192,23 @@
             }
             
             var url = '<%=request.getContextPath() + "/jsp/ServiceWiseFailureAction.jsp?Api_Name="%>' 
-                + encodeURIComponent(pmApi)
-                + '&SourceID=' + encodeURIComponent(pmSource)
+                + encodeURIComponent(mApi)
+                + '&SourceID=' + encodeURIComponent(mSource)
                 + '&TextArea=' + encodeURIComponent(comment)
                 + '&pasuseTime=' + encodeURIComponent(pTime)
-                + '&ErrorCode=' + encodeURIComponent(pmError)
+                + '&ErrorCode=' + encodeURIComponent(mError)
                 + '&closeName=' + encodeURIComponent(closer)
-                + '&ServiceCategory=' + encodeURIComponent(pmCat);
+                + '&ServiceCategory=' + encodeURIComponent(mCat);
             
-            closePremiumModal();
+            closeModal();
             location.replace(url);
         });
         
         document.getElementById('detailsBtn').addEventListener('click', function() {
-            if(pmCat != 'SI' && pmCat != 'SIServices') {
+            if(mCat != 'SI' && mCat != 'SIServices') {
                 var url = '<%=request.getContextPath() + "/showFailureServicesWise.do?action=showFailureServicesWise&url="%>' 
-                    + encodeURIComponent(pmApi) 
-                    + '&ServiceCategory=' + encodeURIComponent(pmCat);
+                    + encodeURIComponent(mApi) 
+                    + '&ServiceCategory=' + encodeURIComponent(mCat);
                 window.open(url, '_blank');
             }
         });
@@ -669,7 +1225,7 @@
     });
     
     function updateStats() {
-        var tiles = document.querySelectorAll('.metric-tile:not(.tile-empty)');
+        var tiles = document.querySelectorAll('.tile:not(.tile-empty)');
         var total = tiles.length;
         var critical = document.querySelectorAll('.tile-critical').length;
         var healthy = document.querySelectorAll('.tile-healthy').length;
@@ -679,7 +1235,7 @@
         document.getElementById('totalHealthy').textContent = healthy || '0';
     }
     
-    function countdownPremium(el, minutes, seconds) {
+    function countdownTimer(el, minutes, seconds) {
         var element = document.getElementById(el);
         if(!element) return;
         var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
@@ -696,14 +1252,14 @@
         }
         update();
     }
-    countdownPremium('ten-countdown', 5, 0);
+    countdownTimer('ten-countdown', 5, 0);
     
     document.getElementById('modalContainer').addEventListener('click', function(e) {
-        if(e.target === this) closePremiumModal();
+        if(e.target === this) closeModal();
     });
     
     document.addEventListener('keydown', function(e) {
-        if(e.key === 'Escape') closePremiumModal();
+        if(e.key === 'Escape') closeModal();
     });
 </script>
 
