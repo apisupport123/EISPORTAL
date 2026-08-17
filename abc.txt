@@ -21,13 +21,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="300">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>SERVICEWISE · COMMAND CENTER</title>
+    <title>DynaStyle · Command Center</title>
     <style>
         /* ============================================================
-           HYPER-DYNAMIC ONE-SCREEN DASHBOARD
-           NO SCROLL · FULL IMMERSION
+           DYNASTYLE - INTERCONNECTED HEXAGON DASHBOARD
+           Inspired by Dynatrace Monitoring
            ============================================================ */
         
         * {
@@ -40,252 +40,243 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            font-family: 'Rajdhani', sans-serif;
-            background: #05080c;
-            color: #e8edf5;
+            font-family: 'Inter', sans-serif;
+            background: #080c14;
+            color: #e0e8f0;
         }
         
         /* ============================================================
-           COSMIC BACKGROUND
+           PREMIUM DARK BACKGROUND
            ============================================================ */
-        .bg-cosmic {
+        .bg-layer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
             background: 
-                radial-gradient(ellipse at 20% 30%, rgba(10, 40, 80, 0.4) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 70%, rgba(40, 10, 80, 0.3) 0%, transparent 50%),
-                radial-gradient(ellipse at 50% 50%, rgba(0, 20, 40, 0.3) 0%, transparent 70%),
-                #05080c;
+                radial-gradient(ellipse at 15% 20%, rgba(20, 60, 120, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 80%, rgba(60, 20, 120, 0.10) 0%, transparent 50%),
+                #080c14;
             z-index: 0;
         }
         
-        .bg-cosmic::after {
+        /* Grid pattern overlay */
+        .bg-layer::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+            background-size: 40px 40px;
             pointer-events: none;
         }
         
         /* ============================================================
-           MAIN CONTAINER - FULL SCREEN
+           MAIN LAYOUT - FULL SCREEN
            ============================================================ */
-        .command-center {
+        .dynastyle {
             position: relative;
             z-index: 1;
             width: 100vw;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            padding: 12px 20px 12px 20px;
+            padding: 10px 18px 14px 18px;
             overflow: hidden;
         }
         
         /* ============================================================
-           TOP BAR - CYBERPUNK STYLE
+           TOP HEADER - DYNASTYLE
            ============================================================ */
-        .top-bar {
+        .dyna-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0 10px 0;
-            border-bottom: 1px solid rgba(79, 156, 247, 0.08);
+            padding: 6px 4px 12px 4px;
+            border-bottom: 1px solid rgba(79, 156, 247, 0.06);
             flex-shrink: 0;
-            height: 70px;
+            height: 64px;
         }
         
-        .brand-cyber {
+        .dyna-brand {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
         
-        .brand-cyber .logo {
-            width: 44px;
-            height: 44px;
+        .dyna-brand .icon {
+            width: 38px;
+            height: 38px;
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 0 40px rgba(79, 156, 247, 0.2);
-            position: relative;
+            font-size: 16px;
+            color: white;
+            box-shadow: 0 0 30px rgba(79,156,247,0.15);
         }
         
-        .brand-cyber .logo::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            opacity: 0.3;
-            filter: blur(8px);
-            z-index: -1;
+        .dyna-brand h1 {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            color: #e8edf5;
         }
         
-        .brand-cyber .title {
-            font-family: 'Orbitron', monospace;
-            font-weight: 900;
-            font-size: 22px;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, #ffffff 20%, #4f9cf7 80%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .dyna-brand h1 span {
+            color: #4f9cf7;
         }
         
-        .brand-cyber .sub {
-            font-size: 10px;
-            font-weight: 400;
+        .dyna-brand .sub {
+            font-size: 9px;
+            font-weight: 600;
             color: #4a6a8a;
-            letter-spacing: 4px;
             text-transform: uppercase;
-            -webkit-text-fill-color: #4a6a8a;
+            letter-spacing: 2px;
         }
         
-        .top-stats {
+        .dyna-controls {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 12px;
         }
         
-        .stat-pill {
+        .dyna-pill {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.04);
-            padding: 6px 18px 6px 14px;
-            border-radius: 40px;
-            font-size: 12px;
+            padding: 5px 14px 5px 12px;
+            border-radius: 30px;
+            font-size: 11px;
             font-weight: 600;
             color: #6a8aaa;
         }
         
-        .stat-pill .num {
-            color: #e8edf5;
-            font-size: 16px;
-            font-weight: 700;
-            font-family: 'Orbitron', monospace;
-        }
-        
-        .stat-pill .dot-green {
-            width: 8px;
-            height: 8px;
+        .dyna-pill .live-dot {
+            width: 7px;
+            height: 7px;
             background: #0f973d;
             border-radius: 50%;
-            animation: pulse-dot 2s infinite;
+            animation: pulse-dot 1.8s infinite;
         }
         
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.7); }
+            50% { opacity: 0.3; transform: scale(0.7); }
         }
         
-        .btn-cyber {
-            padding: 7px 20px;
-            border-radius: 40px;
-            font-family: 'Rajdhani', sans-serif;
+        .dyna-pill .num {
+            color: #e8edf5;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 14px;
+        }
+        
+        .dyna-timer {
+            font-family: 'Inter', monospace;
+            font-weight: 700;
+            font-size: 15px;
+            color: #4f9cf7;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-dyna {
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
             border: none;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            text-decoration: none;
+            font-family: 'Inter', sans-serif;
         }
         
-        .btn-cyber-primary {
+        .btn-dyna-primary {
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
             color: white;
-            box-shadow: 0 4px 25px rgba(79, 156, 247, 0.25);
+            box-shadow: 0 3px 20px rgba(79,156,247,0.2);
         }
         
-        .btn-cyber-primary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 40px rgba(79, 156, 247, 0.35);
+        .btn-dyna-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(79,156,247,0.3);
         }
         
-        .btn-cyber-ghost {
+        .btn-dyna-ghost {
             background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.05);
             color: #8aaac0;
         }
         
-        .btn-cyber-ghost:hover {
+        .btn-dyna-ghost:hover {
             background: rgba(255,255,255,0.06);
-            border-color: rgba(255,255,255,0.12);
-        }
-        
-        .timer-cyber {
-            font-family: 'Orbitron', monospace;
-            font-weight: 700;
-            font-size: 16px;
-            color: #4f9cf7;
-            letter-spacing: 1px;
         }
         
         /* ============================================================
-           LEGEND - CYBER
+           LEGEND - COMPACT
            ============================================================ */
-        .legend-cyber {
+        .dyna-legend {
             display: flex;
             justify-content: center;
-            gap: 25px;
-            padding: 8px 0;
+            gap: 18px;
+            padding: 6px 0 8px 0;
             flex-shrink: 0;
-            height: 42px;
+            height: 34px;
         }
         
-        .legend-cyber .item {
+        .dyna-legend .item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #6a8aaa;
+            gap: 6px;
+            font-size: 9px;
+            font-weight: 700;
+            color: #5a7a9a;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
         
-        .legend-cyber .dot {
-            width: 12px;
-            height: 12px;
+        .dyna-legend .dot {
+            width: 10px;
+            height: 10px;
             border-radius: 3px;
         }
         
-        .dot-critical { background: linear-gradient(135deg, #ff4757, #c0392b); box-shadow: 0 0 12px rgba(255,71,87,0.3); }
-        .dot-warning { background: linear-gradient(135deg, #ffa502, #d68910); box-shadow: 0 0 12px rgba(255,165,2,0.3); }
-        .dot-mixed { background: linear-gradient(135deg, #7c3aed, #5b2d8e); box-shadow: 0 0 12px rgba(124,58,237,0.3); }
-        .dot-healthy { background: linear-gradient(135deg, #0f973d, #0a7a30); box-shadow: 0 0 12px rgba(15,151,61,0.3); }
+        .dot-critical { background: #ff4757; box-shadow: 0 0 12px rgba(255,71,87,0.25); }
+        .dot-warning { background: #ffa502; box-shadow: 0 0 12px rgba(255,165,2,0.2); }
+        .dot-mixed { background: #7c3aed; box-shadow: 0 0 12px rgba(124,58,237,0.2); }
+        .dot-healthy { background: #0f973d; box-shadow: 0 0 12px rgba(15,151,61,0.15); }
         
         /* ============================================================
-           MAIN GRID - FLEXIBLE HEXAGON LAYOUT
+           FOUR CORNER GRID - DYNASTYLE
+           Each panel has interconnected hexagons
            ============================================================ */
-        .hex-grid-container {
+        .dyna-grid {
             flex: 1;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            padding: 8px 0 0 0;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 14px;
             min-height: 0;
+            padding: 2px 0 0 0;
         }
         
-        .hex-panel {
-            background: rgba(8, 12, 20, 0.7);
-            backdrop-filter: blur(12px);
-            border-radius: 20px;
+        /* ============================================================
+           PANEL - DYNASTYLE
+           ============================================================ */
+        .dyna-panel {
+            background: rgba(10, 14, 22, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
             border: 1px solid rgba(255,255,255,0.03);
             overflow: hidden;
             display: flex;
@@ -294,155 +285,162 @@
             position: relative;
         }
         
-        .hex-panel::before {
+        .dyna-panel::before {
             content: '';
             position: absolute;
             top: 0;
-            left: 0;
-            right: 0;
+            left: 10%;
+            right: 10%;
             height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(79,156,247,0.2), transparent);
+            background: linear-gradient(90deg, transparent, rgba(79,156,247,0.1), transparent);
         }
         
-        .hex-panel:hover {
-            border-color: rgba(79,156,247,0.08);
-            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+        .dyna-panel:hover {
+            border-color: rgba(79,156,247,0.06);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3);
         }
         
-        .panel-header {
-            padding: 10px 16px 6px 16px;
+        .dyna-panel-header {
+            padding: 8px 14px 4px 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
-            height: 44px;
+            height: 34px;
         }
         
-        .panel-header .title {
+        .dyna-panel-header .title {
+            font-size: 11px;
             font-weight: 700;
-            font-size: 14px;
+            color: #8aaac0;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            color: #b0c8e0;
-        }
-        
-        .panel-header .title i {
-            color: #4f9cf7;
-            font-size: 16px;
-        }
-        
-        .panel-header .badge {
-            font-size: 9px;
-            font-weight: 600;
-            padding: 3px 12px;
-            border-radius: 40px;
-            background: rgba(15,151,61,0.12);
-            color: #0f973d;
-            border: 1px solid rgba(15,151,61,0.1);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-        
-        .panel-body {
-            flex: 1;
-            padding: 4px 10px 10px 10px;
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            grid-auto-rows: 1fr;
             gap: 8px;
+        }
+        
+        .dyna-panel-header .title i {
+            color: #4f9cf7;
+            font-size: 12px;
+        }
+        
+        .dyna-panel-header .status-badge {
+            font-size: 8px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            background: rgba(15,151,61,0.08);
+            color: #0f973d;
+            border: 1px solid rgba(15,151,61,0.06);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* ============================================================
+           HEXAGON GRID INSIDE PANEL - SMALL & INTERCONNECTED
+           ============================================================ */
+        .hex-dyna-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            grid-auto-rows: 1fr;
+            gap: 6px;
+            padding: 4px 10px 10px 10px;
             min-height: 0;
         }
         
         /* ============================================================
-           HEXAGON - ULTRA PREMIUM
+           HEXAGON - SMALL, PREMIUM, INTERCONNECTED FEEL
            ============================================================ */
-        .hex-ultra {
+        .hex-dyna {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.4, 1);
             cursor: pointer;
             position: relative;
             aspect-ratio: 1;
-            min-height: 60px;
+            min-height: 40px;
             font-weight: 700;
             color: white;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+            text-shadow: 0 1px 8px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.02);
         }
         
-        .hex-ultra::before {
+        /* Interconnected effect - subtle glow between hexagons */
+        .hex-dyna::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        
+        .hex-dyna::after {
             content: '';
             position: absolute;
             inset: 0;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+            background: linear-gradient(180deg, transparent 70%, rgba(0,0,0,0.2) 100%);
             pointer-events: none;
         }
         
-        .hex-ultra::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            background: linear-gradient(180deg, transparent 70%, rgba(0,0,0,0.3) 100%);
-            pointer-events: none;
-        }
-        
-        .hex-ultra:hover {
-            transform: scale(1.15) translateY(-4px);
+        .hex-dyna:hover {
+            transform: scale(1.18) translateY(-3px);
             z-index: 10;
             filter: brightness(1.25);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5);
         }
         
-        .hex-ultra:active {
+        .hex-dyna:active {
             transform: scale(0.92);
         }
         
-        .hex-ultra .val {
-            font-size: 18px;
+        .hex-dyna .val {
+            font-size: 14px;
             font-weight: 800;
             position: relative;
             z-index: 2;
-            line-height: 1;
+            line-height: 1.1;
         }
         
-        .hex-ultra .suffix {
-            font-size: 10px;
+        .hex-dyna .suffix {
+            font-size: 7px;
             font-weight: 600;
-            opacity: 0.7;
+            opacity: 0.6;
             position: relative;
             z-index: 2;
+            letter-spacing: 0.5px;
         }
         
-        /* Status Colors - Premium Gradients */
-        .hex-critical { background: linear-gradient(145deg, #ff4757, #c0392b); box-shadow: 0 0 20px rgba(255,71,87,0.15); }
-        .hex-warning { background: linear-gradient(145deg, #ffa502, #d68910); box-shadow: 0 0 20px rgba(255,165,2,0.15); }
-        .hex-mixed { background: linear-gradient(145deg, #7c3aed, #5b2d8e); box-shadow: 0 0 20px rgba(124,58,237,0.15); }
-        .hex-healthy { background: linear-gradient(145deg, #0f973d, #0a7a30); box-shadow: 0 0 15px rgba(15,151,61,0.08); }
+        /* Status Colors - Dynatrace Inspired */
+        .hex-critical { background: linear-gradient(145deg, #ff4757, #cc2233); box-shadow: 0 0 15px rgba(255,71,87,0.12); }
+        .hex-warning { background: linear-gradient(145deg, #ffa502, #d68910); box-shadow: 0 0 15px rgba(255,165,2,0.10); }
+        .hex-mixed { background: linear-gradient(145deg, #7c3aed, #5b2d8e); box-shadow: 0 0 15px rgba(124,58,237,0.10); }
+        .hex-healthy { background: linear-gradient(145deg, #0f973d, #0a7a30); box-shadow: 0 0 10px rgba(15,151,61,0.05); }
         .hex-empty { 
-            background: rgba(255,255,255,0.02); 
+            background: rgba(255,255,255,0.015); 
             cursor: default;
-            border-color: rgba(255,255,255,0.01);
+            border-color: rgba(255,255,255,0.005);
         }
         .hex-empty:hover { transform: none; filter: none; box-shadow: none; }
         
-        /* Glow pulse for critical */
+        /* Critical pulse animation for attention */
         .hex-critical.pulse {
-            animation: glow-pulse 2s ease-in-out infinite;
+            animation: dyna-pulse 2.5s ease-in-out infinite;
         }
         
-        @keyframes glow-pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(255,71,87,0.15); }
-            50% { box-shadow: 0 0 40px rgba(255,71,87,0.35), 0 0 80px rgba(255,71,87,0.05); }
+        @keyframes dyna-pulse {
+            0%, 100% { box-shadow: 0 0 15px rgba(255,71,87,0.12); }
+            50% { box-shadow: 0 0 30px rgba(255,71,87,0.25), 0 0 60px rgba(255,71,87,0.05); }
         }
         
         /* ============================================================
-           MODAL - COMMAND CENTER STYLE
+           MODAL - DYNASTYLE
            ============================================================ */
         #modalContainer {
             position: fixed;
@@ -450,28 +448,28 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0,0,0,0.88);
-            backdrop-filter: blur(24px);
+            background: rgba(0,0,0,0.82);
+            backdrop-filter: blur(16px);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 99999;
-            animation: modal-in 0.3s ease;
+            animation: dyna-modal-in 0.25s ease;
         }
         
-        @keyframes modal-in {
-            from { opacity: 0; transform: scale(0.92) translateY(30px); }
+        @keyframes dyna-modal-in {
+            from { opacity: 0; transform: scale(0.94) translateY(20px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
         
         #alertBox {
-            background: linear-gradient(145deg, #0e1620, #080c14);
-            border-radius: 28px;
-            max-width: 620px;
-            width: 90%;
-            padding: 30px 32px 32px 32px;
+            background: linear-gradient(145deg, #0e1622, #080c16);
+            border-radius: 24px;
+            max-width: 560px;
+            width: 92%;
+            padding: 28px 30px 30px 30px;
             border: 1px solid rgba(255,255,255,0.04);
-            box-shadow: 0 60px 120px rgba(0,0,0,0.8);
+            box-shadow: 0 50px 100px rgba(0,0,0,0.7);
             max-height: 85vh;
             overflow-y: auto;
         }
@@ -480,225 +478,216 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         
         #alertBox .modal-head h2 {
-            font-family: 'Orbitron', monospace;
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 800;
             color: #ff4757;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            letter-spacing: -0.3px;
         }
         
-        #alertBox .modal-head .close-btn {
+        #alertBox .modal-head h2 i { font-size: 18px; }
+        
+        #alertBox .modal-head .close-x {
             background: none;
             border: none;
             color: #4a6a8a;
-            font-size: 28px;
+            font-size: 24px;
             cursor: pointer;
             transition: 0.2s;
-            padding: 0 6px;
+            padding: 0 4px;
         }
         
-        #alertBox .modal-head .close-btn:hover {
+        #alertBox .modal-head .close-x:hover {
             color: white;
             transform: rotate(90deg);
         }
         
-        #alertBox .modal-body-msg {
-            background: rgba(0,0,0,0.35);
-            border-radius: 14px;
-            padding: 14px 18px;
-            margin: 10px 0 16px 0;
+        #alertBox .modal-body-text {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 8px 0 14px 0;
             border-left: 3px solid #4f9cf7;
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.6;
-            color: #b0c8e0;
-            max-height: 180px;
+            color: #a0b8d0;
+            max-height: 160px;
             overflow-y: auto;
         }
         
-        #alertBox .modal-body-msg b {
-            color: #e8edf5;
+        #alertBox .modal-body-text b { color: #e8edf5; }
+        
+        #alertBox .form-group {
+            margin-bottom: 10px;
         }
         
-        #alertBox .form-grp {
-            margin-bottom: 12px;
-        }
-        
-        #alertBox .form-grp label {
+        #alertBox .form-group label {
             display: block;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
             color: #4a6a8a;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
+            letter-spacing: 0.8px;
+            margin-bottom: 3px;
         }
         
-        #alertBox .form-grp select,
-        #alertBox .form-grp textarea {
+        #alertBox .form-group select,
+        #alertBox .form-group textarea {
             width: 100%;
-            background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.35);
+            border: 1px solid rgba(255,255,255,0.04);
             border-radius: 10px;
-            padding: 9px 14px;
+            padding: 8px 12px;
             color: #e8edf5;
-            font-size: 13px;
-            font-family: 'Rajdhani', sans-serif;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
             transition: 0.2s;
         }
         
-        #alertBox .form-grp select:focus,
-        #alertBox .form-grp textarea:focus {
+        #alertBox .form-group select:focus,
+        #alertBox .form-group textarea:focus {
             outline: none;
             border-color: #4f9cf7;
-            box-shadow: 0 0 0 3px rgba(79,156,247,0.08);
+            box-shadow: 0 0 0 3px rgba(79,156,247,0.06);
         }
         
-        #alertBox .form-grp textarea {
-            min-height: 50px;
+        #alertBox .form-group textarea {
+            min-height: 44px;
             resize: vertical;
         }
         
-        #alertBox .form-row {
+        #alertBox .form-row-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 10px;
         }
         
-        .modal-actions-cyber {
+        .modal-actions-dyna {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: flex-end;
-            margin-top: 16px;
+            margin-top: 14px;
             flex-wrap: wrap;
         }
         
-        .modal-actions-cyber .btn {
-            padding: 8px 24px;
-            border-radius: 40px;
+        .modal-actions-dyna .btn {
+            padding: 7px 22px;
+            border-radius: 30px;
             font-weight: 700;
-            font-size: 12px;
+            font-size: 10px;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-family: 'Rajdhani', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         
-        .modal-actions-cyber .btn-primary {
+        .modal-actions-dyna .btn-primary {
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
             color: white;
-            box-shadow: 0 4px 20px rgba(79,156,247,0.25);
+            box-shadow: 0 3px 15px rgba(79,156,247,0.2);
         }
         
-        .modal-actions-cyber .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,156,247,0.35); }
+        .modal-actions-dyna .btn-primary:hover { transform: translateY(-2px); }
         
-        .modal-actions-cyber .btn-danger {
-            background: linear-gradient(135deg, #ff4757, #c0392b);
+        .modal-actions-dyna .btn-danger {
+            background: linear-gradient(135deg, #ff4757, #cc2233);
             color: white;
         }
         
-        .modal-actions-cyber .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,71,87,0.25); }
+        .modal-actions-dyna .btn-danger:hover { transform: translateY(-2px); }
         
-        .modal-actions-cyber .btn-secondary {
+        .modal-actions-dyna .btn-secondary {
             background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.04);
             color: #8aaac0;
         }
         
-        .modal-actions-cyber .btn-secondary:hover { background: rgba(255,255,255,0.06); }
+        .modal-actions-dyna .btn-secondary:hover { background: rgba(255,255,255,0.06); }
         
         /* ============================================================
-           RESPONSIVE - MAINTAIN ONE SCREEN
+           RESPONSIVE
            ============================================================ */
-        @media (max-width: 1600px) {
-            .panel-body { grid-template-columns: repeat(7, 1fr); }
-            .hex-grid-container { grid-template-columns: repeat(4, 1fr); }
-        }
         @media (max-width: 1400px) {
-            .panel-body { grid-template-columns: repeat(6, 1fr); }
-            .hex-grid-container { grid-template-columns: repeat(3, 1fr); }
-            .brand-cyber .title { font-size: 18px; }
+            .hex-dyna-grid { grid-template-columns: repeat(8, 1fr); }
         }
-        @media (max-width: 1100px) {
-            .panel-body { grid-template-columns: repeat(5, 1fr); }
-            .hex-grid-container { grid-template-columns: repeat(2, 1fr); }
-            .top-stats .stat-pill span:not(.num) { display: none; }
+        @media (max-width: 1200px) {
+            .hex-dyna-grid { grid-template-columns: repeat(7, 1fr); }
+            .dyna-grid { gap: 10px; }
         }
-        @media (max-width: 768px) {
-            .panel-body { grid-template-columns: repeat(4, 1fr); }
-            .hex-grid-container { grid-template-columns: 1fr; }
-            .top-bar { flex-wrap: wrap; height: auto; gap: 8px; }
-            .legend-cyber { flex-wrap: wrap; gap: 12px; height: auto; padding: 4px 0; }
+        @media (max-width: 992px) {
+            .hex-dyna-grid { grid-template-columns: repeat(6, 1fr); }
+            .dyna-grid { grid-template-columns: 1fr; grid-template-rows: auto; gap: 8px; }
+            .dyna-panel { min-height: 200px; }
+            .dyna-header { flex-wrap: wrap; height: auto; gap: 6px; }
+        }
+        @media (max-width: 600px) {
+            .hex-dyna-grid { grid-template-columns: repeat(4, 1fr); }
+            .dyna-controls .dyna-pill span:not(.num) { display: none; }
+            #alertBox .form-row-2 { grid-template-columns: 1fr; }
         }
         
-        /* Custom scroll for modal */
+        /* Scrollbar */
         #alertBox::-webkit-scrollbar { width: 3px; }
         #alertBox::-webkit-scrollbar-track { background: transparent; }
         #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
-        
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<!-- ============================================================
-     COSMIC BACKGROUND
-     ============================================================ -->
-<div class="bg-cosmic"></div>
+<!-- Background -->
+<div class="bg-layer"></div>
 
 <!-- ============================================================
-     COMMAND CENTER
+     DYNASTYLE COMMAND CENTER
      ============================================================ -->
-<div class="command-center">
+<div class="dynastyle">
 
-    <!-- ===== TOP BAR ===== -->
-    <div class="top-bar">
-        <div class="brand-cyber">
-            <div class="logo"><i class="fas fa-satellite-dish"></i></div>
+    <!-- ===== HEADER ===== -->
+    <div class="dyna-header">
+        <div class="dyna-brand">
+            <div class="icon"><i class="fas fa-hexagon"></i></div>
             <div>
-                <div class="title">SERVICEWISE</div>
-                <div class="sub">Command &amp; Control Center</div>
+                <h1>Dyna<span>Style</span></h1>
+                <div class="sub">Command Center</div>
             </div>
         </div>
-        <div class="top-stats">
-            <div class="stat-pill">
-                <span class="dot-green"></span>
-                <span>STATUS</span>
-                <span class="num" style="color:#0f973d; font-size:12px;">ONLINE</span>
+        <div class="dyna-controls">
+            <div class="dyna-pill">
+                <span class="live-dot"></span>
+                <span>LIVE</span>
             </div>
-            <div class="stat-pill">
+            <div class="dyna-pill">
                 <i class="far fa-clock" style="color:#4f9cf7;"></i>
-                <span>REFRESH</span>
-                <span class="timer-cyber" id="ten-countdown">5:00</span>
+                <span class="dyna-timer" id="ten-countdown">5:00</span>
             </div>
-            <button class="btn-cyber btn-cyber-primary" id="openPopupButton">
-                <i class="fas fa-list-check"></i> <span class="hidden-mobile">CLOSED</span>
+            <button class="btn-dyna btn-dyna-primary" id="openPopupButton">
+                <i class="fas fa-list-check"></i> CLOSED
             </button>
-            <button class="btn-cyber btn-cyber-ghost" id="openPopup">
-                <i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.12); padding:0 8px; border-radius:12px;">0</span>
+            <button class="btn-dyna btn-dyna-ghost" id="openPopup">
+                <i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.08); padding:0 8px; border-radius:10px; font-weight:700;">0</span>
             </button>
         </div>
     </div>
 
     <!-- ===== LEGEND ===== -->
-    <div class="legend-cyber">
+    <div class="dyna-legend">
         <span class="item"><span class="dot dot-critical"></span> Critical</span>
         <span class="item"><span class="dot dot-warning"></span> Warning</span>
         <span class="item"><span class="dot dot-mixed"></span> Mixed</span>
         <span class="item"><span class="dot dot-healthy"></span> Healthy</span>
-        <span class="item" style="color:#4a6a8a; font-weight:400;">
+        <span class="item" style="color:#4a6a8a; font-weight:400; text-transform:none; letter-spacing:0;">
             <i class="fas fa-sync-alt fa-fw" style="color:#4f9cf7;"></i> 
-            Last: 
             <%
                 try {
                     Connection conStamp = DBUtilityAuto.getReportDBConnection();
@@ -716,16 +705,16 @@
         </span>
     </div>
 
-    <!-- ===== HEX GRID ===== -->
-    <div class="hex-grid-container">
-        
-        <!-- GEN-5 -->
-        <div class="hex-panel">
-            <div class="panel-header">
+    <!-- ===== 4 CORNER GRID ===== -->
+    <div class="dyna-grid">
+
+        <!-- ===== PANEL 1: GEN-5 ===== -->
+        <div class="dyna-panel">
+            <div class="dyna-panel-header">
                 <span class="title"><i class="fas fa-server"></i> GEN-5</span>
-                <span class="badge"><i class="fas fa-circle" style="font-size:6px; color:#0f973d;"></i> LIVE</span>
+                <span class="status-badge"><i class="fas fa-circle" style="font-size:5px; color:#0f973d;"></i> 48</span>
             </div>
-            <div class="panel-body" id="panel-gen5">
+            <div class="hex-dyna-grid" id="panel-gen5">
                 <%
                     Connection con = DBUtilityAuto.getReportDBConnection();
                     Statement l_bjst = null;
@@ -781,30 +770,30 @@
                                     groupedSourceIds.append(source);
                                     countSource++;
                                 }
-                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Source ID:</b> "+groupedSourceIds.toString()+"<br><b>ERROR CODE:</b> "+m_strErrorcode.toString()+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS.get(i)+"<br><b>TD COUNT:</b> "+EIS_TD.get(i)+"<br><b>Failure %:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI ERROR:</b> "+SI_EEROR_Count.get(i)+"<br><b>Time:</b> "+ISSUE_TIME.get(i);
-                                String cls = "hex-ultra hex-critical";
-                                if(EIS_TD_PER.get(i) < 5) cls = "hex-ultra hex-warning";
-                                out.print("<div class='"+cls+"' onclick=\"openCyberModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+groupedSourceIds.toString()+"','"+m_strErrorcode.toString()+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Source:</b> "+groupedSourceIds.toString()+"<br><b>Error:</b> "+m_strErrorcode.toString()+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>%:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI Err:</b> "+SI_EEROR_Count.get(i)+"<br><b>Time:</b> "+ISSUE_TIME.get(i);
+                                String cls = "hex-dyna hex-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "hex-dyna hex-warning";
+                                out.print("<div class='"+cls+"' onclick=\"openDynaModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+groupedSourceIds.toString()+"','"+m_strErrorcode.toString()+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
                                 out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span></div>");
                             }
                             for(int k=EIS_TD_PER.size(); k<maxHex; k++) {
-                                out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                                out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
                             }
                         } else {
-                            for(int i=0; i<maxHex; i++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(i+1)+"</span></div>");
+                            for(int i=0; i<maxHex; i++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(i+1)+"</span></div>");
                         }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
-        <!-- SI -->
-        <div class="hex-panel">
-            <div class="panel-header">
+        <!-- ===== PANEL 2: SI ===== -->
+        <div class="dyna-panel">
+            <div class="dyna-panel-header">
                 <span class="title"><i class="fas fa-code"></i> SI</span>
-                <span class="badge"><i class="fas fa-circle" style="font-size:6px; color:#0f973d;"></i> LIVE</span>
+                <span class="status-badge"><i class="fas fa-circle" style="font-size:5px; color:#0f973d;"></i> 48</span>
             </div>
-            <div class="panel-body" id="panel-si">
+            <div class="hex-dyna-grid" id="panel-si">
                 <%
                     try {
                         String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 48";
@@ -837,26 +826,26 @@
                                         else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>,"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
                                     }
                                 } else { m_strErrorcode = ERROR_CODE.get(i); }
-                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>ERROR:</b> "+m_strErrorcode+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS.get(i)+"<br><b>TD COUNT:</b> "+EIS_TD.get(i)+"<br><b>Failure %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Time:</b> "+ISSUE_TIME.get(i);
-                                String cls = "hex-ultra hex-critical";
-                                if(EIS_TD_PER.get(i) < 5) cls = "hex-ultra hex-warning";
-                                out.print("<div class='"+cls+"' onclick=\"openCyberModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+m_strErrorcode+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Error:</b> "+m_strErrorcode+"<br><b>Hits:</b> "+TOTAL_HITS.get(i)+"<br><b>TD:</b> "+EIS_TD.get(i)+"<br><b>%:</b> "+EIS_TD_PER.get(i)+"%<br><b>Time:</b> "+ISSUE_TIME.get(i);
+                                String cls = "hex-dyna hex-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "hex-dyna hex-warning";
+                                out.print("<div class='"+cls+"' onclick=\"openDynaModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+m_strErrorcode+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
                                 out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span></div>");
                             }
-                            for(int k=EIS_TD_PER.size(); k<maxHex; k++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
-                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                            for(int k=EIS_TD_PER.size(); k<maxHex; k++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
-        <!-- ThirdParty -->
-        <div class="hex-panel">
-            <div class="panel-header">
+        <!-- ===== PANEL 3: ThirdParty ===== -->
+        <div class="dyna-panel">
+            <div class="dyna-panel-header">
                 <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
-                <span class="badge"><i class="fas fa-circle" style="font-size:6px; color:#0f973d;"></i> LIVE</span>
+                <span class="status-badge"><i class="fas fa-circle" style="font-size:5px; color:#0f973d;"></i> 48</span>
             </div>
-            <div class="panel-body" id="panel-third">
+            <div class="hex-dyna-grid" id="panel-third">
                 <%
                     try {
                         String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 48";
@@ -893,26 +882,26 @@
                                         else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
                                     }
                                 } else { m_strErrorcode = Error_Code_TD.get(i); }
-                                String alertMsg = "<b>Service:</b> "+Original_URN_TD.get(i)+"<br><b>Error:</b> "+m_strErrorcode+"<br><b>Source:</b> "+Source_Id_TD.get(i)+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD COUNT:</b> "+TD_Count.get(i)+"<br><b>Time:</b> "+TD_Issue_Time.get(i);
-                                String cls = "hex-ultra hex-critical";
-                                if(TD_Per.get(i) < 5) cls = "hex-ultra hex-warning";
-                                out.print("<div class='"+cls+"' onclick=\"openCyberModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+Source_Id_TD.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
+                                String alertMsg = "<b>Service:</b> "+Original_URN_TD.get(i)+"<br><b>Error:</b> "+m_strErrorcode+"<br><b>Source:</b> "+Source_Id_TD.get(i)+"<br><b>Hits:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD:</b> "+TD_Count.get(i)+"<br><b>Time:</b> "+TD_Issue_Time.get(i);
+                                String cls = "hex-dyna hex-critical";
+                                if(TD_Per.get(i) < 5) cls = "hex-dyna hex-warning";
+                                out.print("<div class='"+cls+"' onclick=\"openDynaModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+Source_Id_TD.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
                                 out.print("<span class='val'>"+TD_Per.get(i)+"</span><span class='suffix'>%</span></div>");
                             }
-                            for(int k=TD_Per.size(); k<maxHex; k++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
-                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                            for(int k=TD_Per.size(); k<maxHex; k++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
-        <!-- I4C + IVR + SBICAPS Combined -->
-        <div class="hex-panel">
-            <div class="panel-header">
+        <!-- ===== PANEL 4: I4C + IVR + CAPS ===== -->
+        <div class="dyna-panel">
+            <div class="dyna-panel-header">
                 <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
-                <span class="badge"><i class="fas fa-circle" style="font-size:6px; color:#0f973d;"></i> LIVE</span>
+                <span class="status-badge"><i class="fas fa-circle" style="font-size:5px; color:#0f973d;"></i> 48</span>
             </div>
-            <div class="panel-body" id="panel-mixed">
+            <div class="hex-dyna-grid" id="panel-mixed">
                 <%
                     try {
                         // I4C
@@ -961,37 +950,37 @@
                         int maxHex = 48;
                         if(allPct != null && !allPct.isEmpty()) {
                             for(int i=0; i<Math.min(allPct.size(), maxHex); i++) {
-                                String cls = "hex-ultra hex-critical";
-                                if(allPct.get(i) < 5) cls = "hex-ultra hex-warning";
+                                String cls = "hex-dyna hex-critical";
+                                if(allPct.get(i) < 5) cls = "hex-dyna hex-warning";
                                 String finalMsg = allMsgs.get(i);
                                 String finalName = allNames.get(i);
                                 String finalCat = allCats.get(i);
-                                out.print("<div class='"+cls+"' onclick=\"openCyberModal('"+finalMsg.replace("'","\\'")+"','"+finalName+"','"+finalCat+"','','','','','')\">");
+                                out.print("<div class='"+cls+"' onclick=\"openDynaModal('"+finalMsg.replace("'","\\'")+"','"+finalName+"','"+finalCat+"','','','','','')\">");
                                 out.print("<span class='val'>"+allPct.get(i)+"</span><span class='suffix'>%</span></div>");
                             }
-                            for(int k=allPct.size(); k<maxHex; k++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
-                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                            for(int k=allPct.size(); k<maxHex; k++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-dyna hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
                     } catch(Exception e) { e.printStackTrace(); }
                 %>
             </div>
         </div>
 
-    </div><!-- end hex-grid-container -->
-</div><!-- end command-center -->
+    </div><!-- end dyna-grid -->
+</div><!-- end dynastyle -->
 
 <!-- ============================================================
-     CYBER MODAL
+     MODAL - DYNASTYLE
      ============================================================ -->
 <div id="modalContainer">
     <div id="alertBox">
         <div class="modal-head">
-            <h2><i class="fas fa-exclamation-triangle"></i> FAILURE ALERT</h2>
-            <button class="close-btn" onclick="closeCyberModal()">✕</button>
+            <h2><i class="fas fa-exclamation-triangle"></i> FAILURE</h2>
+            <button class="close-x" onclick="closeDynaModal()">✕</button>
         </div>
-        <div class="modal-body-msg" id="modalMsg"></div>
+        <div class="modal-body-text" id="modalMsg"></div>
         
-        <div class="form-row">
-            <div class="form-grp">
+        <div class="form-row-2">
+            <div class="form-group">
                 <label>Closed Time</label>
                 <select id="pasuseTime">
                     <option value="1">1 Hour</option><option value="2">2 Hours</option>
@@ -1008,10 +997,10 @@
                     <option value="23">23 Hours</option><option value="24">24 Hours</option>
                 </select>
             </div>
-            <div class="form-grp">
+            <div class="form-group">
                 <label>Closed By</label>
                 <select id="closeName">
-                    <option value="">Select Name</option>
+                    <option value="">Select</option>
                     <%
                         try {
                             Connection connn = DBUtilityAuto.getReportDBConnection();
@@ -1028,15 +1017,15 @@
                 </select>
             </div>
         </div>
-        <div class="form-grp">
+        <div class="form-group">
             <label>Comment</label>
-            <textarea id="TextArea" placeholder="Enter closure comments..."></textarea>
+            <textarea id="TextArea" placeholder="Enter closure comment..."></textarea>
         </div>
         
-        <div class="modal-actions-cyber">
+        <div class="modal-actions-dyna">
             <button class="btn btn-primary" id="closeBtn"><i class="fas fa-check"></i> CLOSE</button>
             <button class="btn btn-danger" id="detailsBtn"><i class="fas fa-eye"></i> VIEW</button>
-            <button class="btn btn-secondary" onclick="closeCyberModal()">CANCEL</button>
+            <button class="btn btn-secondary" onclick="closeDynaModal()">CANCEL</button>
         </div>
     </div>
 </div>
@@ -1045,23 +1034,17 @@
      SCRIPTS
      ============================================================ -->
 <script>
-    // ===== Cyber Modal State =====
-    var cybApi = '';
-    var cybCat = '';
-    var cybSource = '';
-    var cybError = '';
-    var cybHits = '';
-    var cybTD = '';
-    var cybTime = '';
+    // ===== Dyna Modal State =====
+    var dApi = '', dCat = '', dSource = '', dError = '', dHits = '', dTD = '', dTime = '';
     
-    function openCyberModal(msg, api, cat, src, err, hits, td, time) {
-        cybApi = api || '';
-        cybCat = cat || 'GEN-5';
-        cybSource = src || '';
-        cybError = err || '';
-        cybHits = hits || '';
-        cybTD = td || '';
-        cybTime = time || '';
+    function openDynaModal(msg, api, cat, src, err, hits, td, time) {
+        dApi = api || '';
+        dCat = cat || 'GEN-5';
+        dSource = src || '';
+        dError = err || '';
+        dHits = hits || '';
+        dTD = td || '';
+        dTime = time || '';
         
         document.getElementById('modalMsg').innerHTML = msg;
         document.getElementById('modalContainer').style.display = 'flex';
@@ -1069,7 +1052,7 @@
         document.getElementById('closeName').value = '';
     }
     
-    function closeCyberModal() {
+    function closeDynaModal() {
         document.getElementById('modalContainer').style.display = 'none';
     }
     
@@ -1086,23 +1069,23 @@
             }
             
             var url = '<%=request.getContextPath() + "/jsp/ServiceWiseFailureAction.jsp?Api_Name="%>' 
-                + encodeURIComponent(cybApi)
-                + '&SourceID=' + encodeURIComponent(cybSource)
+                + encodeURIComponent(dApi)
+                + '&SourceID=' + encodeURIComponent(dSource)
                 + '&TextArea=' + encodeURIComponent(comment)
                 + '&pasuseTime=' + encodeURIComponent(pTime)
-                + '&ErrorCode=' + encodeURIComponent(cybError)
+                + '&ErrorCode=' + encodeURIComponent(dError)
                 + '&closeName=' + encodeURIComponent(closer)
-                + '&ServiceCategory=' + encodeURIComponent(cybCat);
+                + '&ServiceCategory=' + encodeURIComponent(dCat);
             
-            closeCyberModal();
+            closeDynaModal();
             location.replace(url);
         });
         
         document.getElementById('detailsBtn').addEventListener('click', function() {
-            if(cybCat != 'SI' && cybCat != 'SIServices') {
+            if(dCat != 'SI' && dCat != 'SIServices') {
                 var url = '<%=request.getContextPath() + "/showFailureServicesWise.do?action=showFailureServicesWise&url="%>' 
-                    + encodeURIComponent(cybApi) 
-                    + '&ServiceCategory=' + encodeURIComponent(cybCat);
+                    + encodeURIComponent(dApi) 
+                    + '&ServiceCategory=' + encodeURIComponent(dCat);
                 window.open(url, '_blank');
             }
         });
@@ -1117,7 +1100,7 @@
     });
     
     // ===== Timer =====
-    function countdownCyber(el, minutes, seconds) {
+    function countdownDyna(el, minutes, seconds) {
         var element = document.getElementById(el);
         if(!element) return;
         var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
@@ -1134,15 +1117,15 @@
         }
         update();
     }
-    countdownCyber('ten-countdown', 5, 0);
+    countdownDyna('ten-countdown', 5, 0);
     
     // ===== Click outside =====
     document.getElementById('modalContainer').addEventListener('click', function(e) {
-        if(e.target === this) closeCyberModal();
+        if(e.target === this) closeDynaModal();
     });
     
     document.addEventListener('keydown', function(e) {
-        if(e.key === 'Escape') closeCyberModal();
+        if(e.key === 'Escape') closeDynaModal();
     });
 </script>
 
