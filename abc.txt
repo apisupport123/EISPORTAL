@@ -21,15 +21,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="300">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Premium Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <title>ServiceWise · Enterprise Command Center</title>
+    <title>SERVICEWISE · COMMAND CENTER</title>
     <style>
         /* ============================================================
-           PREMIUM BANKING-GRADE DASHBOARD
+           HYPER-DYNAMIC ONE-SCREEN DASHBOARD
+           NO SCROLL · FULL IMMERSION
            ============================================================ */
         
         * {
@@ -38,110 +36,147 @@
             box-sizing: border-box;
         }
         
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #06080c;
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            background: #05080c;
             color: #e8edf5;
-            min-height: 100vh;
-            overflow-x: hidden;
         }
         
-        /* ----- Premium Background Effects ----- */
-        body::before {
-            content: '';
+        /* ============================================================
+           COSMIC BACKGROUND
+           ============================================================ */
+        .bg-cosmic {
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at 20% 50%, rgba(10, 40, 80, 0.3) 0%, transparent 60%),
-                        radial-gradient(ellipse at 80% 50%, rgba(40, 10, 80, 0.2) 0%, transparent 60%);
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(ellipse at 20% 30%, rgba(10, 40, 80, 0.4) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 70%, rgba(40, 10, 80, 0.3) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(0, 20, 40, 0.3) 0%, transparent 70%),
+                #05080c;
             z-index: 0;
+        }
+        
+        .bg-cosmic::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
             pointer-events: none;
         }
         
-        /* ----- Premium Glow Line ----- */
-        .premium-line {
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #4f9cf7, #7c3aed, #4f9cf7, transparent);
-            filter: blur(1px);
-            margin: 0;
+        /* ============================================================
+           MAIN CONTAINER - FULL SCREEN
+           ============================================================ */
+        .command-center {
             position: relative;
             z-index: 1;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 20px 12px 20px;
+            overflow: hidden;
         }
         
-        /* ----- HEADER - Enterprise Grade ----- */
-        .header-premium {
-            position: relative;
-            z-index: 2;
-            padding: 18px 30px 0 30px;
+        /* ============================================================
+           TOP BAR - CYBERPUNK STYLE
+           ============================================================ */
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            background: linear-gradient(180deg, rgba(6, 8, 12, 0.95) 0%, transparent 100%);
+            padding: 8px 0 10px 0;
+            border-bottom: 1px solid rgba(79, 156, 247, 0.08);
+            flex-shrink: 0;
+            height: 70px;
         }
         
-        .brand-section {
+        .brand-cyber {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 16px;
         }
         
-        .brand-icon {
-            width: 48px;
-            height: 48px;
+        .brand-cyber .logo {
+            width: 44px;
+            height: 44px;
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            border-radius: 14px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            color: white;
-            box-shadow: 0 8px 32px rgba(79, 156, 247, 0.3);
+            font-size: 20px;
+            box-shadow: 0 0 40px rgba(79, 156, 247, 0.2);
+            position: relative;
         }
         
-        .brand-text {
-            font-weight: 800;
-            font-size: 24px;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #ffffff 30%, #94b8ff 100%);
+        .brand-cyber .logo::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+            opacity: 0.3;
+            filter: blur(8px);
+            z-index: -1;
+        }
+        
+        .brand-cyber .title {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 22px;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #ffffff 20%, #4f9cf7 80%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
         
-        .brand-sub {
-            font-size: 12px;
-            font-weight: 500;
-            color: #6a7f9e;
-            letter-spacing: 2px;
+        .brand-cyber .sub {
+            font-size: 10px;
+            font-weight: 400;
+            color: #4a6a8a;
+            letter-spacing: 4px;
             text-transform: uppercase;
-            -webkit-text-fill-color: #6a7f9e;
+            -webkit-text-fill-color: #4a6a8a;
         }
         
-        .header-actions {
+        .top-stats {
             display: flex;
             align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
+            gap: 20px;
         }
         
-        .status-pill {
-            background: rgba(15, 151, 61, 0.15);
-            border: 1px solid rgba(15, 151, 61, 0.3);
-            padding: 6px 16px;
+        .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 6px 18px 6px 14px;
             border-radius: 40px;
             font-size: 12px;
             font-weight: 600;
-            color: #0f973d;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: #6a8aaa;
         }
         
-        .status-pill .dot {
+        .stat-pill .num {
+            color: #e8edf5;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .stat-pill .dot-green {
             width: 8px;
             height: 8px;
             background: #0f973d;
@@ -151,968 +186,857 @@
         
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.8); }
+            50% { opacity: 0.4; transform: scale(0.7); }
         }
         
-        .btn-premium {
-            padding: 8px 22px;
+        .btn-cyber {
+            padding: 7px 20px;
             border-radius: 40px;
-            font-weight: 600;
-            font-size: 13px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             text-decoration: none;
         }
         
-        .btn-premium-primary {
+        .btn-cyber-primary {
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
             color: white;
-            box-shadow: 0 4px 20px rgba(79, 156, 247, 0.3);
+            box-shadow: 0 4px 25px rgba(79, 156, 247, 0.25);
         }
         
-        .btn-premium-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(79, 156, 247, 0.4);
+        .btn-cyber-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 40px rgba(79, 156, 247, 0.35);
         }
         
-        .btn-premium-ghost {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: #c8d6f0;
+        .btn-cyber-ghost {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #8aaac0;
         }
         
-        .btn-premium-ghost:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.15);
+        .btn-cyber-ghost:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.12);
         }
         
-        /* ----- TIMELINE BAR ----- */
-        .timeline-bar {
-            position: relative;
-            z-index: 2;
-            padding: 12px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-        }
-        
-        .timeline-text {
-            font-size: 13px;
-            color: #6a7f9e;
-            font-weight: 500;
-        }
-        
-        .timeline-text strong {
-            color: #c8d6f0;
-            font-weight: 600;
-        }
-        
-        .timer-premium {
+        .timer-cyber {
+            font-family: 'Orbitron', monospace;
             font-weight: 700;
             font-size: 16px;
             color: #4f9cf7;
-            font-variant-numeric: tabular-nums;
+            letter-spacing: 1px;
         }
         
         /* ============================================================
-           LEGEND - Premium
+           LEGEND - CYBER
            ============================================================ */
-        .legend-premium {
-            position: relative;
-            z-index: 2;
+        .legend-cyber {
             display: flex;
             justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-            padding: 12px 24px;
-            margin: 8px auto 12px auto;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 60px;
-            backdrop-filter: blur(10px);
-            width: fit-content;
+            gap: 25px;
+            padding: 8px 0;
+            flex-shrink: 0;
+            height: 42px;
         }
         
-        .legend-item-premium {
+        .legend-cyber .item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 12px;
+            gap: 8px;
+            font-size: 11px;
             font-weight: 600;
-            color: #8899bb;
+            color: #6a8aaa;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
-        .legend-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 4px;
+        .legend-cyber .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
         }
         
-        .ld-red { background: linear-gradient(135deg, #ff4757, #d42e2e); }
-        .ld-orange { background: linear-gradient(135deg, #ffa502, #d97c1a); }
-        .ld-purple { background: linear-gradient(135deg, #7c3aed, #5e2d94); }
-        .ld-green { background: linear-gradient(135deg, #0f973d, #0b7a31); }
+        .dot-critical { background: linear-gradient(135deg, #ff4757, #c0392b); box-shadow: 0 0 12px rgba(255,71,87,0.3); }
+        .dot-warning { background: linear-gradient(135deg, #ffa502, #d68910); box-shadow: 0 0 12px rgba(255,165,2,0.3); }
+        .dot-mixed { background: linear-gradient(135deg, #7c3aed, #5b2d8e); box-shadow: 0 0 12px rgba(124,58,237,0.3); }
+        .dot-healthy { background: linear-gradient(135deg, #0f973d, #0a7a30); box-shadow: 0 0 12px rgba(15,151,61,0.3); }
         
         /* ============================================================
-           CARDS - Premium Glass
+           MAIN GRID - FLEXIBLE HEXAGON LAYOUT
            ============================================================ */
-        .cards-grid {
-            position: relative;
-            z-index: 2;
+        .hex-grid-container {
+            flex: 1;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-            gap: 24px;
-            padding: 0 24px 30px 24px;
-            max-width: 2000px;
-            margin: 0 auto;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            padding: 8px 0 0 0;
+            min-height: 0;
         }
         
-        .card-premium {
-            background: rgba(12, 16, 24, 0.85);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+        .hex-panel {
+            background: rgba(8, 12, 20, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.03);
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.2, 0.9, 0.4, 1);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-        
-        .card-premium:hover {
-            border-color: rgba(79, 156, 247, 0.15);
-            transform: translateY(-4px);
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-        }
-        
-        .card-header-premium {
-            padding: 16px 22px;
-            background: rgba(0, 0, 0, 0.3);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             display: flex;
-            align-items: center;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .hex-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(79,156,247,0.2), transparent);
+        }
+        
+        .hex-panel:hover {
+            border-color: rgba(79,156,247,0.08);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+        }
+        
+        .panel-header {
+            padding: 10px 16px 6px 16px;
+            display: flex;
             justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            height: 44px;
         }
         
-        .card-header-premium .title {
+        .panel-header .title {
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            color: #e8edf5;
+            gap: 10px;
+            color: #b0c8e0;
         }
         
-        .card-header-premium .title i {
+        .panel-header .title i {
             color: #4f9cf7;
-            font-size: 18px;
+            font-size: 16px;
         }
         
-        .card-header-premium .badge-premium {
-            font-size: 11px;
+        .panel-header .badge {
+            font-size: 9px;
             font-weight: 600;
-            padding: 4px 14px;
+            padding: 3px 12px;
             border-radius: 40px;
-            background: rgba(79, 156, 247, 0.12);
-            color: #4f9cf7;
-            border: 1px solid rgba(79, 156, 247, 0.08);
+            background: rgba(15,151,61,0.12);
+            color: #0f973d;
+            border: 1px solid rgba(15,151,61,0.1);
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
         
-        /* ----- Hex Grid Inside Cards ----- */
-        .hex-grid {
+        .panel-body {
+            flex: 1;
+            padding: 4px 10px 10px 10px;
             display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            grid-auto-rows: 200px;
-            gap: 12px;
-            padding: 16px;
+            grid-template-columns: repeat(8, 1fr);
+            grid-auto-rows: 1fr;
+            gap: 8px;
+            min-height: 0;
         }
         
-        .hex-premium {
+        /* ============================================================
+           HEXAGON - ULTRA PREMIUM
+           ============================================================ */
+        .hex-ultra {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100%;
-            height: 100%;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1);
-            font-weight: 800;
-            font-size: 20px;
-            color: white;
-            text-shadow: 0 2px 12px rgba(0,0,0,0.6);
             cursor: pointer;
             position: relative;
-            user-select: none;
-            border: 1px solid rgba(255,255,255,0.03);
+            aspect-ratio: 1;
+            min-height: 60px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.02);
         }
         
-        .hex-premium::after {
+        .hex-ultra::before {
             content: '';
             position: absolute;
             inset: 0;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            background: linear-gradient(180deg, rgba(255,255,255,0.05) 0%, transparent 50%);
+            background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 60%);
             pointer-events: none;
         }
         
-        .hex-premium:hover {
-            transform: scale(1.12) translateY(-6px);
-            filter: brightness(1.3);
+        .hex-ultra::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            background: linear-gradient(180deg, transparent 70%, rgba(0,0,0,0.3) 100%);
+            pointer-events: none;
+        }
+        
+        .hex-ultra:hover {
+            transform: scale(1.15) translateY(-4px);
             z-index: 10;
-            box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+            filter: brightness(1.25);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
         }
         
-        .hex-premium:active {
-            transform: scale(0.95);
+        .hex-ultra:active {
+            transform: scale(0.92);
         }
         
-        .hex-premium .value {
-            position: relative;
-            z-index: 2;
-            font-size: 22px;
+        .hex-ultra .val {
+            font-size: 18px;
             font-weight: 800;
-        }
-        
-        .hex-premium .sub-value {
             position: relative;
             z-index: 2;
-            font-size: 10px;
-            font-weight: 500;
-            opacity: 0.7;
-            margin-top: 2px;
+            line-height: 1;
         }
         
-        /* Status Colors */
-        .hex-critical { background: linear-gradient(145deg, #ff4757, #c0392b); }
-        .hex-warning { background: linear-gradient(145deg, #ffa502, #d68910); }
-        .hex-mixed { background: linear-gradient(145deg, #7c3aed, #5b2d8e); }
-        .hex-healthy { background: linear-gradient(145deg, #0f973d, #0a7a30); }
+        .hex-ultra .suffix {
+            font-size: 10px;
+            font-weight: 600;
+            opacity: 0.7;
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Status Colors - Premium Gradients */
+        .hex-critical { background: linear-gradient(145deg, #ff4757, #c0392b); box-shadow: 0 0 20px rgba(255,71,87,0.15); }
+        .hex-warning { background: linear-gradient(145deg, #ffa502, #d68910); box-shadow: 0 0 20px rgba(255,165,2,0.15); }
+        .hex-mixed { background: linear-gradient(145deg, #7c3aed, #5b2d8e); box-shadow: 0 0 20px rgba(124,58,237,0.15); }
+        .hex-healthy { background: linear-gradient(145deg, #0f973d, #0a7a30); box-shadow: 0 0 15px rgba(15,151,61,0.08); }
         .hex-empty { 
             background: rgba(255,255,255,0.02); 
             cursor: default;
-            border-color: rgba(255,255,255,0.02);
+            border-color: rgba(255,255,255,0.01);
         }
         .hex-empty:hover { transform: none; filter: none; box-shadow: none; }
         
+        /* Glow pulse for critical */
+        .hex-critical.pulse {
+            animation: glow-pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes glow-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,71,87,0.15); }
+            50% { box-shadow: 0 0 40px rgba(255,71,87,0.35), 0 0 80px rgba(255,71,87,0.05); }
+        }
+        
         /* ============================================================
-           MODAL - Premium Enterprise
+           MODAL - COMMAND CENTER STYLE
            ============================================================ */
         #modalContainer {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(20px);
-            display: flex;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.88);
+            backdrop-filter: blur(24px);
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 99999;
-            padding: 20px;
-            animation: modalFadeIn 0.3s ease;
+            animation: modal-in 0.3s ease;
         }
         
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+        @keyframes modal-in {
+            from { opacity: 0; transform: scale(0.92) translateY(30px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
         
         #alertBox {
-            background: linear-gradient(145deg, #141c28, #0b1119);
-            border-radius: 32px;
-            max-width: 680px;
-            width: 100%;
-            padding: 32px 34px 34px 34px;
-            border: 1px solid rgba(255,255,255,0.06);
+            background: linear-gradient(145deg, #0e1620, #080c14);
+            border-radius: 28px;
+            max-width: 620px;
+            width: 90%;
+            padding: 30px 32px 32px 32px;
+            border: 1px solid rgba(255,255,255,0.04);
             box-shadow: 0 60px 120px rgba(0,0,0,0.8);
-            max-height: 90vh;
+            max-height: 85vh;
             overflow-y: auto;
-            position: relative;
         }
         
-        #alertBox .modal-header-custom {
+        #alertBox .modal-head {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         
-        #alertBox .modal-title {
-            font-size: 20px;
-            font-weight: 800;
+        #alertBox .modal-head h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #ff4757;
             display: flex;
             align-items: center;
             gap: 12px;
-            color: #ff4757;
         }
         
-        #alertBox .modal-title i {
-            font-size: 24px;
-        }
-        
-        #alertBox .modal-close {
+        #alertBox .modal-head .close-btn {
             background: none;
             border: none;
-            color: #6a7f9e;
+            color: #4a6a8a;
             font-size: 28px;
             cursor: pointer;
             transition: 0.2s;
-            padding: 4px 8px;
-            border-radius: 8px;
+            padding: 0 6px;
         }
         
-        #alertBox .modal-close:hover {
+        #alertBox .modal-head .close-btn:hover {
             color: white;
-            background: rgba(255,255,255,0.05);
+            transform: rotate(90deg);
         }
         
-        #alertBox .modal-body {
-            background: rgba(0,0,0,0.3);
-            border-radius: 16px;
-            padding: 16px 20px;
-            margin: 12px 0 20px 0;
+        #alertBox .modal-body-msg {
+            background: rgba(0,0,0,0.35);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin: 10px 0 16px 0;
             border-left: 3px solid #4f9cf7;
-            font-size: 14px;
-            line-height: 1.7;
-            color: #c8d6f0;
-            max-height: 200px;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #b0c8e0;
+            max-height: 180px;
             overflow-y: auto;
         }
         
-        #alertBox .modal-body b {
+        #alertBox .modal-body-msg b {
             color: #e8edf5;
         }
         
-        #alertBox .form-group-premium {
-            margin-bottom: 14px;
+        #alertBox .form-grp {
+            margin-bottom: 12px;
         }
         
-        #alertBox .form-group-premium label {
+        #alertBox .form-grp label {
             display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: #8899bb;
+            font-size: 10px;
+            font-weight: 700;
+            color: #4a6a8a;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
         }
         
-        #alertBox .form-group-premium select,
-        #alertBox .form-group-premium textarea {
+        #alertBox .form-grp select,
+        #alertBox .form-grp textarea {
             width: 100%;
             background: rgba(0,0,0,0.4);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 12px;
-            padding: 10px 16px;
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 9px 14px;
             color: #e8edf5;
-            font-size: 14px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            font-family: 'Rajdhani', sans-serif;
             transition: 0.2s;
         }
         
-        #alertBox .form-group-premium select:focus,
-        #alertBox .form-group-premium textarea:focus {
+        #alertBox .form-grp select:focus,
+        #alertBox .form-grp textarea:focus {
             outline: none;
             border-color: #4f9cf7;
-            box-shadow: 0 0 0 4px rgba(79,156,247,0.1);
+            box-shadow: 0 0 0 3px rgba(79,156,247,0.08);
         }
         
-        #alertBox .form-group-premium textarea {
-            min-height: 60px;
+        #alertBox .form-grp textarea {
+            min-height: 50px;
             resize: vertical;
         }
         
         #alertBox .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 12px;
         }
         
-        .modal-actions {
+        .modal-actions-cyber {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: flex-end;
-            margin-top: 20px;
+            margin-top: 16px;
             flex-wrap: wrap;
         }
         
-        .modal-actions .btn-action {
-            padding: 10px 28px;
+        .modal-actions-cyber .btn {
+            padding: 8px 24px;
             border-radius: 40px;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             border: none;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Rajdhani', sans-serif;
         }
         
-        .modal-actions .btn-action-primary {
+        .modal-actions-cyber .btn-primary {
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
             color: white;
-            box-shadow: 0 4px 20px rgba(79,156,247,0.3);
+            box-shadow: 0 4px 20px rgba(79,156,247,0.25);
         }
         
-        .modal-actions .btn-action-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(79,156,247,0.4);
-        }
+        .modal-actions-cyber .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,156,247,0.35); }
         
-        .modal-actions .btn-action-danger {
+        .modal-actions-cyber .btn-danger {
             background: linear-gradient(135deg, #ff4757, #c0392b);
             color: white;
         }
         
-        .modal-actions .btn-action-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(255,71,87,0.3);
+        .modal-actions-cyber .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,71,87,0.25); }
+        
+        .modal-actions-cyber .btn-secondary {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            color: #8aaac0;
         }
         
-        .modal-actions .btn-action-secondary {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.06);
-            color: #c8d6f0;
-        }
-        
-        .modal-actions .btn-action-secondary:hover {
-            background: rgba(255,255,255,0.08);
-        }
+        .modal-actions-cyber .btn-secondary:hover { background: rgba(255,255,255,0.06); }
         
         /* ============================================================
-           RESPONSIVE
+           RESPONSIVE - MAINTAIN ONE SCREEN
            ============================================================ */
-        @media (max-width: 1600px) { .hex-grid { grid-template-columns: repeat(8, 1fr); } }
-        @media (max-width: 1200px) { .hex-grid { grid-template-columns: repeat(6, 1fr); } }
-        @media (max-width: 992px) { 
-            .hex-grid { grid-template-columns: repeat(4, 1fr); }
-            .cards-grid { grid-template-columns: 1fr; }
-            #alertBox .form-row { grid-template-columns: 1fr; }
+        @media (max-width: 1600px) {
+            .panel-body { grid-template-columns: repeat(7, 1fr); }
+            .hex-grid-container { grid-template-columns: repeat(4, 1fr); }
         }
-        @media (max-width: 600px) { 
-            .hex-grid { grid-template-columns: repeat(3, 1fr); }
-            .header-premium { flex-direction: column; align-items: flex-start; }
+        @media (max-width: 1400px) {
+            .panel-body { grid-template-columns: repeat(6, 1fr); }
+            .hex-grid-container { grid-template-columns: repeat(3, 1fr); }
+            .brand-cyber .title { font-size: 18px; }
+        }
+        @media (max-width: 1100px) {
+            .panel-body { grid-template-columns: repeat(5, 1fr); }
+            .hex-grid-container { grid-template-columns: repeat(2, 1fr); }
+            .top-stats .stat-pill span:not(.num) { display: none; }
+        }
+        @media (max-width: 768px) {
+            .panel-body { grid-template-columns: repeat(4, 1fr); }
+            .hex-grid-container { grid-template-columns: 1fr; }
+            .top-bar { flex-wrap: wrap; height: auto; gap: 8px; }
+            .legend-cyber { flex-wrap: wrap; gap: 12px; height: auto; padding: 4px 0; }
         }
         
-        /* Scrollbar */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #0b1119; }
-        ::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4f9cf7; }
+        /* Custom scroll for modal */
+        #alertBox::-webkit-scrollbar { width: 3px; }
+        #alertBox::-webkit-scrollbar-track { background: transparent; }
+        #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
         
-        /* Stats Counter Animation */
-        .stat-number {
-            font-size: 14px;
-            font-weight: 700;
-            color: #4f9cf7;
-        }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
 <!-- ============================================================
-     HEADER - Enterprise Grade
+     COSMIC BACKGROUND
      ============================================================ -->
-<div class="header-premium">
-    <div class="brand-section">
-        <div class="brand-icon">
-            <i class="fas fa-chart-pie"></i>
-        </div>
-        <div>
-            <div class="brand-text">ServiceWise</div>
-            <div class="brand-sub">Enterprise Command Center</div>
-        </div>
-    </div>
-    <div class="header-actions">
-        <div class="status-pill">
-            <span class="dot"></span>
-            All Systems <span style="color:#e8edf5;">Operational</span>
-        </div>
-        <button class="btn-premium btn-premium-primary" id="openPopupButton">
-            <i class="fas fa-list-check"></i> Closed Issues
-        </button>
-        <button class="btn-premium btn-premium-ghost" id="openPopup">
-            <i class="fas fa-check-circle"></i> Today <span id="closedCountBadge" style="background:rgba(79,156,247,0.15); padding:2px 10px; border-radius:20px; margin-left:4px;">0</span>
-        </button>
-    </div>
-</div>
-
-<div class="premium-line"></div>
+<div class="bg-cosmic"></div>
 
 <!-- ============================================================
-     TIMELINE BAR
+     COMMAND CENTER
      ============================================================ -->
-<div class="timeline-bar">
-    <span class="timeline-text">
-        <i class="far fa-calendar-alt" style="margin-right:8px; color:#4f9cf7;"></i>
-        Data Window: 
-        <%
-            try {
-                Connection conStamp = DBUtilityAuto.getReportDBConnection();
-                Statement stStamp = conStamp.createStatement();
-                ResultSet rsStamp = stStamp.executeQuery("select INSERT_TIME from gen5_servicewise_fail ORDER BY insert_time desc");
-                if(rsStamp.next()) {
-                    Timestamp ts = rsStamp.getTimestamp("INSERT_TIME");
-                    Date d = new Date(ts.getTime());
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(d);
-                    cal.add(Calendar.MINUTE, -10);
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yy hh:mm:ss a");
-                    out.print("<strong>" + sdf.format(cal.getTime()) + "</strong> → <strong>" + sdf.format(d) + "</strong>");
-                }
-                rsStamp.close(); stStamp.close(); conStamp.close();
-            } catch(Exception e) { out.print("—"); }
-        %>
-    </span>
-    <span class="timeline-text">
-        <i class="fas fa-sync-alt fa-fw" style="margin-right:6px; color:#4f9cf7;"></i>
-        Refresh: <span class="timer-premium" id="ten-countdown">5:00</span>
-    </span>
-</div>
+<div class="command-center">
 
-<!-- ============================================================
-     LEGEND - Premium
-     ============================================================ -->
-<div style="display:flex; justify-content:center;">
-    <div class="legend-premium">
-        <span class="legend-item-premium"><span class="legend-dot ld-red"></span> Critical (TD)</span>
-        <span class="legend-item-premium"><span class="legend-dot ld-orange"></span> Warning (BD)</span>
-        <span class="legend-item-premium"><span class="legend-dot ld-purple"></span> Mixed</span>
-        <span class="legend-item-premium"><span class="legend-dot ld-green"></span> Healthy</span>
-    </div>
-</div>
-
-<!-- ============================================================
-     MAIN CARDS GRID
-     ============================================================ -->
-<div class="cards-grid">
-    
-    <!-- ===== GEN-5 ===== -->
-    <div class="card-premium">
-        <div class="card-header-premium">
-            <span class="title"><i class="fas fa-server"></i> GEN-5</span>
-            <span class="badge-premium"><i class="fas fa-circle" style="color:#0f973d; font-size:8px;"></i> Live</span>
-        </div>
-        <div class="hex-grid">
-            <%
-                Connection con = DBUtilityAuto.getReportDBConnection();
-                Statement l_bjst = null;
-                ResultSet l_bjres = null;
-                try {
-                    String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per,CASE WHEN ( SUM(td_per) <> 0 ) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
-                    l_bjst = con.createStatement();
-                    l_bjres = l_bjst.executeQuery(l_strQuery);
-                    List<String> API_NAME = new ArrayList<>();
-                    List<String> SOURCE_ID = new ArrayList<>();
-                    List<String> ERROR_CODE = new ArrayList<>();
-                    List<Integer> TOTAL_HITS = new ArrayList<>();
-                    List<Integer> EIS_TD = new ArrayList<>();
-                    List<Double> EIS_TD_PER = new ArrayList<>();
-                    List<String> ISSUE_TIME = new ArrayList<>();
-                    List<Integer> SI_EEROR_Count = new ArrayList<>();
-                    List<Double> SI_EEROR_PR_Per = new ArrayList<>();
-                    while(l_bjres.next()) {
-                        if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
-                            API_NAME.add(l_bjres.getString("API_NAME"));
-                            SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
-                            ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
-                            TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                            EIS_TD.add(l_bjres.getInt("TD"));
-                            EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-                            ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME"));
-                            SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
-                            SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR"));
-                        }
-                    }
-                    if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
-                        for(int i=0; i<ERROR_CODE.size(); i++) {
-                            String m_strtmp = ERROR_CODE.get(i);
-                            StringBuilder m_strErrorcode = new StringBuilder();
-                            if(m_strtmp != null && m_strtmp.contains(",")) {
-                                String[] tmparr = m_strtmp.split(",");
-                                int count = 0;
-                                for(int b=0; b<tmparr.length; b++) {
-                                    if(count == 6) { m_strErrorcode.append(",<br>"); count=0; }
-                                    if(b!=0) m_strErrorcode.append(",");
-                                    m_strErrorcode.append(tmparr[b]);
-                                    count++;
-                                }
-                            } else { m_strErrorcode.append(m_strtmp); }
-                            String m_strSourceId = SOURCE_ID.get(i);
-                            String[] sourceIds = m_strSourceId.split(",");
-                            StringBuilder groupedSourceIds = new StringBuilder();
-                            int countSource = 0;
-                            for(String source : sourceIds) {
-                                if(countSource == 10) { groupedSourceIds.append("<br>"); countSource=0; }
-                                if(countSource > 0) groupedSourceIds.append(", ");
-                                groupedSourceIds.append(source);
-                                countSource++;
-                            }
-                            String alertMsg = "<b>Service Category:</b> GEN-5<br><b>Name of Service:</b> "+API_NAME.get(i)+"<br><b>Source ID:</b> "+groupedSourceIds.toString()+"<br><b>ERROR CODE:</b> "+m_strErrorcode.toString()+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS.get(i)+"<br><b>EIS TD COUNT:</b> "+EIS_TD.get(i)+"<br><b>Failure %:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI ERROR:</b> "+SI_EEROR_Count.get(i)+"<br><b>Issue Time:</b> "+ISSUE_TIME.get(i);
-                            out.print("<div class='hex-premium hex-critical' onclick=\"openPremiumAlert('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','"+EIS_TD_PER.get(i)+"','GEN-5','"+groupedSourceIds.toString()+"','"+m_strErrorcode.toString()+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
-                            out.print("<span class='value'>"+EIS_TD_PER.get(i)+"</span>");
-                            out.print("<span class='sub-value'>%</span>");
-                            out.print("</div>");
-                        }
-                        for(int k=EIS_TD_PER.size(); k<60; k++) {
-                            out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(k+1)+"</span></div>");
-                        }
-                    } else {
-                        for(int i=0; i<60; i++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(i+1)+"</span></div>");
-                    }
-                } catch(Exception e) { e.printStackTrace(); }
-            %>
-        </div>
-    </div>
-
-    <!-- ===== SI ===== -->
-    <div class="card-premium">
-        <div class="card-header-premium">
-            <span class="title"><i class="fas fa-code"></i> SI Services</span>
-            <span class="badge-premium"><i class="fas fa-circle" style="color:#0f973d; font-size:8px;"></i> Live</span>
-        </div>
-        <div class="hex-grid">
-            <%
-                try {
-                    String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
-                    l_bjres = con.createStatement().executeQuery(l_strQuery);
-                    List<String> API_NAME = new ArrayList<>();
-                    List<String> ERROR_CODE = new ArrayList<>();
-                    List<Integer> TOTAL_HITS = new ArrayList<>();
-                    List<Integer> EIS_TD = new ArrayList<>();
-                    List<Double> EIS_TD_PER = new ArrayList<>();
-                    List<String> ISSUE_TIME = new ArrayList<>();
-                    while(l_bjres.next()) {
-                        if(l_bjres.getDouble("TD") >= 50) {
-                            API_NAME.add(l_bjres.getString("API_NAME"));
-                            ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
-                            TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                            EIS_TD.add(l_bjres.getInt("TD"));
-                            EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-                            ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME"));
-                        }
-                    }
-                    if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
-                        for(int i=0; i<ERROR_CODE.size(); i++) {
-                            String m_strtmp = ERROR_CODE.get(i);
-                            String m_strErrorcode = "";
-                            if(m_strtmp != null && m_strtmp.contains(",")) {
-                                String tmparr[] = m_strtmp.split(",");
-                                for(int b=0; b<tmparr.length; b++) {
-                                    if(b==0) m_strErrorcode = tmparr[b];
-                                    else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>,"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
-                                }
-                            } else { m_strErrorcode = ERROR_CODE.get(i); }
-                            String alertMsg = "<b>Service Category:</b> SI Services<br><b>Name:</b> "+API_NAME.get(i)+"<br><b>ERROR CODE:</b> "+m_strErrorcode+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS.get(i)+"<br><b>EIS TD COUNT:</b> "+EIS_TD.get(i)+"<br><b>Failure %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Issue Time:</b> "+ISSUE_TIME.get(i);
-                            out.print("<div class='hex-premium hex-critical' onclick=\"openPremiumAlert('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','"+EIS_TD_PER.get(i)+"','SI','','"+m_strErrorcode+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
-                            out.print("<span class='value'>"+EIS_TD_PER.get(i)+"</span><span class='sub-value'>%</span></div>");
-                        }
-                        for(int k=EIS_TD_PER.size(); k<60; k++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(k+1)+"</span></div>");
-                    } else { for(int i=0; i<60; i++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(i+1)+"</span></div>"); }
-                } catch(Exception e) { e.printStackTrace(); }
-            %>
-        </div>
-    </div>
-
-    <!-- ===== ThirdParty ===== -->
-    <div class="card-premium">
-        <div class="card-header-premium">
-            <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
-            <span class="badge-premium"><i class="fas fa-circle" style="color:#0f973d; font-size:8px;"></i> Live</span>
-        </div>
-        <div class="hex-grid">
-            <%
-                try {
-                    String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
-                    l_bjres = con.createStatement().executeQuery(l_strQuery);
-                    List<String> API_TD = new ArrayList<>();
-                    List<Double> TD_Per = new ArrayList<>();
-                    List<Integer> TOTAL_HITS_TD = new ArrayList<>();
-                    List<Integer> TD_Count = new ArrayList<>();
-                    List<String> Original_URN_TD = new ArrayList<>();
-                    List<String> TD_Issue_Time = new ArrayList<>();
-                    List<String> Source_Id_TD = new ArrayList<>();
-                    List<String> Error_Code_TD = new ArrayList<>();
-                    while(l_bjres.next()) {
-                        if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
-                            API_TD.add(l_bjres.getString("sup_url"));
-                            TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
-                            TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
-                            TD_Count.add(l_bjres.getInt("TD"));
-                            Original_URN_TD.add(l_bjres.getString("original_urn"));
-                            TD_Issue_Time.add(l_bjres.getString("issue_time"));
-                            Source_Id_TD.add(l_bjres.getString("Source_id"));
-                            Error_Code_TD.add(l_bjres.getString("error_code"));
-                        }
-                    }
-                    if(TD_Per != null && !TD_Per.isEmpty()) {
-                        for(int i=0; i<Error_Code_TD.size(); i++) {
-                            String m_strtmp = Error_Code_TD.get(i);
-                            String m_strErrorcode = "";
-                            if(m_strtmp != null && m_strtmp.contains(",")) {
-                                String tmparr[] = m_strtmp.split(",");
-                                for(int b=0; b<tmparr.length; b++) {
-                                    if(b==0) m_strErrorcode = tmparr[b];
-                                    else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
-                                }
-                            } else { m_strErrorcode = Error_Code_TD.get(i); }
-                            String alertMsg = "<b>Service Category:</b> ThirdParty<br><b>Name:</b> "+Original_URN_TD.get(i)+"<br><b>Error Code:</b> "+m_strErrorcode+"<br><b>Source ID:</b> "+Source_Id_TD.get(i)+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD COUNT:</b> "+TD_Count.get(i)+"<br><b>Issue Time:</b> "+TD_Issue_Time.get(i);
-                            out.print("<div class='hex-premium hex-critical' onclick=\"openPremiumAlert('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','"+TD_Per.get(i)+"','ThirdParty','"+Source_Id_TD.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
-                            out.print("<span class='value'>"+TD_Per.get(i)+"</span><span class='sub-value'>%</span></div>");
-                        }
-                        for(int k=TD_Per.size(); k<60; k++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(k+1)+"</span></div>");
-                    } else { for(int i=0; i<60; i++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(i+1)+"</span></div>"); }
-                } catch(Exception e) { e.printStackTrace(); }
-            %>
-        </div>
-    </div>
-
-    <!-- ===== I4C ===== -->
-    <div class="card-premium">
-        <div class="card-header-premium">
-            <span class="title"><i class="fas fa-database"></i> I4C</span>
-            <span class="badge-premium"><i class="fas fa-circle" style="color:#0f973d; font-size:8px;"></i> Live</span>
-        </div>
-        <div class="hex-grid">
-            <%
-                try {
-                    String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
-                    l_bjres = con.createStatement().executeQuery(l_strQuery);
-                    List<String> API_TD = new ArrayList<>();
-                    List<Double> TD_Per = new ArrayList<>();
-                    List<Integer> TOTAL_HITS_TD = new ArrayList<>();
-                    List<Integer> TD_Count = new ArrayList<>();
-                    List<String> Original_URN_TD = new ArrayList<>();
-                    List<String> TD_Issue_Time = new ArrayList<>();
-                    List<String> Source_Id_TD = new ArrayList<>();
-                    List<String> Error_Code_TD = new ArrayList<>();
-                    while(l_bjres.next()) {
-                        if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
-                            API_TD.add(l_bjres.getString("sup_url"));
-                            TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
-                            TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
-                            TD_Count.add(l_bjres.getInt("TD"));
-                            Original_URN_TD.add(l_bjres.getString("original_urn"));
-                            TD_Issue_Time.add(l_bjres.getString("issue_time"));
-                            Source_Id_TD.add(l_bjres.getString("Source_id"));
-                            Error_Code_TD.add(l_bjres.getString("error_code"));
-                        }
-                    }
-                    if(TD_Per != null && !TD_Per.isEmpty()) {
-                        for(int i=0; i<Error_Code_TD.size(); i++) {
-                            String m_strtmp = Error_Code_TD.get(i);
-                            String m_strErrorcode = "";
-                            if(m_strtmp != null && m_strtmp.contains(",")) {
-                                String tmparr[] = m_strtmp.split(",");
-                                for(int b=0; b<tmparr.length; b++) {
-                                    if(b==0) m_strErrorcode = tmparr[b];
-                                    else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
-                                }
-                            } else { m_strErrorcode = Error_Code_TD.get(i); }
-                            String alertMsg = "<b>Service Category:</b> I4C<br><b>Name:</b> "+Original_URN_TD.get(i)+"<br><b>Error:</b> "+m_strErrorcode+"<br><b>Source:</b> "+Source_Id_TD.get(i)+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD COUNT:</b> "+TD_Count.get(i)+"<br><b>Issue Time:</b> "+TD_Issue_Time.get(i);
-                            out.print("<div class='hex-premium hex-critical' onclick=\"openPremiumAlert('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','"+TD_Per.get(i)+"','I4C','"+Source_Id_TD.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
-                            out.print("<span class='value'>"+TD_Per.get(i)+"</span><span class='sub-value'>%</span></div>");
-                        }
-                        for(int k=TD_Per.size(); k<60; k++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(k+1)+"</span></div>");
-                    } else { for(int i=0; i<60; i++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(i+1)+"</span></div>"); }
-                } catch(Exception e) { e.printStackTrace(); }
-            %>
-        </div>
-    </div>
-
-    <!-- ===== IVR ===== -->
-    <div class="card-premium">
-        <div class="card-header-premium">
-            <span class="title"><i class="fas fa-phone-alt"></i> IVR</span>
-            <span class="badge-premium"><i class="fas fa-circle" style="color:#0f973d; font-size:8px;"></i> Live</span>
-        </div>
-        <div class="hex-grid">
-            <%
-                try {
-                    String l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
-                    l_bjres = con.createStatement().executeQuery(l_strQuery);
-                    List<String> API_NAME = new ArrayList<>();
-                    List<String> SOURCE_ID = new ArrayList<>();
-                    List<String> ERROR_CODE = new ArrayList<>();
-                    List<Integer> TOTAL_HITS = new ArrayList<>();
-                    List<Integer> EIS_TD = new ArrayList<>();
-                    List<Double> EIS_TD_PER = new ArrayList<>();
-                    List<String> ISSUE_TIME = new ArrayList<>();
-                    while(l_bjres.next()) {
-                        if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
-                            API_NAME.add(l_bjres.getString("API_NAME"));
-                            SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
-                            ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
-                            TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                            EIS_TD.add(l_bjres.getInt("TD"));
-                            EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-                            ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME"));
-                        }
-                    }
-                    if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
-                        for(int i=0; i<ERROR_CODE.size(); i++) {
-                            String m_strtmp = ERROR_CODE.get(i);
-                            String m_strErrorcode = "";
-                            if(m_strtmp != null && m_strtmp.contains(",")) {
-                                String tmparr[] = m_strtmp.split(",");
-                                for(int b=0; b<tmparr.length; b++) {
-                                    if(b==0) m_strErrorcode = tmparr[b];
-                                    else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
-                                }
-                            } else { m_strErrorcode = ERROR_CODE.get(i); }
-                            String alertMsg = "<b>Service Category:</b> IVR<br><b>Name:</b> "+API_NAME.get(i)+"<br><b>ERROR CODE:</b> "+m_strErrorcode+"<br><b>Source ID:</b> "+SOURCE_ID.get(i)+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS.get(i)+"<br><b>EIS TD COUNT:</b> "+EIS_TD.get(i)+"<br><b>Failure %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Issue Time:</b> "+ISSUE_TIME.get(i);
-                            out.print("<div class='hex-premium hex-critical' onclick=\"openPremiumAlert('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','"+EIS_TD_PER.get(i)+"','IVR','"+SOURCE_ID.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
-                            out.print("<span class='value'>"+EIS_TD_PER.get(i)+"</span><span class='sub-value'>%</span></div>");
-                        }
-                        for(int k=EIS_TD_PER.size(); k<60; k++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(k+1)+"</span></div>");
-                    } else { for(int i=0; i<60; i++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(i+1)+"</span></div>"); }
-                } catch(Exception e) { e.printStackTrace(); }
-            %>
-        </div>
-    </div>
-
-    <!-- ===== SBICAPS ===== -->
-    <div class="card-premium">
-        <div class="card-header-premium">
-            <span class="title"><i class="fas fa-building"></i> SBICAPS</span>
-            <span class="badge-premium"><i class="fas fa-circle" style="color:#0f973d; font-size:8px;"></i> Live</span>
-        </div>
-        <div class="hex-grid">
-            <%
-                try {
-                    String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per,CASE WHEN ( SUM(TD_PERCENT) <> 0 ) THEN round(round(AVG(TD_PERCENT), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
-                    l_bjres = con.createStatement().executeQuery(l_strQuery);
-                    List<String> API_NAME = new ArrayList<>();
-                    List<String> SOURCE_ID = new ArrayList<>();
-                    List<String> ERROR_CODE = new ArrayList<>();
-                    List<Integer> TOTAL_HITS = new ArrayList<>();
-                    List<Integer> EIS_TD = new ArrayList<>();
-                    List<Double> EIS_TD_PER = new ArrayList<>();
-                    List<String> ISSUE_TIME = new ArrayList<>();
-                    while(l_bjres.next()) {
-                        if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
-                            API_NAME.add(l_bjres.getString("API_NAME"));
-                            SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
-                            ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
-                            TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                            EIS_TD.add(l_bjres.getInt("TD"));
-                            EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-                            ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME"));
-                        }
-                    }
-                    if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
-                        for(int i=0; i<ERROR_CODE.size(); i++) {
-                            String m_strtmp = ERROR_CODE.get(i);
-                            String m_strErrorcode = "";
-                            if(m_strtmp != null && m_strtmp.contains(",")) {
-                                String tmparr[] = m_strtmp.split(",");
-                                for(int b=0; b<tmparr.length; b++) {
-                                    if(b==0) m_strErrorcode = tmparr[b];
-                                    else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
-                                }
-                            } else { m_strErrorcode = ERROR_CODE.get(i); }
-                            String alertMsg = "<b>Service Category:</b> SBICAPS<br><b>Name:</b> "+API_NAME.get(i)+"<br><b>ERROR CODE:</b> "+m_strErrorcode+"<br><b>Source ID:</b> "+SOURCE_ID.get(i)+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS.get(i)+"<br><b>EIS TD COUNT:</b> "+EIS_TD.get(i)+"<br><b>Failure %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Issue Time:</b> "+ISSUE_TIME.get(i);
-                            out.print("<div class='hex-premium hex-critical' onclick=\"openPremiumAlert('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','"+EIS_TD_PER.get(i)+"','SBICAPS','"+SOURCE_ID.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
-                            out.print("<span class='value'>"+EIS_TD_PER.get(i)+"</span><span class='sub-value'>%</span></div>");
-                        }
-                        for(int k=EIS_TD_PER.size(); k<60; k++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(k+1)+"</span></div>");
-                    } else { for(int i=0; i<60; i++) out.print("<div class='hex-premium hex-healthy'><span class='value'>"+(i+1)+"</span></div>"); }
-                } catch(Exception e) { e.printStackTrace(); }
-            %>
-        </div>
-    </div>
-
-</div><!-- end cards-grid -->
-
-<!-- ============================================================
-     PREMIUM MODAL (Single Instance)
-     ============================================================ -->
-<div id="modalContainer" style="display:none;">
-    <div id="alertBox">
-        <div class="modal-header-custom">
-            <div class="modal-title">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>Failure Alert</span>
+    <!-- ===== TOP BAR ===== -->
+    <div class="top-bar">
+        <div class="brand-cyber">
+            <div class="logo"><i class="fas fa-satellite-dish"></i></div>
+            <div>
+                <div class="title">SERVICEWISE</div>
+                <div class="sub">Command &amp; Control Center</div>
             </div>
-            <button class="modal-close" onclick="closePremiumModal()">✕</button>
         </div>
-        
-        <div class="modal-body" id="modalBody">
-            <!-- Dynamic content -->
+        <div class="top-stats">
+            <div class="stat-pill">
+                <span class="dot-green"></span>
+                <span>STATUS</span>
+                <span class="num" style="color:#0f973d; font-size:12px;">ONLINE</span>
+            </div>
+            <div class="stat-pill">
+                <i class="far fa-clock" style="color:#4f9cf7;"></i>
+                <span>REFRESH</span>
+                <span class="timer-cyber" id="ten-countdown">5:00</span>
+            </div>
+            <button class="btn-cyber btn-cyber-primary" id="openPopupButton">
+                <i class="fas fa-list-check"></i> <span class="hidden-mobile">CLOSED</span>
+            </button>
+            <button class="btn-cyber btn-cyber-ghost" id="openPopup">
+                <i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.12); padding:0 8px; border-radius:12px;">0</span>
+            </button>
         </div>
+    </div>
+
+    <!-- ===== LEGEND ===== -->
+    <div class="legend-cyber">
+        <span class="item"><span class="dot dot-critical"></span> Critical</span>
+        <span class="item"><span class="dot dot-warning"></span> Warning</span>
+        <span class="item"><span class="dot dot-mixed"></span> Mixed</span>
+        <span class="item"><span class="dot dot-healthy"></span> Healthy</span>
+        <span class="item" style="color:#4a6a8a; font-weight:400;">
+            <i class="fas fa-sync-alt fa-fw" style="color:#4f9cf7;"></i> 
+            Last: 
+            <%
+                try {
+                    Connection conStamp = DBUtilityAuto.getReportDBConnection();
+                    Statement stStamp = conStamp.createStatement();
+                    ResultSet rsStamp = stStamp.executeQuery("select INSERT_TIME from gen5_servicewise_fail ORDER BY insert_time desc");
+                    if(rsStamp.next()) {
+                        Timestamp ts = rsStamp.getTimestamp("INSERT_TIME");
+                        Date d = new Date(ts.getTime());
+                        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
+                        out.print(sdf.format(d));
+                    }
+                    rsStamp.close(); stStamp.close(); conStamp.close();
+                } catch(Exception e) { out.print("—"); }
+            %>
+        </span>
+    </div>
+
+    <!-- ===== HEX GRID ===== -->
+    <div class="hex-grid-container">
         
-        <div class="form-group-premium">
-            <label>Closed Time</label>
-            <select id="pasuseTime">
-                <option value="1">1 Hour</option>
-                <option value="2">2 Hours</option>
-                <option value="3">3 Hours</option>
-                <option value="4">4 Hours</option>
-                <option value="5">5 Hours</option>
-                <option value="6">6 Hours</option>
-                <option value="7">7 Hours</option>
-                <option value="8">8 Hours</option>
-                <option value="9">9 Hours</option>
-                <option value="10">10 Hours</option>
-                <option value="11">11 Hours</option>
-                <option value="12">12 Hours</option>
-                <option value="13">13 Hours</option>
-                <option value="14">14 Hours</option>
-                <option value="15">15 Hours</option>
-                <option value="16">16 Hours</option>
-                <option value="17">17 Hours</option>
-                <option value="18">18 Hours</option>
-                <option value="19">19 Hours</option>
-                <option value="20">20 Hours</option>
-                <option value="21">21 Hours</option>
-                <option value="22">22 Hours</option>
-                <option value="23">23 Hours</option>
-                <option value="24">24 Hours</option>
-            </select>
+        <!-- GEN-5 -->
+        <div class="hex-panel">
+            <div class="panel-header">
+                <span class="title"><i class="fas fa-server"></i> GEN-5</span>
+                <span class="badge"><i class="fas fa-circle" style="font-size:6px; color:#0f973d;"></i> LIVE</span>
+            </div>
+            <div class="panel-body" id="panel-gen5">
+                <%
+                    Connection con = DBUtilityAuto.getReportDBConnection();
+                    Statement l_bjst = null;
+                    ResultSet l_bjres = null;
+                    try {
+                        String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per,CASE WHEN ( SUM(td_per) <> 0 ) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 48";
+                        l_bjst = con.createStatement();
+                        l_bjres = l_bjst.executeQuery(l_strQuery);
+                        List<String> API_NAME = new ArrayList<>();
+                        List<String> SOURCE_ID = new ArrayList<>();
+                        List<String> ERROR_CODE = new ArrayList<>();
+                        List<Integer> TOTAL_HITS = new ArrayList<>();
+                        List<Integer> EIS_TD = new ArrayList<>();
+                        List<Double> EIS_TD_PER = new ArrayList<>();
+                        List<String> ISSUE_TIME = new ArrayList<>();
+                        List<Integer> SI_EEROR_Count = new ArrayList<>();
+                        List<Double> SI_EEROR_PR_Per = new ArrayList<>();
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                API_NAME.add(l_bjres.getString("API_NAME"));
+                                SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
+                                ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
+                                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+                                EIS_TD.add(l_bjres.getInt("TD"));
+                                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
+                                ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME"));
+                                SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+                                SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR"));
+                            }
+                        }
+                        int maxHex = 48;
+                        if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
+                            for(int i=0; i<Math.min(ERROR_CODE.size(), maxHex); i++) {
+                                String m_strtmp = ERROR_CODE.get(i);
+                                StringBuilder m_strErrorcode = new StringBuilder();
+                                if(m_strtmp != null && m_strtmp.contains(",")) {
+                                    String[] tmparr = m_strtmp.split(",");
+                                    int count = 0;
+                                    for(int b=0; b<tmparr.length; b++) {
+                                        if(count == 6) { m_strErrorcode.append(",<br>"); count=0; }
+                                        if(b!=0) m_strErrorcode.append(",");
+                                        m_strErrorcode.append(tmparr[b]);
+                                        count++;
+                                    }
+                                } else { m_strErrorcode.append(m_strtmp); }
+                                String m_strSourceId = SOURCE_ID.get(i);
+                                String[] sourceIds = m_strSourceId.split(",");
+                                StringBuilder groupedSourceIds = new StringBuilder();
+                                int countSource = 0;
+                                for(String source : sourceIds) {
+                                    if(countSource == 10) { groupedSourceIds.append("<br>"); countSource=0; }
+                                    if(countSource > 0) groupedSourceIds.append(", ");
+                                    groupedSourceIds.append(source);
+                                    countSource++;
+                                }
+                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>Source ID:</b> "+groupedSourceIds.toString()+"<br><b>ERROR CODE:</b> "+m_strErrorcode.toString()+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS.get(i)+"<br><b>TD COUNT:</b> "+EIS_TD.get(i)+"<br><b>Failure %:</b> "+EIS_TD_PER.get(i)+"%<br><b>SI ERROR:</b> "+SI_EEROR_Count.get(i)+"<br><b>Time:</b> "+ISSUE_TIME.get(i);
+                                String cls = "hex-ultra hex-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "hex-ultra hex-warning";
+                                out.print("<div class='"+cls+"' onclick=\"openCyberModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','GEN-5','"+groupedSourceIds.toString()+"','"+m_strErrorcode.toString()+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span></div>");
+                            }
+                            for(int k=EIS_TD_PER.size(); k<maxHex; k++) {
+                                out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                            }
+                        } else {
+                            for(int i=0; i<maxHex; i++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(i+1)+"</span></div>");
+                        }
+                    } catch(Exception e) { e.printStackTrace(); }
+                %>
+            </div>
         </div>
+
+        <!-- SI -->
+        <div class="hex-panel">
+            <div class="panel-header">
+                <span class="title"><i class="fas fa-code"></i> SI</span>
+                <span class="badge"><i class="fas fa-circle" style="font-size:6px; color:#0f973d;"></i> LIVE</span>
+            </div>
+            <div class="panel-body" id="panel-si">
+                <%
+                    try {
+                        String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 48";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        List<String> API_NAME = new ArrayList<>();
+                        List<String> ERROR_CODE = new ArrayList<>();
+                        List<Integer> TOTAL_HITS = new ArrayList<>();
+                        List<Integer> EIS_TD = new ArrayList<>();
+                        List<Double> EIS_TD_PER = new ArrayList<>();
+                        List<String> ISSUE_TIME = new ArrayList<>();
+                        while(l_bjres.next()) {
+                            if(l_bjres.getDouble("TD") >= 50) {
+                                API_NAME.add(l_bjres.getString("API_NAME"));
+                                ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
+                                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+                                EIS_TD.add(l_bjres.getInt("TD"));
+                                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
+                                ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME"));
+                            }
+                        }
+                        int maxHex = 48;
+                        if(EIS_TD_PER != null && !EIS_TD_PER.isEmpty()) {
+                            for(int i=0; i<Math.min(ERROR_CODE.size(), maxHex); i++) {
+                                String m_strtmp = ERROR_CODE.get(i);
+                                String m_strErrorcode = "";
+                                if(m_strtmp != null && m_strtmp.contains(",")) {
+                                    String tmparr[] = m_strtmp.split(",");
+                                    for(int b=0; b<tmparr.length; b++) {
+                                        if(b==0) m_strErrorcode = tmparr[b];
+                                        else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>,"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
+                                    }
+                                } else { m_strErrorcode = ERROR_CODE.get(i); }
+                                String alertMsg = "<b>Service:</b> "+API_NAME.get(i)+"<br><b>ERROR:</b> "+m_strErrorcode+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS.get(i)+"<br><b>TD COUNT:</b> "+EIS_TD.get(i)+"<br><b>Failure %:</b> "+EIS_TD_PER.get(i)+"%<br><b>Time:</b> "+ISSUE_TIME.get(i);
+                                String cls = "hex-ultra hex-critical";
+                                if(EIS_TD_PER.get(i) < 5) cls = "hex-ultra hex-warning";
+                                out.print("<div class='"+cls+"' onclick=\"openCyberModal('"+alertMsg.replace("'","\\'")+"','"+API_NAME.get(i)+"','SI','','"+m_strErrorcode+"','"+TOTAL_HITS.get(i)+"','"+EIS_TD.get(i)+"','"+ISSUE_TIME.get(i)+"')\">");
+                                out.print("<span class='val'>"+EIS_TD_PER.get(i)+"</span><span class='suffix'>%</span></div>");
+                            }
+                            for(int k=EIS_TD_PER.size(); k<maxHex; k++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                    } catch(Exception e) { e.printStackTrace(); }
+                %>
+            </div>
+        </div>
+
+        <!-- ThirdParty -->
+        <div class="hex-panel">
+            <div class="panel-header">
+                <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
+                <span class="badge"><i class="fas fa-circle" style="font-size:6px; color:#0f973d;"></i> LIVE</span>
+            </div>
+            <div class="panel-body" id="panel-third">
+                <%
+                    try {
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 48";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        List<String> API_TD = new ArrayList<>();
+                        List<Double> TD_Per = new ArrayList<>();
+                        List<Integer> TOTAL_HITS_TD = new ArrayList<>();
+                        List<Integer> TD_Count = new ArrayList<>();
+                        List<String> Original_URN_TD = new ArrayList<>();
+                        List<String> TD_Issue_Time = new ArrayList<>();
+                        List<String> Source_Id_TD = new ArrayList<>();
+                        List<String> Error_Code_TD = new ArrayList<>();
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                API_TD.add(l_bjres.getString("sup_url"));
+                                TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
+                                TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
+                                TD_Count.add(l_bjres.getInt("TD"));
+                                Original_URN_TD.add(l_bjres.getString("original_urn"));
+                                TD_Issue_Time.add(l_bjres.getString("issue_time"));
+                                Source_Id_TD.add(l_bjres.getString("Source_id"));
+                                Error_Code_TD.add(l_bjres.getString("error_code"));
+                            }
+                        }
+                        int maxHex = 48;
+                        if(TD_Per != null && !TD_Per.isEmpty()) {
+                            for(int i=0; i<Math.min(Error_Code_TD.size(), maxHex); i++) {
+                                String m_strtmp = Error_Code_TD.get(i);
+                                String m_strErrorcode = "";
+                                if(m_strtmp != null && m_strtmp.contains(",")) {
+                                    String tmparr[] = m_strtmp.split(",");
+                                    for(int b=0; b<tmparr.length; b++) {
+                                        if(b==0) m_strErrorcode = tmparr[b];
+                                        else { if(b%6==0) m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>"; else m_strErrorcode = m_strErrorcode + "," + tmparr[b]; }
+                                    }
+                                } else { m_strErrorcode = Error_Code_TD.get(i); }
+                                String alertMsg = "<b>Service:</b> "+Original_URN_TD.get(i)+"<br><b>Error:</b> "+m_strErrorcode+"<br><b>Source:</b> "+Source_Id_TD.get(i)+"<br><b>TOTAL HITS:</b> "+TOTAL_HITS_TD.get(i)+"<br><b>TD COUNT:</b> "+TD_Count.get(i)+"<br><b>Time:</b> "+TD_Issue_Time.get(i);
+                                String cls = "hex-ultra hex-critical";
+                                if(TD_Per.get(i) < 5) cls = "hex-ultra hex-warning";
+                                out.print("<div class='"+cls+"' onclick=\"openCyberModal('"+alertMsg.replace("'","\\'")+"','"+Original_URN_TD.get(i)+"','ThirdParty','"+Source_Id_TD.get(i)+"','"+m_strErrorcode+"','"+TOTAL_HITS_TD.get(i)+"','"+TD_Count.get(i)+"','"+TD_Issue_Time.get(i)+"')\">");
+                                out.print("<span class='val'>"+TD_Per.get(i)+"</span><span class='suffix'>%</span></div>");
+                            }
+                            for(int k=TD_Per.size(); k<maxHex; k++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                    } catch(Exception e) { e.printStackTrace(); }
+                %>
+            </div>
+        </div>
+
+        <!-- I4C + IVR + SBICAPS Combined -->
+        <div class="hex-panel">
+            <div class="panel-header">
+                <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
+                <span class="badge"><i class="fas fa-circle" style="font-size:6px; color:#0f973d;"></i> LIVE</span>
+            </div>
+            <div class="panel-body" id="panel-mixed">
+                <%
+                    try {
+                        // I4C
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 16";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        List<Double> allPct = new ArrayList<>();
+                        List<String> allNames = new ArrayList<>();
+                        List<String> allMsgs = new ArrayList<>();
+                        List<String> allCats = new ArrayList<>();
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
+                                allPct.add(l_bjres.getDouble("TD_PERCENT"));
+                                allNames.add(l_bjres.getString("original_urn"));
+                                allCats.add("I4C");
+                                String err = l_bjres.getString("error_code");
+                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
+                                allMsgs.add("<b>I4C:</b> "+l_bjres.getString("original_urn")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+l_bjres.getString("Source_id")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+l_bjres.getString("issue_time"));
+                            }
+                        }
+                        // IVR
+                        l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 16";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
+                                allPct.add(l_bjres.getDouble("TD_PER"));
+                                allNames.add(l_bjres.getString("API_NAME"));
+                                allCats.add("IVR");
+                                String err = l_bjres.getString("ERROR_CODE");
+                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
+                                allMsgs.add("<b>IVR:</b> "+l_bjres.getString("API_NAME")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+l_bjres.getString("Source_id")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+l_bjres.getString("issue_time"));
+                            }
+                        }
+                        // SBICAPS
+                        l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 16";
+                        l_bjres = con.createStatement().executeQuery(l_strQuery);
+                        while(l_bjres.next()) {
+                            if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
+                                allPct.add(l_bjres.getDouble("TD_PER"));
+                                allNames.add(l_bjres.getString("API_NAME"));
+                                allCats.add("SBICAPS");
+                                String err = l_bjres.getString("ERROR_CODE");
+                                if(err != null && err.length() > 20) err = err.substring(0, 20) + "...";
+                                allMsgs.add("<b>SBICAPS:</b> "+l_bjres.getString("API_NAME")+"<br><b>Error:</b> "+err+"<br><b>Source:</b> "+l_bjres.getString("source_id")+"<br><b>TD:</b> "+l_bjres.getInt("TD")+"<br><b>Time:</b> "+l_bjres.getString("issue_time"));
+                            }
+                        }
+                        int maxHex = 48;
+                        if(allPct != null && !allPct.isEmpty()) {
+                            for(int i=0; i<Math.min(allPct.size(), maxHex); i++) {
+                                String cls = "hex-ultra hex-critical";
+                                if(allPct.get(i) < 5) cls = "hex-ultra hex-warning";
+                                String finalMsg = allMsgs.get(i);
+                                String finalName = allNames.get(i);
+                                String finalCat = allCats.get(i);
+                                out.print("<div class='"+cls+"' onclick=\"openCyberModal('"+finalMsg.replace("'","\\'")+"','"+finalName+"','"+finalCat+"','','','','','')\">");
+                                out.print("<span class='val'>"+allPct.get(i)+"</span><span class='suffix'>%</span></div>");
+                            }
+                            for(int k=allPct.size(); k<maxHex; k++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(k+1)+"</span></div>");
+                        } else { for(int i=0; i<maxHex; i++) out.print("<div class='hex-ultra hex-healthy'><span class='val'>"+(i+1)+"</span></div>"); }
+                    } catch(Exception e) { e.printStackTrace(); }
+                %>
+            </div>
+        </div>
+
+    </div><!-- end hex-grid-container -->
+</div><!-- end command-center -->
+
+<!-- ============================================================
+     CYBER MODAL
+     ============================================================ -->
+<div id="modalContainer">
+    <div id="alertBox">
+        <div class="modal-head">
+            <h2><i class="fas fa-exclamation-triangle"></i> FAILURE ALERT</h2>
+            <button class="close-btn" onclick="closeCyberModal()">✕</button>
+        </div>
+        <div class="modal-body-msg" id="modalMsg"></div>
         
-        <div class="form-group-premium">
+        <div class="form-row">
+            <div class="form-grp">
+                <label>Closed Time</label>
+                <select id="pasuseTime">
+                    <option value="1">1 Hour</option><option value="2">2 Hours</option>
+                    <option value="3">3 Hours</option><option value="4">4 Hours</option>
+                    <option value="5">5 Hours</option><option value="6">6 Hours</option>
+                    <option value="7">7 Hours</option><option value="8">8 Hours</option>
+                    <option value="9">9 Hours</option><option value="10">10 Hours</option>
+                    <option value="11">11 Hours</option><option value="12">12 Hours</option>
+                    <option value="13">13 Hours</option><option value="14">14 Hours</option>
+                    <option value="15">15 Hours</option><option value="16">16 Hours</option>
+                    <option value="17">17 Hours</option><option value="18">18 Hours</option>
+                    <option value="19">19 Hours</option><option value="20">20 Hours</option>
+                    <option value="21">21 Hours</option><option value="22">22 Hours</option>
+                    <option value="23">23 Hours</option><option value="24">24 Hours</option>
+                </select>
+            </div>
+            <div class="form-grp">
+                <label>Closed By</label>
+                <select id="closeName">
+                    <option value="">Select Name</option>
+                    <%
+                        try {
+                            Connection connn = DBUtilityAuto.getReportDBConnection();
+                            String sql1="select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";
+                            Statement stmt1=connn.createStatement();
+                            ResultSet rs1= stmt1.executeQuery(sql1);
+                            while(rs1.next()){
+                                String name = rs1.getString("Fullname");
+                                out.print("<option value='"+name+"'>"+name+"</option>");
+                            }
+                            rs1.close(); stmt1.close(); connn.close();
+                        } catch(Exception e) { }
+                    %>
+                </select>
+            </div>
+        </div>
+        <div class="form-grp">
             <label>Comment</label>
             <textarea id="TextArea" placeholder="Enter closure comments..."></textarea>
         </div>
         
-        <div class="form-group-premium">
-            <label>Closed By</label>
-            <select id="closeName">
-                <option value="">Please Select Name</option>
-                <%
-                    try {
-                        Connection connn = DBUtilityAuto.getReportDBConnection();
-                        String sql1="select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";
-                        Statement stmt1=connn.createStatement();
-                        ResultSet rs1= stmt1.executeQuery(sql1);
-                        while(rs1.next()){
-                            String name = rs1.getString("Fullname");
-                            out.print("<option value='"+name+"'>"+name+"</option>");
-                        }
-                        rs1.close(); stmt1.close(); connn.close();
-                    } catch(Exception e) { }
-                %>
-            </select>
-        </div>
-        
-        <div class="modal-actions">
-            <button class="btn-action btn-action-primary" id="closeBtn">
-                <i class="fas fa-check"></i> Close Problem
-            </button>
-            <button class="btn-action btn-action-danger" id="detailsBtn">
-                <i class="fas fa-eye"></i> View Problem
-            </button>
-            <button class="btn-action btn-action-secondary" onclick="closePremiumModal()">
-                Cancel
-            </button>
+        <div class="modal-actions-cyber">
+            <button class="btn btn-primary" id="closeBtn"><i class="fas fa-check"></i> CLOSE</button>
+            <button class="btn btn-danger" id="detailsBtn"><i class="fas fa-eye"></i> VIEW</button>
+            <button class="btn btn-secondary" onclick="closeCyberModal()">CANCEL</button>
         </div>
     </div>
 </div>
@@ -1121,74 +1045,68 @@
      SCRIPTS
      ============================================================ -->
 <script>
-    // ===== Premium Alert Handler =====
-    var currentApiName = '';
-    var currentFailurePct = '';
-    var currentCategory = '';
-    var currentSourceId = '';
-    var currentErrorCode = '';
-    var currentTotalHits = '';
-    var currentTDCount = '';
-    var currentIssueTime = '';
+    // ===== Cyber Modal State =====
+    var cybApi = '';
+    var cybCat = '';
+    var cybSource = '';
+    var cybError = '';
+    var cybHits = '';
+    var cybTD = '';
+    var cybTime = '';
     
-    function openPremiumAlert(msg, apiName, failurePct, category, sourceId, errorCode, totalHits, tdCount, issueTime) {
-        currentApiName = apiName || '';
-        currentFailurePct = failurePct || '';
-        currentCategory = category || 'GEN-5';
-        currentSourceId = sourceId || '';
-        currentErrorCode = errorCode || '';
-        currentTotalHits = totalHits || '';
-        currentTDCount = tdCount || '';
-        currentIssueTime = issueTime || '';
+    function openCyberModal(msg, api, cat, src, err, hits, td, time) {
+        cybApi = api || '';
+        cybCat = cat || 'GEN-5';
+        cybSource = src || '';
+        cybError = err || '';
+        cybHits = hits || '';
+        cybTD = td || '';
+        cybTime = time || '';
         
-        document.getElementById('modalBody').innerHTML = msg;
+        document.getElementById('modalMsg').innerHTML = msg;
         document.getElementById('modalContainer').style.display = 'flex';
         document.getElementById('TextArea').value = '';
         document.getElementById('closeName').value = '';
     }
     
-    function closePremiumModal() {
+    function closeCyberModal() {
         document.getElementById('modalContainer').style.display = 'none';
     }
     
-    // ===== Close Button Handler =====
+    // ===== Close Handler =====
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('closeBtn').addEventListener('click', function() {
             var comment = document.getElementById('TextArea').value;
             var closer = document.getElementById('closeName').value;
             var pTime = document.getElementById('pasuseTime').value;
             
-            if(comment.trim() == '' || closer == '' || closer == 'Please Select Name') {
-                alert('⚠️ Please fill Comment and select Closed By');
-                return false;
+            if(comment.trim() == '' || closer == '') {
+                alert('⚠️ Please fill Comment and Closed By');
+                return;
             }
             
             var url = '<%=request.getContextPath() + "/jsp/ServiceWiseFailureAction.jsp?Api_Name="%>' 
-                + encodeURIComponent(currentApiName) 
-                + '&SourceID=' + encodeURIComponent(currentSourceId)
+                + encodeURIComponent(cybApi)
+                + '&SourceID=' + encodeURIComponent(cybSource)
                 + '&TextArea=' + encodeURIComponent(comment)
                 + '&pasuseTime=' + encodeURIComponent(pTime)
-                + '&ErrorCode=' + encodeURIComponent(currentErrorCode)
+                + '&ErrorCode=' + encodeURIComponent(cybError)
                 + '&closeName=' + encodeURIComponent(closer)
-                + '&ServiceCategory=' + encodeURIComponent(currentCategory);
+                + '&ServiceCategory=' + encodeURIComponent(cybCat);
             
-            closePremiumModal();
+            closeCyberModal();
             location.replace(url);
-            return false;
         });
         
-        // ===== Details Button =====
         document.getElementById('detailsBtn').addEventListener('click', function() {
-            if(currentCategory != 'SIServices' && currentCategory != 'SI') {
+            if(cybCat != 'SI' && cybCat != 'SIServices') {
                 var url = '<%=request.getContextPath() + "/showFailureServicesWise.do?action=showFailureServicesWise&url="%>' 
-                    + encodeURIComponent(currentApiName) 
-                    + '&ServiceCategory=' + encodeURIComponent(currentCategory);
+                    + encodeURIComponent(cybApi) 
+                    + '&ServiceCategory=' + encodeURIComponent(cybCat);
                 window.open(url, '_blank');
             }
-            return false;
         });
         
-        // ===== Popup Buttons =====
         document.getElementById('openPopupButton').addEventListener('click', function() {
             window.open('<%=request.getContextPath() + "/jsp/DisplayHundredPercentFailure.jsp"%>', '_blank');
         });
@@ -1199,33 +1117,32 @@
     });
     
     // ===== Timer =====
-    function countdown(elementName, minutes, seconds) {
-        var element = document.getElementById(elementName);
+    function countdownCyber(el, minutes, seconds) {
+        var element = document.getElementById(el);
         if(!element) return;
         var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
-        function updateTimer() {
+        function update() {
             var msLeft = endTime - (+new Date);
             if (msLeft < 1000) { element.innerHTML = "⟳"; }
             else {
-                var time = new Date(msLeft);
-                var mins = time.getUTCMinutes();
-                var secs = time.getUTCSeconds();
-                element.innerHTML = (mins ? mins + ':' : '') + (mins ? String(secs).padStart(2,'0') : secs);
-                setTimeout(updateTimer, 100);
+                var t = new Date(msLeft);
+                var m = t.getUTCMinutes();
+                var s = t.getUTCSeconds();
+                element.innerHTML = (m ? m + ':' : '') + (m ? String(s).padStart(2,'0') : s);
+                setTimeout(update, 100);
             }
         }
-        updateTimer();
+        update();
     }
-    countdown("ten-countdown", 5, 0);
+    countdownCyber('ten-countdown', 5, 0);
     
-    // ===== Click outside modal to close =====
+    // ===== Click outside =====
     document.getElementById('modalContainer').addEventListener('click', function(e) {
-        if(e.target === this) closePremiumModal();
+        if(e.target === this) closeCyberModal();
     });
     
-    // ===== ESC key to close =====
     document.addEventListener('keydown', function(e) {
-        if(e.key === 'Escape') closePremiumModal();
+        if(e.key === 'Escape') closeCyberModal();
     });
 </script>
 
