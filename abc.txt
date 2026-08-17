@@ -55,6 +55,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <title>EIS ServiceWise · Command Center</title>
 <style>
+    /* ============================================================
+       ULTRA DARK THEME - SQUARE TILES
+       ============================================================ */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
     html, body {
@@ -213,7 +216,7 @@
         font-size: 12px; font-weight: 700; color: #4a6a8a;
         text-transform: uppercase; letter-spacing: 0.5px;
     }
-    .legend .swatch { width: 14px; height: 14px; border-radius: 3px; }
+    .legend .swatch { width: 14px; height: 14px; border-radius: 4px; }
     .sw-crit { background: #ff4757; box-shadow: 0 0 25px rgba(255,71,87,0.15); }
     .sw-health { background: #0f973d; box-shadow: 0 0 25px rgba(15,151,61,0.1); }
     .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 12px; }
@@ -260,42 +263,44 @@
         color: #4f9cf7; border: 1px solid rgba(79,156,247,0.03);
     }
     
-    .card-body-modern {
+    /* ============================================================
+       SQUARE TILES - MODERN & CLEAN
+       ============================================================ */
+    .tile-grid {
         flex: 1;
         padding: 3px 8px 8px 8px;
         display: grid;
         grid-template-columns: repeat(6, 1fr);
         grid-auto-rows: 1fr;
-        gap: 4px;
+        gap: 5px;
         min-height: 0;
     }
     
-    /* ============================================================
-       HEXAGON TILES - SIRF TD (RED) + BAAKI GREEN (✓)
-       ============================================================ */
     .tile {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        border-radius: 8px;
         transition: all 0.15s ease;
         cursor: pointer;
         position: relative;
         aspect-ratio: 1;
         min-height: 44px;
-        padding: 2px;
+        padding: 4px;
         border: 2px solid rgba(255, 255, 255, 0.02);
+        background: rgba(255, 255, 255, 0.01);
+        overflow: hidden;
     }
     
     .tile:hover {
-        transform: scale(1.08) translateY(-3px);
+        transform: scale(1.06) translateY(-3px);
         z-index: 10;
-        box-shadow: 0 10px 50px rgba(0, 0, 0, 0.6);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         border-color: rgba(79, 156, 247, 0.08);
     }
     
-    .tile:active { transform: scale(0.92); }
+    .tile:active { transform: scale(0.95); }
     
     .tile .val {
         font-size: 18px;
@@ -314,53 +319,53 @@
         z-index: 2;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-top: 1px;
+        margin-top: 2px;
     }
     
     .tile .bar {
         position: absolute;
-        bottom: 2px;
-        left: 20%;
-        right: 20%;
+        bottom: 3px;
+        left: 15%;
+        right: 15%;
         height: 3px;
-        border-radius: 3px;
+        border-radius: 4px;
         background: rgba(255, 255, 255, 0.03);
         overflow: hidden;
     }
     
     .tile .bar .fill {
         height: 100%;
-        border-radius: 3px;
+        border-radius: 4px;
         transition: width 0.8s ease;
     }
     
     /* TD FAILURE - RED */
     .tile-critical {
-        background: rgba(255, 71, 87, 0.15);
-        border-color: rgba(255, 71, 87, 0.20);
+        background: rgba(255, 71, 87, 0.12);
+        border-color: rgba(255, 71, 87, 0.18);
     }
     .tile-critical .val { color: #ff4757; font-size: 20px; }
     .tile-critical .bar .fill { background: #ff4757; width: 80%; }
     .tile-critical.pulse { animation: crit-pulse 2s ease-in-out infinite; }
     @keyframes crit-pulse {
-        0%, 100% { border-color: rgba(255, 71, 87, 0.20); box-shadow: 0 0 25px rgba(255, 71, 87, 0.05); }
-        50% { border-color: rgba(255, 71, 87, 0.40); box-shadow: 0 0 50px rgba(255, 71, 87, 0.12); }
+        0%, 100% { border-color: rgba(255, 71, 87, 0.18); box-shadow: 0 0 25px rgba(255, 71, 87, 0.05); }
+        50% { border-color: rgba(255, 71, 87, 0.35); box-shadow: 0 0 50px rgba(255, 71, 87, 0.12); }
     }
     
-    /* HEALTHY - GREEN with TICK (✓) - NO COUNT */
+    /* HEALTHY - GREEN with TICK */
     .tile-healthy {
-        background: rgba(15, 151, 61, 0.15);
-        border-color: rgba(15, 151, 61, 0.10);
+        background: rgba(15, 151, 61, 0.12);
+        border-color: rgba(15, 151, 61, 0.08);
     }
     .tile-healthy .val { 
         color: #0f973d; 
         font-size: 28px; 
         font-weight: 900;
-        text-shadow: 0 0 30px rgba(15, 151, 61, 0.2);
+        text-shadow: 0 0 30px rgba(15, 151, 61, 0.15);
     }
     .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
     
-    /* TOOLTIP */
+    /* TOOLTIP - HOVER PE SERVICE NAME */
     .tile .tooltip-text {
         visibility: hidden;
         opacity: 0;
@@ -404,10 +409,10 @@
     }
     
     /* RESPONSIVE */
-    @media (max-width: 1600px) { .card-body-modern { grid-template-columns: repeat(5, 1fr); } }
-    @media (max-width: 1400px) { .card-body-modern { grid-template-columns: repeat(4, 1fr); } .grid-main { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 1100px) { .card-body-modern { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
-    @media (max-width: 768px) { .card-body-modern { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 4px; } }
+    @media (max-width: 1600px) { .tile-grid { grid-template-columns: repeat(5, 1fr); } }
+    @media (max-width: 1400px) { .tile-grid { grid-template-columns: repeat(4, 1fr); } .grid-main { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 1100px) { .tile-grid { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
+    @media (max-width: 768px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 4px; } }
     
     /* MODAL */
     #modalContainer {
@@ -561,7 +566,7 @@
                 <span class="title"><i class="fas fa-server"></i> GEN-5</span>
                 <span class="badge-count" id="gen5count">0</span>
             </div>
-            <div class="card-body-modern" id="panel-gen5">
+            <div class="tile-grid" id="panel-gen5">
                 <%
                     Statement l_bjst = null;
                     ResultSet l_bjres = null;
@@ -630,7 +635,7 @@
                 <span class="title"><i class="fas fa-code"></i> SI Services</span>
                 <span class="badge-count" id="sicount">0</span>
             </div>
-            <div class="card-body-modern" id="panel-si">
+            <div class="tile-grid" id="panel-si">
                 <%
                     List<Double> si_per = new ArrayList<>();
                     List<String> si_name = new ArrayList<>();
@@ -692,7 +697,7 @@
                 <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
                 <span class="badge-count" id="thirdcount">0</span>
             </div>
-            <div class="card-body-modern" id="panel-third">
+            <div class="tile-grid" id="panel-third">
                 <%
                     List<Double> third_per = new ArrayList<>();
                     List<String> third_name = new ArrayList<>();
@@ -758,7 +763,7 @@
                 <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
                 <span class="badge-count" id="mixedcount">0</span>
             </div>
-            <div class="card-body-modern" id="panel-mixed">
+            <div class="tile-grid" id="panel-mixed">
                 <%
                     List<Double> mix_per = new ArrayList<>();
                     List<String> mix_name = new ArrayList<>();
