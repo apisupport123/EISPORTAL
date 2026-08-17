@@ -16,28 +16,25 @@
 <%@page import="java.time.LocalDate,java.time.format.DateTimeFormatter,java.time.LocalDateTime,java.util.Date,java.util.Calendar"%>
 <%@page import="java.sql.Timestamp"%>
 <%
-    // ========== DATABASE CONNECTION ==========
     Connection con = DBUtilityAuto.getReportDBConnection();
-    Connection connn = DBUtilityAuto.getReportDBConnection();
     
-    // ========== DELETE EXPIRED PAUSES ==========
+    // Delete expired pauses
     try {
-        String sql = "DELETE FROM service_temporary_pause_master WHERE resume_time <= SYSTIMESTAMP";
-        PreparedStatement ps = con.prepareStatement(sql);
+        PreparedStatement ps = con.prepareStatement("DELETE FROM service_temporary_pause_master WHERE resume_time <= SYSTIMESTAMP");
         ps.executeUpdate();
         ps.close();
-    } catch(SQLException e) { e.printStackTrace(); }
+    } catch(Exception e) { }
     
-    // ========== GET TODAY'S CLOSED COUNT ==========
+    // Closed count
     String closedCount = "0";
     try {
         Statement stmt = con.createStatement();
         ResultSet rs = stmt.executeQuery("SELECT COUNT(1) as cnt FROM service_pause_log_master WHERE TRUNC(sysdate)=TRUNC(pause_time)");
         if(rs.next()) closedCount = rs.getString("cnt");
         rs.close(); stmt.close();
-    } catch(Exception e) { e.printStackTrace(); }
+    } catch(Exception e) { }
     
-    // ========== GET LAST UPDATE TIME ==========
+    // Last update
     String lastUpdate = "—";
     try {
         Statement st = con.createStatement();
@@ -51,7 +48,7 @@
         rs.close(); st.close();
     } catch(Exception e) { }
     
-    // ========== GET TOTAL FAILURES COUNT ==========
+    // Total failures
     int totalFailures = 0;
     try {
         Statement stmt = con.createStatement();
@@ -66,123 +63,732 @@
 <meta charset="UTF-8">
 <meta http-equiv="refresh" content="300">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <title>ServiceWise · Command Center</title>
 <style>
+    /* ============================================================
+       PREMIUM DARK THEME - BOLD & PROFESSIONAL
+       ============================================================ */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100vw; height: 100vh; overflow: hidden; font-family: 'Inter', sans-serif; background: #060a12; color: #e8edf5; }
-    .bg-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(ellipse at 10% 20%, rgba(30,80,160,0.05) 0%, transparent 60%), radial-gradient(ellipse at 90% 80%, rgba(100,40,180,0.03) 0%, transparent 50%), #060a12; z-index: 0; }
-    .wrapper { position: relative; z-index: 1; width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 6px 12px 8px 12px; overflow: hidden; }
     
-    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 14px; background: rgba(10,14,22,0.7); backdrop-filter: blur(16px); border-radius: 12px; border: 1px solid rgba(255,255,255,0.03); flex-shrink: 0; height: 44px; flex-wrap: wrap; gap: 4px; }
-    .brand { display: flex; align-items: center; gap: 8px; }
-    .brand .logo { width: 28px; height: 28px; background: linear-gradient(135deg, #4f9cf7, #7c3aed); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; box-shadow: 0 4px 15px rgba(79,156,247,0.15); }
-    .brand .name { font-weight: 800; font-size: 15px; color: #fff; }
-    .brand .name span { color: #4f9cf7; }
-    .brand .sub { font-size: 6px; font-weight: 600; color: #4a6a8a; letter-spacing: 1.5px; text-transform: uppercase; }
-    .top-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
-    .live-badge { display: flex; align-items: center; gap: 4px; font-size: 8px; font-weight: 700; color: #0f973d; padding: 2px 8px; border-radius: 40px; background: rgba(15,151,61,0.06); border: 1px solid rgba(15,151,61,0.08); }
-    .live-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: #0f973d; animation: pulse-dot 1.5s infinite; }
-    @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
-    .timer-glass { font-weight: 700; font-size: 11px; color: #4f9cf7; padding: 2px 8px; border-radius: 40px; background: rgba(79,156,247,0.04); border: 1px solid rgba(79,156,247,0.04); }
-    .btn-glass { padding: 2px 10px; border-radius: 40px; font-weight: 700; font-size: 8px; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 3px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Inter', sans-serif; }
-    .btn-primary-glass { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; box-shadow: 0 4px 12px rgba(79,156,247,0.12); }
-    .btn-primary-glass:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,156,247,0.2); }
-    .btn-ghost-glass { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color: #8aaac0; }
-    .btn-ghost-glass:hover { background: rgba(255,255,255,0.04); }
+    html, body {
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+        font-family: 'Inter', sans-serif;
+        background: #080c18;
+        color: #ffffff;
+    }
     
-    .stats-bar { display: flex; align-items: center; gap: 4px; padding: 2px 8px; background: rgba(255,255,255,0.01); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); flex-shrink: 0; margin-bottom: 3px; flex-wrap: wrap; }
-    .stat-item { display: flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 40px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.02); }
-    .stat-item .icon { width: 18px; height: 18px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 7px; }
-    .stat-item .icon.red { background: rgba(255,71,87,0.12); color: #ff4757; }
-    .stat-item .icon.blue { background: rgba(79,156,247,0.12); color: #4f9cf7; }
-    .stat-item .icon.green { background: rgba(15,151,61,0.12); color: #0f973d; }
-    .stat-item .label { font-size: 6px; font-weight: 600; color: #6a8aaa; text-transform: uppercase; letter-spacing: 0.3px; }
-    .stat-item .value { font-size: 13px; font-weight: 900; }
+    /* Background with subtle glow */
+    .bg-layer {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: 
+            radial-gradient(ellipse at 20% 30%, rgba(30, 80, 160, 0.08) 0%, transparent 60%),
+            radial-gradient(ellipse at 80% 70%, rgba(100, 40, 180, 0.05) 0%, transparent 50%),
+            #080c18;
+        z-index: 0;
+    }
+    
+    .wrapper {
+        position: relative;
+        z-index: 1;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 10px 20px 14px 20px;
+        overflow: hidden;
+    }
+    
+    /* ============================================================
+       TOP BAR - BOLD GLASS
+       ============================================================ */
+    .top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 24px;
+        background: rgba(10, 14, 22, 0.8);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+        height: 60px;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+        gap: 8px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    
+    .brand .logo {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        color: #fff;
+        box-shadow: 0 4px 25px rgba(79, 156, 247, 0.25);
+    }
+    
+    .brand .name {
+        font-weight: 800;
+        font-size: 22px;
+        letter-spacing: -0.5px;
+        color: #ffffff;
+    }
+    
+    .brand .name span {
+        color: #4f9cf7;
+    }
+    
+    .brand .sub {
+        font-size: 10px;
+        font-weight: 600;
+        color: #4a6a8a;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+    }
+    
+    .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    
+    .live-badge {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #0f973d;
+        padding: 6px 18px 6px 12px;
+        border-radius: 40px;
+        background: rgba(15, 151, 61, 0.08);
+        border: 1px solid rgba(15, 151, 61, 0.15);
+    }
+    
+    .live-badge .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #0f973d;
+        animation: pulse-dot 1.5s infinite;
+        box-shadow: 0 0 15px rgba(15, 151, 61, 0.3);
+    }
+    
+    @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.3; transform: scale(0.7); }
+    }
+    
+    .timer-glass {
+        font-weight: 700;
+        font-size: 16px;
+        color: #4f9cf7;
+        padding: 6px 16px;
+        border-radius: 40px;
+        background: rgba(79, 156, 247, 0.06);
+        border: 1px solid rgba(79, 156, 247, 0.08);
+        font-variant-numeric: tabular-nums;
+    }
+    
+    .btn-glass {
+        padding: 6px 20px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 12px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-primary-glass {
+        background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(79, 156, 247, 0.2);
+    }
+    
+    .btn-primary-glass:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 35px rgba(79, 156, 247, 0.3);
+    }
+    
+    .btn-ghost-glass {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #8aaac0;
+    }
+    
+    .btn-ghost-glass:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .badge-count-glass {
+        background: rgba(79, 156, 247, 0.08);
+        padding: 0 10px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 13px;
+    }
+    
+    /* ============================================================
+       STATS BAR
+       ============================================================ */
+    .stats-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 16px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        flex-shrink: 0;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+    }
+    
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 18px 4px 12px;
+        border-radius: 40px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    
+    .stat-item .icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+    }
+    
+    .stat-item .icon.red { background: rgba(255, 71, 87, 0.12); color: #ff4757; }
+    .stat-item .icon.blue { background: rgba(79, 156, 247, 0.12); color: #4f9cf7; }
+    .stat-item .icon.green { background: rgba(15, 151, 61, 0.12); color: #0f973d; }
+    
+    .stat-item .label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #6a8aaa;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stat-item .value {
+        font-size: 20px;
+        font-weight: 900;
+    }
+    
     .stat-item .value.red { color: #ff4757; }
     .stat-item .value.blue { color: #4f9cf7; }
     .stat-item .value.green { color: #0f973d; }
-    .ticker-wrap { flex: 1; overflow: hidden; padding: 0 4px; min-width: 50px; }
-    .ticker-text { display: inline-block; white-space: nowrap; animation: marquee 20s linear infinite; font-size: 7px; font-weight: 500; color: #5a7a9a; }
-    .ticker-text span { margin: 0 10px; color: #8aaac0; }
+    
+    .ticker-wrap {
+        flex: 1;
+        overflow: hidden;
+        padding: 0 10px;
+        min-width: 100px;
+    }
+    
+    .ticker-text {
+        display: inline-block;
+        white-space: nowrap;
+        animation: marquee 25s linear infinite;
+        font-size: 12px;
+        font-weight: 500;
+        color: #5a7a9a;
+    }
+    
+    .ticker-text span { margin: 0 20px; color: #8aaac0; }
     .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
-    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
     
-    .info-bar { display: flex; justify-content: space-between; align-items: center; padding: 2px 0 3px 0; border-bottom: 1px solid rgba(255,255,255,0.02); flex-shrink: 0; margin-bottom: 3px; flex-wrap: wrap; gap: 2px; }
-    .legend { display: flex; gap: 8px; flex-wrap: wrap; }
-    .legend .item { display: flex; align-items: center; gap: 2px; font-size: 6px; font-weight: 700; color: #8aaac0; text-transform: uppercase; letter-spacing: 0.3px; }
-    .legend .swatch { width: 6px; height: 6px; border-radius: 2px; }
-    .sw-crit { background: #ff4757; }
-    .sw-warn { background: #ffa502; }
-    .sw-mix { background: #7c3aed; }
-    .sw-health { background: #0f973d; }
-    .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 9px; }
-    .timestamp-display i { margin-right: 2px; }
+    @keyframes marquee {
+        0% { transform: translateX(100%); }
+        100% { transform: translateX(-100%); }
+    }
     
-    .grid-main { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; min-height: 0; }
-    .card-modern { background: rgba(10,14,22,0.5); backdrop-filter: blur(10px); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); overflow: hidden; display: flex; flex-direction: column; transition: all 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .card-modern:hover { border-color: rgba(79,156,247,0.04); box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
-    .card-header-modern { padding: 2px 8px 1px 8px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 20px; background: rgba(255,255,255,0.01); border-bottom: 1px solid rgba(255,255,255,0.02); }
-    .card-header-modern .title { font-weight: 700; font-size: 8px; display: flex; align-items: center; gap: 3px; color: #c8d8f0; }
-    .card-header-modern .title i { color: #4f9cf7; font-size: 9px; }
-    .card-header-modern .badge-count { font-size: 5px; font-weight: 700; padding: 1px 5px; border-radius: 40px; background: rgba(79,156,247,0.04); color: #4f9cf7; border: 1px solid rgba(79,156,247,0.04); }
-    .card-body-modern { flex: 1; padding: 2px 4px 4px 4px; display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 1fr; gap: 2px; min-height: 0; }
+    /* ============================================================
+       LEGEND + TIMESTAMP
+       ============================================================ */
+    .info-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        flex-shrink: 0;
+        margin-bottom: 6px;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
     
-    .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); transition: all 0.12s; cursor: pointer; position: relative; aspect-ratio: 1; min-height: 24px; padding: 1px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.02); }
-    .tile:hover { transform: scale(1.05) translateY(-1px); z-index: 5; box-shadow: 0 4px 15px rgba(0,0,0,0.25); }
-    .tile:active { transform: scale(0.92); }
-    .tile .val { font-size: 10px; font-weight: 900; position: relative; z-index: 2; line-height: 1; letter-spacing: -0.2px; }
-    .tile .suffix { font-size: 3px; font-weight: 700; opacity: 0.5; position: relative; z-index: 2; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px; }
-    .tile .bar { position: absolute; bottom: 1px; left: 20%; right: 20%; height: 1.5px; border-radius: 2px; background: rgba(255,255,255,0.03); overflow: hidden; }
-    .tile .bar .fill { height: 100%; border-radius: 2px; transition: width 0.8s; }
+    .legend {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+    }
     
-    .tile-critical { background: rgba(255,71,87,0.10); border-color: rgba(255,71,87,0.12); }
-    .tile-critical .val { color: #ff4757; font-size: 12px; }
-    .tile-critical .bar .fill { background: #ff4757; width: 80%; }
-    .tile-critical.pulse { animation: crit-pulse 2s infinite; }
-    @keyframes crit-pulse { 0%,100% { border-color: rgba(255,71,87,0.12); box-shadow: 0 0 5px rgba(255,71,87,0.02); } 50% { border-color: rgba(255,71,87,0.3); box-shadow: 0 0 15px rgba(255,71,87,0.05); } }
+    .legend .item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #8aaac0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
     
-    .tile-warning { background: rgba(255,165,2,0.07); border-color: rgba(255,165,2,0.08); }
-    .tile-warning .val { color: #ffa502; font-size: 11px; }
-    .tile-warning .bar .fill { background: #ffa502; width: 50%; }
+    .legend .swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+    }
     
-    .tile-mixed { background: rgba(124,58,237,0.07); border-color: rgba(124,58,237,0.08); }
-    .tile-mixed .val { color: #7c3aed; font-size: 11px; }
-    .tile-mixed .bar .fill { background: #7c3aed; width: 35%; }
+    .sw-crit { background: #ff4757; box-shadow: 0 0 15px rgba(255, 71, 87, 0.2); }
+    .sw-warn { background: #ffa502; box-shadow: 0 0 15px rgba(255, 165, 2, 0.2); }
+    .sw-mix { background: #7c3aed; box-shadow: 0 0 15px rgba(124, 58, 237, 0.2); }
+    .sw-health { background: #0f973d; box-shadow: 0 0 15px rgba(15, 151, 61, 0.15); }
     
-    .tile-healthy { background: rgba(15,151,61,0.04); border-color: rgba(15,151,61,0.03); }
-    .tile-healthy .val { color: #0f973d; font-size: 8px; font-weight: 600; }
-    .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
+    .timestamp-display {
+        color: #4f9cf7;
+        font-weight: 700;
+        font-size: 13px;
+    }
     
+    .timestamp-display i {
+        margin-right: 6px;
+        color: #4f9cf7;
+    }
+    
+    /* ============================================================
+       GRID - BOLD CARDS
+       ============================================================ */
+    .grid-main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        min-height: 0;
+    }
+    
+    .card-modern {
+        background: rgba(10, 14, 22, 0.6);
+        backdrop-filter: blur(16px);
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .card-modern:hover {
+        border-color: rgba(79, 156, 247, 0.06);
+        box-shadow: 0 8px 45px rgba(0, 0, 0, 0.25);
+        transform: translateY(-2px);
+    }
+    
+    .card-header-modern {
+        padding: 8px 16px 6px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        height: 38px;
+        background: rgba(255, 255, 255, 0.01);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    
+    .card-header-modern .title {
+        font-weight: 800;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #c8d8f0;
+    }
+    
+    .card-header-modern .title i {
+        color: #4f9cf7;
+        font-size: 15px;
+    }
+    
+    .card-header-modern .badge-count {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 14px;
+        border-radius: 40px;
+        background: rgba(79, 156, 247, 0.06);
+        color: #4f9cf7;
+        border: 1px solid rgba(79, 156, 247, 0.06);
+    }
+    
+    .card-body-modern {
+        flex: 1;
+        padding: 4px 10px 10px 10px;
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-auto-rows: 1fr;
+        gap: 5px;
+        min-height: 0;
+    }
+    
+    /* ============================================================
+       HEXAGON TILES - BOLD & VISIBLE
+       ============================================================ */
+    .tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        transition: all 0.15s ease;
+        cursor: pointer;
+        position: relative;
+        aspect-ratio: 1;
+        min-height: 42px;
+        padding: 2px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 2px solid rgba(255, 255, 255, 0.04);
+    }
+    
+    .tile:hover {
+        transform: scale(1.08) translateY(-3px);
+        z-index: 10;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        border-color: rgba(79, 156, 247, 0.1);
+    }
+    
+    .tile:active {
+        transform: scale(0.92);
+    }
+    
+    .tile .val {
+        font-size: 17px;
+        font-weight: 900;
+        position: relative;
+        z-index: 2;
+        line-height: 1;
+        letter-spacing: -0.5px;
+    }
+    
+    .tile .suffix {
+        font-size: 7px;
+        font-weight: 700;
+        opacity: 0.6;
+        position: relative;
+        z-index: 2;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+    
+    .tile .bar {
+        position: absolute;
+        bottom: 3px;
+        left: 20%;
+        right: 20%;
+        height: 3px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.05);
+        overflow: hidden;
+    }
+    
+    .tile .bar .fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.8s ease;
+    }
+    
+    /* CRITICAL - RED */
+    .tile-critical {
+        background: rgba(255, 71, 87, 0.12);
+        border-color: rgba(255, 71, 87, 0.2);
+        box-shadow: 0 0 20px rgba(255, 71, 87, 0.02);
+    }
+    
+    .tile-critical .val {
+        color: #ff4757;
+        font-size: 19px;
+    }
+    
+    .tile-critical .bar .fill {
+        background: #ff4757;
+        width: 80%;
+    }
+    
+    .tile-critical.pulse {
+        animation: crit-pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes crit-pulse {
+        0%, 100% { border-color: rgba(255, 71, 87, 0.2); box-shadow: 0 0 15px rgba(255, 71, 87, 0.02); }
+        50% { border-color: rgba(255, 71, 87, 0.4); box-shadow: 0 0 35px rgba(255, 71, 87, 0.08); }
+    }
+    
+    /* WARNING - ORANGE */
+    .tile-warning {
+        background: rgba(255, 165, 2, 0.08);
+        border-color: rgba(255, 165, 2, 0.15);
+    }
+    
+    .tile-warning .val {
+        color: #ffa502;
+        font-size: 18px;
+    }
+    
+    .tile-warning .bar .fill {
+        background: #ffa502;
+        width: 50%;
+    }
+    
+    /* MIXED - PURPLE */
+    .tile-mixed {
+        background: rgba(124, 58, 237, 0.08);
+        border-color: rgba(124, 58, 237, 0.15);
+    }
+    
+    .tile-mixed .val {
+        color: #7c3aed;
+        font-size: 18px;
+    }
+    
+    .tile-mixed .bar .fill {
+        background: #7c3aed;
+        width: 35%;
+    }
+    
+    /* HEALTHY - GREEN */
+    .tile-healthy {
+        background: rgba(15, 151, 61, 0.04);
+        border-color: rgba(15, 151, 61, 0.04);
+    }
+    
+    .tile-healthy .val {
+        color: #0f973d;
+        font-size: 14px;
+        font-weight: 700;
+    }
+    
+    .tile-healthy .bar .fill {
+        background: #0f973d;
+        width: 15%;
+    }
+    
+    /* ============================================================
+       RESPONSIVE
+       ============================================================ */
     @media (max-width: 1600px) { .card-body-modern { grid-template-columns: repeat(5, 1fr); } }
     @media (max-width: 1400px) { .card-body-modern { grid-template-columns: repeat(4, 1fr); } .grid-main { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 1100px) { .card-body-modern { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
-    @media (max-width: 768px) { .card-body-modern { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 4px; } }
+    @media (max-width: 1100px) { .card-body-modern { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } .stats-bar { flex-wrap: wrap; } }
+    @media (max-width: 768px) { .card-body-modern { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 6px; } }
     
-    #modalContainer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(16px); display: none; align-items: center; justify-content: center; z-index: 99999; animation: modal-in 0.2s; }
-    @keyframes modal-in { from { opacity: 0; transform: scale(0.94) translateY(15px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    #alertBox { background: linear-gradient(145deg, #111a26, #090e16); border-radius: 12px; max-width: 480px; width: 92%; padding: 16px 18px 18px 18px; border: 1px solid rgba(255,255,255,0.03); box-shadow: 0 30px 60px rgba(0,0,0,0.6); max-height: 85vh; overflow-y: auto; }
-    #alertBox .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }
-    #alertBox .head h3 { font-size: 12px; font-weight: 800; color: #ff4757; display: flex; align-items: center; gap: 5px; }
-    #alertBox .head .close-btn { background: none; border: none; color: #4a6a8a; font-size: 14px; cursor: pointer; transition: 0.2s; padding: 0 4px; }
-    #alertBox .head .close-btn:hover { color: #fff; transform: rotate(90deg); }
-    #alertBox .body-text { background: rgba(0,0,0,0.2); border-radius: 4px; padding: 5px 8px; margin: 2px 0 6px 0; border-left: 2px solid #4f9cf7; font-size: 9px; line-height: 1.5; color: #b0c8e0; max-height: 100px; overflow-y: auto; }
-    #alertBox .body-text b { color: #fff; }
-    #alertBox .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-    #alertBox .field { margin-bottom: 2px; }
-    #alertBox .field label { display: block; font-size: 5px; font-weight: 700; color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1px; }
-    #alertBox .field select, #alertBox .field textarea { width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.03); border-radius: 4px; padding: 3px 6px; color: #fff; font-size: 9px; font-family: 'Inter', sans-serif; transition: 0.2s; }
-    #alertBox .field select:focus, #alertBox .field textarea:focus { outline: none; border-color: #4f9cf7; box-shadow: 0 0 0 3px rgba(79,156,247,0.04); }
-    #alertBox .field textarea { min-height: 24px; resize: vertical; }
+    /* ============================================================
+       MODAL
+       ============================================================ */
+    #modalContainer {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0, 0, 0, 0.88);
+        backdrop-filter: blur(20px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        animation: modal-in 0.25s ease;
+    }
+    
+    @keyframes modal-in {
+        from { opacity: 0; transform: scale(0.94) translateY(20px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    
+    #alertBox {
+        background: linear-gradient(145deg, #111a26, #090e16);
+        border-radius: 18px;
+        max-width: 520px;
+        width: 92%;
+        padding: 24px 28px 28px 28px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+    
+    #alertBox .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 6px;
+    }
+    
+    #alertBox .head h3 {
+        font-size: 17px;
+        font-weight: 800;
+        color: #ff4757;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    #alertBox .head .close-btn {
+        background: none;
+        border: none;
+        color: #4a6a8a;
+        font-size: 24px;
+        cursor: pointer;
+        transition: 0.2s;
+        padding: 0 4px;
+        line-height: 1;
+    }
+    
+    #alertBox .head .close-btn:hover {
+        color: #fff;
+        transform: rotate(90deg);
+    }
+    
+    #alertBox .body-text {
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin: 6px 0 14px 0;
+        border-left: 3px solid #4f9cf7;
+        font-size: 13px;
+        line-height: 1.7;
+        color: #b0c8e0;
+        max-height: 160px;
+        overflow-y: auto;
+    }
+    
+    #alertBox .body-text b { color: #ffffff; }
+    
+    #alertBox .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    #alertBox .field { margin-bottom: 6px; }
+    
+    #alertBox .field label {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        color: #4a6a8a;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 3px;
+    }
+    
+    #alertBox .field select,
+    #alertBox .field textarea {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 8px 14px;
+        color: #ffffff;
+        font-size: 13px;
+        font-family: 'Inter', sans-serif;
+        transition: 0.2s;
+    }
+    
+    #alertBox .field select:focus,
+    #alertBox .field textarea:focus {
+        outline: none;
+        border-color: #4f9cf7;
+        box-shadow: 0 0 0 4px rgba(79, 156, 247, 0.04);
+    }
+    
+    #alertBox .field textarea {
+        min-height: 42px;
+        resize: vertical;
+    }
+    
     #alertBox .field.full { grid-column: 1 / -1; }
-    .modal-actions { display: flex; gap: 3px; justify-content: flex-end; margin-top: 6px; flex-wrap: wrap; }
-    .modal-actions .btn-m { padding: 2px 10px; border-radius: 40px; font-weight: 700; font-size: 7px; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 2px; text-transform: uppercase; letter-spacing: 0.3px; font-family: 'Inter', sans-serif; }
-    .modal-actions .btn-m-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; box-shadow: 0 4px 12px rgba(79,156,247,0.12); }
-    .modal-actions .btn-m-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,156,247,0.2); }
-    .modal-actions .btn-m-danger { background: linear-gradient(135deg, #ff4757, #c0392b); color: #fff; }
-    .modal-actions .btn-m-secondary { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); color: #8aaac0; }
-    #alertBox::-webkit-scrollbar { width: 3px; }
+    
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 14px;
+        flex-wrap: wrap;
+    }
+    
+    .modal-actions .btn-m {
+        padding: 6px 22px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 11px;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .modal-actions .btn-m-primary {
+        background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(79, 156, 247, 0.15);
+    }
+    
+    .modal-actions .btn-m-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(79, 156, 247, 0.25);
+    }
+    
+    .modal-actions .btn-m-danger {
+        background: linear-gradient(135deg, #ff4757, #c0392b);
+        color: #fff;
+    }
+    
+    .modal-actions .btn-m-secondary {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: #8aaac0;
+    }
+    
+    .modal-actions .btn-m-secondary:hover {
+        background: rgba(255, 255, 255, 0.04);
+    }
+    
+    #alertBox::-webkit-scrollbar { width: 4px; }
     #alertBox::-webkit-scrollbar-track { background: transparent; }
     #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
 </style>
@@ -206,7 +812,7 @@
             <div class="live-badge"><span class="dot"></span> LIVE</div>
             <span class="timer-glass" id="ten-countdown">5:00</span>
             <button class="btn-glass btn-primary-glass" id="openPopupButton"><i class="fas fa-list"></i> Closed</button>
-            <button class="btn-glass btn-ghost-glass" id="openPopup"><i class="fas fa-check-circle"></i> <span id="closedCountBadge" style="background:rgba(79,156,247,0.04); padding:0 5px; border-radius:4px; font-weight:700; font-size:9px;"><%= closedCount %></span></button>
+            <button class="btn-glass btn-ghost-glass" id="openPopup"><i class="fas fa-check-circle"></i> <span class="badge-count-glass" id="closedCountBadge"><%= closedCount %></span></button>
         </div>
     </div>
 
@@ -229,9 +835,9 @@
         </div>
         <div class="ticker-wrap">
             <div class="ticker-text">
-                <span>● <span class="hl">STATUS:</span> Monitoring active</span>
-                <span>● <span class="hl">FAILURES:</span> Real-time</span>
-                <span>● <span class="hl">REFRESH:</span> 5 minutes</span>
+                <span>● <span class="hl">STATUS:</span> All systems operational</span>
+                <span>● <span class="hl">MONITOR:</span> Real-time failure detection</span>
+                <span>● <span class="hl">REFRESH:</span> Every 5 minutes</span>
                 <span>● <span class="hl">THRESHOLD:</span> EIS-TD &gt; 1%</span>
             </div>
         </div>
@@ -271,10 +877,9 @@
                     List<Integer> gen5_td = new ArrayList<>();
                     List<String> gen5_time = new ArrayList<>();
                     List<Integer> gen5_siCount = new ArrayList<>();
-                    List<Double> gen5_siPr = new ArrayList<>();
                     
                     try {
-                        String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
+                        String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per, SUM(SI_EEROR) AS SI_EEROR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
                         l_bjst = con.createStatement();
                         l_bjres = l_bjst.executeQuery(l_strQuery);
                         while(l_bjres.next()) {
@@ -287,7 +892,6 @@
                                 gen5_td.add(l_bjres.getInt("TD"));
                                 gen5_time.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
                                 gen5_siCount.add(l_bjres.getInt("SI_EEROR"));
-                                gen5_siPr.add(l_bjres.getDouble("SI_EEROR_PR"));
                             }
                         }
                     } catch(Exception e) { e.printStackTrace(); }
@@ -398,10 +1002,9 @@
                     List<Integer> third_td = new ArrayList<>();
                     List<String> third_time = new ArrayList<>();
                     List<Integer> third_siCount = new ArrayList<>();
-                    List<Double> third_siPr = new ArrayList<>();
                     
                     try {
-                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
@@ -413,7 +1016,6 @@
                                 third_td.add(l_bjres.getInt("TD"));
                                 third_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
                                 third_siCount.add(l_bjres.getInt("SI_EEROR"));
-                                third_siPr.add(l_bjres.getDouble("SI_EEROR_PR"));
                             }
                         }
                     } catch(Exception e) { e.printStackTrace(); }
@@ -467,7 +1069,7 @@
                     
                     try {
                         // I4C
-                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
+                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
@@ -482,7 +1084,7 @@
                             }
                         }
                         // IVR
-                        l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
+                        l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
@@ -497,7 +1099,7 @@
                             }
                         }
                         // SBICAPS
-                        l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per, CASE WHEN (SUM(TD_PERCENT) <> 0) THEN round(round(AVG(TD_PERCENT), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
+                        l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per, CASE WHEN (SUM(TD_PERCENT) <> 0) THEN round(round(AVG(TD_PERCENT), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
                         l_bjres = con.createStatement().executeQuery(l_strQuery);
                         while(l_bjres.next()) {
                             if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
@@ -635,19 +1237,16 @@
     }
     
     document.addEventListener('DOMContentLoaded', function() {
-        // Count failures
         document.getElementById('gen5count').textContent = document.querySelectorAll('#panel-gen5 .tile-critical, #panel-gen5 .tile-warning, #panel-gen5 .tile-mixed').length || 0;
         document.getElementById('sicount').textContent = document.querySelectorAll('#panel-si .tile-critical, #panel-si .tile-warning, #panel-si .tile-mixed').length || 0;
         document.getElementById('thirdcount').textContent = document.querySelectorAll('#panel-third .tile-critical, #panel-third .tile-warning, #panel-third .tile-mixed').length || 0;
         document.getElementById('mixedcount').textContent = document.querySelectorAll('#panel-mixed .tile-critical, #panel-mixed .tile-warning, #panel-mixed .tile-mixed').length || 0;
         
-        // Total services & healthy
         var totalServices = document.querySelectorAll('.tile:not(.tile-empty)').length || 0;
         var healthy = document.querySelectorAll('.tile-healthy').length || 0;
         document.getElementById('totalServices').textContent = totalServices;
         document.getElementById('totalHealthy').textContent = healthy;
         
-        // Close button
         document.getElementById('closeBtn').addEventListener('click', function() {
             var comment = document.getElementById('TextArea').value;
             var closer = document.getElementById('closeName').value;
