@@ -260,7 +260,7 @@
         color: #4f9cf7; border: 1px solid rgba(79,156,247,0.03);
     }
     
-    /* SQUARE TILES - FONT FIT */
+    /* SQUARE TILES */
     .tile-grid {
         flex: 1;
         padding: 3px 8px 8px 8px;
@@ -277,7 +277,7 @@
         align-items: center;
         justify-content: center;
         border-radius: 8px;
-        transition: all 0.2s ease;
+        transition: all 0.15s ease;
         cursor: pointer;
         position: relative;
         aspect-ratio: 1;
@@ -295,15 +295,10 @@
         border-color: rgba(79, 156, 247, 0.10);
     }
     
-    .tile:active { transform: scale(0.95); }
-    
     .tile .val {
         font-size: 16px;
         font-weight: 900;
-        position: relative;
-        z-index: 2;
         line-height: 1.1;
-        letter-spacing: -0.3px;
         text-align: center;
         word-break: break-word;
         max-width: 100%;
@@ -314,17 +309,15 @@
         font-size: 8px;
         font-weight: 600;
         opacity: 0.6;
-        position: relative;
-        z-index: 2;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin-top: 2px;
         text-align: center;
-        max-width: 100%;
-        padding: 0 2px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        max-width: 100%;
+        padding: 0 2px;
     }
     
     .tile .bar {
@@ -365,18 +358,45 @@
     .tile-healthy .sub-text { color: #0f973d; opacity: 0.7; font-size: 9px; }
     .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
     
+    /* ============================================================
+       CUSTOM TOOLTIP - FAST + STYLISH
+       ============================================================ */
+    .tile .custom-tooltip {
+        display: none;
+        position: fixed;
+        background: rgba(0, 0, 0, 0.92);
+        backdrop-filter: blur(8px);
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        pointer-events: none;
+        z-index: 99999;
+        font-family: 'Inter', sans-serif;
+        letter-spacing: 0.3px;
+        white-space: nowrap;
+        max-width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
     /* RESPONSIVE */
     @media (max-width: 1600px) { .tile-grid { grid-template-columns: repeat(5, 1fr); } }
     @media (max-width: 1400px) { .tile-grid { grid-template-columns: repeat(4, 1fr); } .grid-main { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 1100px) { .tile-grid { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
     @media (max-width: 768px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 4px; } }
     
-    /* MODAL */
+    /* ============================================================
+       MODAL - BIG & PROFESSIONAL
+       ============================================================ */
     #modalContainer {
         position: fixed; top: 0; left: 0;
         width: 100vw; height: 100vh;
         background: rgba(0,0,0,0.92);
-        backdrop-filter: blur(20px);
+        backdrop-filter: blur(24px);
         display: none;
         align-items: center;
         justify-content: center;
@@ -388,11 +408,11 @@
     
     #alertBox {
         background: linear-gradient(145deg, #0d1420, #060a12);
-        border-radius: 20px;
-        max-width: 620px;
+        border-radius: 24px;
+        max-width: 680px;
         width: 95%;
         max-height: 85vh;
-        padding: 30px 34px 34px 34px;
+        padding: 32px 38px 38px 38px;
         border: 1px solid rgba(255,255,255,0.04);
         box-shadow: 0 60px 120px rgba(0,0,0,0.9);
         overflow-y: auto;
@@ -401,58 +421,107 @@
     #alertBox::-webkit-scrollbar-track { background: transparent; }
     #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
     
-    #alertBox .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-    #alertBox .head h3 { font-size: 22px; font-weight: 800; color: #ff4757; display: flex; align-items: center; gap: 12px; }
-    #alertBox .head h3 i { font-size: 26px; }
-    #alertBox .head .close-btn { background: none; border: none; color: #4a6a8a; font-size: 28px; cursor: pointer; transition: 0.2s; padding: 0 6px; line-height: 1; }
+    #alertBox .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    #alertBox .head h3 {
+        font-size: 26px;
+        font-weight: 800;
+        color: #ff4757;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    #alertBox .head h3 i { font-size: 30px; }
+    #alertBox .head .close-btn {
+        background: none;
+        border: none;
+        color: #4a6a8a;
+        font-size: 32px;
+        cursor: pointer;
+        transition: 0.2s;
+        padding: 0 6px;
+        line-height: 1;
+    }
     #alertBox .head .close-btn:hover { color: #fff; transform: rotate(90deg); }
     
     #alertBox .body-text {
-        background: rgba(0,0,0,0.25);
-        border-radius: 10px;
-        padding: 14px 18px;
-        margin: 6px 0 16px 0;
+        background: rgba(0,0,0,0.2);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 8px 0 18px 0;
         border-left: 3px solid #4f9cf7;
-        font-size: 14px;
-        line-height: 1.8;
+        font-size: 15px;
+        line-height: 1.9;
         color: #b0c8e0;
-        max-height: 180px;
+        max-height: 200px;
         overflow-y: auto;
     }
     #alertBox .body-text b { color: #ffffff; }
     
-    #alertBox .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    #alertBox .field { margin-bottom: 6px; }
+    #alertBox .body-text .highlight-red { color: #ff4757; font-weight: 700; }
+    #alertBox .body-text .highlight-green { color: #0f973d; font-weight: 700; }
+    #alertBox .body-text .highlight-blue { color: #4f9cf7; font-weight: 700; }
+    
+    #alertBox .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    #alertBox .field { margin-bottom: 8px; }
     #alertBox .field label {
-        display: block; font-size: 10px; font-weight: 700;
-        color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.8px;
-        margin-bottom: 3px;
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        color: #4a6a8a;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 4px;
     }
     #alertBox .field select, #alertBox .field textarea {
         width: 100%;
         background: rgba(0,0,0,0.35);
         border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 8px;
-        padding: 10px 14px;
+        border-radius: 10px;
+        padding: 12px 16px;
         color: #ffffff;
-        font-size: 14px;
+        font-size: 15px;
         font-family: 'Inter', sans-serif;
         transition: 0.2s;
     }
     #alertBox .field select:focus, #alertBox .field textarea:focus {
-        outline: none; border-color: #4f9cf7;
+        outline: none;
+        border-color: #4f9cf7;
         box-shadow: 0 0 0 4px rgba(79,156,247,0.04);
     }
-    #alertBox .field textarea { min-height: 50px; resize: vertical; }
+    #alertBox .field textarea { min-height: 60px; resize: vertical; }
     #alertBox .field.full { grid-column: 1 / -1; }
     
-    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
     .modal-actions .btn-m {
-        padding: 8px 26px; border-radius: 40px;
-        font-weight: 700; font-size: 12px; border: none;
-        cursor: pointer; transition: 0.2s;
-        display: inline-flex; align-items: center; gap: 6px;
-        text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 10px 30px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 13px;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         font-family: 'Inter', sans-serif;
     }
     .modal-actions .btn-m-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; box-shadow: 0 4px 20px rgba(79,156,247,0.12); }
@@ -517,7 +586,7 @@
     <!-- GRID -->
     <div class="grid-main">
         
-        <!-- GEN-5 -->
+        <!-- ==================== GEN-5 ==================== -->
         <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-server"></i> GEN-5</span>
@@ -561,7 +630,7 @@
                         String barFill = "15%";
                         String onclick = "";
                         String alertMsg = "";
-                        String titleText = "✅ Healthy • No failures";
+                        String tooltipText = "✅ Healthy • No failures";
                         
                         if(i < gen5_per.size()) {
                             Double pct = gen5_per.get(i);
@@ -569,14 +638,13 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            titleText = "Service: " + gen5_name.get(i) + " | Source: " + gen5_source.get(i) + " | TD: " + gen5_td.get(i) + " | Fail %: " + String.format("%.2f", pct) + "%";
+                            tooltipText = "⚠️ " + gen5_name.get(i) + " | TD: " + gen5_td.get(i) + " | " + String.format("%.2f", pct) + "%";
                             
-                            alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD:</b> "+gen5_td.get(i)+"<br><b>Fail %:</b> "+String.format("%.2f", pct)+"%<br><b>SI Error:</b> "+gen5_siCount.get(i)+"<br><b>Time:</b> "+gen5_time.get(i);
-                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+gen5_name.get(i).replace("'","\\'")+"','GEN-5','"+gen5_source.get(i).replace("'","\\'")+"','"+gen5_error.get(i).replace("'","\\'")+"','"+gen5_hits.get(i)+"','"+gen5_td.get(i)+"','"+gen5_time.get(i).replace("'","\\'")+"')\"";
+                            alertMsg = "<b>Service:</b> "+gen5_name.get(i)+"<br><b>Source:</b> "+gen5_source.get(i)+"<br><b>Error:</b> "+gen5_error.get(i)+"<br><b>Hits:</b> "+gen5_hits.get(i)+"<br><b>TD Count:</b> <span class='highlight-red'>"+gen5_td.get(i)+"</span><br><b>Fail %:</b> <span class='highlight-red'>"+String.format("%.2f", pct)+"%</span><br><b>SI Error:</b> "+gen5_siCount.get(i)+"<br><b>Time:</b> "+gen5_time.get(i);
+                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+gen5_name.get(i).replace("'","\\'")+"','GEN-5','"+gen5_source.get(i).replace("'","\\'")+"','"+gen5_error.get(i).replace("'","\\'")+"','"+gen5_hits.get(i)+"','"+gen5_td.get(i)+"','"+gen5_time.get(i).replace("'","\\'")+"','','','')\"";
                         }
                         
-                        // title attribute = browser native tooltip - 100% working
-                        out.print("<div class='"+cls+"' title='"+titleText+"' "+onclick+">");
+                        out.print("<div class='"+cls+"' data-tip='"+tooltipText+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
                         out.print("<span class='sub-text'>"+subText+"</span>");
                         out.print("<div class='bar'><div class='fill' style='width:"+barFill+";'></div></div>");
@@ -586,7 +654,7 @@
             </div>
         </div>
 
-        <!-- SI -->
+        <!-- ==================== SI ==================== -->
         <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-code"></i> SI Services</span>
@@ -623,7 +691,7 @@
                         String barFill = "15%";
                         String onclick = "";
                         String alertMsg = "";
-                        String titleText = "✅ Healthy • No failures";
+                        String tooltipText = "✅ Healthy • No failures";
                         
                         if(i < si_per.size()) {
                             Double pct = si_per.get(i);
@@ -631,13 +699,13 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            titleText = "Service: " + si_name.get(i) + " | Error: " + si_error.get(i) + " | TD: " + si_td.get(i) + " | Fail %: " + String.format("%.2f", pct) + "%";
+                            tooltipText = "⚠️ " + si_name.get(i) + " | TD: " + si_td.get(i) + " | " + String.format("%.2f", pct) + "%";
                             
-                            alertMsg = "<b>Service:</b> "+si_name.get(i)+"<br><b>Error:</b> "+si_error.get(i)+"<br><b>Hits:</b> "+si_hits.get(i)+"<br><b>TD:</b> "+si_td.get(i)+"<br><b>Fail %:</b> "+String.format("%.2f", pct)+"%<br><b>Time:</b> "+si_time.get(i);
-                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+si_name.get(i).replace("'","\\'")+"','SI','','"+si_error.get(i).replace("'","\\'")+"','"+si_hits.get(i)+"','"+si_td.get(i)+"','"+si_time.get(i).replace("'","\\'")+"')\"";
+                            alertMsg = "<b>Service:</b> "+si_name.get(i)+"<br><b>Error:</b> "+si_error.get(i)+"<br><b>Hits:</b> "+si_hits.get(i)+"<br><b>TD Count:</b> <span class='highlight-red'>"+si_td.get(i)+"</span><br><b>Fail %:</b> <span class='highlight-red'>"+String.format("%.2f", pct)+"%</span><br><b>Time:</b> "+si_time.get(i);
+                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+si_name.get(i).replace("'","\\'")+"','SI','','"+si_error.get(i).replace("'","\\'")+"','"+si_hits.get(i)+"','"+si_td.get(i)+"','"+si_time.get(i).replace("'","\\'")+"','','','')\"";
                         }
                         
-                        out.print("<div class='"+cls+"' title='"+titleText+"' "+onclick+">");
+                        out.print("<div class='"+cls+"' data-tip='"+tooltipText+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
                         out.print("<span class='sub-text'>"+subText+"</span>");
                         out.print("<div class='bar'><div class='fill' style='width:"+barFill+";'></div></div>");
@@ -647,7 +715,7 @@
             </div>
         </div>
 
-        <!-- ThirdParty -->
+        <!-- ==================== THIRDPARTY ==================== -->
         <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
@@ -656,7 +724,9 @@
             <div class="tile-grid" id="panel-third">
                 <%
                     List<Double> third_per = new ArrayList<>();
-                    List<String> third_name = new ArrayList<>();
+                    List<String> third_original = new ArrayList<>();
+                    List<String> third_transaction = new ArrayList<>();
+                    List<String> third_supurl = new ArrayList<>();
                     List<String> third_source = new ArrayList<>();
                     List<String> third_error = new ArrayList<>();
                     List<Integer> third_hits = new ArrayList<>();
@@ -670,7 +740,9 @@
                         while(l_bjres.next()) {
                             if(l_bjres.getDouble("TD") >= 50) {
                                 third_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                third_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
+                                third_original.add(nvl(l_bjres.getString("original_urn"), "N/A"));
+                                third_transaction.add(nvl(l_bjres.getString("transaction_urn"), "N/A"));
+                                third_supurl.add(nvl(l_bjres.getString("sup_url"), "N/A"));
                                 third_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
                                 third_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
                                 third_hits.add(l_bjres.getInt("TOTAL_HITS"));
@@ -688,7 +760,7 @@
                         String barFill = "15%";
                         String onclick = "";
                         String alertMsg = "";
-                        String titleText = "✅ Healthy • No failures";
+                        String tooltipText = "✅ Healthy • No failures";
                         
                         if(i < third_per.size()) {
                             Double pct = third_per.get(i);
@@ -696,13 +768,14 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            titleText = "Service: " + third_name.get(i) + " | Source: " + third_source.get(i) + " | TD: " + third_td.get(i) + " | Fail %: " + String.format("%.2f", pct) + "%";
+                            tooltipText = "⚠️ " + third_original.get(i) + " | TD: " + third_td.get(i) + " | " + String.format("%.2f", pct) + "%";
                             
-                            alertMsg = "<b>Service:</b> "+third_name.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD:</b> "+third_td.get(i)+"<br><b>Fail %:</b> "+String.format("%.2f", pct)+"%<br><b>SI Error:</b> "+third_siCount.get(i)+"<br><b>Time:</b> "+third_time.get(i);
-                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+third_name.get(i).replace("'","\\'")+"','ThirdParty','"+third_source.get(i).replace("'","\\'")+"','"+third_error.get(i).replace("'","\\'")+"','"+third_hits.get(i)+"','"+third_td.get(i)+"','"+third_time.get(i).replace("'","\\'")+"')\"";
+                            // ThirdParty specific fields
+                            alertMsg = "<b>Service:</b> "+third_original.get(i)+"<br><b>Transaction URN:</b> "+third_transaction.get(i)+"<br><b>SUP URL:</b> "+third_supurl.get(i)+"<br><b>Source:</b> "+third_source.get(i)+"<br><b>Error:</b> "+third_error.get(i)+"<br><b>Hits:</b> "+third_hits.get(i)+"<br><b>TD Count:</b> <span class='highlight-red'>"+third_td.get(i)+"</span><br><b>Fail %:</b> <span class='highlight-red'>"+String.format("%.2f", pct)+"%</span><br><b>SI Error:</b> "+third_siCount.get(i)+"<br><b>Time:</b> "+third_time.get(i);
+                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+third_original.get(i).replace("'","\\'")+"','ThirdParty','"+third_source.get(i).replace("'","\\'")+"','"+third_error.get(i).replace("'","\\'")+"','"+third_hits.get(i)+"','"+third_td.get(i)+"','"+third_time.get(i).replace("'","\\'")+"','"+third_transaction.get(i).replace("'","\\'")+"','"+third_supurl.get(i).replace("'","\\'")+"','"+third_original.get(i).replace("'","\\'")+"')\"";
                         }
                         
-                        out.print("<div class='"+cls+"' title='"+titleText+"' "+onclick+">");
+                        out.print("<div class='"+cls+"' data-tip='"+tooltipText+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
                         out.print("<span class='sub-text'>"+subText+"</span>");
                         out.print("<div class='bar'><div class='fill' style='width:"+barFill+";'></div></div>");
@@ -712,7 +785,7 @@
             </div>
         </div>
 
-        <!-- Combined -->
+        <!-- ==================== COMBINED ==================== -->
         <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
@@ -784,7 +857,7 @@
                         String barFill = "15%";
                         String onclick = "";
                         String alertMsg = "";
-                        String titleText = "✅ Healthy • No failures";
+                        String tooltipText = "✅ Healthy • No failures";
                         
                         if(i < mix_per.size()) {
                             Double pct = mix_per.get(i);
@@ -792,13 +865,13 @@
                             val = String.format("%.2f", pct) + "%";
                             subText = "TD FAILURE";
                             barFill = "80%";
-                            titleText = "Service: " + mix_name.get(i) + " | Category: " + mix_cat.get(i) + " | TD: " + mix_td.get(i) + " | Fail %: " + String.format("%.2f", pct) + "%";
+                            tooltipText = "⚠️ " + mix_name.get(i) + " | TD: " + mix_td.get(i) + " | " + String.format("%.2f", pct) + "%";
                             
-                            alertMsg = "<b>Service:</b> "+mix_name.get(i)+"<br><b>Category:</b> "+mix_cat.get(i)+"<br><b>Error:</b> "+mix_error.get(i)+"<br><b>Source:</b> "+mix_source.get(i)+"<br><b>Hits:</b> "+mix_hits.get(i)+"<br><b>TD:</b> "+mix_td.get(i)+"<br><b>Fail %:</b> "+String.format("%.2f", pct)+"%<br><b>Time:</b> "+mix_time.get(i);
-                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+mix_name.get(i).replace("'","\\'")+"','"+mix_cat.get(i)+"','"+mix_source.get(i).replace("'","\\'")+"','"+mix_error.get(i).replace("'","\\'")+"','"+mix_hits.get(i)+"','"+mix_td.get(i)+"','"+mix_time.get(i).replace("'","\\'")+"')\"";
+                            alertMsg = "<b>Service:</b> "+mix_name.get(i)+"<br><b>Category:</b> "+mix_cat.get(i)+"<br><b>Error:</b> "+mix_error.get(i)+"<br><b>Source:</b> "+mix_source.get(i)+"<br><b>Hits:</b> "+mix_hits.get(i)+"<br><b>TD Count:</b> <span class='highlight-red'>"+mix_td.get(i)+"</span><br><b>Fail %:</b> <span class='highlight-red'>"+String.format("%.2f", pct)+"%</span><br><b>Time:</b> "+mix_time.get(i);
+                            onclick = "onclick=\"openModal('"+alertMsg.replace("'","\\'")+"','"+mix_name.get(i).replace("'","\\'")+"','"+mix_cat.get(i)+"','"+mix_source.get(i).replace("'","\\'")+"','"+mix_error.get(i).replace("'","\\'")+"','"+mix_hits.get(i)+"','"+mix_td.get(i)+"','"+mix_time.get(i).replace("'","\\'")+"','','','')\"";
                         }
                         
-                        out.print("<div class='"+cls+"' title='"+titleText+"' "+onclick+">");
+                        out.print("<div class='"+cls+"' data-tip='"+tooltipText+"' "+onclick+">");
                         out.print("<span class='val'>"+val+"</span>");
                         out.print("<span class='sub-text'>"+subText+"</span>");
                         out.print("<div class='bar'><div class='fill' style='width:"+barFill+";'></div></div>");
@@ -811,7 +884,9 @@
     </div>
 </div>
 
-<!-- MODAL -->
+<!-- ============================================================
+   MODAL - BIG & PROFESSIONAL
+   ============================================================ -->
 <div id="modalContainer">
     <div id="alertBox">
         <div class="head">
@@ -879,19 +954,61 @@
 
 <script>
     var mApi = '', mCat = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
+    var mTransaction = '', mSupUrl = '', mOriginalUrn = '';
+    
+    // ============================================================
+    // TOOLTIP - FAST + STYLISH
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltip = document.createElement('div');
+        tooltip.className = 'custom-tooltip';
+        document.body.appendChild(tooltip);
+        
+        var tiles = document.querySelectorAll('.tile[data-tip]');
+        
+        tiles.forEach(function(tile) {
+            tile.addEventListener('mouseenter', function(e) {
+                var text = this.getAttribute('data-tip');
+                tooltip.textContent = text;
+                tooltip.style.display = 'block';
+                
+                var rect = this.getBoundingClientRect();
+                var x = rect.left + rect.width / 2;
+                var y = rect.top - 10;
+                
+                tooltip.style.left = x + 'px';
+                tooltip.style.top = y + 'px';
+                tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
+            });
+            
+            tile.addEventListener('mousemove', function(e) {
+                var x = e.clientX;
+                var y = e.clientY - 10;
+                tooltip.style.left = x + 'px';
+                tooltip.style.top = y + 'px';
+                tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
+            });
+            
+            tile.addEventListener('mouseleave', function() {
+                tooltip.style.display = 'none';
+            });
+        });
+    });
     
     // LOADER
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
             document.getElementById('loaderWrapper').classList.add('hidden');
-        }, 2000);
+        }, 1500);
         window.addEventListener('load', function() {
             document.getElementById('loaderWrapper').classList.add('hidden');
         });
     });
     
-    // MODAL
-    function openModal(msg, api, cat, src, err, hits, td, time) {
+    // ============================================================
+    // MODAL - SUPPORTS ALL CATEGORIES
+    // ============================================================
+    function openModal(msg, api, cat, src, err, hits, td, time, transaction, supurl, originalurn) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
         mSource = src || '';
@@ -899,8 +1016,17 @@
         mHits = hits || '';
         mTD = td || '';
         mTime = time || '';
+        mTransaction = transaction || '';
+        mSupUrl = supurl || '';
+        mOriginalUrn = originalurn || '';
         
-        document.getElementById('modalMsg').innerHTML = msg;
+        // For ThirdParty, show additional fields
+        var displayMsg = msg;
+        if(cat === 'ThirdParty' && transaction) {
+            // Already includes all fields from server
+        }
+        
+        document.getElementById('modalMsg').innerHTML = displayMsg;
         document.getElementById('modalContainer').style.display = 'flex';
         document.getElementById('TextArea').value = '';
         document.getElementById('closeName').value = '';
@@ -934,14 +1060,17 @@
                 + '&pasuseTime=' + encodeURIComponent(pTime)
                 + '&ErrorCode=' + encodeURIComponent(mError)
                 + '&closeName=' + encodeURIComponent(closer)
-                + '&ServiceCategory=' + encodeURIComponent(mCat);
+                + '&ServiceCategory=' + encodeURIComponent(mCat)
+                + '&TransactionURN=' + encodeURIComponent(mTransaction)
+                + '&SupUrl=' + encodeURIComponent(mSupUrl)
+                + '&OriginalUrn=' + encodeURIComponent(mOriginalUrn);
             
             closeModal();
             location.replace(url);
         });
         
         document.getElementById('detailsBtn').addEventListener('click', function() {
-            if(mCat != 'SI' && mCat != 'SIServices') {
+            if(mCat != 'SI' && mCat != 'SIServices' && mCat != 'IVR' && mCat != 'SBICAPS') {
                 var url = '<%=request.getContextPath() %>/showFailureServicesWise.do?action=showFailureServicesWise&url=' 
                     + encodeURIComponent(mApi) 
                     + '&ServiceCategory=' + encodeURIComponent(mCat);
