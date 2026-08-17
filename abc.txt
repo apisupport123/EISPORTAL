@@ -12,7 +12,6 @@
 <%@page import="java.sql.ResultSet"%>
 <%@page import="java.sql.Statement"%>
 <%@page import="java.sql.Connection"%>
-<%@page import="java.sql.Timestamp"%>
 <%@page import="com.jdbc.DBUtilityAuto"%>
 <%@page import="java.time.LocalDate,java.time.format.DateTimeFormatter,java.time.LocalDateTime,java.util.Date,java.util.Calendar"%>
 <!DOCTYPE html>
@@ -29,1004 +28,2387 @@
 
 <title>ServiceWise Failure Dashboard</title>
 <style>
-/* ===== RESET & BASE ===== */
-* { margin: 0; padding: 0; box-sizing: border-box; }
-html, body {
-    height: 100%;
-    overflow: hidden;
-    background-color: black;
-    font-family: Arial, sans-serif;
-}
-body { zoom: 80%; }
-
-/* ===== HEADER ===== */
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 2px 15px;
-    background: #0a0a0a;
-    border-bottom: 1px solid #222;
-    flex-wrap: nowrap;
-    height: 50px;
-}
-.dashboard-header .title-section {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: nowrap;
-}
-.dashboard-header h1 {
-    color: white;
-    font-size: 18px;
-    margin: 0;
-    white-space: nowrap;
-}
-.dashboard-header .timer {
-    color: #00ff88;
-    font-size: 16px;
-    font-weight: bold;
-    background: #1a1a1a;
-    padding: 2px 12px;
-    border-radius: 20px;
-    border: 1px solid #333;
-}
-.dashboard-header .btn-group {
-    display: flex;
-    gap: 6px;
-    flex-wrap: nowrap;
-}
-.dashboard-header .btn-group .btn {
-    font-size: 11px;
-    padding: 3px 10px;
-    white-space: nowrap;
+#loader {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 1;
+	width: 120px;
+	height: 120px;
+	margin: -76px 0 0 -76px;
+	border: 16px solid #f3f3f3;
+	border-radius: 50%;
+	border-top: 16px solid #3498db;
+	-webkit-animation: spin 2s linear infinite;
+	animation: spin 2s linear infinite;
 }
 
-/* ===== TIME FILTER ===== */
-.time-filter-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    padding: 4px 15px;
-    background: #0a0a0a;
-    border-bottom: 1px solid #222;
-    flex-wrap: nowrap;
-}
-.time-filter-container .filter-group {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: #aaa;
-    font-size: 12px;
-}
-.time-filter-container input[type="datetime-local"] {
-    padding: 2px 8px;
-    border-radius: 12px;
-    border: 1px solid #444;
-    background: #1a1a1a;
-    color: white;
-    font-size: 11px;
-    height: 26px;
-}
-.time-filter-container .btn-filter {
-    padding: 2px 16px;
-    border-radius: 12px;
-    border: none;
-    background: #007bff;
-    color: white;
-    font-size: 12px;
-    font-weight: bold;
-    cursor: pointer;
-    height: 26px;
-}
-.time-filter-container .btn-filter:hover { background: #0056b3; }
-.time-filter-container .reset-link {
-    color: #00aaff;
-    font-size: 12px;
-    text-decoration: none;
+@
+-webkit-keyframes spin { 0% {
+	-webkit-transform: rotate(0deg);
 }
 
-/* ===== COLOR LEGEND ===== */
-.color-legend {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 2px 15px;
-    background: #0a0a0a;
-    border-bottom: 1px solid #222;
-    flex-wrap: nowrap;
+100
+%
+{
+-webkit-transform
+:
+rotate(
+360deg
+);
 }
-.color-legend .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    color: #ccc;
-    font-size: 11px;
 }
-.color-box { width: 14px; height: 14px; border-radius: 3px; }
-.red-box { background-color: #ff3333; }
-.green-box { background-color: #008800; }
-.orange-box { background-color: #ffcc66; }
-.purple-box { background-color: #6666ff; }
-
-/* ===== MAIN DASHBOARD GRID ===== */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    padding: 6px 10px 10px 10px;
-    height: calc(100vh - 140px);
-}
-.dashboard-card {
-    background: #0d0d0d;
-    border-radius: 10px;
-    border: 1px solid #1a1a1a;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-}
-.dashboard-card .card-header {
-    background: #111;
-    padding: 3px 10px;
-    border-bottom: 1px solid #222;
-    text-align: center;
-    flex-shrink: 0;
-}
-.dashboard-card .card-header h4 {
-    color: white;
-    font-size: 13px;
-    margin: 0;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-.dashboard-card .card-body {
-    flex: 1;
-    overflow: hidden;
-    padding: 4px;
-    background: #0a0a0a;
+@
+keyframes spin { 0% {
+	transform: rotate(0deg);
 }
 
-/* ===== HEXAGON GALLERY (compact) ===== */
+100
+%
+{
+transform
+:
+rotate(
+360deg
+);
+}
+}
+
+/* Add animation to "page content" */
+.animate-bottom {
+	position: relative;
+	-webkit-animation-name: animatebottom;
+	-webkit-animation-duration: 1s;
+	animation-name: animatebottom;
+	animation-duration: 1s
+}
+
+@
+-webkit-keyframes animatebottom {from { bottom:-100px;
+	opacity: 0
+}
+
+to {
+	bottom: 0px;
+	opacity: 1
+}
+
+}
+@
+keyframes animatebottom {from { bottom:-100px;
+	opacity: 0
+}
+
+to {
+	bottom: 0;
+	opacity: 1
+}
+
+}
+#myDiv {
+	display: none;
+	text-align: center;
+}
+
 .hexagon-gallery {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
-    grid-auto-rows: 60px;
-    gap: 6px;
-    padding: 4px;
-    height: 100%;
-    align-content: start;
+	margin: auto;
+	margin-top: 50px;
+	max-width: 2000px;
+	display: grid;
+	grid-template-columns: repeat(10, 1fr);
+	grid-auto-rows: 200px;
+	grid-gap: 14px;
+	padding-bottom: 50px;
 }
-.hex {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background-color: #008800;
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: transform 0.2s;
-    min-height: 50px;
-    min-width: 50px;
-}
-.hex:hover {
-    transform: scale(1.08);
-    z-index: 10;
-}
-.hex.green { background-color: #008800; }
-.hex.red { background-color: #ff3333; }
-.hex.orange { background-color: #ff8800; }
-.hex.purple { background-color: #8844ff; }
 
-/* ===== MODAL (existing styles) ===== */
+.hex {
+	display: flex;
+	position: relative;
+	width: 240px;
+	height: 265px;
+	background-color: #008800;
+	-webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+	clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.hex:first-child {
+	grid-row-start: 1;
+	grid-column: 2/span 2;
+}
+
+.hex:nth-child(2) {
+	grid-row-start: 1;
+	grid-column: 4/span 2;
+}
+
+.hex:nth-child(3) {
+	grid-row-start: 1;
+	grid-column: 6/span 2;
+}
+
+.hex:nth-child(29) {
+	grid-row-start: 1;
+	grid-column: 8/span 2;
+}
+
+.hex:nth-child(30) {
+	grid-row-start: 1;
+	grid-column: 10/span 2;
+}
+
+.hex:nth-child(31) {
+	grid-row-start: 1;
+	grid-column: 12/span 2;
+}
+
+.hex:nth-child(32) {
+	grid-row-start: 1;
+	grid-column: 14/span 2;
+}
+
+.hex:nth-child(4) {
+	grid-row-start: 2;
+	grid-column: 1/span 2;
+}
+
+.hex:nth-child(5) {
+	grid-row-start: 2;
+	grid-column: 3/span 2;
+}
+
+.hex:nth-child(6) {
+	grid-row-start: 2;
+	grid-column: 5/span 2;
+}
+
+.hex:nth-child(7) {
+	grid-row-start: 2;
+	grid-column: 7/span 2;
+}
+
+.hex:nth-child(33) {
+	grid-row-start: 2;
+	grid-column: 9/span 2;
+}
+
+.hex:nth-child(34) {
+	grid-row-start: 2;
+	grid-column: 11/span 2;
+}
+
+.hex:nth-child(35) {
+	grid-row-start: 2;
+	grid-column: 13/span 2;
+}
+
+.hex:nth-child(36) {
+	grid-row-start: 2;
+	grid-column: 15/span 2;
+}
+
+.hex:nth-child(8) {
+	grid-row-start: 3;
+	grid-column: 2/span 2;
+}
+
+.hex:nth-child(9) {
+	grid-row-start: 3;
+	grid-column: 4/span 2;
+}
+
+.hex:nth-child(10) {
+	grid-row-start: 3;
+	grid-column: 6/span 2;
+}
+
+.hex:nth-child(37) {
+	grid-row-start: 3;
+	grid-column: 8/span 2;
+}
+
+.hex:nth-child(38) {
+	grid-row-start: 3;
+	grid-column: 10/span 2;
+}
+
+.hex:nth-child(39) {
+	grid-row-start: 3;
+	grid-column: 12/span 2;
+}
+
+.hex:nth-child(40) {
+	grid-row-start: 3;
+	grid-column: 14/span 2;
+}
+
+.hex:nth-child(11) {
+	grid-row-start: 4;
+	grid-column: 1/span 2;
+}
+
+.hex:nth-child(12) {
+	grid-row-start: 4;
+	grid-column: 3/span 2;
+}
+
+.hex:nth-child(13) {
+	grid-row-start: 4;
+	grid-column: 5/span 2;
+}
+
+.hex:nth-child(14) {
+	grid-row-start: 4;
+	grid-column: 7/span 2;
+}
+
+.hex:nth-child(41) {
+	grid-row-start: 4;
+	grid-column: 9/span 2;
+}
+
+.hex:nth-child(42) {
+	grid-row-start: 4;
+	grid-column: 11/span 2;
+}
+
+.hex:nth-child(43) {
+	grid-row-start: 4;
+	grid-column: 13/span 2;
+}
+
+.hex:nth-child(44) {
+	grid-row-start: 4;
+	grid-column: 15/span 2;
+}
+
+.hex:nth-child(15) {
+	grid-row-start: 5;
+	grid-column: 2/span 2;
+}
+
+.hex:nth-child(16) {
+	grid-row-start: 5;
+	grid-column: 4/span 2;
+}
+
+.hex:nth-child(17) {
+	grid-row-start: 5;
+	grid-column: 6/span 2;
+}
+
+.hex:nth-child(45) {
+	grid-row-start: 5;
+	grid-column: 8/span 2;
+}
+
+.hex:nth-child(46) {
+	grid-row-start: 5;
+	grid-column: 10/span 2;
+}
+
+.hex:nth-child(47) {
+	grid-row-start: 5;
+	grid-column: 12/span 2;
+}
+
+.hex:nth-child(48) {
+	grid-row-start: 5;
+	grid-column: 14/span 2;
+}
+
+.hex:nth-child(18) {
+	grid-row-start: 6;
+	grid-column: 1/span 2;
+}
+
+.hex:nth-child(19) {
+	grid-row-start: 6;
+	grid-column: 3/span 2;
+}
+
+.hex:nth-child(20) {
+	grid-row-start: 6;
+	grid-column: 5/span 2;
+}
+
+.hex:nth-child(21) {
+	grid-row-start: 6;
+	grid-column: 7/span 2;
+}
+
+.hex:nth-child(49) {
+	grid-row-start: 6;
+	grid-column: 9/span 2;
+}
+
+.hex:nth-child(50) {
+	grid-row-start: 6;
+	grid-column: 11/span 2;
+}
+
+.hex:nth-child(51) {
+	grid-row-start: 6;
+	grid-column: 13/span 2;
+}
+
+.hex:nth-child(52) {
+	grid-row-start: 6;
+	grid-column: 15/span 2;
+}
+
+.hex:nth-child(22) {
+	grid-row-start: 7;
+	grid-column: 2/span 2;
+}
+
+.hex:nth-child(23) {
+	grid-row-start: 7;
+	grid-column: 4/span 2;
+}
+
+.hex:nth-child(24) {
+	grid-row-start: 7;
+	grid-column: 6/span 2;
+}
+
+.hex:nth-child(53) {
+	grid-row-start: 7;
+	grid-column: 8/span 2;
+}
+
+.hex:nth-child(54) {
+	grid-row-start: 7;
+	grid-column: 10/span 2;
+}
+
+.hex:nth-child(55) {
+	grid-row-start: 7;
+	grid-column: 12/span 2;
+}
+
+.hex:nth-child(56) {
+	grid-row-start: 7;
+	grid-column: 14/span 2;
+}
+
+.hex:nth-child(25) {
+	grid-row-start: 8;
+	grid-column: 1/span 2;
+}
+
+.hex:nth-child(26) {
+	grid-row-start: 8;
+	grid-column: 3/span 2;
+}
+
+.hex:nth-child(27) {
+	grid-row-start: 8;
+	grid-column: 5/span 2;
+}
+
+.hex:nth-child(28) {
+	grid-row-start: 8;
+	grid-column: 7/span 2;
+}
+
+.hex:nth-child(57) {
+	grid-row-start: 8;
+	grid-column: 9/span 2;
+}
+
+.hex:nth-child(58) {
+	grid-row-start: 8;
+	grid-column: 11/span 2;
+}
+
+.hex:nth-child(59) {
+	grid-row-start: 8;
+	grid-column: 13/span 2;
+}
+
+.hex:nth-child(60) {
+	grid-row-start: 8;
+	grid-column: 15/span 2;
+}
+
+.container {
+	display: flex;
+	justify-content: space-between;
+}
+
+.center {
+	justify-content: center;
+}
+
+.item {
+	width: 15%;
+	background: #007ed3;
+	min-height: 100px;
+	border: solid 2px #305077;
+	margin: 5px;
+	text-align: center;
+	font-size: 4em;
+	color: white;
+	font-weight: bold;
+	line-height: 1.4;
+}
+
+.zoom {
+	transition: transform .2s;
+}
+
+.zoom:hover {
+	-ms-transform: scale(1.1); /* IE 9 */
+	-webkit-transform: scale(1.1); /* Safari 3-8 */
+	transform: scale(1.1);
+}
+
+/* grduighufhusihfeiushfuieshfuieshfuieshfuiehfueshfuih */
 #modalContainer {
-    background-color: rgba(0,0,0,0.7);
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+	background-color: transparent;
+	position: absolute;
+	width: auto;
+	height: 100%;
+	top: 20px;
+	left: 80px;
+	z-index: 10000;
+	background-image: url(tp.png);
+	/* required by MSIE to prevent actions on lower z-index elements */
 }
+
 #alertBox {
-    position: relative;
-    width: 550px;
-    max-height: 85vh;
-    min-height: 400px;
-    border: 1px solid #666;
-    background-color: #1a1a1a;
-    border-radius: 12px;
-    overflow-y: auto;
-    padding: 0;
+	position: relative;
+	width: 600px;
+	height: 850px;
+	min-height: 100px;
+	margin-top: 250px;
+	border: 1px solid #666;
+	background-color: #fff;
+	background-repeat: no-repeat;
+	background-position: 20px 30px;
+	margin-left: 350px;
+	
 }
+
+#modalContainer>#alertBox {
+	position: relative;
+}
+
 #alertBox h1 {
-    margin: 0;
-    font: bold 28px verdana, arial;
-    background-color: #cc2222;
-    color: #FFF;
-    padding: 8px 15px;
-    text-align: center;
-    border-radius: 12px 12px 0 0;
+	margin: 0;
+	font: bold 50px verdana, arial;
+	background-color: #ff3333;
+	color: #FFF;
+	border-bottom: 1px solid #000;
+	padding: 2px 0 2px 5px;
+	text-align: center;
 }
+
 #alertBox p {
-    font: 16px verdana, arial;
-    padding: 12px 15px;
-    margin: 0;
-    color: #ddd;
-    background: #1a1a1a;
-    line-height: 1.6;
+	font: 20px verdana, arial;
+	height: 280px;
+	padding: 10px;
+	margin-left: 5px;
 }
+
 #alertBox textarea {
-    font: 16px verdana, arial;
-    height: 50px;
-    width: calc(100% - 40px);
-    margin: 5px 20px;
-    padding: 8px;
-    background: #2a2a2a;
-    color: white;
-    border: 1px solid #444;
-    border-radius: 6px;
+	font: 20px verdana, arial;
+	height: 50px;
+	position: relative;
+	float: left;
+	margin-left: 16px;
+	top: 0px
 }
+
+#alertBox input {
+	position: relative;
+	margin-left: -265px;
+	top: 50px
+}
+
+
 #alertBox label {
-    display: block;
-    font: 15px verdana, arial;
-    color: #ccc;
-    margin: 8px 20px 2px 20px;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font: 20px verdana, arial;
+    height: 50px;
+    position: relative;
+    float: left;
+    margin-left: 16px;
+    top: 0px;
     font-weight: bold;
 }
-#alertBox select {
-    width: calc(100% - 40px);
-    margin: 2px 20px;
-    padding: 6px 10px;
-    background: #2a2a2a;
-    color: white;
-    border: 1px solid #444;
-    border-radius: 6px;
-    font-size: 14px;
-}
-#alertBox .btn-row {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    padding: 12px 20px 20px 20px;
-    flex-wrap: wrap;
-}
-#alertBox .btn-row a {
+
+#alertBox label1 {
     display: inline-block;
-    padding: 8px 25px;
-    border-radius: 6px;
-    font: bold 14px verdana, arial;
+    margin-bottom: 0.5rem;
+    font: 20px verdana, arial;
+    position: relative;
+	margin-left: -330px;
+	top: 50px;
+    font-weight: bold;
+}
+
+#alertBox label2 {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font: 20px verdana, arial;
+    position: relative;
+	margin-left: 12px;
+	top: 346px;
+    font-weight: bold;
+}
+
+#alertBox label3 {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font: 20px verdana, arial;
+    position: relative;
+	margin-left: -330px;
+	top: 50px;
+    font-weight: bold;
+}
+
+#alertBox label4 {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font: 20px verdana, arial;
+    position: relative;
+    margin-left: -412px;
+    font-weight: bold;
+    top: 106px;
+}
+
+#alertBox #closeBtn {
+	    display: block;
+    position: relative;
+    margin: 5px auto;
+    padding: 7px;
+    border: 0 none;
+    width: 70px;
+    top: 376px;
+    left: 47px;
+    font: 0.7em verdana, arial;
     text-transform: uppercase;
     text-align: center;
     color: #FFF;
+    background-color: #28a745;
+    border-radius: 3px;
     text-decoration: none;
-    cursor: pointer;
-    border: none;
 }
-#alertBox #closeBtn { background-color: #28a745; }
-#alertBox #detailsBtn { background-color: #dc3545; }
-#alertBox #closeAlertBtn {
-    position: absolute;
-    top: 8px;
-    right: 15px;
-    font-size: 28px;
-    color: #fff;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-}
-#alertBox #closeAlertBtn:hover { color: #ff6666; }
 
-/* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #111; }
-::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #666; }
+#alertBox #detailsBtn {
+    display: block;
+    position: relative;
+    margin: 5px auto;
+    padding: 7px;
+    border: 0 none;
+    width: 70px;
+    top: 266px;
+    left: -56px;
+    font: 0.7em verdana, arial;
+    text-transform: uppercase;
+    text-align: center;
+    color: #FFF;
+    background-color: RED;
+    border-radius: 3px;
+    text-decoration: none;
+}
+
+#alertBox #closeAlertBtn {
+    display: block;
+    position: relative;
+    margin: 5px auto;
+    /* padding: 7px; */
+    border: 0 none;
+    width: 50px;
+    height: 60px;
+    top: -437px;
+    left: 263px;
+    font: 0.7em verdana, arial;
+    text-transform: uppercase;
+    text-align: center;
+    color: #FFF;
+    background-color: transparent;
+    border-radius: 3px;
+    font-size: 45px;
+    text-decoration: none;
+    text-align: center;
+}
+
+#alertBox #pasuseTime {
+    position: relative;
+    top: 344px;
+    margin-left: 20px;
+}
+
+#alertBox #closeName {
+	position: relative;
+	margin-left: 10px;
+	top: 104px;
+}
+
+/* unrelated styles */
+#mContainer {
+	position: relative;
+	width: 600px;
+	margin: auto;
+	padding: 5px;
+	border-top: 2px solid #000;
+	border-bottom: 2px solid #000;
+	font: 0.7em verdana, arial;
+}
+
+h1, h2 {
+	margin: 0;
+	padding: 4px;
+	font: bold 1.5em verdana;
+	border-bottom: 1px solid #000;
+}
+
+code {
+	font-size: 1.2em;
+	color: #069;
+}
+
+#credits {
+	position: relative;
+	margin: 25px auto 0px auto;
+	width: 350px;
+	font: 0.7em verdana;
+	border-top: 1px solid #000;
+	border-bottom: 1px solid #000;
+	height: 90px;
+	padding-top: 4px;
+}
+
+#credits img {
+	float: left;
+	margin: 5px 10px 5px 0px;
+	border: 1px solid #000000;
+	width: 80px;
+	height: 79px;
+}
+
+.important {
+	background-color: #F5FCC8;
+	padding: 2px;
+}
+
+code span {
+	color: #008800;
+}
+
+.timer {
+	/* text-align: center; */
+	border: 2px solid white;
+	display: inline;
+	padding: 5px;
+	color: white;
+	font-family: Verdana, sans-serif, Arial;
+	font-size: 20px;
+	height: 50px;
+	font-weight: bold;
+	text-decoration: none;
+}
+
+input.right {
+	position: absolute;
+	left: 2000px;
+	top: 0px;
+}
+
+table {
+	float: right;
+	margin-right: 20px;
+}
+
+/* NEW: Color Legend Styles */
+.color-legend {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 10px auto 20px auto;
+    padding: 10px 20px;
+    background: #1a1a1a;
+    border-radius: 40px;
+    border: 1px solid #333;
+    width: fit-content;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+/* Color boxes matching your hex colors */
+.red-box { background-color: #ff3333; }      /* TD Failures */
+.orange-box { background-color: #ffcc66; }    /* BD Failures */
+.purple-box { background-color: #6666ff; }    /* Mixed TD+BD */
+.green-box { background-color: #008800; }     /* Healthy */
 </style>
 <script>
-// ===== ALERT FUNCTIONS (simplified) =====
+
 var ALERT_TITLE = "FAILURE !!!";
 var ALERT_BUTTON_TEXT = "Close Problem";
 var ALERT_BUTTON3_TEXT = "View Problem";
-var ALERT_BUTTON2_TEXT = "✕";
+var ALERT_BUTTON2_TEXT = "X";
+
 
 if(document.getElementById) {
-    window.alert = function(txt) { createCustomAlert(txt); }
+    window.alert = function(txt) {
+        createCustomAlert(txt);
+    }
 }
 
 function createCustomAlert(txt) {
-    var d = document;
+	
+    d = document;
+
     if(d.getElementById("modalContainer")) return;
-    
-    var mObj = d.createElement("div");
+
+    mObj = d.getElementsByTagName("body")[0].appendChild(d.createElement("div"));
     mObj.id = "modalContainer";
-    mObj.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:10000;display:flex;align-items:center;justify-content:center;";
-    d.body.appendChild(mObj);
-    
-    var alertObj = d.createElement("div");
+    mObj.style.height = d.documentElement.scrollHeight + "px";
+
+    alertObj = mObj.appendChild(d.createElement("div"));
     alertObj.id = "alertBox";
-    alertObj.style.cssText = "background:#1a1a1a;border-radius:12px;width:550px;max-height:85vh;overflow-y:auto;border:1px solid #666;";
-    mObj.appendChild(alertObj);
-    
-    var h1 = d.createElement("h1");
-    h1.style.cssText = "margin:0;font:bold 28px verdana;background:#cc2222;color:#fff;padding:8px 15px;text-align:center;border-radius:12px 12px 0 0;";
+    if(d.all && !window.opera) alertObj.style.top = document.documentElement.scrollTop + "px";
+    alertObj.style.left = (d.documentElement.scrollWidth - alertObj.offsetWidth)/2 + "px";
+    alertObj.style.visiblity="visible";
+
+    h1 = alertObj.appendChild(d.createElement("h1"));
     h1.appendChild(d.createTextNode(ALERT_TITLE));
-    alertObj.appendChild(h1);
+
+    msg = alertObj.appendChild(d.createElement("p"));
     
-    var closeBtn = d.createElement("button");
-    closeBtn.id = "closeAlertBtn";
-    closeBtn.innerHTML = ALERT_BUTTON2_TEXT;
-    closeBtn.style.cssText = "position:absolute;top:8px;right:15px;font-size:28px;color:#fff;background:transparent;border:none;cursor:pointer;font-weight:bold;";
-    closeBtn.onclick = function() { removeCustomAlert(); return false; };
-    alertObj.appendChild(closeBtn);
-    
-    var msg = d.createElement("p");
-    msg.style.cssText = "font:16px verdana;padding:12px 20px;margin:0;color:#ddd;background:#1a1a1a;line-height:1.6;";
+
+    //msg.appendChild(d.createTextNode(txt));
     msg.innerHTML = txt;
-    alertObj.appendChild(msg);
+   
+    var label1 = alertObj.appendChild(d.createElement("label2"));
+    label1.textContent = "Closed Time :";
     
-    // Extract service info
-    var inputString = txt;
-    var result = "";
-    var regex = /<B>Name of Service:<\/B>\s*(.*?)\s*<br>/i;
-    var match = inputString.match(regex);
-    if (match && match[1]) result = match[1].trim();
+     select =alertObj.appendChild(d.createElement("select"));
+    // var option = new Option('1', '2','3','4');
+     
+   var resp =  [
+	   
+	   {"id":"1", "name":"1 Hour"},
+	   {"id":"2", "name":"2 Hours"},
+	   {"id":"3", "name":"3 Hours"},
+	   {"id":"4", "name":"4 Hours"},
+	   {"id":"5", "name":"5 Hours"},
+	   {"id":"6", "name":"6 Hours"},
+	   {"id":"7", "name":"7 Hours"},
+	   {"id":"8", "name":"8 Hours"},
+	   {"id":"9", "name":"9 Hours"},
+	   {"id":"10", "name":"10 Hours"},
+	   {"id":"11", "name":"11 Hours"},
+	   {"id":"12", "name":"12 Hours"},
+	   {"id":"13", "name":"13 Hours"},
+	   {"id":"14", "name":"14 Hours"},
+	   {"id":"15", "name":"15 Hours"},
+	   {"id":"16", "name":"16 Hours"},
+	   {"id":"17", "name":"17 Hours"},
+	   {"id":"18", "name":"18 Hours"},
+	   {"id":"19", "name":"19 Hours"},
+	   {"id":"20", "name":"20 Hours"},
+	   {"id":"21", "name":"21 Hours"},
+	   {"id":"22", "name":"22 Hours"},
+	   {"id":"23", "name":"23 Hours"},
+	   {"id":"24", "name":"24 Hours"}
+
+               ]
+     
+     var option = "";
+     for (i=0; i<resp.length; i++) {
+         option += "<option value='" + resp[i].id + "'>" + resp[i].name + "</option>";
+     }
+     
+     //select.appendChild(option);
+     select.id = "pasuseTime";
+     $('#pasuseTime').html(option);
+     
     
-    var resultErrorCode = "";
+     
+    btn = alertObj.appendChild(d.createElement("a"));
+    
+    btnClose = alertObj.appendChild(d.createElement("a"));
+    
+    btnDetails = alertObj.appendChild(d.createElement("a"));
+    
+/*     var inputString = txt;
     var wordsArray = inputString.split(" ");
-    for (var i = 0; i < wordsArray.length; i++) {
-        if(wordsArray[i] == "CODE:</B>") { resultErrorCode = wordsArray[i+1]; break; }
-    }
+    var result = "";
     
-    var resultSourceID = "";
-    for (var i = 0; i < wordsArray.length; i++) {
-        if(wordsArray[i] == "ID:</B>") { resultSourceID = wordsArray[i+1]; break; }
-    }
+   // for(var i = 0;  i < wordsArray.length; i++)
+    //	{
+    	    result += wordsArray[7];
+    	//}
+    var storedResult = result;
     
-    var resultServiceCat = wordsArray[2] || "";
+     */
     
-    // Comment label
-    var label = d.createElement("label");
-    label.textContent = "Comment :";
-    label.style.cssText = "display:block;font:15px verdana;color:#ccc;margin:8px 20px 2px 20px;font-weight:bold;";
-    alertObj.appendChild(label);
+    var inputString = txt;
+
+ // Function to find all data between "Name of Service :" and "Error Code :"
+ function findServiceInformation(inputString) {
+     var regex = /<B>Name of Service:<\/B>\s*(.*?)\s*<br>/i;
+     var match = inputString.match(regex);
+     
+     if (match && match[1]) {
+         return match[1].trim();
+     } else {
+         return null;
+     }
+ }
+
+ var result = findServiceInformation(inputString);
+
+ if (result !== null) {
+     var storedResult = result;
+     console.log("Service Information found: " + storedResult);
+ } else {
+     console.log("Service Information not found.");
+ }
     
-    var txtArea = d.createElement("textarea");
-    txtArea.id = "TextArea";
-    txtArea.style.cssText = "font:16px verdana;height:50px;width:calc(100% - 40px);margin:5px 20px;padding:8px;background:#2a2a2a;color:white;border:1px solid #444;border-radius:6px;";
-    alertObj.appendChild(txtArea);
     
-    // Closed By label
-    var label3 = d.createElement("label");
-    label3.textContent = "Closed By : ";
-    label3.style.cssText = "display:block;font:15px verdana;color:#ccc;margin:8px 20px 2px 20px;font-weight:bold;";
-    alertObj.appendChild(label3);
+ /*    var inputString = txt;
+    var wordsArray = inputString.split(" ");
+    var resultErrorCode = "";
     
-    var select = d.createElement("select");
-    select.id = "closeName";
-    select.style.cssText = "width:calc(100% - 40px);margin:2px 20px;padding:6px 10px;background:#2a2a2a;color:white;border:1px solid #444;border-radius:6px;font-size:14px;";
-    select.innerHTML = '<option value="NA">Please Select Name :</option>';
-    // Add employee names from server
-    var empNames = [];
-    <%
-    try {
-        Connection connn = DBUtilityAuto.getReportDBConnection();
-        String sql1 = "select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";
-        Statement statement = connn.createStatement();
-        ResultSet resultSet = statement.executeQuery(sql1);
-        while(resultSet.next()) {
-    %>
-            empNames.push("<%= resultSet.getString("Fullname").replace("\"", "\\\"") %>");
-    <%
+    resultErrorCode += wordsArray[11];
+    var storedResult1 = resultErrorCode ; */
+    
+    var inputString = txt;
+    var wordsArray = inputString.split(" ");
+
+    function findImportantWord(wordsArray) {
+        for (var i = 0; i < wordsArray.length; i++) {
+            if(wordsArray[i] == "CODE:</B>")
+            	{
+            	return wordsArray[i + 1];
+            	}
         }
-        resultSet.close();
-        statement.close();
-        connn.close();
-    } catch(Exception e) {}
-    %>
-    for(var i=0; i<empNames.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = empNames[i];
-        opt.text = empNames[i];
-        select.appendChild(opt);
+        return null;
     }
-    alertObj.appendChild(select);
-    
-    // Closed Time label
-    var label2 = d.createElement("label");
-    label2.textContent = "Closed Time :";
-    label2.style.cssText = "display:block;font:15px verdana;color:#ccc;margin:8px 20px 2px 20px;font-weight:bold;";
-    alertObj.appendChild(label2);
-    
-    var selectTime = d.createElement("select");
-    selectTime.id = "pasuseTime";
-    selectTime.style.cssText = "width:calc(100% - 40px);margin:2px 20px;padding:6px 10px;background:#2a2a2a;color:white;border:1px solid #444;border-radius:6px;font-size:14px;";
-    var timeOptions = [
-        "1 Hour","2 Hours","3 Hours","4 Hours","5 Hours","6 Hours","7 Hours","8 Hours",
-        "9 Hours","10 Hours","11 Hours","12 Hours","13 Hours","14 Hours","15 Hours",
-        "16 Hours","17 Hours","18 Hours","19 Hours","20 Hours","21 Hours","22 Hours",
-        "23 Hours","24 Hours"
-    ];
-    for(var i=0; i<timeOptions.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = (i+1);
-        opt.text = timeOptions[i];
-        selectTime.appendChild(opt);
-    }
-    alertObj.appendChild(selectTime);
-    
-    // Buttons row
-    var btnRow = d.createElement("div");
-    btnRow.style.cssText = "display:flex;justify-content:center;gap:15px;padding:12px 20px 20px 20px;flex-wrap:wrap;";
-    
-    var btnClose = d.createElement("a");
-    btnClose.id = "closeBtn";
-    btnClose.textContent = ALERT_BUTTON_TEXT;
-    btnClose.style.cssText = "display:inline-block;padding:8px 25px;border-radius:6px;font:bold 14px verdana;text-transform:uppercase;text-align:center;color:#FFF;text-decoration:none;cursor:pointer;background-color:#28a745;border:none;";
-    btnClose.onclick = function() {
-        var TextArea = document.getElementById("TextArea").value;
-        var closeName = document.getElementById("closeName").value;
-        var pasuseTime = document.getElementById("pasuseTime").value;
-        if(TextArea == '' || closeName == 'NA') {
-            alert("Please fill Comment and Closed By fields.");
-            return false;
-        }
-        removeCustomAlert();
-        var url = '<%=request.getContextPath() + "/jsp/ServiceWiseFailureAction.jsp?&Api_Name="%>'+result+"&SourceID="+resultSourceID+"&TextArea="+TextArea+"&pasuseTime="+pasuseTime+"&ErrorCode="+resultErrorCode+"&closeName="+closeName+"&ServiceCategory="+resultServiceCat;
-        location.replace(url, '_blank');
-        return false;
-    };
-    btnRow.appendChild(btnClose);
-    
-    var btnDetails = d.createElement("a");
-    btnDetails.id = "detailsBtn";
-    btnDetails.textContent = ALERT_BUTTON3_TEXT;
-    btnDetails.style.cssText = "display:inline-block;padding:8px 25px;border-radius:6px;font:bold 14px verdana;text-transform:uppercase;text-align:center;color:#FFF;text-decoration:none;cursor:pointer;background-color:#dc3545;border:none;";
-    if(resultServiceCat != 'SIServices') {
-        btnDetails.onclick = function() {
-            var a = '<%=request.getContextPath() + "/showFailureServicesWise.do?action=showFailureServicesWise&url="%>'+result+"&ServiceCategory="+resultServiceCat;
-            window.open(a,'_blank');
-            return false;
-        };
+
+    var resultErrorCode = findImportantWord(wordsArray);
+
+    if (resultErrorCode !== null) {
+        var storedResult1 = resultErrorCode;
+        console.log("Important word found in Error Code: " + storedResult1);
     } else {
-        btnDetails.style.display = 'none';
+        console.log("Important word not found.");
     }
-    btnRow.appendChild(btnDetails);
-    alertObj.appendChild(btnRow);
+    
+/*     var inputString = txt;
+    var wordsArray = inputString.split(" ");
+    var resultSourceID = "";
+    
+    resultSourceID += wordsArray[15];
+    var storedResult2 = resultSourceID; */
+    
+    var inputString = txt;
+    var wordsArray = inputString.split(" ");
+
+    function findImportantWord1(wordsArray) {
+        for (var i = 0; i < wordsArray.length; i++) {
+            if(wordsArray[i] == "ID:</B>")
+            	{
+            	return wordsArray[i + 1];
+            	}
+        }
+        return null;
+    }
+
+    var resultSourceID = findImportantWord1(wordsArray);
+
+    if (resultSourceID !== null) {
+        var storedResult2 = resultSourceID;
+        console.log("Important word found In Source Id : " + storedResult2);
+    } else {
+        console.log("Important word not found.");
+    }
+    
+    var inputString = txt;
+    var wordsArray = inputString.split(" ");
+    var resultServiceCat = "";
+    
+    resultServiceCat += wordsArray[2];
+    var storedResult3 = resultServiceCat;
+    
+    var label = alertObj.appendChild(d.createElement("label"));
+    label.textContent = "Comment :";
+    
+   /*  txtField = alertObj.appendChild(d.createElement("input"));  
+    txtField.id="TextField";
+    
+    var label1 = alertObj.appendChild(d.createElement("label1"));
+    label1.textContent = "Closed By :"; */
+    
+    txtArea = alertObj.appendChild(d.createElement("textarea"));  
+    txtArea.id="TextArea";
+    
+    var label3 = alertObj.appendChild(d.createElement("label4"));
+    label3.textContent = "Closed By : ";
+    
+    select =alertObj.appendChild(d.createElement("select"));
+    // var option = new Option('1', '2','3','4');
+    var Arr = new Array(); 
+    var resp1;
+	 resp1 = [ {"id":"NA", "name":"Please Select Name :"},<%
+	String m_strtxnArray="";
+	response.setIntHeader("Refresh", 600);
+	
+	
+	Connection connn=DBUtilityAuto.getReportDBConnection();
+	
+			
+	String sql1="select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";	
+    System.out.println(sql1);
+	Statement statement=connn.createStatement();
+	ResultSet resultSet= statement.executeQuery(sql1);
+	
+	List<String> labels= new ArrayList<String>();
+	List<Double> failure= new ArrayList<Double>();
+int p=0;
+	while(resultSet.next()){
+        %>
+        //Arr[<%=p %>] = '<%=resultSet.getString("Fullname") %>';
+        
+        
+         {"id":"Arr[<%=p %>]", "name":"<%=resultSet.getString("Fullname") %>"},
+     
+       
+        <%
+		p++;
+	}
+	
+	resultSet.close();
+	statement.close();
+	connn.close();
+	
+	%>
+	 ]
+	 
+    var option1 = "";
+    for (i=0; i<resp1.length; i++) {
+        option1 += "<option value='" + resp1[i].name + "'>" + resp1[i].name + "</option>";
+    }
+  
+  select.id = "closeName";
+  $('#closeName').html(option1);
+
+    
+    btnClose.id = "closeAlertBtn";
+    btnClose.appendChild(d.createTextNode(ALERT_BUTTON2_TEXT));
+    btnClose.href = "#";
+    btnClose.focus();
+    btnClose.onclick = function() {
+    	removeCustomAlert(); 
+    	return false; 
+     }
+    
+    
+    btn.id = "closeBtn";
+    btn.appendChild(d.createTextNode(ALERT_BUTTON_TEXT));
+    btn.href = "#";
+    btn.focus();
+    btn.onclick = function() {
+    	
+    	if(document.getElementById("TextArea").value == '')
+    	{   
+    		getElementById("closeBtn").disabled=true;
+    	}
+    	
+
+    	if(document.getElementById("closeName").value == 'Please Select Name :')
+    	{   
+    		getElementById("closeBtn").disabled=true;
+    	}
+    	
+    	TextArea = document.getElementById("TextArea").value;
+    	closeName = document.getElementById("closeName").value;
+    	pasuseTime = document.getElementById("pasuseTime").value;
+    	removeCustomAlert(); 
+		
+		var url = '<%=request.getContextPath() + "/jsp/ServiceWiseFailureAction.jsp?&Api_Name="%>'+result+"&SourceID="+resultSourceID+"&TextArea="+TextArea+"&pasuseTime="+pasuseTime+"&ErrorCode="+resultErrorCode+"&closeName="+closeName+"&ServiceCategory="+resultServiceCat;
+		//window.open(url, '_blank');
+		location.replace(url, '_blank');
+    	return false; 
+     }
+    
+  
+	
+    btnDetails.appendChild(d.createTextNode(ALERT_BUTTON3_TEXT));
+    btnDetails.href = "#";
+    btnDetails.focus();
+    btnDetails.id = "detailsBtn";
+    if(resultServiceCat != 'SIServices')  
+    {    
+    btnDetails.onclick = function() {
+    	 var a = '<%=request.getContextPath() + "/showFailureServicesWise.do?action=showFailureServicesWise&url="%>'+result+"&ServiceCategory="+resultServiceCat;
+    	window.open(a,'_blank'); 
+    	
+    	return false;  
+     }
+}
+    alertObj.style.display = "block";
+
 }
 
 function removeCustomAlert() {
-    var el = document.getElementById("modalContainer");
-    if(el) el.remove();
+    document.getElementsByTagName("body")[0].removeChild(document.getElementById("modalContainer"));
 }
 
-// ===== COUNTDOWN =====
-function countdown(elementName, minutes, seconds) {
-    var element = document.getElementById(elementName);
-    if(!element) return;
-    var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
-    function updateTimer() {
-        var msLeft = endTime - (+new Date);
-        if(msLeft < 1000) {
-            element.innerHTML = "Refreshing...";
-        } else {
-            var time = new Date(msLeft);
-            var h = time.getUTCHours();
-            var m = time.getUTCMinutes();
-            var s = time.getUTCSeconds();
-            element.innerHTML = (h ? h + ':' + (m<10?'0':'') + m : m) + ':' + (s<10?'0':'') + s;
-            setTimeout(updateTimer, 1000);
-        }
-    }
-    updateTimer();
+var myVar;
+
+function myFunction() {
+  myVar = setTimeout(showPage, 3000);
 }
 
-// ===== SET DEFAULT TIME FILTER =====
-function setDefaultTimeFilter() {
-    var now = new Date();
-    var tenMinsAgo = new Date(now.getTime() - 10 * 60 * 1000);
-    function fmt(d) {
-        var y = d.getFullYear();
-        var mo = String(d.getMonth()+1).padStart(2,'0');
-        var day = String(d.getDate()).padStart(2,'0');
-        var h = String(d.getHours()).padStart(2,'0');
-        var mi = String(d.getMinutes()).padStart(2,'0');
-        return y + '-' + mo + '-' + day + 'T' + h + ':' + mi;
-    }
-    var fromEl = document.getElementById('fromDate');
-    var toEl = document.getElementById('toDate');
-    if(fromEl && !fromEl.value) fromEl.value = fmt(tenMinsAgo);
-    if(toEl && !toEl.value) toEl.value = fmt(now);
+function showPage() {
+  document.getElementById("loader").style.display = "none";
+  document.getElementById("myDiv").style.display = "block";
 }
 
-// ===== POPUP FUNCTIONS =====
+function DisplayRecords() {
+  
+	var url = location.replace('<%=request.getContextPath() + "/jsp/DisplayHundredPercentFailure.jsp"%>');
+	window.open(url, '_blank');
+	
+}
+
+// Function to open the popup
 function openPopup() {
-    var w=800,h=600;
-    var left=(window.innerWidth-w)/2, top=(window.innerHeight-h)/2;
-    window.open('DisplayServiceWiseFailure.jsp','DataPopup','width='+w+',height='+h+',left='+left+',top='+top);
+	
+	var width=800;
+	var height=600;
+	var left= (window.innerWidth - width) / 2;
+	var top= (window.innerHeight - height) / 2;
+	
+    var popupWindow = window.open('DisplayServiceWiseFailure.jsp', 'DataPopup', 'width='+ width +', height='+ height +', left='+ left +', top='+top);
+    popupWindow.focus();
+
 }
+
 function openPopupToday() {
-    var w=800,h=600;
-    var left=(window.innerWidth-w)/2, top=(window.innerHeight-h)/2;
-    window.open('DisplayTodayServiceWiseFailure.jsp','DataPopup','width='+w+',height='+h+',left='+left+',top='+top);
+	
+	var width=800;
+	var height=600;
+	var left= (window.innerWidth - width) / 2;
+	var top= (window.innerHeight - height) / 2;
+	
+    var popupWindow = window.open('DisplayTodayServiceWiseFailure.jsp', 'DataPopup', 'width='+ width +', height='+ height +', left='+ left +', top='+top);
+    popupWindow.focus();
 }
 
-// ===== INIT =====
-window.onload = function() {
-    setDefaultTimeFilter();
-    countdown("ten-countdown", 5, 0);
-    document.getElementById('openPopupButton').addEventListener('click', openPopup);
-    document.getElementById('openPopup').addEventListener('click', openPopupToday);
-};
-</script>
+// Event listener for the button click
+
+
+document.addEventListener('DOMContentLoaded', function(){
+	
+	document.getElementById('openPopupButton').addEventListener('click', openPopup);
+	document.getElementById('openPopup').addEventListener('click', openPopupToday);
+});
+
+    </script>
 </head>
-<body>
 
-<!-- ===== HEADER ===== -->
-<div class="dashboard-header">
-    <div class="title-section">
-        <h1>📊 Service-Wise Failure Dashboard</h1>
-        <span class="timer" id="ten-countdown">5:00</span>
-        <span style="color:#888;font-size:11px;">auto-refresh</span>
-    </div>
-    <div class="btn-group">
-        <input type="button" value="View Closed Issues" class="btn btn-primary" id="openPopupButton" />
-        <input type="button" id="openPopup" class="btn btn-success" style="font-size:11px;" />
-    </div>
-</div>
-
-<!-- ===== TIME FILTER ===== -->
-<div class="time-filter-container">
-    <div class="filter-group">
-        <label>From:</label>
-        <input type="datetime-local" id="fromDate" name="fromDate">
-    </div>
-    <div class="filter-group">
-        <label>To:</label>
-        <input type="datetime-local" id="toDate" name="toDate">
-    </div>
-    <button type="submit" class="btn-filter" onclick="document.forms[0].submit();">Apply</button>
-    <a href="<%=request.getContextPath()%>/jsp/ServiceWiseFailureDashboard.jsp" class="reset-link">Reset</a>
-</div>
-
-<!-- ===== COLOR LEGEND ===== -->
-<div class="color-legend">
-    <div class="legend-item"><div class="color-box red-box"></div>TD Failures</div>
-    <div class="legend-item"><div class="color-box green-box"></div>Healthy</div>
-</div>
-
-<!-- ===== DASHBOARD GRID ===== -->
-<div class="dashboard-grid">
-    <!-- GEN-5 Service -->
-    <div class="dashboard-card">
-        <div class="card-header"><h4>GEN-5 Service</h4></div>
-        <div class="card-body">
-            <div class="hexagon-gallery" id="gen5Gallery">
-<%
-    Connection con = DBUtilityAuto.getReportDBConnection();
-    Connection conn = DBUtilityAuto.getIIBDBConnection();
-    try {
-        String fromDateParam = request.getParameter("fromDate");
-        String toDateParam = request.getParameter("toDate");
-        String timeFilterClause = "";
-        if (fromDateParam != null && !fromDateParam.isEmpty() && toDateParam != null && !toDateParam.isEmpty()) {
-            String fromDateFormatted = fromDateParam.replace("T", " ") + ":00";
-            String toDateFormatted = toDateParam.replace("T", " ") + ":00";
-            timeFilterClause = " AND insert_time >= TO_TIMESTAMP('" + fromDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') " +
-                               " AND insert_time <= TO_TIMESTAMP('" + toDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') ";
-        } else {
-            timeFilterClause = " AND insert_time >= sysdate - INTERVAL '10' MINUTE ";
-        }
-
-        String l_strQuery = "SELECT * FROM(SELECT api_name, source_id, error_code, SUM(total_hits) AS total_hits, SUM(success) AS success, issue_time, SUM(td) AS td, round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code) not in (SELECT DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' " + timeFilterClause + " AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
-        Statement l_bjst = con.createStatement();
-        ResultSet l_bjres = l_bjst.executeQuery(l_strQuery);
-
-        List<String> API_NAME = new ArrayList<String>();
-        List<String> SOURCE_ID = new ArrayList<String>();
-        List<String> ERROR_CODE = new ArrayList<String>();
-        List<Integer> TOTAL_HITS = new ArrayList<Integer>();
-        List<Integer> EIS_TD = new ArrayList<Integer>();
-        List<Double> EIS_TD_PER = new ArrayList<Double>();
-        List<String> ISSUE_TIME = new ArrayList<String>();
-        List<Integer> SI_EEROR_Count = new ArrayList<Integer>();
-        List<Double> SI_EEROR_PR_Per = new ArrayList<Double>();
-
-        while (l_bjres.next()) {
-            if ((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
-                API_NAME.add(l_bjres.getString("API_NAME"));
-                SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
-                ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
-                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                EIS_TD.add(l_bjres.getInt("TD"));
-                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-                ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME"));
-                SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
-                SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR"));
-            }
-        }
-
-        int count = 0;
-        if (EIS_TD_PER != null) {
-            for (int i = 0; i < Math.min(ERROR_CODE.size(), 60); i++) {
-                String m_strErrorcode = ERROR_CODE.get(i);
-                if (m_strErrorcode != null && m_strErrorcode.contains(",")) {
-                    String[] parts = m_strErrorcode.split(",");
-                    StringBuilder sb = new StringBuilder();
-                    for (int b = 0; b < Math.min(parts.length, 3); b++) {
-                        if (b > 0) sb.append(",");
-                        sb.append(parts[b]);
-                    }
-                    if (parts.length > 3) sb.append("...");
-                    m_strErrorcode = sb.toString();
-                }
-                String sourceDisplay = SOURCE_ID.get(i);
-                if (sourceDisplay != null && sourceDisplay.contains(",")) {
-                    String[] parts = sourceDisplay.split(",");
-                    StringBuilder sb = new StringBuilder();
-                    for (int b = 0; b < Math.min(parts.length, 2); b++) {
-                        if (b > 0) sb.append(",");
-                        sb.append(parts[b]);
-                    }
-                    if (parts.length > 2) sb.append("...");
-                    sourceDisplay = sb.toString();
-                }
-                String alertMsg = "<B>Service Category:</B> GEN-5 <br> <B>Name of Service:</B> " + API_NAME.get(i) + 
-                    " <br> <B>Source ID:</B> " + sourceDisplay + 
-                    " <br> <B>ERROR CODE:</B> " + m_strErrorcode + 
-                    " <br> <B>TOTAL HITS:</B> " + TOTAL_HITS.get(i) + 
-                    " <br> <B>EIS TD:</B> " + EIS_TD.get(i) + 
-                    " <br> <B>Failure %:</B> " + EIS_TD_PER.get(i) + "%" +
-                    " <br> <B>SI ERROR:</B> " + SI_EEROR_Count.get(i) +
-                    " <br> <B>Issue Time:</B><br>" + ISSUE_TIME.get(i);
-%>
-                <div class="hex red" onclick="alert('<%= alertMsg.replace("'", "\\'") %>');"><%= EIS_TD_PER.get(i) %></div>
-<%
-                count++;
-            }
-            for (int k = count; k < 60; k++) {
-%>
-                <div class="hex green">✓</div>
-<%
-            }
-        } else {
-            for (int i = 0; i < 60; i++) {
-%>
-                <div class="hex green">✓</div>
-<%
-            }
-        }
-    } catch (Exception e) { e.printStackTrace(); }
-%>
-            </div>
+<body style="background-color: black; zoom: 70%;">
+	<%@include file="./DRPRHeader.jsp"%>
+	<%-- <%@include file="./userheader.jsp"%> --%>
+	
+	<!-- NEW: Color Legend Section -->
+<div style="display: flex; justify-content: center; width: 100%; margin: 10px 0;">
+    <div class="color-legend">
+        <div class="legend-item">
+            <div class="color-box red-box"></div>
+            <span>Red = TD Failures (Technical Decline)</span>
         </div>
-    </div>
-
-    <!-- SI Service -->
-    <div class="dashboard-card">
-        <div class="card-header"><h4>SI Service</h4></div>
-        <div class="card-body">
-            <div class="hexagon-gallery" id="siGallery">
-<%
-    try {
-        String fromDateParamSI = request.getParameter("fromDate");
-        String toDateParamSI = request.getParameter("toDate");
-        String timeFilterClauseSI = "";
-        if (fromDateParamSI != null && !fromDateParamSI.isEmpty() && toDateParamSI != null && !toDateParamSI.isEmpty()) {
-            String fromDateFormatted = fromDateParamSI.replace("T", " ") + ":00";
-            String toDateFormatted = toDateParamSI.replace("T", " ") + ":00";
-            timeFilterClauseSI = " AND insert_time >= TO_TIMESTAMP('" + fromDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') " +
-                                  " AND insert_time <= TO_TIMESTAMP('" + toDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') ";
-        } else {
-            timeFilterClauseSI = " AND insert_time >= SYSDATE - INTERVAL '10' MINUTE ";
-        }
-
-        String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code)) not in (select trim(CONCAT(api_name,error_code)) from vaild_bd_master) AND trim(temp.error_code) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) " + timeFilterClauseSI + " AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
-        Statement l_bjst = con.createStatement();
-        ResultSet l_bjres = l_bjst.executeQuery(l_strQuery);
-
-        List<String> API_NAME = new ArrayList<String>();
-        List<String> ERROR_CODE = new ArrayList<String>();
-        List<Integer> TOTAL_HITS = new ArrayList<Integer>();
-        List<Integer> EIS_TD = new ArrayList<Integer>();
-        List<Double> EIS_TD_PER = new ArrayList<Double>();
-        List<String> ISSUE_TIME = new ArrayList<String>();
-
-        while (l_bjres.next()) {
-            if (l_bjres.getDouble("TD") >= 50) {
-                API_NAME.add(l_bjres.getString("API_NAME"));
-                ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
-                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                EIS_TD.add(l_bjres.getInt("TD"));
-                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-                ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME"));
-            }
-        }
-
-        int count = 0;
-        if (EIS_TD_PER != null) {
-            for (int i = 0; i < Math.min(ERROR_CODE.size(), 60); i++) {
-                String errCode = ERROR_CODE.get(i);
-                if (errCode != null && errCode.contains(",")) {
-                    String[] parts = errCode.split(",");
-                    StringBuilder sb = new StringBuilder();
-                    for (int b = 0; b < Math.min(parts.length, 2); b++) {
-                        if (b > 0) sb.append(",");
-                        sb.append(parts[b]);
-                    }
-                    if (parts.length > 2) sb.append("...");
-                    errCode = sb.toString();
-                }
-                String alertMsg = "<B>Service Category:</B> SIServices <br> <B>Name of Service:</B> " + API_NAME.get(i) + 
-                    " <br> <B>ERROR CODE:</B> " + errCode + 
-                    " <br> <B>TOTAL HITS:</B> " + TOTAL_HITS.get(i) + 
-                    " <br> <B>EIS TD:</B> " + EIS_TD.get(i) + 
-                    " <br> <B>Failure %:</B> " + EIS_TD_PER.get(i) + "%" +
-                    " <br> <B>Issue Time:</B><br>" + ISSUE_TIME.get(i);
-%>
-                <div class="hex red" onclick="alert('<%= alertMsg.replace("'", "\\'") %>');"><%= EIS_TD_PER.get(i) %></div>
-<%
-                count++;
-            }
-            for (int k = count; k < 60; k++) {
-%>
-                <div class="hex green">✓</div>
-<%
-            }
-        } else {
-            for (int i = 0; i < 60; i++) {
-%>
-                <div class="hex green">✓</div>
-<%
-            }
-        }
-    } catch (Exception e) { e.printStackTrace(); }
-%>
-            </div>
-        </div>
-    </div>
-
-    <!-- ThirdParty Service -->
-    <div class="dashboard-card">
-        <div class="card-header"><h4>ThirdParty Service</h4></div>
-        <div class="card-body">
-            <div class="hexagon-gallery" id="tpGallery">
-<%
-    try {
-        String fromDateParamTP = request.getParameter("fromDate");
-        String toDateParamTP = request.getParameter("toDate");
-        String timeFilterClauseTP = "";
-        if (fromDateParamTP != null && !fromDateParamTP.isEmpty() && toDateParamTP != null && !toDateParamTP.isEmpty()) {
-            String fromDateFormatted = fromDateParamTP.replace("T", " ") + ":00";
-            String toDateFormatted = toDateParamTP.replace("T", " ") + ":00";
-            timeFilterClauseTP = " AND insert_time >= TO_TIMESTAMP('" + fromDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') " +
-                                  " AND insert_time <= TO_TIMESTAMP('" + toDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') ";
-        } else {
-            timeFilterClauseTP = " AND insert_time >= SYSDATE - INTERVAL '10' MINUTE ";
-        }
-
-        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) " + timeFilterClauseTP + " and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
-        Statement l_bjst = con.createStatement();
-        ResultSet l_bjres = l_bjst.executeQuery(l_strQuery);
-
-        List<String> API_TD = new ArrayList<String>();
-        List<Integer> TOTAL_HITS_TD = new ArrayList<Integer>();
-        List<Integer> TD_Count = new ArrayList<Integer>();
-        List<Double> TD_Per = new ArrayList<Double>();
-        List<String> Original_URN_TD = new ArrayList<String>();
-        List<String> TD_Issue_Time = new ArrayList<String>();
-        List<String> Source_Id_TD = new ArrayList<String>();
-        List<String> Error_Code_TD = new ArrayList<String>();
-
-        while (l_bjres.next()) {
-            if ((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50) {
-                API_TD.add(l_bjres.getString("sup_url"));
-                TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
-                TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
-                TD_Count.add(l_bjres.getInt("TD"));
-                Original_URN_TD.add(l_bjres.getString("original_urn"));
-                TD_Issue_Time.add(l_bjres.getString("issue_time"));
-                Source_Id_TD.add(l_bjres.getString("Source_id"));
-                Error_Code_TD.add(l_bjres.getString("error_code"));
-            }
-        }
-
-        int count = 0;
-        if (TD_Per != null) {
-            for (int i = 0; i < Math.min(Error_Code_TD.size(), 60); i++) {
-                String errCode = Error_Code_TD.get(i);
-                if (errCode != null && errCode.contains(",")) {
-                    String[] parts = errCode.split(",");
-                    StringBuilder sb = new StringBuilder();
-                    for (int b = 0; b < Math.min(parts.length, 2); b++) {
-                        if (b > 0) sb.append(",");
-                        sb.append(parts[b]);
-                    }
-                    if (parts.length > 2) sb.append("...");
-                    errCode = sb.toString();
-                }
-                String alertMsg = "<B>Service Category:</B> ThirdParty <br> <B>Name:</B> " + Original_URN_TD.get(i) + 
-                    " <br> <B>Error Code:</B> " + errCode + 
-                    " <br> <B>Source ID:</B> " + Source_Id_TD.get(i) + 
-                    " <br> <B>TOTAL HITS:</B> " + TOTAL_HITS_TD.get(i) + 
-                    " <br> <B>TD COUNT:</B> " + TD_Count.get(i) + 
-                    " <br> <B>Failure %:</B> " + TD_Per.get(i) + "%" +
-                    " <br> <B>Issue Time:</B><br>" + TD_Issue_Time.get(i);
-%>
-                <div class="hex red" onclick="alert('<%= alertMsg.replace("'", "\\'") %>');"><%= TD_Per.get(i) %></div>
-<%
-                count++;
-            }
-            for (int k = count; k < 60; k++) {
-%>
-                <div class="hex green">✓</div>
-<%
-            }
-        } else {
-            for (int i = 0; i < 60; i++) {
-%>
-                <div class="hex green">✓</div>
-<%
-            }
-        }
-    } catch (Exception e) { e.printStackTrace(); }
-%>
-            </div>
-        </div>
-    </div>
-
-    <!-- IVR + SBICAPS combined row -->
-    <div class="dashboard-card" style="display:flex; flex-direction:column;">
-        <div style="display:flex; flex-direction:column; height:50%; border-bottom:1px solid #222;">
-            <div class="card-header" style="padding:2px 10px;"><h4>IVR Service</h4></div>
-            <div class="card-body" style="padding:2px; flex:1;">
-                <div class="hexagon-gallery" style="grid-auto-rows:40px; gap:4px;" id="ivrGallery">
-<%
-    try {
-        String fromDateParamIVR = request.getParameter("fromDate");
-        String toDateParamIVR = request.getParameter("toDate");
-        String timeFilterClauseIVR = "";
-        if (fromDateParamIVR != null && !fromDateParamIVR.isEmpty() && toDateParamIVR != null && !toDateParamIVR.isEmpty()) {
-            String fromDateFormatted = fromDateParamIVR.replace("T", " ") + ":00";
-            String toDateFormatted = toDateParamIVR.replace("T", " ") + ":00";
-            timeFilterClauseIVR = " AND insert_time >= TO_TIMESTAMP('" + fromDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') " +
-                                   " AND insert_time <= TO_TIMESTAMP('" + toDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') ";
-        } else {
-            timeFilterClauseIVR = " AND insert_time >= SYSDATE - INTERVAL '10' MINUTE ";
-        }
-
-        String l_strQuery = "SELECT * FROM (SELECT api_name, Source_id, error_code, SUM(total_hits) AS total_hits, sum(SUCCESS) as SUCCESS, issue_time, SUM(td) AS td, round(AVG(td_per), 2) AS td_per FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' " + timeFilterClauseIVR + " and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 40";
-        Statement l_bjst = con.createStatement();
-        ResultSet l_bjres = l_bjst.executeQuery(l_strQuery);
-
-        List<Double> EIS_TD_PER = new ArrayList<Double>();
-        List<String> API_NAME = new ArrayList<String>();
-        List<String> ERROR_CODE = new ArrayList<String>();
-        List<Integer> EIS_TD = new ArrayList<Integer>();
-        List<Integer> TOTAL_HITS = new ArrayList<Integer>();
-
-        while (l_bjres.next()) {
-            if (l_bjres.getDouble("TD") >= 10) {
-                API_NAME.add(l_bjres.getString("API_NAME"));
-                ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
-                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                EIS_TD.add(l_bjres.getInt("TD"));
-                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-            }
-        }
-
-        int count = 0;
-        if (EIS_TD_PER != null) {
-            for (int i = 0; i < Math.min(ERROR_CODE.size(), 40); i++) {
-                String alertMsg = "<B>Service Category:</B> IVR <br> <B>Name:</B> " + API_NAME.get(i) + 
-                    " <br> <B>ERROR CODE:</B> " + ERROR_CODE.get(i) + 
-                    " <br> <B>TOTAL HITS:</B> " + TOTAL_HITS.get(i) + 
-                    " <br> <B>EIS TD:</B> " + EIS_TD.get(i) + 
-                    " <br> <B>Failure %:</B> " + EIS_TD_PER.get(i) + "%";
-%>
-                <div class="hex red" style="font-size:12px;" onclick="alert('<%= alertMsg.replace("'", "\\'") %>');"><%= EIS_TD_PER.get(i) %></div>
-<%
-                count++;
-            }
-            for (int k = count; k < 40; k++) {
-%>
-                <div class="hex green" style="font-size:12px;">✓</div>
-<%
-            }
-        } else {
-            for (int i = 0; i < 40; i++) {
-%>
-                <div class="hex green" style="font-size:12px;">✓</div>
-<%
-            }
-        }
-    } catch (Exception e) { e.printStackTrace(); }
-%>
-                </div>
-            </div>
-        </div>
-        <div style="display:flex; flex-direction:column; height:50%;">
-            <div class="card-header" style="padding:2px 10px;"><h4>SBICAPS Service</h4></div>
-            <div class="card-body" style="padding:2px; flex:1;">
-                <div class="hexagon-gallery" style="grid-auto-rows:40px; gap:4px;" id="capsGallery">
-<%
-    try {
-        String fromDateParamCAPS = request.getParameter("fromDate");
-        String toDateParamCAPS = request.getParameter("toDate");
-        String timeFilterClauseCAPS = "";
-        if (fromDateParamCAPS != null && !fromDateParamCAPS.isEmpty() && toDateParamCAPS != null && !toDateParamCAPS.isEmpty()) {
-            String fromDateFormatted = fromDateParamCAPS.replace("T", " ") + ":00";
-            String toDateFormatted = toDateParamCAPS.replace("T", " ") + ":00";
-            timeFilterClauseCAPS = " AND insert_time >= TO_TIMESTAMP('" + fromDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') " +
-                                    " AND insert_time <= TO_TIMESTAMP('" + toDateFormatted + "', 'YYYY-MM-DD HH24:MI:SS') ";
-        } else {
-            timeFilterClauseCAPS = " AND insert_time >= sysdate - INTERVAL '10' MINUTE ";
-        }
-
-        String l_strQuery = "SELECT * FROM(SELECT api_name, source_id, error_code, SUM(total_hits) AS total_hits, issue_time, SUM(td) AS td, round(AVG(TD_PERCENT), 2) AS td_per FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code) not in (SELECT DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' " + timeFilterClauseCAPS + " AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 40";
-        Statement l_bjst = con.createStatement();
-        ResultSet l_bjres = l_bjst.executeQuery(l_strQuery);
-
-        List<Double> EIS_TD_PER = new ArrayList<Double>();
-        List<String> API_NAME = new ArrayList<String>();
-        List<String> ERROR_CODE = new ArrayList<String>();
-        List<Integer> EIS_TD = new ArrayList<Integer>();
-        List<Integer> TOTAL_HITS = new ArrayList<Integer>();
-
-        while (l_bjres.next()) {
-            if (l_bjres.getDouble("TD") >= 10) {
-                API_NAME.add(l_bjres.getString("API_NAME"));
-                ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
-                TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
-                EIS_TD.add(l_bjres.getInt("TD"));
-                EIS_TD_PER.add(l_bjres.getDouble("TD_PER"));
-            }
-        }
-
-        int count = 0;
-        if (EIS_TD_PER != null) {
-            for (int i = 0; i < Math.min(ERROR_CODE.size(), 40); i++) {
-                String alertMsg = "<B>Service Category:</B> SBICAPS <br> <B>Name:</B> " + API_NAME.get(i) + 
-                    " <br> <B>ERROR CODE:</B> " + ERROR_CODE.get(i) + 
-                    " <br> <B>TOTAL HITS:</B> " + TOTAL_HITS.get(i) + 
-                    " <br> <B>EIS TD:</B> " + EIS_TD.get(i) + 
-                    " <br> <B>Failure %:</B> " + EIS_TD_PER.get(i) + "%";
-%>
-                <div class="hex red" style="font-size:12px;" onclick="alert('<%= alertMsg.replace("'", "\\'") %>');"><%= EIS_TD_PER.get(i) %></div>
-<%
-                count++;
-            }
-            for (int k = count; k < 40; k++) {
-%>
-                <div class="hex green" style="font-size:12px;">✓</div>
-<%
-            }
-        } else {
-            for (int i = 0; i < 40; i++) {
-%>
-                <div class="hex green" style="font-size:12px;">✓</div>
-<%
-            }
-        }
-    } catch (Exception e) { e.printStackTrace(); }
-%>
-                </div>
-            </div>
+       <!--  <div class="legend-item">
+            <div class="color-box orange-box"></div>
+            <span>Orange = BD Failures (Business Decline/Timeout)</span>
+        </div> -->
+        <!-- <div class="legend-item">
+            <div class="color-box purple-box"></div>
+            <span>Purple = Mixed (TD + BD Failures)</span>
+        </div> -->
+        <div class="legend-item">
+            <div class="color-box green-box"></div>
+            <span>Green = Healthy / No Failures</span>
         </div>
     </div>
 </div>
 
+	<h1
+		style="color: white; text-align: center; font-size: xx-large; position: relative; top: 20px;">
+		Service-Wise Failure Dashboard (More Than 1% EIS-TD) will get refresh in <span
+			style="color: white; text-align: center; font-size: xx-large;"
+			class="timer" id="ten-countdown"></span> Minutes <input type="button"
+			value="View Overall Closed Issues" class="btn btn-primary "
+			id="openPopupButton" style="font-size: 15px;" />
 <%
-    con.close();
+		Connection con = DBUtilityAuto.getReportDBConnection();
+		Connection conn = DBUtilityAuto.getIIBDBConnection();
+		connn = DBUtilityAuto.getSIDBConnection();
+try {		
+						try {
+							
+							
+							String query = "select count(1) from service_pause_log_master WHERE TRUNC(sysdate)=trunc(pause_time)";
+							Statement stmt = con.createStatement();
+                            ResultSet rs = stmt.executeQuery(query);
+                            //System.out.println(rs);
+
+							while (rs.next()) {
+						%>
+		<input type="button" id="openPopup" style="font-size: 15px;"
+			value="Today's Closed Issues Count is : <%
+								out.println(rs.getString("count(1)"));
+								%>"
+			class="btn btn-primary " />
+
+		<%
+						}
+
+
+							 } catch (Exception e) {
+
+							 e.printStackTrace();
+
+							 }
+						
+
+                        String connectiontype = request.getParameter("connectiontype");				
+						Statement l_bjst = null;
+						ResultSet l_bjres = null;
+						 con = null;
+						
+						con = DBUtilityAuto.getReportDBConnection();
+						
+						
+						try
+						{
+							
+							String sql = "DELETE FROM service_temporary_pause_master WHERE resume_time <= SYSTIMESTAMP";
+							//System.out.println(sql);
+	                        
+							PreparedStatement preparedStatement = con.prepareStatement(sql);
+							int rowsAffected = preparedStatement.executeUpdate();
+							preparedStatement.close();
+							
+							//System.out.println(rowsAffected);
+						}
+						catch(SQLException e)
+						{
+							e.printStackTrace();
+						}
+                      		
+
+
+						%>
+
+	</h1>
+	<br>
+	<h2
+		style="color: white; text-align: center; font-size: xx-large; position: relative; top: 20px;">
+		
+<%
+						try {
+							
+							
+							String query = "select * from(select INSERT_TIME from gen5_servicewise_fail ORDER BY insert_time desc)where rownum<=1";
+							Statement stmt = con.createStatement();
+                            ResultSet rs = stmt.executeQuery(query);
+                            //System.out.println(rs);
+								if (rs.next()) {
+									
+									Timestamp OrignalTime = rs.getTimestamp("INSERT_TIME");
+									Date date = new Date(OrignalTime.getTime());
+									//System.out.println(date);
+									
+									Calendar calendar = Calendar.getInstance();
+									calendar.setTime(date);
+									calendar.add(Calendar.MINUTE,-10);
+									
+									Date NewDate = calendar.getTime();
+									Timestamp newTimestamp = new Timestamp(NewDate.getTime());
+									
+									SimpleDateFormat dateFormat =  new SimpleDateFormat("dd-MMM-yy hh:mm:ss");
+									String formattedOrignalTimeStamp = dateFormat.format(OrignalTime);
+									String formattednewTimestamp = dateFormat.format(newTimestamp);
+									System.out.println(formattedOrignalTimeStamp);
+									System.out.println(formattednewTimestamp);
+								
+						%>
+		Service-Wise Failure Dashboard Data Display for  <%=formattednewTimestamp%> TO <%=formattedOrignalTimeStamp%>
+
+		<%
+						}
+
+							 } catch (Exception e) {
+
+							 e.printStackTrace();
+
+							 }
+
+
+						%>
+
+	</h2>
+	
+	
+	
+<div style="position: relative; top: 100px;">
+
+		<div class="container center">
+			<div class="container">
+				<div class="card" style="width: 650px; height: 500px;">
+
+					<div class="card-body" style="background-color: black;">
+						<ul>
+							<h4 class="card-title" style="color: white;">GEN-5 Service</h4>
+						</ul>
+						<section class="hexagon-gallery"
+							style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+
+							<%           
+                   try {
+                      
+						String l_strQuery = "SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per,CASE WHEN ( SUM(td_per) <> 0 ) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
+						System.out.println(l_strQuery);
+						l_bjst = con.createStatement();
+						l_bjres = l_bjst.executeQuery(l_strQuery);
+						//System.out.println(l_bjres);
+						
+						
+						
+						List<String> API_NAME = new ArrayList<String>();
+						List<String> SOURCE_ID = new ArrayList<String>();
+						List<String> ERROR_CODE = new ArrayList<String>();
+						List<Integer> TOTAL_HITS = new ArrayList<Integer>();
+						List<Integer> SUCCESS = new ArrayList<Integer>();
+						List<Integer> EIS_TD = new ArrayList<Integer>();
+						List<Double> EIS_TD_PER = new ArrayList<Double>();
+						List<String> ISSUE_TIME = new ArrayList<String>();
+						
+						
+						List<Integer> SI_EEROR_Count = new ArrayList<Integer>();
+						List<Double> SI_EEROR_PR_Per = new ArrayList<Double>();
+						//System.out.println(EIS_TD_PER);
+						
+					while (l_bjres.next()) {
+					
+					
+					if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50)
+					{
+						API_NAME.add(l_bjres.getString("API_NAME"));
+						SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
+						ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
+						TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+						SUCCESS.add(l_bjres.getInt("SUCCESS"));
+						EIS_TD.add(l_bjres.getInt("TD"));
+						EIS_TD_PER.add(l_bjres.getDouble("TD_PER")); 
+						ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME")); 
+						
+						SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+						SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR")); 
+					}
+					
+					
+						}
+					
+					if(EIS_TD_PER != null) {
+					    // Iterate through the lists to map ERROR_CODE to each SOURCE_ID
+					    for(int i = 0; i < ERROR_CODE.size(); i++) {
+					        // Process the ERROR_CODE string
+					        String m_strtmp = ERROR_CODE.get(i);
+					        StringBuilder m_strErrorcode = new StringBuilder();
+					       
+					        if (m_strtmp != null && m_strtmp.contains(",")) {
+					            String[] tmparr = m_strtmp.split(",");
+					            int count = 0;
+					            for (int b = 0; b < tmparr.length; b++) {
+					                if (count == 6) {
+					                    m_strErrorcode.append(",<br>"); // After every 4th error code, add a line break
+					                    count = 0; // Reset the counter
+					                }
+					                if (b != 0) m_strErrorcode.append(",");
+					                m_strErrorcode.append(tmparr[b]);
+					                count++;
+					            }
+					        } else {
+					            m_strErrorcode.append(m_strtmp);  // If no commas, just use the original error code
+					        }
+
+					        // Now handle the Source ID, grouping them by 4 as well
+					        String m_strSourceId = SOURCE_ID.get(i);
+					        String[] sourceIds = m_strSourceId.split(","); // Split Source IDs by commas
+					        StringBuilder groupedSourceIds = new StringBuilder();
+					        int countSource = 0;
+
+					        for (String source : sourceIds) {
+					            if (countSource == 10) {
+					                groupedSourceIds.append("<br>"); // After every 4th source ID, add a line break
+					                countSource = 0; // Reset the counter
+					            }
+					            if (countSource > 0) groupedSourceIds.append(", "); // Add a comma between Source IDs
+					            groupedSourceIds.append(source);
+					            countSource++;
+					        }
+					       
+					        // Prepare the final display string for this Source ID
+					        String m_strSourceWithErrorCodes = " <B>Source ID:</B> " + groupedSourceIds.toString() + " <br>" +
+					                                           " <B>ERROR CODE:</B> " + m_strErrorcode.toString() + " <br>";
+
 %>
+							        <div class="hex zoom" style="background-color: red;" title=""
+        name="ABC<%=i%>" id="ABC<%=i%>" value="<%=API_NAME.get(i)%>"
+        onclick="alert('<B>Service Category:</B> GEN-5 <br> <B>Name of Service:</B> <%=API_NAME.get(i)%> <br> <%=m_strSourceWithErrorCodes%> <B>TOTAL HITS:</B> <%=TOTAL_HITS.get(i)%> <br> <B>EIS TD COUNT:</B> <%=EIS_TD.get(i)%> <br> <B>Failure Percentage:</B> <%=EIS_TD_PER.get(i)%>% <br> <B>SI ERROR COUNT:</B> <%=SI_EEROR_Count.get(i)%> <br> <B>SI Failure Percentage:</B> <%=SI_EEROR_PR_Per.get(i)%>% <br> <B>Issue Time(Last 60 Min):</B> <br><%=ISSUE_TIME.get(i)%> <br>');"><%=EIS_TD_PER.get(i)%></div>
+
+}
+							<%
+				 }
+
+				//System.out.println( API_TD.size() +"-"+ API_BD.size());
+		       
+				for(int k = EIS_TD_PER.size(); k<60; k++)
+				{
+					// System.out.println("API_TD.size()+ API_BD.size() + td_bd_per.size() :"+EIS_TD_PER.size());
+%>
+							<div class="hex zoom" style="background-color:green;" title=""><%=k%></div>
+							<%
+	   
+				 }	
+				
+					
+			}
+		else
+		{
+			for(int i=0; i<100; i++)
+			{
+
+%>
+							<div class="hex zoom" style="background-color: 33FF3F;" title=""><%=i%></div>
+
+							<% 			}
+			
+		}
+						
+                   
+%>
+
+						</section>
+					</div>
+
+					<% 
+						} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+						}
+						
+%>
+			</div>
+		</div>	
+
+
+<%-- 			<div class="container">
+
+				<div class="card" style="width: 650px">
+
+					<div class="card-body" style="background-color: black;">
+						<ul>
+							<h4 class="card-title" style="color: white;">NONGEN-5
+								Service</h4>
+						</ul>
+						<section class="hexagon-gallery"
+							style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+
+							<%           
+                   try {
+                       
+						String l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,  SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS, issue_time,SUM(td) AS td, round(AVG(td_per), 2)  AS td_per, CASE WHEN ( SUM(td_per) <> 0 ) THEN round(round(AVG(td_per), 2)) ELSE 0 END   AS tdbd_per FROM nongen5_ServiceWise_fail TEMP WHERE substr(api_name,1,3) not in 'gen' and insert_time >= SYSDATE - INTERVAL '10' minute AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from  nongen5_ServiceWise_fail temp_in where  temp_in.api_name = temp.api_name group by api_name) and ROWNUM <= 60";
+						System.out.println(l_strQuery);
+						l_bjst = con.createStatement();
+						l_bjres = l_bjst.executeQuery(l_strQuery);
+						//System.out.println(l_bjres);
+						
+						List<String> API_NAME = new ArrayList<String>();
+						List<String> SOURCE_ID = new ArrayList<String>();
+						List<String> ERROR_CODE = new ArrayList<String>();
+						List<Integer> TOTAL_HITS = new ArrayList<Integer>();
+						List<Integer> SUCCESS = new ArrayList<Integer>();
+						List<Integer> EIS_TD = new ArrayList<Integer>();
+						List<Double> EIS_TD_PER = new ArrayList<Double>();
+						List<String> ISSUE_TIME = new ArrayList<String>();
+						
+						//System.out.println(EIS_TD_PER);
+						
+					while (l_bjres.next()) {
+					
+					
+					if(l_bjres.getDouble("TD") >= 50)
+					{
+						API_NAME.add(l_bjres.getString("API_NAME"));
+						SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
+						ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
+						TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+						SUCCESS.add(l_bjres.getInt("SUCCESS"));
+						EIS_TD.add(l_bjres.getInt("TD"));
+						EIS_TD_PER.add(l_bjres.getDouble("TD_PER")); 
+						ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME")); 
+					}
+					
+					
+						}
+					
+		if(EIS_TD_PER != null)	
+		{	
+			
+			
+				for(int i=0; i<API_NAME.size(); i++)
+				{
+					//System.out.println("API_NAME :"+API_NAME.size());
+			System.out.println("EIS_TD_PER :"+EIS_TD_PER.size());
+			String m_strtmp = ERROR_CODE.get(i);
+			String m_strErrorcode = "";
+			System.out.print("m_strtmp is =" + m_strtmp);
+			if ( m_strtmp != null && m_strtmp.contains(",")) {
+				String tmparr[] = m_strtmp.split(",");
+
+				for (int b = 0; b < tmparr.length; b++) {
+					if (b == 0) {
+						m_strErrorcode = tmparr[b];
+					} else {
+						if (b % 6 == 0) {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>";
+						} else {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+						}
+					}
+				}
+
+				//System.out.print("String is =" + m_strErrorcode);
+			} else {
+				m_strErrorcode = ERROR_CODE.get(i);
+			}		
+%>
+							<div class="hex zoom" style="background-color: red;" title=""
+								name="ABC<%=(i)%>" id="ABC<%=(i)%>" value="<%=API_NAME.get(i)%>"
+								onclick="alert('<B>Service Category:</B> NONGEN-5 <br> <B>Name of Service:</B> <%=API_NAME.get(i)%> <br> <B>ERROR CODE:</B> <%=m_strErrorcode%> <br> <B>Source ID:</B> <%=SOURCE_ID.get(i)%> <br>  <B>TOTAL HITS:</B> <%=TOTAL_HITS.get(i)%> <br>  <B>EIS TD COUNT:</B> <%=EIS_TD.get(i)%> <br> <B>Failure Percentage:</B> <%=EIS_TD_PER.get(i)%>% <br>  <B>Issue Time(Last 60 Min):</B> <br><%=ISSUE_TIME.get(i)%> <br>');"><%=EIS_TD_PER.get(i)%></div>
+
+
+							<%
+				 }
+
+				//System.out.println( API_TD.size() +"-"+ API_BD.size());
+		       
+				for(int k = EIS_TD_PER.size(); k<60; k++)
+				{
+					 //System.out.println("API_TD.size()+ API_BD.size() + td_bd_per.size() :"+EIS_TD_PER.size());
+%>
+							<div class="hex zoom" style="background-color:green;" title=""><%=k%></div>
+							<%
+	   
+				 }	
+				
+					
+			}
+		else
+		{
+%>
+
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+
+							<% 			
+		}
+						
+                   
+%>
+						</section>
+					</div>
+					<% 
+						} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+						}
+						
+%>
+
+			</div>
+		</div> --%>
+	
+					<div class="container">
+
+				<div class="card" style="width: 650px">
+
+					<div class="card-body" style="background-color: black;">
+						<ul>
+							<h4 class="card-title" style="color: white;">SI Service</h4>
+						</ul>
+						<section class="hexagon-gallery"
+							style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+							<%           
+                   try {
+                	   
+						String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select  trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND  trim(temp.error_code ) not in (select  DISTINCT ERRCODE from cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from  si_ServiceWise_fail temp_in where  temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
+						System.out.println(l_strQuery);
+						l_bjst = con.createStatement();
+						l_bjres = l_bjst.executeQuery(l_strQuery);
+						//System.out.println(l_bjres);
+						
+						
+						List<String> API_NAME = new ArrayList<String>();
+						/* List<String> SOURCE_ID = new ArrayList<String>(); */
+						List<String> ERROR_CODE = new ArrayList<String>();
+						List<Integer> TOTAL_HITS = new ArrayList<Integer>();
+						List<Integer> SUCCESS = new ArrayList<Integer>();
+						List<Integer> EIS_TD = new ArrayList<Integer>();
+						List<Double> EIS_TD_PER = new ArrayList<Double>();
+						List<String> ISSUE_TIME = new ArrayList<String>();
+						
+						//System.out.println(EIS_TD_PER);
+						
+					while (l_bjres.next()) {
+					
+					
+					if(l_bjres.getDouble("TD") >= 50)
+					{
+						API_NAME.add(l_bjres.getString("API_NAME"));
+						/* SOURCE_ID.add(l_bjres.getString("SOURCE_ID")); */
+						ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
+						TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+						SUCCESS.add(l_bjres.getInt("SUCCESS"));
+						EIS_TD.add(l_bjres.getInt("TD"));
+						EIS_TD_PER.add(l_bjres.getDouble("TD_PER")); 
+						ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME")); 
+					}
+					
+					
+						}
+					
+		if(EIS_TD_PER != null)	
+		{	
+			
+			
+			for(int i=0; i<ERROR_CODE.size(); i++)
+			{	
+		//System.out.println("ERROR_CODE :"+ERROR_CODE.size());
+		String m_strtmp = ERROR_CODE.get(i);
+		String m_strErrorcode = "";
+		if ( m_strtmp != null && m_strtmp.contains(",")) {
+			String tmparr[] = m_strtmp.split(",");
+			for (int b = 0; b < tmparr.length; b++) {
+				if (b == 0) {
+					m_strErrorcode = tmparr[b];
+				} else if(b != 0) {
+					if (b % 6 == 0) {
+						m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>,";
+					} else{
+						m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+					}
+						
+				}
+				else {
+					m_strErrorcode =ERROR_CODE.get(i);
+				}
+			}
+		} else {
+			m_strErrorcode =ERROR_CODE.get(i);
+		}		
+%>
+							<div class="hex zoom" style="background-color: red;" title=""
+								name="ABC<%=(i)%>" id="ABC<%=(i)%>" value="<%=API_NAME.get(i)%>"
+								onclick="alert('<B>Service Category:</B> SIServices <br> <B>Name of Service:</B> <%=API_NAME.get(i)%> <br> <B>ERROR CODE:</B> <%=m_strErrorcode%> <br>    <B>TOTAL HITS:</B> <%=TOTAL_HITS.get(i)%> <br>  <B>EIS TD COUNT:</B> <%=EIS_TD.get(i)%> <br> <B>Failure Percentage:</B> <%=EIS_TD_PER.get(i)%>% <br>  <B>Issue Time(Last 60 Min):</B> <br><%=ISSUE_TIME.get(i)%> <br>');"><%=EIS_TD_PER.get(i)%></div>
+
+
+							<%
+				 }
+
+				//System.out.println( API_TD.size() +"-"+ API_BD.size());
+		       
+				for(int k = EIS_TD_PER.size(); k<60; k++)
+				{
+					 //System.out.println("API_TD.size()+ API_BD.size() + td_bd_per.size() :"+EIS_TD_PER.size());
+%>
+							<div class="hex zoom" style="background-color:green;" title=""><%=k%></div>
+							<%
+	   
+				 }	
+				
+					
+			}
+		else
+		{
+%>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<div class="hex zoom"></div>
+							<% 			
+		}
+						
+                   
+%>
+						</section>
+					</div>
+					<% 
+						} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+						}
+						
+%>
+				</div>
+			</div>
+			
+			<div class="container">
+				<div class="card" style="width: 650px; height: 500px;">
+
+					<div class="card-body" style="background-color: black;">
+						<ul>
+							<h4 class="card-title" style="color: white;">ThirdParty Service</h4>
+						</ul>
+						<section class="hexagon-gallery"
+							style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+
+							<%           
+                   try {
+                      
+						String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
+						System.out.println(l_strQuery);
+						l_bjst = con.createStatement();
+						l_bjres = l_bjst.executeQuery(l_strQuery);
+						//System.out.println(l_bjres);
+						
+						List<String> API_TD = new ArrayList<String>();
+						List<Integer> TOTAL_HITS_TD = new ArrayList<Integer>();
+						List<Integer> TD_Count = new ArrayList<Integer>();
+						List<Double> TD_Per = new ArrayList<Double>();
+						List<String> Transction_URN_TD = new ArrayList<String>();
+						List<String> Original_URN_TD = new ArrayList<String>();
+						List<String> TD_Issue_Time = new ArrayList<String>();
+						List<String> Source_Id_TD = new ArrayList<String>();
+						List<String> Error_Code_TD = new ArrayList<String>();
+						
+						
+						List<Integer> SI_EEROR_Count = new ArrayList<Integer>();
+						List<Double> SI_EEROR_PR_Per = new ArrayList<Double>();
+						
+						//System.out.println(EIS_TD_PER);
+						
+					while (l_bjres.next()) {
+					
+						if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50 )
+						{
+							API_TD.add(l_bjres.getString("sup_url"));
+							TD_Per.add(l_bjres.getDouble("TD_PERCENT")); 
+							TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
+							TD_Count.add(l_bjres.getInt("TD"));
+							Transction_URN_TD.add(l_bjres.getString("transaction_urn"));
+							Original_URN_TD.add(l_bjres.getString("original_urn"));
+							TD_Issue_Time.add(l_bjres.getString("issue_time"));
+							Source_Id_TD.add(l_bjres.getString("Source_id"));
+							Error_Code_TD.add(l_bjres.getString("error_code"));
+							
+							SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+							SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR")); 
+							
+						}
+					
+					
+						}
+					
+		if(TD_Per != null)	
+		{	
+			
+			
+				for(int i=0; i<Error_Code_TD.size(); i++)
+				{	
+
+			//System.out.println("ERROR_CODE :"+ERROR_CODE.size());
+			String m_strtmp = Error_Code_TD.get(i);
+			String m_strErrorcode = "";
+			if ( m_strtmp != null && m_strtmp.contains(",")) {
+				String tmparr[] = m_strtmp.split(",");
+				for (int b = 0; b < tmparr.length; b++) {
+					if (b == 0) {
+						m_strErrorcode = tmparr[b];
+					} else {
+						if (b % 6 == 0) {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>";
+						} else {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+						}
+					}
+				}
+
+				//System.out.print("String is =" + m_strErrorcode);
+			} else {
+				
+			 //i =0;
+			if(Error_Code_TD != null && i >=0 && i<Error_Code_TD.size())
+			{
+				m_strErrorcode = Error_Code_TD.get(i);
+			}
+			else
+			{
+				m_strErrorcode = m_strtmp;
+			}	
+			}			
+%>
+							<div class="hex zoom" style="background-color: #ff3333;" title=""
+								onclick="alert('<B>Service Category:</B> ThirdParty-GEN-5 <br> <B>Name of Service:</B> <%=Original_URN_TD.get(i)%> <br> <B>Error Code:</B> <%=Error_Code_TD.get(i)%> <br> <B>Source ID:</B> <%=Source_Id_TD.get(i)%> <br> <B>TRANSACTION URN:</B><%=Transction_URN_TD.get(i)%> <br>  <B>SUP Url:</B><%=API_TD.get(i)%> <br>  <B>TOTAL HITS:</B><%=TOTAL_HITS_TD.get(i)%> <br>  <B>TD COUNT:</B><%=TD_Count.get(i)%> <br> <B>SI ERROR COUNT:</B> <%=SI_EEROR_Count.get(i)%> <br> <br> <B>SI Failure Percentage:</B> <%=SI_EEROR_PR_Per.get(i)%>%  <B>Issue Time(Last 3 Hour):</B> <br><%=TD_Issue_Time.get(i)%> <br>');"><%=TD_Per.get(i)%></div>
+
+}
+							<%
+				 }
+
+				//System.out.println( API_TD.size() +"-"+ API_BD.size());
+		       
+				for(int k = TD_Per.size(); k<60; k++)
+				{
+					// System.out.println("API_TD.size()+ API_BD.size() + td_bd_per.size() :"+EIS_TD_PER.size());
+%>
+							<div class="hex zoom" style="background-color:green;" title=""><%=k%></div>
+							<%
+	   
+				 }	
+				
+					
+			}
+		else
+		{
+			for(int i=0; i<100; i++)
+			{
+
+%>
+							<div class="hex zoom" style="background-color: 33FF3F;" title=""><%=i%></div>
+
+							<% 			}
+			
+		}
+						
+                   
+%>
+
+						</section>
+					</div>
+
+					<% 
+						} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+						}
+						
+%>
+			</div>
+		</div>
+					
+		</div>
+
+		<div class="container center" style="position: relative; top: 50px;">
+		
+		<div class="container">
+				<div class="card" style="width: 650px; height: 500px;">
+
+					<div class="card-body" style="background-color: black;">
+						<ul>
+							<h4 class="card-title" style="color: white;">I4C</h4>
+						</ul>
+						<section class="hexagon-gallery"
+							style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+
+							<%           
+                   try {
+                      
+						String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end  as tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select  DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY  sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from  gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
+						System.out.println(l_strQuery);
+						l_bjst = con.createStatement();
+						l_bjres = l_bjst.executeQuery(l_strQuery);
+						//System.out.println(l_bjres);
+						
+						List<String> API_TD = new ArrayList<String>();
+						List<Integer> TOTAL_HITS_TD = new ArrayList<Integer>();
+						List<Integer> TD_Count = new ArrayList<Integer>();
+						List<Double> TD_Per = new ArrayList<Double>();
+						List<String> Transction_URN_TD = new ArrayList<String>();
+						List<String> Original_URN_TD = new ArrayList<String>();
+						List<String> TD_Issue_Time = new ArrayList<String>();
+						List<String> Source_Id_TD = new ArrayList<String>();
+						List<String> Error_Code_TD = new ArrayList<String>();
+						
+						
+						List<Integer> SI_EEROR_Count = new ArrayList<Integer>();
+						List<Double> SI_EEROR_PR_Per = new ArrayList<Double>();
+						
+						//System.out.println(EIS_TD_PER);
+						
+					while (l_bjres.next()) {
+					
+						if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 50 )
+						{
+							API_TD.add(l_bjres.getString("sup_url"));
+							TD_Per.add(l_bjres.getDouble("TD_PERCENT")); 
+							TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
+							TD_Count.add(l_bjres.getInt("TD"));
+							Transction_URN_TD.add(l_bjres.getString("transaction_urn"));
+							Original_URN_TD.add(l_bjres.getString("original_urn"));
+							TD_Issue_Time.add(l_bjres.getString("issue_time"));
+							Source_Id_TD.add(l_bjres.getString("Source_id"));
+							Error_Code_TD.add(l_bjres.getString("error_code"));
+							
+							SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+							SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR")); 
+							
+						}
+					
+					
+						}
+					
+		if(TD_Per != null)	
+		{	
+			
+			
+				for(int i=0; i<Error_Code_TD.size(); i++)
+				{	
+
+			//System.out.println("ERROR_CODE :"+ERROR_CODE.size());
+			String m_strtmp = Error_Code_TD.get(i);
+			String m_strErrorcode = "";
+			if ( m_strtmp != null && m_strtmp.contains(",")) {
+				String tmparr[] = m_strtmp.split(",");
+				for (int b = 0; b < tmparr.length; b++) {
+					if (b == 0) {
+						m_strErrorcode = tmparr[b];
+					} else {
+						if (b % 6 == 0) {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>";
+						} else {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+						}
+					}
+				}
+
+				//System.out.print("String is =" + m_strErrorcode);
+			} else {
+				
+			 //i =0;
+			if(Error_Code_TD != null && i >=0 && i<Error_Code_TD.size())
+			{
+				m_strErrorcode = Error_Code_TD.get(i);
+			}
+			else
+			{
+				m_strErrorcode = m_strtmp;
+			}	
+			}			
+%>
+							<div class="hex zoom" style="background-color: #ff3333;" title=""
+								onclick="alert('<B>Service Category:</B> ThirdParty-GEN-5 <br> <B>Name of Service:</B> <%=Original_URN_TD.get(i)%> <br> <B>Error Code:</B> <%=Error_Code_TD.get(i)%> <br> <B>Source ID:</B> <%=Source_Id_TD.get(i)%> <br> <B>TRANSACTION URN:</B><%=Transction_URN_TD.get(i)%> <br>  <B>SUP Url:</B><%=API_TD.get(i)%> <br>  <B>TOTAL HITS:</B><%=TOTAL_HITS_TD.get(i)%> <br>  <B>TD COUNT:</B><%=TD_Count.get(i)%> <br> <B>SI ERROR COUNT:</B> <%=SI_EEROR_Count.get(i)%> <br> <br> <B>SI Failure Percentage:</B> <%=SI_EEROR_PR_Per.get(i)%>%  <B>Issue Time(Last 3 Hour):</B> <br><%=TD_Issue_Time.get(i)%> <br>');"><%=TD_Per.get(i)%></div>
+
+}
+							<%
+				 }
+
+				//System.out.println( API_TD.size() +"-"+ API_BD.size());
+		       
+				for(int k = TD_Per.size(); k<60; k++)
+				{
+					// System.out.println("API_TD.size()+ API_BD.size() + td_bd_per.size() :"+EIS_TD_PER.size());
+%>
+							<div class="hex zoom" style="background-color:green;" title=""><%=k%></div>
+							<%
+	   
+				 }	
+				
+					
+			}
+		else
+		{
+			for(int i=0; i<100; i++)
+			{
+
+%>
+							<div class="hex zoom" style="background-color: 33FF3F;" title=""><%=i%></div>
+
+							<% 			}
+			
+		}
+						
+                   
+%>
+
+						</section>
+					</div>
+
+					<% 
+						} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+						}
+						
+%>
+			</div>
+		</div>
+
+						<div class="container">
+				<div class="card" style="width: 650px; height: 500px;">
+
+					<div class="card-body" style="background-color: black;">
+						<ul>
+							<h4 class="card-title" style="color: white;">IVR Service</h4>
+						</ul>
+						<section class="hexagon-gallery"
+							style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+
+							<%           
+                   try {
+                      
+						String l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per, CASE WHEN (SUM(td_per) <> 0) THEN round(round(AVG(td_per), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
+						System.out.println(l_strQuery);
+						l_bjst = con.createStatement();
+						l_bjres = l_bjst.executeQuery(l_strQuery);
+						//System.out.println(l_bjres);
+						
+						
+						
+						List<String> API_NAME = new ArrayList<String>();
+						List<String> SOURCE_ID = new ArrayList<String>();
+						List<String> ERROR_CODE = new ArrayList<String>();
+						List<Integer> TOTAL_HITS = new ArrayList<Integer>();
+						List<Integer> SUCCESS = new ArrayList<Integer>();
+						List<Integer> EIS_TD = new ArrayList<Integer>();
+						List<Double> EIS_TD_PER = new ArrayList<Double>();
+						List<String> ISSUE_TIME = new ArrayList<String>();
+						
+						List<Integer> SI_EEROR_Count = new ArrayList<Integer>();
+						List<Double> SI_EEROR_PR_Per = new ArrayList<Double>();
+						
+						//System.out.println(EIS_TD_PER);
+						
+					while (l_bjres.next()) {
+					
+					
+					if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10)
+					{
+						API_NAME.add(l_bjres.getString("API_NAME"));
+						SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
+						ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
+						TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+						SUCCESS.add(l_bjres.getInt("SUCCESS"));
+						EIS_TD.add(l_bjres.getInt("TD"));
+						EIS_TD_PER.add(l_bjres.getDouble("TD_PER")); 
+						ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME")); 
+						
+						SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+						SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR")); 
+					}
+					
+					
+						}
+					
+		if(EIS_TD_PER != null)	
+		{	
+			
+			
+				for(int i=0; i<ERROR_CODE.size(); i++)
+				{	
+
+			//System.out.println("ERROR_CODE :"+ERROR_CODE.size());
+			String m_strtmp = ERROR_CODE.get(i);
+			String m_strErrorcode = "";
+			if ( m_strtmp != null && m_strtmp.contains(",")) {
+				String tmparr[] = m_strtmp.split(",");
+				for (int b = 0; b < tmparr.length; b++) {
+					if (b == 0) {
+						m_strErrorcode = tmparr[b];
+					} else {
+						if (b % 6 == 0) {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>";
+						} else {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+						}
+					}
+				}
+
+				//System.out.print("String is =" + m_strErrorcode);
+			} else {
+				
+			 //i =0;
+			if(ERROR_CODE != null && i >=0 && i<ERROR_CODE.size())
+			{
+				m_strErrorcode = ERROR_CODE.get(i);
+			}
+			else
+			{
+				m_strErrorcode = m_strtmp;
+			}	
+			}			
+%>
+							<div class="hex zoom" style="background-color: red;" title=""
+								name="ABC<%=(i)%>" id="ABC<%=(i)%>" value="<%=API_NAME.get(i)%>"
+								onclick="alert('<B>Service Category:</B> IVR-Service <br> <B>Name of Service:</B> <%=API_NAME.get(i)%> <br> <B>ERROR CODE:</B> <%=m_strErrorcode%> <br> <B>Source ID:</B> <%=SOURCE_ID.get(i)%> <br> <B>TOTAL HITS:</B> <%=TOTAL_HITS.get(i)%> <br>  <B>EIS TD COUNT:</B> <%=EIS_TD.get(i)%> <br> <B>SI ERROR COUNT:</B> <%=SI_EEROR_Count.get(i)%>  <br> <B>SI Failure Percentage:</B> <%=SI_EEROR_PR_Per.get(i)%>%  <br>  <B>Failure Percentage:</B> <%=EIS_TD_PER.get(i)%>% <br> <B>Issue Time(Last 60 Min):</B> <br><%=ISSUE_TIME.get(i)%> <br>');"><%=EIS_TD_PER.get(i)%></div>
+
+}
+							<%
+				 }
+
+				//System.out.println( API_TD.size() +"-"+ API_BD.size());
+		       
+				for(int k = EIS_TD_PER.size(); k<60; k++)
+				{
+					// System.out.println("API_TD.size()+ API_BD.size() + td_bd_per.size() :"+EIS_TD_PER.size());
+%>
+							<div class="hex zoom" style="background-color:green;" title=""><%=k%></div>
+							<%
+	   
+				 }	
+				
+					
+			}
+		else
+		{
+			for(int i=0; i<100; i++)
+			{
+
+%>
+							<div class="hex zoom" style="background-color: 33FF3F;" title=""><%=i%></div>
+
+							<% 			}
+			
+		}
+						
+                   
+%>
+
+						</section>
+					</div>
+
+					<% 
+						} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+						}
+						
+%>
+			</div>
+		</div>	
+		
+		<div class="container">
+				<div class="card" style="width: 650px; height: 500px;">
+
+					<div class="card-body" style="background-color: black;">
+						<ul>
+							<h4 class="card-title" style="color: white;">SBICAPS Service</h4>
+						</ul>
+						<section class="hexagon-gallery"
+							style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+
+							<%           
+                   try {
+                      
+						String l_strQuery = "SELECT * FROM(SELECT  api_name,source_id, error_code,SUM(total_hits)  AS total_hits,SUM(success)  AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per,CASE WHEN ( SUM(TD_PERCENT) <> 0 ) THEN round(round(AVG(TD_PERCENT), 2)) ELSE 0 END AS tdbd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR  FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND   trim(temp.error_code ) not in (select  DISTINCT ERRCODE FROM cbs_err_map  WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code,  issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM  gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 60";
+						System.out.println(l_strQuery);
+						l_bjst = con.createStatement();
+						l_bjres = l_bjst.executeQuery(l_strQuery);
+						//System.out.println(l_bjres);
+						
+						
+						
+						List<String> API_NAME = new ArrayList<String>();
+						List<String> SOURCE_ID = new ArrayList<String>();
+						List<String> ERROR_CODE = new ArrayList<String>();
+						List<Integer> TOTAL_HITS = new ArrayList<Integer>();
+						List<Integer> SUCCESS = new ArrayList<Integer>();
+						List<Integer> EIS_TD = new ArrayList<Integer>();
+						List<Double> EIS_TD_PER = new ArrayList<Double>();
+						List<String> ISSUE_TIME = new ArrayList<String>();
+						
+						List<Integer> SI_EEROR_Count = new ArrayList<Integer>();
+						List<Double> SI_EEROR_PR_Per = new ArrayList<Double>();
+						
+						//System.out.println(EIS_TD_PER);
+						
+					while (l_bjres.next()) {
+					
+					
+					if((l_bjres.getDouble("TD") + l_bjres.getInt("SI_EEROR")) >= 10)
+					{
+						API_NAME.add(l_bjres.getString("API_NAME"));
+						SOURCE_ID.add(l_bjres.getString("SOURCE_ID"));
+						ERROR_CODE.add(l_bjres.getString("ERROR_CODE"));
+						TOTAL_HITS.add(l_bjres.getInt("TOTAL_HITS"));
+						SUCCESS.add(l_bjres.getInt("SUCCESS"));
+						EIS_TD.add(l_bjres.getInt("TD"));
+						EIS_TD_PER.add(l_bjres.getDouble("TD_PER")); 
+						ISSUE_TIME.add(l_bjres.getString("ISSUE_TIME")); 
+						
+						SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+						SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR")); 
+					}
+					
+					
+						}
+					
+		if(EIS_TD_PER != null)	
+		{	
+			
+			
+				for(int i=0; i<ERROR_CODE.size(); i++)
+				{	
+
+			//System.out.println("ERROR_CODE :"+ERROR_CODE.size());
+			String m_strtmp = ERROR_CODE.get(i);
+			String m_strErrorcode = "";
+			if ( m_strtmp != null && m_strtmp.contains(",")) {
+				String tmparr[] = m_strtmp.split(",");
+				for (int b = 0; b < tmparr.length; b++) {
+					if (b == 0) {
+						m_strErrorcode = tmparr[b];
+					} else {
+						if (b % 6 == 0) {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>";
+						} else {
+							m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+						}
+					}
+				}
+
+				//System.out.print("String is =" + m_strErrorcode);
+			} else {
+				
+			 //i =0;
+			if(ERROR_CODE != null && i >=0 && i<ERROR_CODE.size())
+			{
+				m_strErrorcode = ERROR_CODE.get(i);
+			}
+			else
+			{
+				m_strErrorcode = m_strtmp;
+			}	
+			}			
+%>
+							<div class="hex zoom" style="background-color: red;" title=""
+								name="ABC<%=(i)%>" id="ABC<%=(i)%>" value="<%=API_NAME.get(i)%>"
+								onclick="alert('<B>Service Category:</B> SBICAPS-Service <br> <B>Name of Service:</B> <%=API_NAME.get(i)%> <br> <B>ERROR CODE:</B> <%=m_strErrorcode%> <br> <B>Source ID:</B> <%=SOURCE_ID.get(i)%> <br> <B>TOTAL HITS:</B> <%=TOTAL_HITS.get(i)%> <br>  <B>EIS TD COUNT:</B> <%=EIS_TD.get(i)%> <br>  <B>Failure Percentage:</B> <%=EIS_TD_PER.get(i)%>% <br> <B>SI ERROR COUNT:</B> <%=SI_EEROR_Count.get(i)%> <br> <B>SI Failure Percentage:</B> <%=SI_EEROR_PR_Per.get(i)%>%  <br> <B>Issue Time(Last 60 Min):</B> <br><%=ISSUE_TIME.get(i)%> <br>');"><%=EIS_TD_PER.get(i)%></div>
+
+}
+							<%
+				 }
+
+				//System.out.println( API_TD.size() +"-"+ API_BD.size());
+		       
+				for(int k = EIS_TD_PER.size(); k<60; k++)
+				{
+					// System.out.println("API_TD.size()+ API_BD.size() + td_bd_per.size() :"+EIS_TD_PER.size());
+%>
+							<div class="hex zoom" style="background-color:green;" title=""><%=k%></div>
+							<%
+	   
+				 }	
+				
+					
+			}
+		else
+		{
+			for(int i=0; i<100; i++)
+			{
+
+%>
+							<div class="hex zoom" style="background-color: 33FF3F;" title=""><%=i%></div>
+
+							<% 			}
+			
+		}
+						
+                   
+%>
+
+						</section>
+					</div>
+
+					<% 
+						} catch (Exception e) {
+						// TODO: handle exception
+						e.printStackTrace();
+						}
+						
+%>
+			</div>
+		</div>
+			</div>
+			
+			
+</div>
+
+<% 
+
+} catch (Exception e) {
+	// TODO: handle exception
+	e.printStackTrace();
+	}						
+%>
+
+</div>
+	</div>
+
+	<script>
+	function countdown(elementName, minutes, seconds) {
+	    var element, endTime, hours, mins, msLeft, time;
+
+	    function twoDigits(n) {
+	        return (n <= 9 ? "0" + n : n);
+	    }
+
+	    function updateTimer() {
+	        msLeft = endTime - (+new Date);
+	        if (msLeft < 1000) {
+	            element.innerHTML = "Please Wait Fetching the Latest Data!";
+	        } else {
+	            time = new Date(msLeft);
+	            hours = time.getUTCHours();
+	            mins = time.getUTCMinutes();
+	            element.innerHTML = (hours ? hours + ':' + twoDigits(mins) : mins) + ':' + twoDigits(time.getUTCSeconds());
+	            setTimeout(updateTimer, time.getUTCMilliseconds() + 50);
+	        }
+	    }
+
+	    element = document.getElementById(elementName);
+	    endTime = (+new Date) + 1000 * (60 * minutes + seconds);
+	    updateTimer();
+	}
+
+	countdown("ten-countdown", 5, 0);
+
+  </script>
 </body>
 </html>
