@@ -89,7 +89,7 @@
     }
     
     /* ============================================================
-       LOADER - Jab tak data nahi aata
+       LOADER
        ============================================================ */
     #loaderWrapper {
         position: fixed;
@@ -132,18 +132,6 @@
         color: #4a6a8a;
         letter-spacing: 2px;
         text-transform: uppercase;
-    }
-    
-    .loader-dots {
-        display: inline-block;
-        animation: dots 1.5s steps(4) infinite;
-    }
-    
-    @keyframes dots {
-        0% { content: ''; }
-        25% { content: '.'; }
-        50% { content: '..'; }
-        75% { content: '...'; }
     }
     
     /* ============================================================
@@ -532,8 +520,8 @@
     
     /* CRITICAL - RED */
     .tile-critical {
-        background: rgba(255, 71, 87, 0.08);
-        border-color: rgba(255, 71, 87, 0.10);
+        background: rgba(255, 71, 87, 0.12);
+        border-color: rgba(255, 71, 87, 0.18);
     }
     
     .tile-critical .val {
@@ -551,14 +539,14 @@
     }
     
     @keyframes crit-pulse {
-        0%, 100% { border-color: rgba(255, 71, 87, 0.10); box-shadow: 0 0 20px rgba(255, 71, 87, 0.02); }
-        50% { border-color: rgba(255, 71, 87, 0.25); box-shadow: 0 0 40px rgba(255, 71, 87, 0.06); }
+        0%, 100% { border-color: rgba(255, 71, 87, 0.18); box-shadow: 0 0 20px rgba(255, 71, 87, 0.02); }
+        50% { border-color: rgba(255, 71, 87, 0.35); box-shadow: 0 0 40px rgba(255, 71, 87, 0.08); }
     }
     
     /* WARNING - ORANGE */
     .tile-warning {
-        background: rgba(255, 165, 2, 0.05);
-        border-color: rgba(255, 165, 2, 0.08);
+        background: rgba(255, 165, 2, 0.08);
+        border-color: rgba(255, 165, 2, 0.12);
     }
     
     .tile-warning .val {
@@ -573,8 +561,8 @@
     
     /* MIXED - PURPLE */
     .tile-mixed {
-        background: rgba(124, 58, 237, 0.05);
-        border-color: rgba(124, 58, 237, 0.08);
+        background: rgba(124, 58, 237, 0.08);
+        border-color: rgba(124, 58, 237, 0.12);
     }
     
     .tile-mixed .val {
@@ -587,16 +575,17 @@
         width: 35%;
     }
     
-    /* HEALTHY - GREEN with STAR */
+    /* HEALTHY - GREEN with STAR and GREEN BACKGROUND */
     .tile-healthy {
-        background: rgba(15, 151, 61, 0.02);
-        border-color: rgba(15, 151, 61, 0.02);
+        background: rgba(15, 151, 61, 0.08);
+        border-color: rgba(15, 151, 61, 0.06);
     }
     
     .tile-healthy .val {
         color: #0f973d;
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 900;
+        text-shadow: 0 0 20px rgba(15, 151, 61, 0.1);
     }
     
     .tile-healthy .bar .fill {
@@ -610,24 +599,24 @@
     .tile[data-tooltip]:hover::after {
         content: attr(data-tooltip);
         position: absolute;
-        bottom: calc(100% + 14px);
+        bottom: calc(100% + 16px);
         left: 50%;
         transform: translateX(-50%);
         background: rgba(0, 0, 0, 0.95);
         color: #ffffff;
-        padding: 8px 18px;
+        padding: 8px 20px;
         border-radius: 8px;
         font-size: 14px;
         font-weight: 700;
         white-space: nowrap;
-        z-index: 9999;
+        z-index: 99999;
         border: 1px solid rgba(255, 255, 255, 0.06);
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
         pointer-events: none;
         font-family: 'Inter', sans-serif;
         letter-spacing: 0.5px;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-        max-width: 300px;
+        max-width: 350px;
         overflow: hidden;
         text-overflow: ellipsis;
     }
@@ -635,12 +624,12 @@
     .tile[data-tooltip]:hover::before {
         content: '';
         position: absolute;
-        bottom: calc(100% + 6px);
+        bottom: calc(100% + 8px);
         left: 50%;
         transform: translateX(-50%);
         border: 8px solid transparent;
         border-top-color: rgba(0, 0, 0, 0.95);
-        z-index: 9999;
+        z-index: 99999;
         pointer-events: none;
     }
     
@@ -653,62 +642,82 @@
     @media (max-width: 768px) { .card-body-modern { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 4px; } }
     
     /* ============================================================
-       MODAL
+       MODAL - BIG & PROFESSIONAL
        ============================================================ */
     #modalContainer {
         position: fixed;
         top: 0; left: 0;
-        width: 100vw; height: 100vh;
-        background: rgba(0, 0, 0, 0.95);
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.92);
         backdrop-filter: blur(20px);
         display: none;
         align-items: center;
         justify-content: center;
-        z-index: 99999;
-        animation: modal-in 0.25s ease;
+        z-index: 999999;
+        animation: modal-in 0.3s ease;
+        padding: 20px;
     }
     
     @keyframes modal-in {
-        from { opacity: 0; transform: scale(0.94) translateY(20px); }
+        from { opacity: 0; transform: scale(0.95) translateY(30px); }
         to { opacity: 1; transform: scale(1) translateY(0); }
     }
     
     #alertBox {
-        background: #080a10;
-        border-radius: 14px;
-        max-width: 480px;
-        width: 92%;
-        padding: 20px 22px 22px 22px;
-        border: 1px solid rgba(255, 255, 255, 0.03);
-        box-shadow: 0 40px 80px rgba(0, 0, 0, 0.9);
+        background: linear-gradient(145deg, #0d1420, #060a12);
+        border-radius: 20px;
+        max-width: 620px;
+        width: 95%;
         max-height: 85vh;
+        padding: 30px 34px 34px 34px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        box-shadow: 0 60px 120px rgba(0, 0, 0, 0.9);
         overflow-y: auto;
+        position: relative;
+    }
+    
+    #alertBox::-webkit-scrollbar {
+        width: 4px;
+    }
+    #alertBox::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    #alertBox::-webkit-scrollbar-thumb {
+        background: #2a3a50;
+        border-radius: 10px;
     }
     
     #alertBox .head {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 4px;
+        margin-bottom: 8px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
     
     #alertBox .head h3 {
-        font-size: 16px;
+        font-size: 22px;
         font-weight: 800;
         color: #ff4757;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 12px;
+    }
+    
+    #alertBox .head h3 i {
+        font-size: 26px;
     }
     
     #alertBox .head .close-btn {
         background: none;
         border: none;
-        color: #3a5a7a;
-        font-size: 20px;
+        color: #4a6a8a;
+        font-size: 28px;
         cursor: pointer;
         transition: 0.2s;
-        padding: 0 4px;
+        padding: 0 6px;
         line-height: 1;
     }
     
@@ -718,47 +727,51 @@
     }
     
     #alertBox .body-text {
-        background: rgba(0, 0, 0, 0.2);
-        border-radius: 6px;
-        padding: 8px 12px;
-        margin: 4px 0 10px 0;
-        border-left: 2px solid #4f9cf7;
-        font-size: 12px;
-        line-height: 1.6;
-        color: #8aaac0;
-        max-height: 130px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin: 6px 0 16px 0;
+        border-left: 3px solid #4f9cf7;
+        font-size: 14px;
+        line-height: 1.8;
+        color: #b0c8e0;
+        max-height: 180px;
         overflow-y: auto;
     }
     
-    #alertBox .body-text b { color: #ffffff; }
+    #alertBox .body-text b {
+        color: #ffffff;
+    }
     
     #alertBox .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 8px;
+        gap: 14px;
     }
     
-    #alertBox .field { margin-bottom: 4px; }
+    #alertBox .field {
+        margin-bottom: 6px;
+    }
     
     #alertBox .field label {
         display: block;
-        font-size: 8px;
+        font-size: 10px;
         font-weight: 700;
-        color: #3a5a7a;
+        color: #4a6a8a;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 2px;
+        letter-spacing: 0.8px;
+        margin-bottom: 3px;
     }
     
     #alertBox .field select,
     #alertBox .field textarea {
         width: 100%;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.02);
-        border-radius: 5px;
-        padding: 5px 10px;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 10px 14px;
         color: #ffffff;
-        font-size: 12px;
+        font-size: 14px;
         font-family: 'Inter', sans-serif;
         transition: 0.2s;
     }
@@ -767,35 +780,37 @@
     #alertBox .field textarea:focus {
         outline: none;
         border-color: #4f9cf7;
-        box-shadow: 0 0 0 3px rgba(79, 156, 247, 0.03);
+        box-shadow: 0 0 0 4px rgba(79, 156, 247, 0.04);
     }
     
     #alertBox .field textarea {
-        min-height: 32px;
+        min-height: 50px;
         resize: vertical;
     }
     
-    #alertBox .field.full { grid-column: 1 / -1; }
+    #alertBox .field.full {
+        grid-column: 1 / -1;
+    }
     
     .modal-actions {
         display: flex;
-        gap: 6px;
+        gap: 10px;
         justify-content: flex-end;
-        margin-top: 10px;
+        margin-top: 16px;
         flex-wrap: wrap;
     }
     
     .modal-actions .btn-m {
-        padding: 4px 16px;
+        padding: 8px 26px;
         border-radius: 40px;
         font-weight: 700;
-        font-size: 9px;
+        font-size: 12px;
         border: none;
         cursor: pointer;
         transition: 0.2s;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-family: 'Inter', sans-serif;
@@ -804,12 +819,12 @@
     .modal-actions .btn-m-primary {
         background: linear-gradient(135deg, #4f9cf7, #7c3aed);
         color: #fff;
-        box-shadow: 0 4px 15px rgba(79, 156, 247, 0.1);
+        box-shadow: 0 4px 20px rgba(79, 156, 247, 0.12);
     }
     
     .modal-actions .btn-m-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(79, 156, 247, 0.15);
+        box-shadow: 0 8px 30px rgba(79, 156, 247, 0.2);
     }
     
     .modal-actions .btn-m-danger {
@@ -818,18 +833,14 @@
     }
     
     .modal-actions .btn-m-secondary {
-        background: rgba(255, 255, 255, 0.01);
-        border: 1px solid rgba(255, 255, 255, 0.02);
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
         color: #6a8aaa;
     }
     
     .modal-actions .btn-m-secondary:hover {
-        background: rgba(255, 255, 255, 0.02);
+        background: rgba(255, 255, 255, 0.04);
     }
-    
-    #alertBox::-webkit-scrollbar { width: 3px; }
-    #alertBox::-webkit-scrollbar-track { background: transparent; }
-    #alertBox::-webkit-scrollbar-thumb { background: #1a2a3a; border-radius: 10px; }
 </style>
 </head>
 <body>
@@ -839,7 +850,7 @@ LOADER
 ============================================================ -->
 <div id="loaderWrapper">
     <div class="loader-spinner"></div>
-    <div class="loader-text">Loading Dashboard<span class="loader-dots"></span></div>
+    <div class="loader-text">Loading Dashboard<span class="loader-dots">...</span></div>
 </div>
 
 <div class="bg-layer"></div>
@@ -1188,7 +1199,7 @@ LOADER
     </div>
 </div>
 
-<!-- MODAL -->
+<!-- MODAL - BIG & PROFESSIONAL -->
 <div id="modalContainer">
     <div id="alertBox">
         <div class="head">
@@ -1258,15 +1269,13 @@ LOADER
     var mApi = '', mCat = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
     
     // ============================================================
-    // LOADER - Hide after 2 seconds or when data loads
+    // LOADER
     // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
-        // Hide loader after 2 seconds
         setTimeout(function() {
             document.getElementById('loaderWrapper').classList.add('hidden');
         }, 2000);
         
-        // Also hide when page is fully loaded
         window.addEventListener('load', function() {
             document.getElementById('loaderWrapper').classList.add('hidden');
         });
