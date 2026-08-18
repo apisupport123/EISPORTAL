@@ -1,432 +1,314 @@
+<%@page import="org.apache.poi.util.SystemOutLogger"%>
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Upload Excel Roster · Modern UI</title>
+<meta charset="ISO-8859-1">
+<title>Upload Excel Roster</title>
+<script src="./js/Atmbootstrap.min.js"></script>
 
-  <!-- Google Font & icon library -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<style>
+  @import url('../css/eisroster2.css');
+body {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	font-family: 'Montserrat', sans-serif;
+}
+.form-container {
+	/* width: 100vw;
+	height: 100vh; */
+	/* background-color: black; */
+	/* display: flex; */
+   	justify-content: center;
+	align-items: center;
+}
+.upload-files-container {
+	background-color: #f7fff7;
+	width: 420px;
+	padding: 30px 60px;
+	border-radius: 40px;
+	display: flex;
+   	align-items: center;
+   	justify-content: center;
+	flex-direction: column;
+	box-shadow: rgba(0, 0, 0, 0.24) 0px 10px 20px, rgba(0, 0, 0, 0.28) 0px 6px 6px;
+}
+.drag-file-area {
+	border: 2px dashed #7b2cbf;
+	border-radius: 40px;
+	margin: 10px 0 15px;
+	padding: 30px 50px;
+	width: 350px;
+	text-align: center;
+}
+.drag-file-area .upload-icon {
+	font-size: 50px;
+}
+.drag-file-area h3 {
+	font-size: 26px;
+	margin: 15px 0;
+}
+.drag-file-area label {
+	font-size: 19px;
+}
+.drag-file-area label .browse-files-text {
+	color: #7b2cbf;
+	font-weight: bolder;
+	cursor: pointer;
+}
+.browse-files span {
+	position: relative;
+	top: -25px;
+}
+.default-file-input {
+	opacity: 0;
+}
+.cannot-upload-message {
+	background-color: #ffc6c4;
+	font-size: 17px;
+	display: flex;
+	align-items: center;
+	margin: 5px 0;
+	padding: 5px 10px 5px 30px;
+	border-radius: 5px;
+	color: #BB0000;
+	display: none;
+}
+@keyframes fadeIn {
+  0% {opacity: 0;}
+  100% {opacity: 1;}
+}
+.cannot-upload-message span, .upload-button-icon {
+	padding-right: 10px;
+}
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+.cannot-upload-message span, .upload-button-icon {
+	padding-right: 10px;
+}
+.cannot-upload-message span:last-child {
+	padding-left: 20px;
+	cursor: pointer;
+}
+.file-block {
+	color: #f7fff7;
+	background-color: #7b2cbf;
+  	transition: all 1s;
+	width: 390px;
+	position: relative;
+	display: none;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	margin: 10px 0 15px;
+	padding: 10px 20px;
+	border-radius: 25px;
+	cursor: pointer;
+}
+.file-info {
+	display: flex;
+	align-items: center;
+	font-size: 15px;
+}
+.file-icon {
+	margin-right: 10px;
+}
+.file-name, .file-size {
+	padding: 0 3px;
+}
+.remove-file-icon {
+	cursor: pointer;
+}
+.progress-bar {
+	display: flex;
+	position: absolute;
+	bottom: 0;
+	left: 4.5%;
+	width: 0;
+	height: 5px;
+	border-radius: 25px;
+	background-color: #4BB543;
+}
+.upload-button {
+	font-family: 'Montserrat';
+	background-color: #7b2cbf;
+	color: #f7fff7;
+	display: flex;
+	align-items: center;
+	font-size: 18px;
+	border: none;
+	border-radius: 20px;
+	margin: 10px;
+	padding: 7.5px 50px;
+	cursor: pointer;
+}
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f6f9fc;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-    }
 
-    .app-wrapper {
-      max-width: 1300px;
-      width: 100%;
-    }
+/* Float four columns side by side */
+.column {
+  float: left;
 
-    /* ---- top action bar ---- */
-    .action-bar {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 2rem;
-    }
+  padding: 0 30px;
+}
 
-    .btn-switch {
-      background: #1e293b;
-      color: #f8fafc;
-      border: none;
-      padding: 0.7rem 2rem;
-      border-radius: 60px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      letter-spacing: 0.3px;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.04);
-      transition: all 0.2s ease;
-      cursor: pointer;
-    }
+/* Remove extra left and right margins, due to padding */
+.row {margin: 0 -5px;
+display: flex;
+align-items: center;
+justify-content: center;
+margin-top: 10%;
+}
 
-    .btn-switch i {
-      font-size: 1rem;
-      color: #facc15;
-    }
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
 
-    .btn-switch:hover {
-      background: #0f172a;
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px -8px rgba(0,0,0,0.15);
-    }
+/* Responsive columns */
+@media screen and (max-width: 600px) {
+  .column {
+    width: 100%;
+    display: block;
+    margin-bottom: 20px;
+  }
+}
 
-    /* ---- card row (grid) ---- */
-    .row-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 2rem;
-      align-items: stretch;
-    }
+/* Style the counter cards */
+.card {
 
-    .card-modern {
-      background: #ffffff;
-      border-radius: 2rem;
-      padding: 2.5rem 2rem 2.8rem;
-      box-shadow: 0 20px 40px -12px rgba(0, 20, 30, 0.08), 0 8px 24px -6px rgba(0,0,0,0.02);
-      transition: transform 0.2s ease, box-shadow 0.25s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      border: 1px solid rgba(0,0,0,0.02);
-      backdrop-filter: blur(2px);
-    }
 
-    .card-modern:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 30px 50px -16px rgba(0, 40, 60, 0.12);
-    }
+  text-align: center;
 
-    .card-modern .icon-big {
-      font-size: 2.8rem;
-      color: #7c3aed;
-      background: #ede9fe;
-      width: 80px;
-      height: 80px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 40px;
-      margin-bottom: 1.5rem;
-    }
+}
 
-    .card-modern h3 {
-      font-weight: 600;
-      font-size: 1.5rem;
-      color: #0f172a;
-      margin-bottom: 0.25rem;
-      letter-spacing: -0.3px;
-    }
+.button-container{
+        display: flex;
+        justify-content: flex-end;
+        margin-right: 10px; 
+}
 
-    .card-modern .sub {
-      font-size: 0.9rem;
-      color: #64748b;
-      margin-bottom: 1.75rem;
-      font-weight: 500;
-    }
+.button{
+  padding: 10px 20px;
+  border: none;
+  border-radius:5px;
+  cursor: pointer;
+  margin-right: 10px; 
+}
+</style>
+<%-- <script >
+function insertservice() {
+	var month=document.getElementById('myMonth').value;
+	var  fileInput= document.querySelector('input[type="file"]');
+	 if (!month) {
+	        alert('Please select a month.');
+	        return; // Prevent submission if no month is selected
+	    }
+	 if(!fileInput.files.length){
+		 alert('Please select a file to upload.');
+		 return;
+	 } 
+	 alert(month);
+	document.forms[0].action = '<%=request.getContextPath() + "/ExcelRosterAction_New"%>';
+		document.forms[0].submit();
+	}
+</script> --%>
+<script>
+function viewDate () {
+	var month=document.getElementById('myViewMonth').value;
+	 if (!month) {
+	        alert('Please select a month.');
+	        return; // Prevent submission if no month is selected
+	    }
+	  document.forms[0].action = '<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>';
+	  document.forms[0].submit();
+	
+}
 
-    /* ---- upload area (drag) ---- */
-    .drag-area {
-      width: 100%;
-      border: 2px dashed #d1d5db;
-      border-radius: 28px;
-      padding: 1.8rem 0.5rem;
-      margin: 0.5rem 0 1.2rem;
-      transition: border 0.2s;
-      background: #fafcff;
-    }
+window.onload= function(){
+	  //location.replace("/EISPortal/jsp/NightChecklistTable.jsp")
+	  	 // location.replace('<%=request.getContextPath() + "/NightShiftChecklistAction"%>');
+	window.history.replaceState({},'View NightChecklist', '<%=request.getContextPath() + "/jsp/ExcelRoster_new.jsp"%>');
+	  
+} ; 
 
-    .drag-area:hover {
-      border-color: #7c3aed;
-      background: #f8f5ff;
-    }
-
-    .drag-area .file-label {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-    }
-
-    .drag-area .file-label i {
-      font-size: 2.4rem;
-      color: #7c3aed;
-    }
-
-    .drag-area .file-label span {
-      font-weight: 500;
-      color: #1e293b;
-    }
-
-    .drag-area .file-label .browse {
-      color: #7c3aed;
-      font-weight: 700;
-      text-decoration: underline;
-      text-underline-offset: 4px;
-    }
-
-    .drag-area input[type="file"] {
-      display: none;
-    }
-
-    /* month input */
-    .month-picker {
-      width: 100%;
-      padding: 0.7rem 1rem;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 60px;
-      font-size: 0.95rem;
-      font-weight: 500;
-      background: white;
-      transition: 0.2s;
-      color: #0f172a;
-      margin: 0.5rem 0 0.8rem;
-      outline: none;
-    }
-
-    .month-picker:focus {
-      border-color: #7c3aed;
-      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
-    }
-
-    .month-picker::-webkit-calendar-picker-indicator {
-      opacity: 0.5;
-      padding: 4px;
-    }
-
-    /* sample link */
-    .sample-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: #f1f5f9;
-      padding: 0.6rem 1.6rem;
-      border-radius: 60px;
-      color: #1e293b;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-decoration: none;
-      transition: 0.2s;
-      margin: 0.5rem 0 0.2rem;
-    }
-
-    .sample-link i {
-      color: #7c3aed;
-    }
-
-    .sample-link:hover {
-      background: #e2e8f0;
-      transform: scale(1.01);
-    }
-
-    /* buttons */
-    .btn-primary {
-      background: #7c3aed;
-      border: none;
-      padding: 0.85rem 2.2rem;
-      border-radius: 60px;
-      font-weight: 600;
-      font-size: 1rem;
-      color: white;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 8px 18px -6px rgba(124, 58, 237, 0.3);
-      transition: all 0.2s ease;
-      cursor: pointer;
-      border: 1px solid transparent;
-      width: fit-content;
-      margin-top: 0.5rem;
-    }
-
-    .btn-primary i {
-      font-size: 1rem;
-    }
-
-    .btn-primary:hover {
-      background: #6d28d9;
-      transform: scale(1.02);
-      box-shadow: 0 14px 24px -8px rgba(124, 58, 237, 0.35);
-    }
-
-    .btn-outline {
-      background: transparent;
-      border: 1.5px solid #d1d5db;
-      padding: 0.85rem 2.2rem;
-      border-radius: 60px;
-      font-weight: 600;
-      font-size: 1rem;
-      color: #1e293b;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s ease;
-      cursor: pointer;
-      width: fit-content;
-      margin-top: 0.5rem;
-    }
-
-    .btn-outline i {
-      color: #7c3aed;
-    }
-
-    .btn-outline:hover {
-      border-color: #7c3aed;
-      background: #f8f5ff;
-      transform: scale(1.01);
-    }
-
-    .card-footer-actions {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 0.8rem 1.2rem;
-      margin-top: 0.75rem;
-      width: 100%;
-    }
-
-    /* hidden helper */
-    .hidden-role {
-      display: none;
-    }
-
-    /* responsive */
-    @media (max-width: 640px) {
-      .card-modern {
-        padding: 2rem 1.2rem;
-      }
-      .action-bar {
-        justify-content: center;
-      }
-    }
-
-    /* extra micro-interaction */
-    .fade-in {
-      animation: fadeUp 0.5s ease forwards;
-    }
-
-    @keyframes fadeUp {
-      0% { opacity: 0; transform: translateY(14px); }
-      100% { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+function openNewRocPage(){
+  	  window.location.href='<%=request.getContextPath() + "/jsp/ROCRoster.jsp"%>'; 
+  	 <%-- var a = '<%=request.getContextPath() + "/jsp/ROCRoster.jsp"%>';
+		window.open(a, '_blank'); --%>
+	}
+</script>
 </head>
 <body>
-<div class="app-wrapper">
+ 
+   <% 
+ 		    session = request.getSession();
+ 		    String m_strrole = (String)session.getAttribute("role");
+ 		   String username= request.getParameter("user");
+		    System.out.println("User:- "+username);
+			//String m_strrole = (String)request.getParameter("role");
+			if(m_strrole==null){
+				m_strrole = request.getParameter("role");
+				if(m_strrole != null){
+					session.setAttribute("role", m_strrole);
+				}
+			}
+			/* session.setAttribute("role", request.getParameter("m_strRole"));
+			session.setAttribute("role", m_strrole); */
+			System.out.println("Role:-"+m_strrole);  %>
+			<div class="button-container">
+<input type="button" class="button" onclick="openNewRocPage();"  value="Switch To ROC Roster" style="background-color: #ebe310; color: black; position: relative; ">
+</div>
+	
+			    <div class="row">		    
+   <%--   <form action="/ExcelRosterAction_New" method="post" enctype="multipart/form-data">
+ 
+    <div class="column ">
+      <div class="card">
+  <link href="../css/eisroster.css" rel="stylesheet" >
+<div class="form-container" enctype='multipart/form-data'>
+	<div class="upload-files-container">
+		<div class="drag-file-area">
+		
+			<span class="material-icons-outlined upload-icon" style="height: 108px;"> file_upload </span> <br>
+				 <a href='<%=request.getContextPath() + "/XMLFile/Roster_Format.xlsx"%>' class="upload-button" style="width: 200px; text-decoration: none; position: relative; margin-top: -35px;">RosterSampleFormat</a> <br>
+		
+			<span style="font-weight: bold;" class="dynamic-message">Select Month</span> <input type="month" id="myMonth" name="myMonth"required="required">
+			<h3 class="dynamic-message"> Select Roster .XML File </h3>
+		<label class="label" style="text-align: center;"> <span class="browse-files">  <input type="file" name="file" style="font-size: large; position: relative; left: 60px;" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"  /> </span> </label>
+      
+		</div>
+		 
+        <input type="hidden" id="<%=m_strrole%>" name ="m_strroles" value ="<%=m_strrole%>">
+		<button name="button" type="button" name="action" class="upload-button" onclick="insertservice()"> Upload </button>
+	</div>
+</div>
+</div>
+</div> 
 
-  <!-- top bar: switch to ROC -->
-  <div class="action-bar">
-    <button class="btn-switch" onclick="openNewRocPage()">
-      <i class="fas fa-arrow-right-arrow-left"></i> Switch to ROC Roster
-    </button>
-  </div>
-
-  <!-- card grid -->
-  <div class="row-cards">
-    <!-- ========= CARD 1: UPLOAD ROSTER ========= -->
-    <div class="card-modern fade-in">
-      <div class="icon-big">
-        <i class="fas fa-file-upload"></i>
-      </div>
-      <h3>Upload Roster</h3>
-      <p class="sub">Upload Excel or XML roster file</p>
-
-      <form id="uploadForm" method="post" enctype="multipart/form-data" action="<%= request.getContextPath() + "/ExcelRosterAction_New" %>">
-        <!-- month picker -->
-        <input type="month" id="myMonth" name="myMonth" class="month-picker" placeholder="Select month" required />
-
-        <!-- drag & drop area (styled) -->
-        <div class="drag-area">
-          <label for="fileInput" class="file-label">
-            <i class="fas fa-cloud-upload-alt"></i>
-            <span><span class="browse">Browse</span> or drag &amp; drop</span>
-            <span style="font-size:0.8rem; color:#64748b;">.xlsx, .xls, .xml</span>
-            <input type="file" id="fileInput" name="file" accept=".xlsx,.xls,.xml,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
-          </label>
-        </div>
-
-        <!-- sample format link -->
-        <a href='<%= request.getContextPath() + "/XMLFile/Roster_Format.xlsx" %>' class="sample-link">
-          <i class="fas fa-file-excel"></i> RosterSampleFormat.xlsx
-        </a>
-
-        <!-- hidden role -->
-        <input type="hidden" name="m_strroles" value="<%= (String)session.getAttribute("role") != null ? session.getAttribute("role") : "" %>" />
-
-        <div class="card-footer-actions">
-          <button type="button" class="btn-primary" onclick="insertservice()">
-            <i class="fas fa-upload"></i> Upload
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- ========= CARD 2: VIEW ROSTER ========= -->
-    <div class="card-modern fade-in" style="animation-delay:0.08s;">
-      <div class="icon-big" style="background:#e0f2fe; color:#2563eb;">
-        <i class="fas fa-eye"></i>
-      </div>
-      <h3>View Roster</h3>
-      <p class="sub">Select month to display roster</p>
-
-      <form id="viewForm" action="<%= request.getContextPath() + "/jsp/testRoster1.jsp" %>" method="get">
-        <input type="month" id="myViewMonth" name="myViewMonth" class="month-picker" placeholder="Select month" required />
-
-        <!-- hidden role (consistent) -->
-        <input type="hidden" name="m_strroles" value="<%= (String)session.getAttribute("role") != null ? session.getAttribute("role") : "" %>" />
-
-        <div class="card-footer-actions">
-          <button type="button" class="btn-outline" onclick="viewDate()">
-            <i class="fas fa-calendar-alt"></i> View Roster
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+</form> --%>
+<form  >
+<div class="column " >
+  <div class="card">
+ 
+<div >
+	<div class="upload-files-container">
+		<div class="drag-file-area">
+			<h3 class="dynamic-message"><img src="../images/5469.jpg" style="width: 70%; height: 60%;"></h3>
+				<span style="font-weight: bold;" class="dynamic-message">Select Month</span> <input type="month" id="myViewMonth" name="myViewMonth"required="required">
+		</div>
+	    <input type="hidden" id="<%=m_strrole%>" name ="m_strroles" value ="<%=m_strrole%>">
+		<button type="button" class="upload-button" onclick="viewDate()"> View Roster </button>
+	</div>
+</div>
+</div>
 </div>
 
-<!-- JavaScript functions (aligned with original behaviour) -->
-<script>
-  // ---- Upload action ----
-  function insertservice() {
-    var month = document.getElementById('myMonth').value;
-    var fileInput = document.querySelector('#fileInput');
+</form> 
 
-    if (!month) {
-      alert('Please select a month.');
-      return;
-    }
-    if (!fileInput.files || fileInput.files.length === 0) {
-      alert('Please select a file to upload.');
-      return;
-    }
 
-    // submit the upload form
-    document.getElementById('uploadForm').submit();
-  }
-
-  // ---- View action ----
-  function viewDate() {
-    var month = document.getElementById('myViewMonth').value;
-    if (!month) {
-      alert('Please select a month.');
-      return;
-    }
-    // submit view form
-    document.getElementById('viewForm').submit();
-  }
-
-  // ---- Switch to ROC page (exact original) ----
-  function openNewRocPage() {
-    window.location.href = '<%= request.getContextPath() + "/jsp/ROCRoster.jsp" %>';
-  }
-
-  // ---- onload: replace history (matches original) ----
-  window.onload = function() {
-    // Keep the current URL in history without extra entry (like original)
-    window.history.replaceState({}, 'View NightChecklist', '<%= request.getContextPath() + "/jsp/ExcelRoster_new.jsp" %>');
-  };
-</script>
-
-<!-- small note: session/role is used as in original JSP -->
-<!-- The role variable is printed in hidden fields, but we also keep the session logic -->
+</div>
 </body>
 </html>
