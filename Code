@@ -6,309 +6,450 @@
 <head>
 <meta charset="ISO-8859-1">
 <title>Upload Excel Roster</title>
-<script src="./js/Atmbootstrap.min.js"></script>
+<!-- Font Awesome 6 (free) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<!-- Google Font (Inter) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
 
 <style>
-  @import url('../css/eisroster2.css');
-body {
-	margin: 0;
-	padding: 0;
-	box-sizing: border-box;
-	font-family: 'Montserrat', sans-serif;
-}
-.form-container {
-	/* width: 100vw;
-	height: 100vh; */
-	/* background-color: black; */
-	/* display: flex; */
-   	justify-content: center;
-	align-items: center;
-}
-.upload-files-container {
-	background-color: #f7fff7;
-	width: 420px;
-	padding: 30px 60px;
-	border-radius: 40px;
-	display: flex;
-   	align-items: center;
-   	justify-content: center;
-	flex-direction: column;
-	box-shadow: rgba(0, 0, 0, 0.24) 0px 10px 20px, rgba(0, 0, 0, 0.28) 0px 6px 6px;
-}
-.drag-file-area {
-	border: 2px dashed #7b2cbf;
-	border-radius: 40px;
-	margin: 10px 0 15px;
-	padding: 30px 50px;
-	width: 350px;
-	text-align: center;
-}
-.drag-file-area .upload-icon {
-	font-size: 50px;
-}
-.drag-file-area h3 {
-	font-size: 26px;
-	margin: 15px 0;
-}
-.drag-file-area label {
-	font-size: 19px;
-}
-.drag-file-area label .browse-files-text {
-	color: #7b2cbf;
-	font-weight: bolder;
-	cursor: pointer;
-}
-.browse-files span {
-	position: relative;
-	top: -25px;
-}
-.default-file-input {
-	opacity: 0;
-}
-.cannot-upload-message {
-	background-color: #ffc6c4;
-	font-size: 17px;
-	display: flex;
-	align-items: center;
-	margin: 5px 0;
-	padding: 5px 10px 5px 30px;
-	border-radius: 5px;
-	color: #BB0000;
-	display: none;
-}
-@keyframes fadeIn {
-  0% {opacity: 0;}
-  100% {opacity: 1;}
-}
-.cannot-upload-message span, .upload-button-icon {
-	padding-right: 10px;
-}
-
-.cannot-upload-message span, .upload-button-icon {
-	padding-right: 10px;
-}
-.cannot-upload-message span:last-child {
-	padding-left: 20px;
-	cursor: pointer;
-}
-.file-block {
-	color: #f7fff7;
-	background-color: #7b2cbf;
-  	transition: all 1s;
-	width: 390px;
-	position: relative;
-	display: none;
-	flex-direction: row;
-	justify-content: space-between;
-	align-items: center;
-	margin: 10px 0 15px;
-	padding: 10px 20px;
-	border-radius: 25px;
-	cursor: pointer;
-}
-.file-info {
-	display: flex;
-	align-items: center;
-	font-size: 15px;
-}
-.file-icon {
-	margin-right: 10px;
-}
-.file-name, .file-size {
-	padding: 0 3px;
-}
-.remove-file-icon {
-	cursor: pointer;
-}
-.progress-bar {
-	display: flex;
-	position: absolute;
-	bottom: 0;
-	left: 4.5%;
-	width: 0;
-	height: 5px;
-	border-radius: 25px;
-	background-color: #4BB543;
-}
-.upload-button {
-	font-family: 'Montserrat';
-	background-color: #7b2cbf;
-	color: #f7fff7;
-	display: flex;
-	align-items: center;
-	font-size: 18px;
-	border: none;
-	border-radius: 20px;
-	margin: 10px;
-	padding: 7.5px 50px;
-	cursor: pointer;
-}
-
-
-/* Float four columns side by side */
-.column {
-  float: left;
-
-  padding: 0 30px;
-}
-
-/* Remove extra left and right margins, due to padding */
-.row {margin: 0 -5px;
-display: flex;
-align-items: center;
-justify-content: center;
-margin-top: 10%;
-}
-
-/* Clear floats after the columns */
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-/* Responsive columns */
-@media screen and (max-width: 600px) {
-  .column {
-    width: 100%;
-    display: block;
-    margin-bottom: 20px;
+  /* ----- reset & base ----- */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
   }
-}
 
-/* Style the counter cards */
-.card {
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(145deg, #f6f9fc 0%, #e9f0f5 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+  }
 
+  /* ----- main container (glass) ----- */
+  .app-container {
+    max-width: 1200px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 56px;
+    padding: 2.5rem 2.8rem;
+    box-shadow: 0 30px 60px -20px rgba(0, 20, 30, 0.25),
+                0 8px 28px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: all 0.2s ease;
+  }
 
-  text-align: center;
+  /* ----- top bar (switch button) ----- */
+  .top-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 2.2rem;
+  }
 
-}
+  .btn-switch {
+    background: #1e293b;
+    color: #f8fafc;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 60px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  }
 
-.button-container{
-        display: flex;
-        justify-content: flex-end;
-        margin-right: 10px; 
-}
+  .btn-switch i {
+    color: #facc15;
+    font-size: 1rem;
+  }
 
-.button{
-  padding: 10px 20px;
-  border: none;
-  border-radius:5px;
-  cursor: pointer;
-  margin-right: 10px; 
-}
+  .btn-switch:hover {
+    background: #0f172a;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.15);
+  }
+
+  /* ----- grid cards ----- */
+  .row-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    align-items: stretch;
+  }
+
+  .card-modern {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 40px;
+    padding: 2.4rem 1.8rem 2.6rem;
+    box-shadow: 0 12px 30px -8px rgba(0, 20, 40, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.25s ease;
+  }
+
+  .card-modern:hover {
+    transform: translateY(-8px);
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 30px 50px -18px rgba(0, 30, 50, 0.18);
+  }
+
+  /* icon circle */
+  .icon-circle {
+    width: 80px;
+    height: 80px;
+    background: #ede9fe;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.2rem;
+    font-size: 2.2rem;
+    color: #7c3aed;
+  }
+
+  .card-modern h3 {
+    font-weight: 700;
+    font-size: 1.6rem;
+    color: #0b1a2b;
+    letter-spacing: -0.4px;
+    margin-bottom: 0.2rem;
+  }
+
+  .card-modern .sub-text {
+    color: #475569;
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin-bottom: 1.6rem;
+  }
+
+  /* ----- form elements ----- */
+  .month-input {
+    width: 100%;
+    padding: 0.8rem 1.2rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 60px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    background: white;
+    color: #0f172a;
+    outline: none;
+    transition: 0.2s;
+    margin-bottom: 0.8rem;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .month-input:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+  }
+
+  /* drag & drop area (modern) */
+  .drag-modern {
+    width: 100%;
+    border: 2px dashed #cbd5e1;
+    border-radius: 32px;
+    padding: 1.6rem 0.8rem;
+    margin: 0.6rem 0 1rem;
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .drag-modern:hover {
+    border-color: #7c3aed;
+    background: rgba(237, 233, 254, 0.25);
+  }
+
+  .drag-modern .file-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+
+  .drag-modern .file-label i {
+    font-size: 2.2rem;
+    color: #7c3aed;
+  }
+
+  .drag-modern .file-label .main-text {
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .drag-modern .file-label .browse-highlight {
+    color: #7c3aed;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .drag-modern .file-label .hint {
+    font-size: 0.8rem;
+    color: #64748b;
+  }
+
+  .drag-modern input[type="file"] {
+    display: none;
+  }
+
+  /* sample link */
+  .sample-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #f1f5f9;
+    padding: 0.6rem 1.8rem;
+    border-radius: 60px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #1e293b;
+    text-decoration: none;
+    transition: 0.2s;
+    margin: 0.2rem 0 0.6rem;
+  }
+
+  .sample-link i {
+    color: #7c3aed;
+    font-size: 1rem;
+  }
+
+  .sample-link:hover {
+    background: #e2e8f0;
+    transform: scale(1.02);
+  }
+
+  /* buttons */
+  .btn-primary {
+    background: #7c3aed;
+    border: none;
+    padding: 0.85rem 2.4rem;
+    border-radius: 60px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 24px -8px rgba(124, 58, 237, 0.3);
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+    margin-top: 0.4rem;
+  }
+
+  .btn-primary i {
+    font-size: 1rem;
+  }
+
+  .btn-primary:hover {
+    background: #6d28d9;
+    transform: scale(1.02);
+    box-shadow: 0 14px 28px -10px rgba(124, 58, 237, 0.4);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid #d1d5db;
+    padding: 0.85rem 2.4rem;
+    border-radius: 60px;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1e293b;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    margin-top: 0.4rem;
+  }
+
+  .btn-outline i {
+    color: #7c3aed;
+  }
+
+  .btn-outline:hover {
+    border-color: #7c3aed;
+    background: #f8f5ff;
+    transform: scale(1.02);
+  }
+
+  .card-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem 1rem;
+    width: 100%;
+    margin-top: 0.4rem;
+  }
+
+  /* image inside card (view) */
+  .roster-preview-img {
+    width: 80%;
+    max-width: 180px;
+    height: auto;
+    margin: 0.2rem 0 0.6rem;
+    opacity: 0.7;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.02));
+  }
+
+  /* hidden role */
+  .hidden-role {
+    display: none;
+  }
+
+  /* responsive */
+  @media (max-width: 640px) {
+    .app-container {
+      padding: 1.8rem 1.2rem;
+      border-radius: 32px;
+    }
+    .card-modern {
+      padding: 1.8rem 1.2rem;
+    }
+    .top-bar {
+      justify-content: center;
+    }
+  }
+
+  /* fade-in animation */
+  .fade-up {
+    animation: fadeUp 0.5s ease forwards;
+  }
+
+  @keyframes fadeUp {
+    0% { opacity: 0; transform: translateY(18px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .delay-1 { animation-delay: 0.05s; }
+  .delay-2 { animation-delay: 0.12s; }
 </style>
-<%-- <script >
-function insertservice() {
-	var month=document.getElementById('myMonth').value;
-	var  fileInput= document.querySelector('input[type="file"]');
-	 if (!month) {
-	        alert('Please select a month.');
-	        return; // Prevent submission if no month is selected
-	    }
-	 if(!fileInput.files.length){
-		 alert('Please select a file to upload.');
-		 return;
-	 } 
-	 alert(month);
-	document.forms[0].action = '<%=request.getContextPath() + "/ExcelRosterAction_New"%>';
-		document.forms[0].submit();
-	}
-</script> --%>
+
 <script>
-function viewDate () {
-	var month=document.getElementById('myViewMonth').value;
-	 if (!month) {
-	        alert('Please select a month.');
-	        return; // Prevent submission if no month is selected
-	    }
-	  document.forms[0].action = '<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>';
-	  document.forms[0].submit();
-	
-}
+  // ----- view date (original logic) -----
+  function viewDate() {
+    var month = document.getElementById('myViewMonth').value;
+    if (!month) {
+      alert('Please select a month.');
+      return;
+    }
+    // using the first form (view form)
+    document.forms[0].action = '<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>';
+    document.forms[0].submit();
+  }
 
-window.onload= function(){
-	  //location.replace("/EISPortal/jsp/NightChecklistTable.jsp")
-	  	 // location.replace('<%=request.getContextPath() + "/NightShiftChecklistAction"%>');
-	window.history.replaceState({},'View NightChecklist', '<%=request.getContextPath() + "/jsp/ExcelRoster_new.jsp"%>');
-	  
-} ; 
+  // ----- onload: replace history (keeps original behaviour) -----
+  window.onload = function() {
+    window.history.replaceState({}, 'View NightChecklist', '<%=request.getContextPath() + "/jsp/ExcelRoster_new.jsp"%>');
+  };
 
-function openNewRocPage(){
-  	  window.location.href='<%=request.getContextPath() + "/jsp/ROCRoster.jsp"%>'; 
-  	 <%-- var a = '<%=request.getContextPath() + "/jsp/ROCRoster.jsp"%>';
-		window.open(a, '_blank'); --%>
-	}
+  // ----- switch to ROC (original) -----
+  function openNewRocPage() {
+    window.location.href = '<%=request.getContextPath() + "/jsp/ROCRoster.jsp"%>';
+  }
 </script>
 </head>
 <body>
- 
-   <% 
- 		    session = request.getSession();
- 		    String m_strrole = (String)session.getAttribute("role");
- 		   String username= request.getParameter("user");
-		    System.out.println("User:- "+username);
-			//String m_strrole = (String)request.getParameter("role");
-			if(m_strrole==null){
-				m_strrole = request.getParameter("role");
-				if(m_strrole != null){
-					session.setAttribute("role", m_strrole);
-				}
-			}
-			/* session.setAttribute("role", request.getParameter("m_strRole"));
-			session.setAttribute("role", m_strrole); */
-			System.out.println("Role:-"+m_strrole);  %>
-			<div class="button-container">
-<input type="button" class="button" onclick="openNewRocPage();"  value="Switch To ROC Roster" style="background-color: #ebe310; color: black; position: relative; ">
-</div>
-	
-			    <div class="row">		    
-   <%--   <form action="/ExcelRosterAction_New" method="post" enctype="multipart/form-data">
- 
-    <div class="column ">
-      <div class="card">
-  <link href="../css/eisroster.css" rel="stylesheet" >
-<div class="form-container" enctype='multipart/form-data'>
-	<div class="upload-files-container">
-		<div class="drag-file-area">
-		
-			<span class="material-icons-outlined upload-icon" style="height: 108px;"> file_upload </span> <br>
-				 <a href='<%=request.getContextPath() + "/XMLFile/Roster_Format.xlsx"%>' class="upload-button" style="width: 200px; text-decoration: none; position: relative; margin-top: -35px;">RosterSampleFormat</a> <br>
-		
-			<span style="font-weight: bold;" class="dynamic-message">Select Month</span> <input type="month" id="myMonth" name="myMonth"required="required">
-			<h3 class="dynamic-message"> Select Roster .XML File </h3>
-		<label class="label" style="text-align: center;"> <span class="browse-files">  <input type="file" name="file" style="font-size: large; position: relative; left: 60px;" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"  /> </span> </label>
-      
-		</div>
-		 
-        <input type="hidden" id="<%=m_strrole%>" name ="m_strroles" value ="<%=m_strrole%>">
-		<button name="button" type="button" name="action" class="upload-button" onclick="insertservice()"> Upload </button>
-	</div>
-</div>
-</div>
-</div> 
 
-</form> --%>
-<form  >
-<div class="column " >
-  <div class="card">
- 
-<div >
-	<div class="upload-files-container">
-		<div class="drag-file-area">
-			<h3 class="dynamic-message"><img src="../images/5469.jpg" style="width: 70%; height: 60%;"></h3>
-				<span style="font-weight: bold;" class="dynamic-message">Select Month</span> <input type="month" id="myViewMonth" name="myViewMonth"required="required">
-		</div>
-	    <input type="hidden" id="<%=m_strrole%>" name ="m_strroles" value ="<%=m_strrole%>">
-		<button type="button" class="upload-button" onclick="viewDate()"> View Roster </button>
-	</div>
-</div>
-</div>
-</div>
+<div class="app-container">
 
-</form> 
+  <!-- top bar: switch to ROC -->
+  <div class="top-bar">
+    <button class="btn-switch" onclick="openNewRocPage()">
+      <i class="fas fa-arrow-right-arrow-left"></i> Switch to ROC Roster
+    </button>
+  </div>
 
+  <%
+    // ---------- session & role (exactly as original) ----------
+    session = request.getSession();
+    String m_strrole = (String) session.getAttribute("role");
+    String username = request.getParameter("user");
+    System.out.println("User:- " + username);
+    if (m_strrole == null) {
+      m_strrole = request.getParameter("role");
+      if (m_strrole != null) {
+        session.setAttribute("role", m_strrole);
+      }
+    }
+    System.out.println("Role:-" + m_strrole);
+  %>
 
-</div>
+  <!-- grid row -->
+  <div class="row-grid">
+
+    <!-- ========== CARD 1 : UPLOAD (hidden in current view but we keep the structure) ========== -->
+    <!-- Actually original shows only "View Roster" card in the UI; 
+         but we keep both cards: Upload + View (modern) 
+         but we hide upload card if you want exactly original? 
+         The original code only shows the second card (View) because the upload part is commented out.
+         I'll replicate that: only View card is visible. 
+         But to be safe, I'll keep both but hide upload with display:none? 
+         Actually original JSP shows only the "View Roster" card – the upload part is inside <!-- --> comments.
+         So I'll follow that: only View card visible.
+    -->
+
+    <!-- ========== CARD : VIEW ROSTER (exactly as original but modern) ========== -->
+    <div class="card-modern fade-up delay-1" style="grid-column: 1 / -1; max-width: 480px; margin: 0 auto;">
+      <div class="icon-circle" style="background:#e0f2fe; color:#2563eb;">
+        <i class="fas fa-eye"></i>
+      </div>
+      <h3>View Roster</h3>
+      <p class="sub-text">Select month to display roster</p>
+
+      <form id="viewForm" action="<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>" method="get" style="width:100%;">
+        <!-- month picker -->
+        <input type="month" id="myViewMonth" name="myViewMonth" class="month-input" required />
+
+        <!-- hidden role (as original) -->
+        <input type="hidden" name="m_strroles" value="<%=m_strrole != null ? m_strrole : "" %>" />
+
+        <!-- image from original (5469.jpg) -->
+        <div style="margin: 0.6rem 0 0.2rem;">
+          <img src="../images/5469.jpg" class="roster-preview-img" alt="roster preview" />
+        </div>
+
+        <div class="card-footer">
+          <button type="button" class="btn-outline" onclick="viewDate()">
+            <i class="fas fa-calendar-alt"></i> View Roster
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Optional: we could also show an upload card but original has it commented out, 
+         so we keep only the view card above. If you want to show both, uncomment below:
+    -->
+    <!--
+    <div class="card-modern fade-up delay-2">
+      ...
+    </div>
+    -->
+
+  </div> <!-- end row-grid -->
+
+</div> <!-- end app-container -->
+
+<!-- small note: script for viewDate uses document.forms[0] which is the only form now -->
 </body>
 </html>
