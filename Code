@@ -268,19 +268,12 @@
     var month = document.getElementById('myViewMonth').value;
     if (!month) {
       alert('Please select a month.');
-      return;
+      return false;
     }
     // using the form
     document.forms[0].action = '<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>';
     document.forms[0].submit();
-  }
-
-  // ----- handle Enter key press on month input -----
-  function handleKeyPress(event) {
-    if (event.key === 'Enter') {
-      event.preventDefault(); // Prevent any default form submission
-      viewDate(); // Call the view function
-    }
+    return true;
   }
 
   // ----- switch to ROC (original) -----
@@ -323,10 +316,10 @@
     <h3>View Roster</h3>
     <p class="sub-text">Select a month to display the roster</p>
 
-    <form id="viewForm" action="<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>" method="get" style="width:100%;">
-      <!-- month picker - default set via JavaScript, with Enter key support -->
-      <input type="month" id="myViewMonth" name="myViewMonth" class="month-input" required 
-             onkeypress="handleKeyPress(event)" />
+    <!-- Form with onsubmit to handle Enter key -->
+    <form id="viewForm" action="<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>" method="get" style="width:100%;" onsubmit="return viewDate();">
+      <!-- month picker - default set via JavaScript -->
+      <input type="month" id="myViewMonth" name="myViewMonth" class="month-input" required />
 
       <!-- hidden role (as original) -->
       <input type="hidden" name="m_strroles" value="<%=m_strrole != null ? m_strrole : "" %>" />
@@ -336,8 +329,8 @@
         <img src="../images/5469.jpg" alt="roster preview" />
       </div>
 
-      <!-- view button -->
-      <button type="button" class="btn-view" onclick="viewDate()">
+      <!-- view button - type="submit" so it triggers form onsubmit -->
+      <button type="submit" class="btn-view">
         <i class="fas fa-calendar-alt"></i> View Roster
       </button>
     </form>
