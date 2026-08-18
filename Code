@@ -5,7 +5,7 @@
 <html>
 <head>
 <meta charset="ISO-8859-1">
-<title>Upload Excel Roster</title>
+<title>View Excel Roster</title>
 <!-- Font Awesome 6 (free) -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 <!-- Google Font (Inter) -->
@@ -33,13 +33,13 @@
 
   /* ----- main container (glass) ----- */
   .app-container {
-    max-width: 1200px;
+    max-width: 640px;
     width: 100%;
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-radius: 56px;
-    padding: 2.5rem 2.8rem;
+    padding: 2.8rem 2.5rem 3rem;
     box-shadow: 0 30px 60px -20px rgba(0, 20, 30, 0.25),
                 0 8px 28px rgba(0, 0, 0, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.6);
@@ -81,20 +81,13 @@
     box-shadow: 0 14px 28px -10px rgba(0, 0, 0, 0.15);
   }
 
-  /* ----- grid cards ----- */
-  .row-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    align-items: stretch;
-  }
-
-  .card-modern {
+  /* ----- main card (view roster) ----- */
+  .card-view {
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     border-radius: 40px;
-    padding: 2.4rem 1.8rem 2.6rem;
+    padding: 2.8rem 2rem 3rem;
     box-shadow: 0 12px 30px -8px rgba(0, 20, 40, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.8);
     text-align: center;
@@ -104,212 +97,116 @@
     transition: all 0.25s ease;
   }
 
-  .card-modern:hover {
-    transform: translateY(-8px);
+  .card-view:hover {
+    transform: translateY(-6px);
     background: rgba(255, 255, 255, 0.85);
     box-shadow: 0 30px 50px -18px rgba(0, 30, 50, 0.18);
   }
 
   /* icon circle */
   .icon-circle {
-    width: 80px;
-    height: 80px;
-    background: #ede9fe;
-    border-radius: 40px;
+    width: 88px;
+    height: 88px;
+    background: #e0f2fe;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.2rem;
-    font-size: 2.2rem;
-    color: #7c3aed;
+    margin-bottom: 1.4rem;
+    font-size: 2.6rem;
+    color: #2563eb;
+    box-shadow: 0 8px 20px -8px rgba(37, 99, 235, 0.15);
   }
 
-  .card-modern h3 {
+  .card-view h3 {
     font-weight: 700;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     color: #0b1a2b;
     letter-spacing: -0.4px;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.3rem;
   }
 
-  .card-modern .sub-text {
+  .card-view .sub-text {
     color: #475569;
     font-weight: 500;
-    font-size: 0.95rem;
-    margin-bottom: 1.6rem;
+    font-size: 1rem;
+    margin-bottom: 1.8rem;
   }
 
   /* ----- form elements ----- */
   .month-input {
     width: 100%;
-    padding: 0.8rem 1.2rem;
+    padding: 0.9rem 1.4rem;
     border: 1.5px solid #e2e8f0;
     border-radius: 60px;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 500;
     background: white;
     color: #0f172a;
     outline: none;
     transition: 0.2s;
-    margin-bottom: 0.8rem;
+    margin-bottom: 1.2rem;
     font-family: 'Inter', sans-serif;
   }
 
   .month-input:focus {
-    border-color: #7c3aed;
-    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+    border-color: #2563eb;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
   }
 
-  /* drag & drop area (modern) */
-  .drag-modern {
+  /* preview image */
+  .roster-preview {
+    margin: 0.4rem 0 1.2rem;
     width: 100%;
-    border: 2px dashed #cbd5e1;
-    border-radius: 32px;
-    padding: 1.6rem 0.8rem;
-    margin: 0.6rem 0 1rem;
-    background: rgba(255, 255, 255, 0.5);
-    transition: all 0.2s;
-    cursor: pointer;
-  }
-
-  .drag-modern:hover {
-    border-color: #7c3aed;
-    background: rgba(237, 233, 254, 0.25);
-  }
-
-  .drag-modern .file-label {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
+    justify-content: center;
   }
 
-  .drag-modern .file-label i {
-    font-size: 2.2rem;
-    color: #7c3aed;
+  .roster-preview img {
+    width: 70%;
+    max-width: 200px;
+    height: auto;
+    opacity: 0.7;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.02));
+    transition: opacity 0.2s;
   }
 
-  .drag-modern .file-label .main-text {
-    font-weight: 600;
-    color: #1e293b;
+  .roster-preview img:hover {
+    opacity: 0.9;
   }
 
-  .drag-modern .file-label .browse-highlight {
-    color: #7c3aed;
-    font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .drag-modern .file-label .hint {
-    font-size: 0.8rem;
-    color: #64748b;
-  }
-
-  .drag-modern input[type="file"] {
-    display: none;
-  }
-
-  /* sample link */
-  .sample-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: #f1f5f9;
-    padding: 0.6rem 1.8rem;
-    border-radius: 60px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #1e293b;
-    text-decoration: none;
-    transition: 0.2s;
-    margin: 0.2rem 0 0.6rem;
-  }
-
-  .sample-link i {
-    color: #7c3aed;
-    font-size: 1rem;
-  }
-
-  .sample-link:hover {
-    background: #e2e8f0;
-    transform: scale(1.02);
-  }
-
-  /* buttons */
-  .btn-primary {
-    background: #7c3aed;
+  /* view button */
+  .btn-view {
+    background: #2563eb;
     border: none;
-    padding: 0.85rem 2.4rem;
+    padding: 0.9rem 2.8rem;
     border-radius: 60px;
     font-weight: 600;
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: white;
     display: inline-flex;
     align-items: center;
-    gap: 12px;
-    box-shadow: 0 8px 24px -8px rgba(124, 58, 237, 0.3);
-    transition: all 0.2s ease;
+    gap: 14px;
+    box-shadow: 0 8px 24px -8px rgba(37, 99, 235, 0.35);
+    transition: all 0.25s ease;
     cursor: pointer;
     border: 1px solid transparent;
-    margin-top: 0.4rem;
+    margin-top: 0.2rem;
+    font-family: 'Inter', sans-serif;
   }
 
-  .btn-primary i {
-    font-size: 1rem;
+  .btn-view i {
+    font-size: 1.1rem;
   }
 
-  .btn-primary:hover {
-    background: #6d28d9;
+  .btn-view:hover {
+    background: #1d4ed8;
     transform: scale(1.02);
-    box-shadow: 0 14px 28px -10px rgba(124, 58, 237, 0.4);
+    box-shadow: 0 14px 28px -10px rgba(37, 99, 235, 0.45);
   }
 
-  .btn-outline {
-    background: transparent;
-    border: 1.5px solid #d1d5db;
-    padding: 0.85rem 2.4rem;
-    border-radius: 60px;
-    font-weight: 600;
-    font-size: 1rem;
-    color: #1e293b;
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    margin-top: 0.4rem;
-  }
-
-  .btn-outline i {
-    color: #7c3aed;
-  }
-
-  .btn-outline:hover {
-    border-color: #7c3aed;
-    background: #f8f5ff;
-    transform: scale(1.02);
-  }
-
-  .card-footer {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem 1rem;
-    width: 100%;
-    margin-top: 0.4rem;
-  }
-
-  /* image inside card (view) */
-  .roster-preview-img {
-    width: 80%;
-    max-width: 180px;
-    height: auto;
-    margin: 0.2rem 0 0.6rem;
-    opacity: 0.7;
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.02));
+  .btn-view:active {
+    transform: scale(0.98);
   }
 
   /* hidden role */
@@ -318,16 +215,26 @@
   }
 
   /* responsive */
-  @media (max-width: 640px) {
+  @media (max-width: 540px) {
     .app-container {
-      padding: 1.8rem 1.2rem;
+      padding: 1.6rem 1.2rem;
       border-radius: 32px;
     }
-    .card-modern {
-      padding: 1.8rem 1.2rem;
+    .card-view {
+      padding: 2rem 1.2rem 2.2rem;
     }
     .top-bar {
       justify-content: center;
+    }
+    .btn-switch {
+      padding: 0.6rem 1.4rem;
+      font-size: 0.85rem;
+    }
+    .card-view h3 {
+      font-size: 1.5rem;
+    }
+    .roster-preview img {
+      width: 60%;
     }
   }
 
@@ -340,12 +247,22 @@
     0% { opacity: 0; transform: translateY(18px); }
     100% { opacity: 1; transform: translateY(0); }
   }
-
-  .delay-1 { animation-delay: 0.05s; }
-  .delay-2 { animation-delay: 0.12s; }
 </style>
 
 <script>
+  // ----- set default month to current month on page load -----
+  window.onload = function() {
+    // Set default month to current month
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const defaultMonth = year + '-' + month;
+    document.getElementById('myViewMonth').value = defaultMonth;
+
+    // Replace history (keeps original behaviour)
+    window.history.replaceState({}, 'View NightChecklist', '<%=request.getContextPath() + "/jsp/ExcelRoster_new.jsp"%>');
+  };
+
   // ----- view date (original logic) -----
   function viewDate() {
     var month = document.getElementById('myViewMonth').value;
@@ -353,15 +270,10 @@
       alert('Please select a month.');
       return;
     }
-    // using the first form (view form)
+    // using the form
     document.forms[0].action = '<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>';
     document.forms[0].submit();
   }
-
-  // ----- onload: replace history (keeps original behaviour) -----
-  window.onload = function() {
-    window.history.replaceState({}, 'View NightChecklist', '<%=request.getContextPath() + "/jsp/ExcelRoster_new.jsp"%>');
-  };
 
   // ----- switch to ROC (original) -----
   function openNewRocPage() {
@@ -395,61 +307,34 @@
     System.out.println("Role:-" + m_strrole);
   %>
 
-  <!-- grid row -->
-  <div class="row-grid">
+  <!-- main card: view roster only -->
+  <div class="card-view fade-up">
+    <div class="icon-circle">
+      <i class="fas fa-eye"></i>
+    </div>
+    <h3>View Roster</h3>
+    <p class="sub-text">Select a month to display the roster</p>
 
-    <!-- ========== CARD 1 : UPLOAD (hidden in current view but we keep the structure) ========== -->
-    <!-- Actually original shows only "View Roster" card in the UI; 
-         but we keep both cards: Upload + View (modern) 
-         but we hide upload card if you want exactly original? 
-         The original code only shows the second card (View) because the upload part is commented out.
-         I'll replicate that: only View card is visible. 
-         But to be safe, I'll keep both but hide upload with display:none? 
-         Actually original JSP shows only the "View Roster" card – the upload part is inside <!-- --> comments.
-         So I'll follow that: only View card visible.
-    -->
+    <form id="viewForm" action="<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>" method="get" style="width:100%;">
+      <!-- month picker - default set via JavaScript -->
+      <input type="month" id="myViewMonth" name="myViewMonth" class="month-input" required />
 
-    <!-- ========== CARD : VIEW ROSTER (exactly as original but modern) ========== -->
-    <div class="card-modern fade-up delay-1" style="grid-column: 1 / -1; max-width: 480px; margin: 0 auto;">
-      <div class="icon-circle" style="background:#e0f2fe; color:#2563eb;">
-        <i class="fas fa-eye"></i>
+      <!-- hidden role (as original) -->
+      <input type="hidden" name="m_strroles" value="<%=m_strrole != null ? m_strrole : "" %>" />
+
+      <!-- image from original (5469.jpg) -->
+      <div class="roster-preview">
+        <img src="../images/5469.jpg" alt="roster preview" />
       </div>
-      <h3>View Roster</h3>
-      <p class="sub-text">Select month to display roster</p>
 
-      <form id="viewForm" action="<%=request.getContextPath() + "/jsp/testRoster1.jsp"%>" method="get" style="width:100%;">
-        <!-- month picker -->
-        <input type="month" id="myViewMonth" name="myViewMonth" class="month-input" required />
-
-        <!-- hidden role (as original) -->
-        <input type="hidden" name="m_strroles" value="<%=m_strrole != null ? m_strrole : "" %>" />
-
-        <!-- image from original (5469.jpg) -->
-        <div style="margin: 0.6rem 0 0.2rem;">
-          <img src="../images/5469.jpg" class="roster-preview-img" alt="roster preview" />
-        </div>
-
-        <div class="card-footer">
-          <button type="button" class="btn-outline" onclick="viewDate()">
-            <i class="fas fa-calendar-alt"></i> View Roster
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- Optional: we could also show an upload card but original has it commented out, 
-         so we keep only the view card above. If you want to show both, uncomment below:
-    -->
-    <!--
-    <div class="card-modern fade-up delay-2">
-      ...
-    </div>
-    -->
-
-  </div> <!-- end row-grid -->
+      <!-- view button -->
+      <button type="button" class="btn-view" onclick="viewDate()">
+        <i class="fas fa-calendar-alt"></i> View Roster
+      </button>
+    </form>
+  </div>
 
 </div> <!-- end app-container -->
 
-<!-- small note: script for viewDate uses document.forms[0] which is the only form now -->
 </body>
 </html>
