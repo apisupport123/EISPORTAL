@@ -23,7 +23,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>EIS ServiceWise · 100% Failure Command Center</title>
+    <title>EIS ServiceWise · 100% Failure</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -192,12 +192,12 @@
         .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 12px; }
         .timestamp-display i { margin-right: 5px; color: #4f9cf7; }
         
-        /* GRID */
+        /* GRID - SIRF 3 SERVICES */
         .grid-main {
             flex: 1;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             min-height: 0;
         }
         
@@ -233,7 +233,6 @@
             color: #4f9cf7; border: 1px solid rgba(79,156,247,0.03);
         }
         
-        /* SQUARE TILES */
         .tile-grid {
             flex: 1;
             padding: 3px 8px 8px 8px;
@@ -403,7 +402,7 @@
         
         /* RESPONSIVE */
         @media (max-width: 1600px) { .tile-grid { grid-template-columns: repeat(5, 1fr); } }
-        @media (max-width: 1400px) { .tile-grid { grid-template-columns: repeat(4, 1fr); } .grid-main { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 1400px) { .tile-grid { grid-template-columns: repeat(4, 1fr); } }
         @media (max-width: 1100px) { .tile-grid { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
         @media (max-width: 768px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 4px; } }
         
@@ -628,7 +627,7 @@
         </div>
     </div>
 
-    <!-- GRID -->
+    <!-- GRID - SIRF 3 SERVICES -->
     <div class="grid-main">
         
         <!-- ==================== GEN-5 ==================== -->
@@ -711,7 +710,7 @@
                         String cls = "tile tile-td pulse";
                         String tooltipText = "⚠ TD 100% | " + td_name.get(i) + " | TD: " + td_count.get(i);
                         String alertMsg = "<b>Service:</b> " + td_name.get(i) + "<br><b>Source:</b> " + td_source.get(i) + "<br><b>Error:</b> " + td_error.get(i) + "<br><b>Hits:</b> " + td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + td_count.get(i) + "</span><br><b>SI Error:</b> " + td_siCount.get(i) + "<br><b>Time:</b> " + td_time.get(i);
-                        String onclick = "onclick=\"open100Modal('" + alertMsg.replace("'", "\\'") + "','" + td_name.get(i).replace("'", "\\'") + "','GEN-5','TD','" + td_source.get(i).replace("'", "\\'") + "','" + td_error.get(i).replace("'", "\\'") + "','" + td_hits.get(i) + "','" + td_count.get(i) + "','" + td_time.get(i).replace("'", "\\'") + "')\"";
+                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + td_name.get(i).replace("'", "\\'") + "','GEN-5','TD','" + td_source.get(i).replace("'", "\\'") + "','" + td_error.get(i).replace("'", "\\'") + "','" + td_hits.get(i) + "','" + td_count.get(i) + "','" + td_time.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
                         out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
@@ -724,7 +723,7 @@
                         String cls = "tile tile-bd pulse";
                         String tooltipText = "⚠ BD 100% | " + bd_name.get(i) + " | BD: " + bd_count.get(i);
                         String alertMsg = "<b>Service:</b> " + bd_name.get(i) + "<br><b>Source:</b> " + bd_source.get(i) + "<br><b>Error:</b> " + bd_error.get(i) + "<br><b>Hits:</b> " + bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + bd_count.get(i) + "</span><br><b>Time:</b> " + bd_time.get(i);
-                        String onclick = "onclick=\"open100Modal('" + alertMsg.replace("'", "\\'") + "','" + bd_name.get(i).replace("'", "\\'") + "','GEN-5','BD','" + bd_source.get(i).replace("'", "\\'") + "','" + bd_error.get(i).replace("'", "\\'") + "','" + bd_hits.get(i) + "','" + bd_count.get(i) + "','" + bd_time.get(i).replace("'", "\\'") + "')\"";
+                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + bd_name.get(i).replace("'", "\\'") + "','GEN-5','BD','" + bd_source.get(i).replace("'", "\\'") + "','" + bd_error.get(i).replace("'", "\\'") + "','" + bd_hits.get(i) + "','" + bd_count.get(i) + "','" + bd_time.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
                         out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
@@ -737,7 +736,7 @@
                         String cls = "tile tile-mixed pulse";
                         String tooltipText = "⚠ Mixed 100% | " + mixed_name.get(i) + " | TD: " + mixed_td.get(i) + " BD: " + mixed_bd.get(i);
                         String alertMsg = "<b>Service:</b> " + mixed_name.get(i) + "<br><b>Source:</b> " + mixed_source.get(i) + "<br><b>Error:</b> " + mixed_error.get(i) + "<br><b>Hits:</b> " + mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + mixed_bd.get(i) + "</span><br><b>Time:</b> " + mixed_time.get(i);
-                        String onclick = "onclick=\"open100Modal('" + alertMsg.replace("'", "\\'") + "','" + mixed_name.get(i).replace("'", "\\'") + "','GEN-5','MIXED','" + mixed_source.get(i).replace("'", "\\'") + "','" + mixed_error.get(i).replace("'", "\\'") + "','" + mixed_hits.get(i) + "','" + mixed_td.get(i) + "','" + mixed_time.get(i).replace("'", "\\'") + "')\"";
+                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + mixed_name.get(i).replace("'", "\\'") + "','GEN-5','MIXED','" + mixed_source.get(i).replace("'", "\\'") + "','" + mixed_error.get(i).replace("'", "\\'") + "','" + mixed_hits.get(i) + "','" + mixed_td.get(i) + "','" + mixed_time.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
                         out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
@@ -790,7 +789,7 @@
                         String cls = "tile tile-td pulse";
                         String tooltipText = "⚠ TD 100% | " + si_name.get(i) + " | TD: " + si_td_count.get(i);
                         String alertMsg = "<b>Service:</b> " + si_name.get(i) + "<br><b>Error:</b> " + si_error.get(i) + "<br><b>Hits:</b> " + si_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + si_td_count.get(i) + "</span><br><b>Time:</b> " + si_time.get(i);
-                        String onclick = "onclick=\"open100Modal('" + alertMsg.replace("'", "\\'") + "','" + si_name.get(i).replace("'", "\\'") + "','SI','TD','','" + si_error.get(i).replace("'", "\\'") + "','" + si_hits.get(i) + "','" + si_td_count.get(i) + "','" + si_time.get(i).replace("'", "\\'") + "')\"";
+                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + si_name.get(i).replace("'", "\\'") + "','SI','TD','','" + si_error.get(i).replace("'", "\\'") + "','" + si_hits.get(i) + "','" + si_td_count.get(i) + "','" + si_time.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
                         out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
@@ -882,7 +881,7 @@
                         String cls = "tile tile-td pulse";
                         String tooltipText = "⚠ TD 100% | " + third_td_name.get(i) + " | TD: " + third_td_count.get(i);
                         String alertMsg = "<b>Service:</b> " + third_td_name.get(i) + "<br><b>Source:</b> " + third_td_source.get(i) + "<br><b>Error:</b> " + third_td_error.get(i) + "<br><b>Hits:</b> " + third_td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + third_td_count.get(i) + "</span><br><b>SI Error:</b> " + third_td_siCount.get(i) + "<br><b>Time:</b> " + third_td_time.get(i);
-                        String onclick = "onclick=\"open100Modal('" + alertMsg.replace("'", "\\'") + "','" + third_td_name.get(i).replace("'", "\\'") + "','ThirdParty','TD','" + third_td_source.get(i).replace("'", "\\'") + "','" + third_td_error.get(i).replace("'", "\\'") + "','" + third_td_hits.get(i) + "','" + third_td_count.get(i) + "','" + third_td_time.get(i).replace("'", "\\'") + "')\"";
+                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + third_td_name.get(i).replace("'", "\\'") + "','ThirdParty','TD','" + third_td_source.get(i).replace("'", "\\'") + "','" + third_td_error.get(i).replace("'", "\\'") + "','" + third_td_hits.get(i) + "','" + third_td_count.get(i) + "','" + third_td_time.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
                         out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
@@ -894,7 +893,7 @@
                         String cls = "tile tile-bd pulse";
                         String tooltipText = "⚠ BD 100% | " + third_bd_name.get(i) + " | BD: " + third_bd_count.get(i);
                         String alertMsg = "<b>Service:</b> " + third_bd_name.get(i) + "<br><b>Source:</b> " + third_bd_source.get(i) + "<br><b>Error:</b> " + third_bd_error.get(i) + "<br><b>Hits:</b> " + third_bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + third_bd_count.get(i) + "</span><br><b>Time:</b> " + third_bd_time.get(i);
-                        String onclick = "onclick=\"open100Modal('" + alertMsg.replace("'", "\\'") + "','" + third_bd_name.get(i).replace("'", "\\'") + "','ThirdParty','BD','" + third_bd_source.get(i).replace("'", "\\'") + "','" + third_bd_error.get(i).replace("'", "\\'") + "','" + third_bd_hits.get(i) + "','" + third_bd_count.get(i) + "','" + third_bd_time.get(i).replace("'", "\\'") + "')\"";
+                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + third_bd_name.get(i).replace("'", "\\'") + "','ThirdParty','BD','" + third_bd_source.get(i).replace("'", "\\'") + "','" + third_bd_error.get(i).replace("'", "\\'") + "','" + third_bd_hits.get(i) + "','" + third_bd_count.get(i) + "','" + third_bd_time.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
                         out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
@@ -906,7 +905,7 @@
                         String cls = "tile tile-mixed pulse";
                         String tooltipText = "⚠ Mixed 100% | " + third_mixed_name.get(i) + " | TD: " + third_mixed_td.get(i) + " BD: " + third_mixed_bd.get(i);
                         String alertMsg = "<b>Service:</b> " + third_mixed_name.get(i) + "<br><b>Source:</b> " + third_mixed_source.get(i) + "<br><b>Error:</b> " + third_mixed_error.get(i) + "<br><b>Hits:</b> " + third_mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + third_mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + third_mixed_bd.get(i) + "</span><br><b>Time:</b> " + third_mixed_time.get(i);
-                        String onclick = "onclick=\"open100Modal('" + alertMsg.replace("'", "\\'") + "','" + third_mixed_name.get(i).replace("'", "\\'") + "','ThirdParty','MIXED','" + third_mixed_source.get(i).replace("'", "\\'") + "','" + third_mixed_error.get(i).replace("'", "\\'") + "','" + third_mixed_hits.get(i) + "','" + third_mixed_td.get(i) + "','" + third_mixed_time.get(i).replace("'", "\\'") + "')\"";
+                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + third_mixed_name.get(i).replace("'", "\\'") + "','ThirdParty','MIXED','" + third_mixed_source.get(i).replace("'", "\\'") + "','" + third_mixed_error.get(i).replace("'", "\\'") + "','" + third_mixed_hits.get(i) + "','" + third_mixed_td.get(i) + "','" + third_mixed_time.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
                         out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
@@ -915,119 +914,6 @@
                     }
                     
                     for(int k = thirdIdx; k < 60; k++) {
-                        out.print("<div class='tile tile-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                        out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                    }
-                %>
-            </div>
-        </div>
-
-        <!-- ==================== COMBINED ==================== -->
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
-                <span class="badge-count" id="mixedcount">0</span>
-            </div>
-            <div class="tile-grid" id="panel-mixed">
-                <%
-                    // Combined - I4C (ThirdParty with source_id I4), IVR (CC), SBICAPS
-                    List<Double> comb_per = new ArrayList<>();
-                    List<String> comb_name = new ArrayList<>();
-                    List<String> comb_cat = new ArrayList<>();
-                    List<String> comb_source = new ArrayList<>();
-                    List<String> comb_error = new ArrayList<>();
-                    List<String> comb_hits = new ArrayList<>();
-                    List<String> comb_td = new ArrayList<>();
-                    List<String> comb_time = new ArrayList<>();
-                    List<String> comb_type = new ArrayList<>(); // TD/BD/MIXED
-                    
-                    try {
-                        // I4C - source_id = 'I4'
-                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,error_code,source_id, issue_time from thirdparty_100_percentage_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from thirdparty_100_percentage_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 20";
-                        l_bjres = con.createStatement().executeQuery(l_strQuery);
-                        while(l_bjres.next()) {
-                            if(l_bjres.getDouble("tdbd_per") == 100 && (l_bjres.getInt("td") + l_bjres.getInt("bd")) >= 10) {
-                                comb_per.add(l_bjres.getDouble("tdbd_per"));
-                                comb_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                comb_cat.add("I4C");
-                                comb_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                comb_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                comb_hits.add(String.valueOf(l_bjres.getInt("total_hits")));
-                                comb_td.add(String.valueOf(l_bjres.getInt("td")));
-                                comb_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                comb_type.add("MIXED");
-                            }
-                        }
-                        // IVR - Source_id = 'CC'
-                        l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code, SUM(total_hits) AS total_hits,issue_time,SUM(td) AS td, round(AVG(td_percent), 2) AS td_percent, SUM(bd) AS bd, round(AVG(bd_per), 2) AS bd_per, CASE WHEN ( SUM(td_percent) <> 0 AND SUM (bd_per) <> 0 ) THEN round(round(AVG(td_percent), 2) + round(AVG(bd_per), 2)) ELSE 0 END AS tdbd_per FROM gen5_100_percentage_fail TEMP WHERE substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' AND api_name NOT IN (SELECT service_name FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from gen5_100_percentage_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 20";
-                        l_bjres = con.createStatement().executeQuery(l_strQuery);
-                        while(l_bjres.next()) {
-                            if(l_bjres.getDouble("tdbd_per") == 100 && (l_bjres.getInt("td") + l_bjres.getInt("bd")) >= 10) {
-                                comb_per.add(l_bjres.getDouble("tdbd_per"));
-                                comb_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                comb_cat.add("IVR");
-                                comb_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                comb_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                comb_hits.add(String.valueOf(l_bjres.getInt("total_hits")));
-                                comb_td.add(String.valueOf(l_bjres.getInt("td")));
-                                comb_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                comb_type.add("MIXED");
-                            }
-                            if(l_bjres.getDouble("td_percent") == 100 && l_bjres.getInt("td") >= 10) {
-                                comb_per.add(l_bjres.getDouble("td_percent"));
-                                comb_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                comb_cat.add("IVR");
-                                comb_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                comb_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                comb_hits.add(String.valueOf(l_bjres.getInt("total_hits")));
-                                comb_td.add(String.valueOf(l_bjres.getInt("td")));
-                                comb_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                comb_type.add("TD");
-                            }
-                        }
-                        // SBICAPS
-                        l_strQuery = "SELECT * FROM (SELECT api_name, Source_id, error_code, SUM(total_hits) AS total_hits,issue_time,SUM(td) AS td, round(AVG(td_percent), 2) AS td_percent, SUM(bd) AS bd, round(AVG(bd_per), 2) AS bd_per, CASE WHEN ( SUM(td_percent) <> 0 AND SUM (bd_per) <> 0 ) THEN round(round(AVG(td_percent), 2) + round(AVG(bd_per), 2)) ELSE 0 END AS tdbd_per FROM sbicaps_100_percentage_fail TEMP WHERE insert_time >= SYSDATE - INTERVAL '10' minute AND api_name NOT IN (SELECT service_name FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from sbicaps_100_percentage_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 20";
-                        l_bjres = con.createStatement().executeQuery(l_strQuery);
-                        while(l_bjres.next()) {
-                            if(l_bjres.getDouble("td_percent") == 100 && l_bjres.getInt("td") >= 10) {
-                                comb_per.add(l_bjres.getDouble("td_percent"));
-                                comb_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                comb_cat.add("SBICAPS");
-                                comb_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                comb_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                comb_hits.add(String.valueOf(l_bjres.getInt("total_hits")));
-                                comb_td.add(String.valueOf(l_bjres.getInt("td")));
-                                comb_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                comb_type.add("TD");
-                            }
-                        }
-                    } catch(Exception e) { e.printStackTrace(); }
-                    
-                    for(int i = 0; i < comb_per.size(); i++) {
-                        String cls = "tile tile-mixed pulse";
-                        String typeLabel = "MIX";
-                        String tipClass = "tip-mixed";
-                        if(comb_type.get(i).equals("TD")) {
-                            cls = "tile tile-td pulse";
-                            typeLabel = "TD";
-                            tipClass = "tip-td";
-                        } else if(comb_type.get(i).equals("BD")) {
-                            cls = "tile tile-bd pulse";
-                            typeLabel = "BD";
-                            tipClass = "tip-bd";
-                        }
-                        String tooltipText = "⚠ " + typeLabel + " 100% | " + comb_name.get(i);
-                        String alertMsg = "<b>Service:</b> " + comb_name.get(i) + "<br><b>Category:</b> " + comb_cat.get(i) + "<br><b>Error:</b> " + comb_error.get(i) + "<br><b>Source:</b> " + comb_source.get(i) + "<br><b>Hits:</b> " + comb_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + comb_td.get(i) + "</span><br><b>Time:</b> " + comb_time.get(i);
-                        String onclick = "onclick=\"open100Modal('" + alertMsg.replace("'", "\\'") + "','" + comb_name.get(i).replace("'", "\\'") + "','" + comb_cat.get(i) + "','" + typeLabel + "','" + comb_source.get(i).replace("'", "\\'") + "','" + comb_error.get(i).replace("'", "\\'") + "','" + comb_hits.get(i) + "','" + comb_td.get(i) + "','" + comb_time.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>% " + typeLabel + "</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                    }
-                    
-                    for(int k = comb_per.size(); k < 60; k++) {
                         out.print("<div class='tile tile-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
                         out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
                         out.print("<div class='bar'><div class='fill'></div></div>");
@@ -1052,7 +938,7 @@
     <div id="alertBox">
         <div class="head">
             <h3><i class="fas fa-exclamation-triangle"></i> 100% Failure Alert</h3>
-            <button class="close-btn" onclick="close100Modal()">✕</button>
+            <button class="close-btn" onclick="closeModal()">✕</button>
         </div>
         <div class="body-text" id="modalMsg"></div>
         
@@ -1102,7 +988,7 @@
         <div class="modal-actions">
             <button class="btn-m btn-m-primary" id="closeBtn"><i class="fas fa-check"></i> Close</button>
             <button class="btn-m btn-m-danger" id="detailsBtn"><i class="fas fa-eye"></i> View</button>
-            <button class="btn-m btn-m-secondary" onclick="close100Modal()">Cancel</button>
+            <button class="btn-m btn-m-secondary" onclick="closeModal()">Cancel</button>
         </div>
     </div>
 </div>
@@ -1177,7 +1063,7 @@
     // ============================================================
     var mApi = '', mCat = '', mType = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
     
-    function open100Modal(msg, api, cat, type, src, err, hits, td, time) {
+    function openModal(msg, api, cat, type, src, err, hits, td, time) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
         mType = type || 'TD';
@@ -1193,7 +1079,7 @@
         document.getElementById('closeName').value = '';
     }
     
-    function close100Modal() {
+    function closeModal() {
         document.getElementById('modalContainer').style.display = 'none';
     }
     
@@ -1202,7 +1088,6 @@
         document.getElementById('gen5count').textContent = document.querySelectorAll('#panel-gen5 .tile-td, #panel-gen5 .tile-bd, #panel-gen5 .tile-mixed').length || 0;
         document.getElementById('sicount').textContent = document.querySelectorAll('#panel-si .tile-td, #panel-si .tile-bd, #panel-si .tile-mixed').length || 0;
         document.getElementById('thirdcount').textContent = document.querySelectorAll('#panel-third .tile-td, #panel-third .tile-bd, #panel-third .tile-mixed').length || 0;
-        document.getElementById('mixedcount').textContent = document.querySelectorAll('#panel-mixed .tile-td, #panel-mixed .tile-bd, #panel-mixed .tile-mixed').length || 0;
         
         document.getElementById('closeBtn').addEventListener('click', function() {
             var comment = document.getElementById('TextArea').value;
@@ -1224,7 +1109,7 @@
                 + '&ServiceCategory=' + encodeURIComponent(mCat)
                 + '&FailureType=' + encodeURIComponent(mType);
             
-            close100Modal();
+            closeModal();
             location.replace(url);
         });
         
@@ -1267,10 +1152,10 @@
     countdownTimer('ten-countdown', 5, 0);
     
     document.getElementById('modalContainer').addEventListener('click', function(e) {
-        if(e.target === this) close100Modal();
+        if(e.target === this) closeModal();
     });
     document.addEventListener('keydown', function(e) {
-        if(e.key === 'Escape') close100Modal();
+        if(e.key === 'Escape') closeModal();
     });
 </script>
 
