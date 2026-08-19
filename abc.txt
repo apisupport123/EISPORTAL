@@ -23,7 +23,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>EIS ServiceWise · 100% Failure</title>
+    <title>ServiceWise 100% · Command Center</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -81,7 +81,7 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .loader-text { margin-top: 20px; font-size: 16px; font-weight: 700; color: #4a6a8a; letter-spacing: 2px; text-transform: uppercase; }
         
-        /* TOP BAR - EXACT MATCH */
+        /* TOP BAR - ServiceWise Style */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -110,8 +110,8 @@
             box-shadow: 0 4px 30px rgba(79,156,247,0.15);
         }
         .brand .name { font-weight: 900; font-size: 22px; letter-spacing: -0.5px; color: #ffffff; }
-        .brand .name .eis { color: #4f9cf7; }
-        .brand .name .wise { color: #7c3aed; }
+        .brand .name .sw { color: #4f9cf7; }
+        .brand .name .hundred { color: #7c3aed; }
         .brand .sub { font-size: 9px; font-weight: 700; color: #2a4a6a; letter-spacing: 2px; text-transform: uppercase; }
         
         .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -351,7 +351,7 @@
             50% { border-color: rgba(142,68,173,0.35); box-shadow: 0 0 50px rgba(142,68,173,0.12); }
         }
         
-        /* HEALTHY - GREEN - "✓ Healthy" */
+        /* HEALTHY - GREEN */
         .tile-healthy {
             background: rgba(15, 151, 61, 0.10);
             border-color: rgba(15, 151, 61, 0.06);
@@ -551,7 +551,7 @@
 <!-- LOADER -->
 <div id="loaderWrapper">
     <div class="loader-spinner"></div>
-    <div class="loader-text">Loading 100% Failure Dashboard...</div>
+    <div class="loader-text">Loading ServiceWise 100% ...</div>
 </div>
 
 <div class="bg-layer"></div>
@@ -563,8 +563,8 @@
         <div class="brand">
             <div class="logo"><i class="fas fa-chart-simple"></i></div>
             <div>
-                <div class="name"><span class="eis">EIS</span>Service<span class="wise">Wise</span></div>
-                <div class="sub">100% Command Center</div>
+                <div class="name">Service<span class="sw">Wise</span> <span class="hundred">100%</span></div>
+                <div class="sub">Command Center</div>
             </div>
         </div>
         <div class="top-actions">
@@ -627,7 +627,7 @@
         </div>
     </div>
 
-    <!-- GRID -->
+    <!-- GRID - 3 SERVICES -->
     <div class="grid-main">
         
         <!-- ==================== GEN-5 ==================== -->
@@ -704,7 +704,6 @@
                     
                     int tileIndex = 0;
                     
-                    // TD tiles
                     for(int i = 0; i < td_per.size(); i++) {
                         String cls = "tile tile-td pulse";
                         String tooltipText = "⚠ TD 100% | " + td_name.get(i);
@@ -717,7 +716,6 @@
                         tileIndex++;
                     }
                     
-                    // BD tiles
                     for(int i = 0; i < bd_per.size(); i++) {
                         String cls = "tile tile-bd pulse";
                         String tooltipText = "⚠ BD 100% | " + bd_name.get(i);
@@ -730,7 +728,6 @@
                         tileIndex++;
                     }
                     
-                    // Mixed tiles
                     for(int i = 0; i < mixed_per.size(); i++) {
                         String cls = "tile tile-mixed pulse";
                         String tooltipText = "⚠ Mixed 100% | " + mixed_name.get(i);
@@ -743,7 +740,6 @@
                         tileIndex++;
                     }
                     
-                    // Remaining healthy tiles - "✓ Healthy"
                     for(int k = tileIndex; k < 60; k++) {
                         out.print("<div class='tile tile-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
                         out.print("<span class='val'>✓ Healthy</span>");
