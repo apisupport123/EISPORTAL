@@ -387,18 +387,25 @@
         border-color: rgba(231,76,60,0.08);
     }
     
-    /* ========== TILE GRID ========== */
+    /* ========== DYNAMIC TILE GRID - AUTO ADJUST ========== */
     .tile-grid {
         flex: 1;
         padding: 3px 6px 6px 6px;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
         grid-auto-rows: 1fr;
         gap: 3px;
         min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
     
-    /* ========== TILES - FIXED OVERFLOW ========== */
+    /* Scrollbar for tiles if too many */
+    .tile-grid::-webkit-scrollbar { width: 2px; }
+    .tile-grid::-webkit-scrollbar-thumb { background: rgba(79,156,247,0.2); border-radius: 10px; }
+    .tile-grid::-webkit-scrollbar-track { background: transparent; }
+    
+    /* ========== TILES ========== */
     .tile {
         display: flex;
         flex-direction: column;
@@ -422,9 +429,8 @@
         border-color: rgba(79,156,247,0.10);
     }
     
-    /* FIX: Text overflow handling */
     .tile .val {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 900;
         line-height: 1.1;
         text-align: center;
@@ -472,7 +478,7 @@
         background: rgba(231,76,60,0.12);
         border-color: rgba(231,76,60,0.15);
     }
-    .tile-critical .val { color: #e74c3c; font-size: 16px; }
+    .tile-critical .val { color: #e74c3c; font-size: 15px; }
     .tile-critical .sub-text { color: #e74c3c; opacity: 0.8; }
     .tile-critical .bar .fill { background: #e74c3c; width: 80%; }
     .tile-critical.pulse {
@@ -495,7 +501,7 @@
         background: rgba(231,76,60,0.14);
         border-color: rgba(231,76,60,0.18);
     }
-    .tile-td .val { color: #e74c3c; font-size: 18px; }
+    .tile-td .val { color: #e74c3c; font-size: 17px; }
     .tile-td .sub-text { color: #e74c3c; opacity: 0.8; font-size: 8px; }
     .tile-td .bar .fill { background: #e74c3c; width: 80%; }
     .tile-td.pulse {
@@ -510,7 +516,7 @@
         background: rgba(243,156,18,0.14);
         border-color: rgba(243,156,18,0.18);
     }
-    .tile-bd .val { color: #f39c12; font-size: 18px; }
+    .tile-bd .val { color: #f39c12; font-size: 17px; }
     .tile-bd .sub-text { color: #f39c12; opacity: 0.8; font-size: 8px; }
     .tile-bd .bar .fill { background: #f39c12; width: 80%; }
     .tile-bd.pulse {
@@ -525,7 +531,7 @@
         background: rgba(155,89,182,0.14);
         border-color: rgba(155,89,182,0.18);
     }
-    .tile-mixed .val { color: #9b59b6; font-size: 18px; }
+    .tile-mixed .val { color: #9b59b6; font-size: 17px; }
     .tile-mixed .sub-text { color: #9b59b6; opacity: 0.8; font-size: 8px; }
     .tile-mixed .bar .fill { background: #9b59b6; width: 80%; }
     .tile-mixed.pulse {
@@ -738,9 +744,19 @@
     }
     
     /* ========== RESPONSIVE ========== */
-    @media (max-width: 1400px) { .grid-main { grid-template-columns: repeat(5, 1fr); } }
-    @media (max-width: 1100px) { .grid-main { grid-template-columns: repeat(4, 1fr); } .tile-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 768px) { .grid-main { grid-template-columns: repeat(2, 1fr); } .tile-grid { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
+    @media (max-width: 1400px) { 
+        .grid-main { grid-template-columns: repeat(5, 1fr); } 
+        .tile-grid { grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); }
+    }
+    @media (max-width: 1100px) { 
+        .grid-main { grid-template-columns: repeat(4, 1fr); } 
+        .tile-grid { grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); }
+    }
+    @media (max-width: 768px) { 
+        .grid-main { grid-template-columns: repeat(2, 1fr); } 
+        .tile-grid { grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); }
+        .top-bar { flex-wrap: wrap; height: auto; }
+    }
     
     ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
@@ -801,6 +817,7 @@
                 <span>● <span class="hl">LEGEND:</span> <span style="color:#e74c3c;">● TD</span> <span style="color:#f39c12;">● BD</span> <span style="color:#9b59b6;">● Mixed</span> <span style="color:#2ecc71;">● Healthy</span></span>
                 <span>● <span class="hl">REFRESH:</span> Every 5 minutes</span>
                 <span>● <span class="hl">CLICK:</span> Any tile for detailed alert</span>
+                <span>● <span class="hl">DYNAMIC:</span> Tiles auto-adjust</span>
             </div>
         </div>
     </div>
@@ -841,8 +858,9 @@
                     List<Integer> swGen5Si = new ArrayList<>();
                     
                     try {
-                        String q = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per, SUM(SI_EEROR) AS SI_EEROR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 28";
+                        String q = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per, SUM(SI_EEROR) AS SI_EEROR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name)";
                         ResultSet rs = con.createStatement().executeQuery(q);
+                        int count = 0;
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
                                 swGen5Per.add(rs.getDouble("TD_PER"));
@@ -853,12 +871,14 @@
                                 swGen5Td.add(rs.getInt("TD"));
                                 swGen5Time.add(nvl(rs.getString("ISSUE_TIME"), "N/A"));
                                 swGen5Si.add(rs.getInt("SI_EEROR"));
+                                count++;
                             }
                         }
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    for(int i = 0; i < 28; i++) {
+                    int totalTiles = Math.max(swGen5Per.size(), 28);
+                    for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -906,7 +926,7 @@
                     List<String> swSiTime = new ArrayList<>();
                     
                     try {
-                        String q = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 28";
+                        String q = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
@@ -921,7 +941,8 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    for(int i = 0; i < 28; i++) {
+                    int totalTiles = Math.max(swSiPer.size(), 28);
+                    for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -971,7 +992,7 @@
                     List<Integer> swThirdSi = new ArrayList<>();
                     
                     try {
-                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 28";
+                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
@@ -988,7 +1009,8 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    for(int i = 0; i < 28; i++) {
+                    int totalTiles = Math.max(swThirdPer.size(), 28);
+                    for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -1039,7 +1061,7 @@
                     
                     try {
                         // I4C
-                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 12";
+                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
@@ -1054,7 +1076,7 @@
                             }
                         }
                         // IVR
-                        q = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 12";
+                        q = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name)";
                         rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 10) {
@@ -1069,7 +1091,7 @@
                             }
                         }
                         // SBICAPS
-                        q = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 12";
+                        q = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name)";
                         rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 10) {
@@ -1086,7 +1108,8 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    for(int i = 0; i < 28; i++) {
+                    int totalTiles = Math.max(swCombPer.size(), 28);
+                    for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -1152,7 +1175,7 @@
                     List<String> hMixedTime = new ArrayList<>();
                     
                     try {
-                        String q = "SELECT * FROM (SELECT api_name, Source_id, error_code, SUM(total_hits) AS total_hits,issue_time,SUM(td) AS td, round(AVG(td_percent), 2) AS td_percent, SUM(bd) AS bd, round(AVG(bd_per), 2) AS bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, CASE WHEN ( SUM(td_percent) <> 0 AND SUM (bd_per) <> 0 ) THEN round(round(AVG(td_percent), 2) + round(AVG(bd_per), 2)) ELSE 0 END AS tdbd_per FROM gen5_100_percentage_fail TEMP WHERE substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name NOT IN (SELECT service_name FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from gen5_100_percentage_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 28";
+                        String q = "SELECT * FROM (SELECT api_name, Source_id, error_code, SUM(total_hits) AS total_hits,issue_time,SUM(td) AS td, round(AVG(td_percent), 2) AS td_percent, SUM(bd) AS bd, round(AVG(bd_per), 2) AS bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, CASE WHEN ( SUM(td_percent) <> 0 AND SUM (bd_per) <> 0 ) THEN round(round(AVG(td_percent), 2) + round(AVG(bd_per), 2)) ELSE 0 END AS tdbd_per FROM gen5_100_percentage_fail TEMP WHERE substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name NOT IN (SELECT service_name FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from gen5_100_percentage_fail temp_in where temp_in.api_name = temp.api_name group by api_name)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD_PERCENT") == 100 && (rs.getInt("TD") + rs.getInt("SI_EEROR")) >= 10) {
@@ -1188,6 +1211,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
+                    int totalTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 28);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1222,7 +1246,7 @@
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         hIdx++;
                     }
-                    for(int k = hIdx; k < 28; k++) {
+                    for(int k = hIdx; k < totalTiles; k++) {
                         out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
                         out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
@@ -1249,7 +1273,7 @@
                     List<String> hSiTime = new ArrayList<>();
                     
                     try {
-                        String q = "SELECT * FROM (SELECT function_name, SUM(total_hits) AS total_hits,SUM(td) AS td,round(AVG(td_percent), 2) AS td_percent, error_code, issue_time FROM si_100_percent_fail temp WHERE trim(CONCAT(temp.FUNCTION_NAME,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) and trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) and insert_time >= sysdate - INTERVAL '10' MINUTE AND function_name NOT IN (SELECT trim(service_name) FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY function_name, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM si_100_percent_fail temp_in WHERE temp_in.function_name = temp.function_name GROUP BY function_name) AND ROWNUM <= 28";
+                        String q = "SELECT * FROM (SELECT function_name, SUM(total_hits) AS total_hits,SUM(td) AS td,round(AVG(td_percent), 2) AS td_percent, error_code, issue_time FROM si_100_percent_fail temp WHERE trim(CONCAT(temp.FUNCTION_NAME,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) and trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) and insert_time >= sysdate - INTERVAL '10' MINUTE AND function_name NOT IN (SELECT trim(service_name) FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY function_name, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM si_100_percent_fail temp_in WHERE temp_in.function_name = temp.function_name GROUP BY function_name)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD_PERCENT") == 100 && rs.getInt("TD") >= 10) {
@@ -1264,20 +1288,31 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    for(int i = 0; i < hSiTdPer.size(); i++) {
-                        String cls = "tile tile-td pulse";
-                        String tip = "⚠ TD 100% | " + hSiName.get(i);
-                        String alertMsg = "<b>Service:</b> " + hSiName.get(i) + "<br><b>Error:</b> " + hSiError.get(i) + "<br><b>Hits:</b> " + hSiHits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + hSiTdCount.get(i) + "</span><br><b>Time:</b> " + hSiTime.get(i);
-                        String name = hSiName.get(i).replace("'", "\\'");
-                        String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','SI','TD','','" + hSiError.get(i).replace("'", "\\'") + "','" + hSiHits.get(i) + "','" + hSiTdCount.get(i) + "','" + hSiTime.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-td' " + onclick + ">");
-                        out.print("<span class='val'>100%</span><span class='sub-text'>TD</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div></div>");
-                    }
-                    for(int k = hSiTdPer.size(); k < 28; k++) {
-                        out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                        out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div></div>");
+                    int totalTiles = Math.max(hSiTdPer.size(), 28);
+                    for(int i = 0; i < totalTiles; i++) {
+                        String cls = "tile tile-healthy";
+                        String val = "✓";
+                        String sub = "OK";
+                        String bar = "15%";
+                        String tip = "✅ Healthy";
+                        String tipClass = "tip-healthy";
+                        String onclick = "";
+                        if(i < hSiTdPer.size()) {
+                            cls = "tile tile-td pulse";
+                            val = "100%";
+                            sub = "TD";
+                            bar = "80%";
+                            tip = "⚠ TD 100% | " + hSiName.get(i);
+                            tipClass = "tip-td";
+                            String alertMsg = "<b>Service:</b> " + hSiName.get(i) + "<br><b>Error:</b> " + hSiError.get(i) + "<br><b>Hits:</b> " + hSiHits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + hSiTdCount.get(i) + "</span><br><b>Time:</b> " + hSiTime.get(i);
+                            String name = hSiName.get(i).replace("'", "\\'");
+                            onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','SI','TD','','" + hSiError.get(i).replace("'", "\\'") + "','" + hSiHits.get(i) + "','" + hSiTdCount.get(i) + "','" + hSiTime.get(i).replace("'", "\\'") + "')\"";
+                        }
+                        out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='" + tipClass + "' " + onclick + ">");
+                        out.print("<span class='val'>" + val + "</span>");
+                        out.print("<span class='sub-text'>" + sub + "</span>");
+                        out.print("<div class='bar'><div class='fill' style='width:" + bar + ";'></div></div>");
+                        out.print("</div>");
                     }
                 %>
             </div>
@@ -1318,7 +1353,7 @@
                     List<String> h3MixedTime = new ArrayList<>();
                     
                     try {
-                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,error_code,source_id, issue_time from thirdparty_100_percentage_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from thirdparty_100_percentage_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 28";
+                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,error_code,source_id, issue_time from thirdparty_100_percentage_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from thirdparty_100_percentage_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD_PERCENT") == 100) {
@@ -1354,6 +1389,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
+                    int totalTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 28);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1388,7 +1424,7 @@
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         h3Idx++;
                     }
-                    for(int k = h3Idx; k < 28; k++) {
+                    for(int k = h3Idx; k < totalTiles; k++) {
                         out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
                         out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
