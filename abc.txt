@@ -62,7 +62,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
 <link rel="stylesheet" href="../css/all.min.css">
-<title>Nexus Observe · Command Center</title>
+<title>Nexus Command Center</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -70,16 +70,30 @@
         height: 100vh;
         overflow: hidden;
         font-family: 'Inter', sans-serif;
-        background: #0a0e1a;
+        background: #080c18;
         color: #ffffff;
     }
     
+    /* ========== BACKGROUND ========== */
     .bg-layer {
         position: fixed;
         inset: 0;
-        background: radial-gradient(ellipse at 20% 20%, rgba(79,156,247,0.03) 0%, transparent 60%),
-                    radial-gradient(ellipse at 80% 80%, rgba(124,58,237,0.02) 0%, transparent 60%);
+        background: 
+            radial-gradient(ellipse at 15% 25%, rgba(79,156,247,0.06) 0%, transparent 55%),
+            radial-gradient(ellipse at 85% 75%, rgba(124,58,237,0.04) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 50%, rgba(15,151,61,0.02) 0%, transparent 40%);
         z-index: 0;
+    }
+    
+    .bg-grid {
+        position: fixed;
+        inset: 0;
+        background-image: 
+            linear-gradient(rgba(255,255,255,0.01) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.01) 1px, transparent 1px);
+        background-size: 30px 30px;
+        z-index: 0;
+        opacity: 0.5;
     }
     
     .wrapper {
@@ -89,473 +103,126 @@
         height: 100vh;
         display: flex;
         flex-direction: column;
-        padding: 8px 14px 10px 14px;
+        padding: 10px 16px 12px 16px;
         overflow: hidden;
     }
     
-    /* LOADER */
+    /* ========== LOADER ========== */
     #loaderWrapper {
         position: fixed;
         inset: 0;
-        background: #0a0e1a;
+        background: #080c18;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         z-index: 99999;
-        transition: opacity 0.5s ease;
+        transition: opacity 0.6s ease;
     }
     #loaderWrapper.hidden { opacity: 0; pointer-events: none; }
-    .loader-spinner {
-        width: 50px; height: 50px;
-        border: 3px solid rgba(79,156,247,0.08);
-        border-top: 3px solid #4f9cf7;
+    .loader-ring {
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
-        animation: spin 1s linear infinite;
+        border: 3px solid rgba(79,156,247,0.05);
+        border-top: 3px solid #4f9cf7;
+        animation: spin 1s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+        box-shadow: 0 0 60px rgba(79,156,247,0.05);
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .loader-text { margin-top: 16px; font-size: 12px; font-weight: 700; color: #4a6a8a; letter-spacing: 3px; text-transform: uppercase; }
+    .loader-text { margin-top: 18px; font-size: 14px; font-weight: 700; color: #4a6a8a; letter-spacing: 4px; text-transform: uppercase; }
+    .loader-text span { color: #4f9cf7; }
     
-    /* TOP BAR */
+    /* ========== TOP BAR ========== */
     .top-bar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 6px 18px;
+        padding: 10px 24px;
         background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.03);
-        border-radius: 12px;
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 16px;
         flex-shrink: 0;
-        height: 48px;
-        margin-bottom: 4px;
+        height: 62px;
+        margin-bottom: 8px;
         flex-wrap: wrap;
-        gap: 4px;
-        backdrop-filter: blur(10px);
+        gap: 8px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 4px 40px rgba(0,0,0,0.4);
     }
-    .brand { display: flex; align-items: center; gap: 10px; }
+    
+    .brand { display: flex; align-items: center; gap: 14px; }
     .brand .logo {
-        width: 32px; height: 32px;
+        width: 42px;
+        height: 42px;
         background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-        border-radius: 8px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px; color: #fff;
+        font-size: 20px;
+        color: #fff;
+        box-shadow: 0 4px 30px rgba(79,156,247,0.2);
     }
-    .brand .name { font-weight: 900; font-size: 18px; letter-spacing: -0.5px; }
-    .brand .name .nx { color: #4f9cf7; }
-    .brand .name .ob { color: #7c3aed; }
-    .brand .sub { font-size: 8px; font-weight: 700; color: #4a6a8a; letter-spacing: 1.5px; text-transform: uppercase; }
-    .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .brand .name {
+        font-weight: 900;
+        font-size: 24px;
+        letter-spacing: -0.5px;
+        background: linear-gradient(135deg, #fff 60%, #4f9cf7);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .brand .sub {
+        font-size: 10px;
+        font-weight: 700;
+        color: #4a6a8a;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        -webkit-text-fill-color: #4a6a8a;
+    }
+    .top-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    
     .live-badge {
-        display: flex; align-items: center; gap: 5px;
-        font-size: 10px; font-weight: 700; color: #0f973d;
-        padding: 3px 12px 3px 8px; border-radius: 40px;
-        background: rgba(15,151,61,0.04); border: 1px solid rgba(15,151,61,0.06);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #0f973d;
+        padding: 6px 18px 6px 12px;
+        border-radius: 40px;
+        background: rgba(15,151,61,0.06);
+        border: 1px solid rgba(15,151,61,0.08);
     }
     .live-badge .dot {
-        width: 5px; height: 5px; border-radius: 50%;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
         background: #0f973d;
         animation: pulse-dot 1.5s infinite;
+        box-shadow: 0 0 20px rgba(15,151,61,0.2);
     }
     @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
+    
     .timer-glass {
-        font-weight: 700; font-size: 13px; color: #4f9cf7;
-        padding: 3px 12px; border-radius: 40px;
-        background: rgba(79,156,247,0.03); border: 1px solid rgba(79,156,247,0.04);
+        font-weight: 700;
+        font-size: 16px;
+        color: #4f9cf7;
+        padding: 6px 16px;
+        border-radius: 40px;
+        background: rgba(79,156,247,0.04);
+        border: 1px solid rgba(79,156,247,0.06);
         font-variant-numeric: tabular-nums;
     }
+    
     .btn-glass {
-        padding: 4px 14px; border-radius: 40px;
-        font-weight: 700; font-size: 9px; border: none;
-        cursor: pointer; transition: all 0.2s ease;
-        display: inline-flex; align-items: center; gap: 4px;
-        text-transform: uppercase; letter-spacing: 0.5px;
-        font-family: 'Inter', sans-serif;
-    }
-    .btn-primary-glass { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; }
-    .btn-primary-glass:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,156,247,0.15); }
-    .btn-ghost-glass { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); color: #6a8aaa; }
-    .btn-ghost-glass:hover { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06); }
-    .badge-count-glass { background: rgba(79,156,247,0.04); padding: 0 6px; border-radius: 4px; font-weight: 700; font-size: 10px; }
-    
-    /* TICKER */
-    .ticker-bar {
-        display: flex; align-items: center;
-        padding: 2px 12px;
-        background: rgba(255,255,255,0.005);
-        border-radius: 6px;
-        border: 1px solid rgba(255,255,255,0.01);
-        flex-shrink: 0; margin-bottom: 2px;
-        height: 22px;
-    }
-    .ticker-wrap { flex: 1; overflow: hidden; padding: 0 4px; }
-    .ticker-text {
-        display: inline-block; white-space: nowrap;
-        animation: marquee 30s linear infinite;
-        font-size: 10px; font-weight: 600; color: #3a5a7a;
-    }
-    .ticker-text span { margin: 0 16px; }
-    .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
-    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-    
-    /* INFO BAR */
-    .info-bar {
-        display: flex; justify-content: center; align-items: center;
-        padding: 2px 0 4px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.02);
-        flex-shrink: 0; margin-bottom: 3px;
-        flex-wrap: wrap; gap: 8px;
-    }
-    .legend { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-    .legend .item {
-        display: flex; align-items: center; gap: 4px;
-        font-size: 9px; font-weight: 700; color: #4a6a8a;
-        text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .legend .swatch { width: 10px; height: 10px; border-radius: 3px; }
-    .sw-td { background: #c0392b; }
-    .sw-bd { background: #e67e22; }
-    .sw-mixed { background: #8e44ad; }
-    .sw-health { background: #0f973d; }
-    .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 10px; }
-    .timestamp-display i { margin-right: 4px; }
-    
-    /* MAIN GRID - 7 COLUMNS */
-    .grid-main {
-        flex: 1;
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
-        min-height: 0;
-    }
-    
-    .card-modern {
-        background: rgba(255,255,255,0.015);
-        border-radius: 10px;
-        border: 1px solid rgba(255,255,255,0.02);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        transition: all 0.2s ease;
-    }
-    .card-modern:hover { border-color: rgba(79,156,247,0.03); }
-    
-    .card-header-modern {
-        padding: 3px 10px 2px 10px;
-        display: flex; justify-content: space-between; align-items: center;
-        flex-shrink: 0; height: 28px;
-        background: rgba(255,255,255,0.005);
-        border-bottom: 1px solid rgba(255,255,255,0.02);
-    }
-    .card-header-modern .title {
-        font-weight: 800; font-size: 10px;
-        display: flex; align-items: center; gap: 5px;
-        color: #8aaac0;
-    }
-    .card-header-modern .title i { color: #4f9cf7; font-size: 10px; }
-    .card-header-modern .badge-count {
-        font-size: 7px; font-weight: 700;
-        padding: 1px 8px; border-radius: 40px;
-        background: rgba(79,156,247,0.03);
-        color: #4f9cf7; border: 1px solid rgba(79,156,247,0.03);
-    }
-    
-    .tile-grid {
-        flex: 1;
-        padding: 2px 6px 6px 6px;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        grid-auto-rows: 1fr;
-        gap: 3px;
-        min-height: 0;
-    }
-    
-    .tile {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border-radius: 5px;
-        transition: all 0.12s ease;
-        cursor: pointer;
-        position: relative;
-        aspect-ratio: 1;
-        min-height: 28px;
-        padding: 4px 3px;
-        border: 1.5px solid rgba(255,255,255,0.02);
-        background: rgba(255,255,255,0.01);
-        overflow: hidden;
-    }
-    .tile:hover {
-        transform: scale(1.05) translateY(-2px);
-        z-index: 10;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-        border-color: rgba(79,156,247,0.08);
-    }
-    .tile .val {
-        font-size: 12px;
-        font-weight: 900;
-        line-height: 1.1;
-        text-align: center;
-        max-width: 100%;
-        padding: 0 1px;
-    }
-    .tile .sub-text {
-        font-size: 5.5px;
-        font-weight: 600;
-        opacity: 0.5;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-        margin-top: 1px;
-        text-align: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-        padding: 0 1px;
-    }
-    .tile .bar {
-        position: absolute;
-        bottom: 2px;
-        left: 12%;
-        right: 12%;
-        height: 2px;
-        border-radius: 3px;
-        background: rgba(255,255,255,0.02);
-        overflow: hidden;
-    }
-    .tile .bar .fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-    
-    /* STATUS COLORS */
-    .tile-critical {
-        background: rgba(192,57,43,0.10);
-        border-color: rgba(192,57,43,0.12);
-    }
-    .tile-critical .val { color: #c0392b; font-size: 13px; }
-    .tile-critical .sub-text { color: #c0392b; opacity: 0.7; }
-    .tile-critical .bar .fill { background: #c0392b; width: 80%; }
-    .tile-critical.pulse { animation: crit-pulse 2s ease-in-out infinite; }
-    @keyframes crit-pulse {
-        0%,100% { border-color: rgba(192,57,43,0.12); }
-        50% { border-color: rgba(192,57,43,0.25); box-shadow: 0 0 20px rgba(192,57,43,0.04); }
-    }
-    
-    .tile-healthy {
-        background: rgba(15,151,61,0.06);
-        border-color: rgba(15,151,61,0.03);
-    }
-    .tile-healthy .val { color: #0f973d; font-size: 9px; font-weight: 800; }
-    .tile-healthy .sub-text { color: #0f973d; opacity: 0.5; font-size: 6px; }
-    .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
-    
-    .tile-td {
-        background: rgba(192,57,43,0.10);
-        border-color: rgba(192,57,43,0.14);
-    }
-    .tile-td .val { color: #c0392b; font-size: 14px; }
-    .tile-td .sub-text { color: #c0392b; opacity: 0.7; }
-    .tile-td .bar .fill { background: #c0392b; width: 80%; }
-    .tile-td.pulse { animation: td-pulse 2s ease-in-out infinite; }
-    @keyframes td-pulse {
-        0%,100% { border-color: rgba(192,57,43,0.14); }
-        50% { border-color: rgba(192,57,43,0.28); box-shadow: 0 0 20px rgba(192,57,43,0.05); }
-    }
-    
-    .tile-bd {
-        background: rgba(230,126,34,0.10);
-        border-color: rgba(230,126,34,0.14);
-    }
-    .tile-bd .val { color: #e67e22; font-size: 14px; }
-    .tile-bd .sub-text { color: #e67e22; opacity: 0.7; }
-    .tile-bd .bar .fill { background: #e67e22; width: 80%; }
-    .tile-bd.pulse { animation: bd-pulse 2s ease-in-out infinite; }
-    @keyframes bd-pulse {
-        0%,100% { border-color: rgba(230,126,34,0.14); }
-        50% { border-color: rgba(230,126,34,0.28); box-shadow: 0 0 20px rgba(230,126,34,0.05); }
-    }
-    
-    .tile-mixed {
-        background: rgba(142,68,173,0.10);
-        border-color: rgba(142,68,173,0.14);
-    }
-    .tile-mixed .val { color: #8e44ad; font-size: 14px; }
-    .tile-mixed .sub-text { color: #8e44ad; opacity: 0.7; }
-    .tile-mixed .bar .fill { background: #8e44ad; width: 80%; }
-    .tile-mixed.pulse { animation: mixed-pulse 2s ease-in-out infinite; }
-    @keyframes mixed-pulse {
-        0%,100% { border-color: rgba(142,68,173,0.14); }
-        50% { border-color: rgba(142,68,173,0.28); box-shadow: 0 0 20px rgba(142,68,173,0.05); }
-    }
-    
-    .tile-hundred-healthy {
-        background: rgba(15,151,61,0.06);
-        border-color: rgba(15,151,61,0.03);
-    }
-    .tile-hundred-healthy .val { color: #0f973d; font-size: 10px; font-weight: 800; }
-    .tile-hundred-healthy .sub-text { color: #0f973d; opacity: 0.5; font-size: 6px; }
-    .tile-hundred-healthy .bar .fill { background: #0f973d; width: 15%; }
-    
-    /* TOOLTIP */
-    #customTooltip {
-        position: fixed;
-        display: none;
-        background: rgba(10,14,26,0.96);
-        backdrop-filter: blur(12px);
-        color: #e8edf5;
-        padding: 5px 14px;
-        border-radius: 8px;
-        font-size: 10px;
-        font-weight: 600;
-        border: 1px solid rgba(255,255,255,0.04);
-        box-shadow: 0 10px 40px rgba(0,0,0,0.8);
-        pointer-events: none;
-        z-index: 99999;
-        font-family: 'Inter', sans-serif;
-        white-space: nowrap;
-        max-width: 350px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        transform: translateX(-50%) translateY(-100%);
-    }
-    #customTooltip::after {
-        content: '';
-        position: absolute;
-        bottom: -6px;
-        left: 50%;
-        transform: translateX(-50%);
-        border: 6px solid transparent;
-        border-top-color: rgba(10,14,26,0.96);
-    }
-    #customTooltip.tip-critical { color: #c0392b; }
-    #customTooltip.tip-healthy { color: #0f973d; }
-    #customTooltip.tip-td { color: #c0392b; }
-    #customTooltip.tip-bd { color: #e67e22; }
-    #customTooltip.tip-mixed { color: #8e44ad; }
-    
-    /* MODAL */
-    #modalContainer {
-        position: fixed; inset: 0;
-        background: rgba(0,0,0,0.92);
-        backdrop-filter: blur(20px);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 999999;
-        animation: modal-in 0.25s ease;
-        padding: 20px;
-    }
-    @keyframes modal-in { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-    
-    #alertBox {
-        background: linear-gradient(145deg, #111a2e, #0a0e1a);
-        border-radius: 18px;
-        max-width: 560px;
-        width: 95%;
-        max-height: 85vh;
-        padding: 24px 28px 28px 28px;
-        border: 1px solid rgba(255,255,255,0.03);
-        box-shadow: 0 40px 80px rgba(0,0,0,0.9);
-        overflow-y: auto;
-    }
-    #alertBox::-webkit-scrollbar { width: 3px; }
-    #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
-    
-    #alertBox .head {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 10px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid rgba(255,255,255,0.03);
-    }
-    #alertBox .head h3 {
-        font-size: 18px;
-        font-weight: 800;
-        color: #c0392b;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    #alertBox .head h3 i { font-size: 20px; }
-    #alertBox .head .close-btn {
-        background: none;
-        border: none;
-        color: #4a6a8a;
-        font-size: 22px;
-        cursor: pointer;
-        transition: 0.2s;
-        padding: 0 4px;
-        line-height: 1;
-    }
-    #alertBox .head .close-btn:hover { color: #fff; transform: rotate(90deg); }
-    
-    #alertBox .body-text {
-        background: rgba(0,0,0,0.2);
-        border-radius: 8px;
-        padding: 12px 16px;
-        margin: 6px 0 14px 0;
-        border-left: 3px solid #4f9cf7;
-        font-size: 12px;
-        line-height: 1.8;
-        color: #b0c8e0;
-        max-height: 160px;
-        overflow-y: auto;
-    }
-    #alertBox .body-text b { color: #fff; }
-    #alertBox .body-text .highlight-td { color: #c0392b; font-weight: 700; }
-    #alertBox .body-text .highlight-bd { color: #e67e22; font-weight: 700; }
-    #alertBox .body-text .highlight-mixed { color: #8e44ad; font-weight: 700; }
-    
-    #alertBox .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-    #alertBox .field { margin-bottom: 4px; }
-    #alertBox .field label {
-        display: block;
-        font-size: 8px;
-        font-weight: 700;
-        color: #4a6a8a;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        margin-bottom: 2px;
-    }
-    #alertBox .field select, #alertBox .field textarea {
-        width: 100%;
-        background: rgba(0,0,0,0.35);
-        border: 1px solid rgba(255,255,255,0.03);
-        border-radius: 8px;
-        padding: 8px 12px;
-        color: #ffffff;
-        font-size: 12px;
-        font-family: 'Inter', sans-serif;
-        transition: 0.2s;
-    }
-    #alertBox .field select:focus, #alertBox .field textarea:focus {
-        outline: none;
-        border-color: #4f9cf7;
-        box-shadow: 0 0 0 3px rgba(79,156,247,0.04);
-    }
-    #alertBox .field textarea { min-height: 40px; resize: vertical; }
-    #alertBox .field.full { grid-column: 1 / -1; }
-    
-    .modal-actions {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-        margin-top: 12px;
-        flex-wrap: wrap;
-    }
-    .modal-actions .btn-m {
-        padding: 6px 20px;
+        padding: 6px 18px;
         border-radius: 40px;
         font-weight: 700;
-        font-size: 9px;
+        font-size: 11px;
         border: none;
         cursor: pointer;
-        transition: 0.2s;
+        transition: all 0.25s ease;
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -563,65 +230,586 @@
         letter-spacing: 0.5px;
         font-family: 'Inter', sans-serif;
     }
-    .modal-actions .btn-m-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; }
-    .modal-actions .btn-m-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,156,247,0.15); }
-    .modal-actions .btn-m-danger { background: linear-gradient(135deg, #c0392b, #922b21); color: #fff; }
-    .modal-actions .btn-m-secondary { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); color: #6a8aaa; }
-    .modal-actions .btn-m-secondary:hover { background: rgba(255,255,255,0.04); }
+    .btn-primary-glass {
+        background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(79,156,247,0.15);
+    }
+    .btn-primary-glass:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 35px rgba(79,156,247,0.25);
+    }
+    .btn-ghost-glass {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.04);
+        color: #8aaac0;
+    }
+    .btn-ghost-glass:hover {
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(255,255,255,0.08);
+    }
+    .badge-count-glass {
+        background: rgba(79,156,247,0.08);
+        padding: 0 8px;
+        border-radius: 4px;
+        font-weight: 700;
+        font-size: 12px;
+        color: #4f9cf7;
+    }
     
-    /* RESPONSIVE */
+    /* ========== TICKER ========== */
+    .ticker-bar {
+        display: flex;
+        align-items: center;
+        padding: 4px 16px;
+        background: rgba(255,255,255,0.01);
+        border-radius: 8px;
+        border: 1px solid rgba(255,255,255,0.02);
+        flex-shrink: 0;
+        margin-bottom: 4px;
+        height: 28px;
+    }
+    .ticker-wrap { flex: 1; overflow: hidden; padding: 0 6px; }
+    .ticker-text {
+        display: inline-block;
+        white-space: nowrap;
+        animation: marquee 35s linear infinite;
+        font-size: 12px;
+        font-weight: 600;
+        color: #4a6a8a;
+    }
+    .ticker-text span { margin: 0 20px; color: #5a7a9a; }
+    .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
+    .ticker-text .hl2 { color: #7c3aed; font-weight: 700; }
+    @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    
+    /* ========== INFO BAR ========== */
+    .info-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0 6px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.02);
+        flex-shrink: 0;
+        margin-bottom: 4px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .legend { display: flex; gap: 20px; flex-wrap: wrap; }
+    .legend .item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #6a8aaa;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .legend .swatch {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+        border: 1px solid rgba(255,255,255,0.04);
+    }
+    .sw-td { background: #c0392b; box-shadow: 0 0 20px rgba(192,57,43,0.2); }
+    .sw-bd { background: #e67e22; box-shadow: 0 0 20px rgba(230,126,34,0.2); }
+    .sw-mixed { background: #8e44ad; box-shadow: 0 0 20px rgba(142,68,173,0.2); }
+    .sw-health { background: #0f973d; box-shadow: 0 0 20px rgba(15,151,61,0.15); }
+    .timestamp-display {
+        color: #4f9cf7;
+        font-weight: 700;
+        font-size: 12px;
+        background: rgba(79,156,247,0.04);
+        padding: 4px 16px;
+        border-radius: 40px;
+        border: 1px solid rgba(79,156,247,0.04);
+    }
+    .timestamp-display i { margin-right: 6px; }
+    
+    /* ========== MAIN GRID ========== */
+    .grid-main {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+        min-height: 0;
+    }
+    
+    /* ========== CARDS ========== */
+    .card-modern {
+        background: rgba(255,255,255,0.015);
+        border-radius: 14px;
+        border: 1px solid rgba(255,255,255,0.03);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .card-modern:hover {
+        border-color: rgba(79,156,247,0.05);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+        transform: translateY(-1px);
+    }
+    
+    .card-header-modern {
+        padding: 8px 14px 6px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        height: 38px;
+        background: rgba(255,255,255,0.01);
+        border-bottom: 1px solid rgba(255,255,255,0.02);
+    }
+    .card-header-modern .title {
+        font-weight: 800;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #b0c8e0;
+    }
+    .card-header-modern .title i {
+        color: #4f9cf7;
+        font-size: 14px;
+    }
+    .card-header-modern .badge-count {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 14px;
+        border-radius: 40px;
+        background: rgba(79,156,247,0.06);
+        color: #4f9cf7;
+        border: 1px solid rgba(79,156,247,0.06);
+    }
+    .card-header-modern .badge-count.danger {
+        background: rgba(192,57,43,0.1);
+        color: #c0392b;
+        border-color: rgba(192,57,43,0.08);
+    }
+    
+    /* ========== TILE GRID ========== */
+    .tile-grid {
+        flex: 1;
+        padding: 4px 8px 8px 8px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: 1fr;
+        gap: 4px;
+        min-height: 0;
+    }
+    
+    /* ========== TILES ========== */
+    .tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        position: relative;
+        aspect-ratio: 1;
+        min-height: 36px;
+        padding: 6px 4px;
+        border: 2px solid rgba(255,255,255,0.02);
+        background: rgba(255,255,255,0.01);
+        overflow: hidden;
+    }
+    .tile:hover {
+        transform: scale(1.06) translateY(-3px);
+        z-index: 10;
+        box-shadow: 0 12px 50px rgba(0,0,0,0.5);
+        border-color: rgba(79,156,247,0.12);
+    }
+    .tile .val {
+        font-size: 18px;
+        font-weight: 900;
+        line-height: 1.1;
+        text-align: center;
+        max-width: 100%;
+        padding: 0 2px;
+    }
+    .tile .sub-text {
+        font-size: 8px;
+        font-weight: 700;
+        opacity: 0.6;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        padding: 0 2px;
+    }
+    .tile .bar {
+        position: absolute;
+        bottom: 3px;
+        left: 12%;
+        right: 12%;
+        height: 3px;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.02);
+        overflow: hidden;
+    }
+    .tile .bar .fill {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.8s ease;
+    }
+    
+    /* ========== TILE STATUSES - BRIGHT & BOLD ========== */
+    .tile-critical {
+        background: rgba(192,57,43,0.12);
+        border-color: rgba(192,57,43,0.18);
+    }
+    .tile-critical .val { color: #e74c3c; font-size: 20px; text-shadow: 0 0 30px rgba(231,76,60,0.1); }
+    .tile-critical .sub-text { color: #e74c3c; opacity: 0.8; }
+    .tile-critical .bar .fill { background: #e74c3c; width: 80%; }
+    .tile-critical.pulse {
+        animation: crit-pulse 2s ease-in-out infinite;
+    }
+    @keyframes crit-pulse {
+        0%,100% { border-color: rgba(231,76,60,0.18); box-shadow: 0 0 20px rgba(231,76,60,0.04); }
+        50% { border-color: rgba(231,76,60,0.35); box-shadow: 0 0 40px rgba(231,76,60,0.1); }
+    }
+    
+    .tile-healthy {
+        background: rgba(15,151,61,0.08);
+        border-color: rgba(15,151,61,0.04);
+    }
+    .tile-healthy .val { color: #2ecc71; font-size: 14px; font-weight: 800; }
+    .tile-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 9px; }
+    .tile-healthy .bar .fill { background: #2ecc71; width: 15%; }
+    
+    .tile-td {
+        background: rgba(192,57,43,0.14);
+        border-color: rgba(192,57,43,0.20);
+    }
+    .tile-td .val { color: #e74c3c; font-size: 22px; text-shadow: 0 0 40px rgba(231,76,60,0.15); }
+    .tile-td .sub-text { color: #e74c3c; opacity: 0.8; font-size: 9px; }
+    .tile-td .bar .fill { background: #e74c3c; width: 80%; }
+    .tile-td.pulse {
+        animation: td-pulse 2s ease-in-out infinite;
+    }
+    @keyframes td-pulse {
+        0%,100% { border-color: rgba(231,76,60,0.20); box-shadow: 0 0 20px rgba(231,76,60,0.04); }
+        50% { border-color: rgba(231,76,60,0.40); box-shadow: 0 0 50px rgba(231,76,60,0.12); }
+    }
+    
+    .tile-bd {
+        background: rgba(230,126,34,0.14);
+        border-color: rgba(230,126,34,0.20);
+    }
+    .tile-bd .val { color: #f39c12; font-size: 22px; text-shadow: 0 0 40px rgba(243,156,18,0.15); }
+    .tile-bd .sub-text { color: #f39c12; opacity: 0.8; font-size: 9px; }
+    .tile-bd .bar .fill { background: #f39c12; width: 80%; }
+    .tile-bd.pulse {
+        animation: bd-pulse 2s ease-in-out infinite;
+    }
+    @keyframes bd-pulse {
+        0%,100% { border-color: rgba(243,156,18,0.20); box-shadow: 0 0 20px rgba(243,156,18,0.04); }
+        50% { border-color: rgba(243,156,18,0.40); box-shadow: 0 0 50px rgba(243,156,18,0.12); }
+    }
+    
+    .tile-mixed {
+        background: rgba(142,68,173,0.14);
+        border-color: rgba(142,68,173,0.20);
+    }
+    .tile-mixed .val { color: #9b59b6; font-size: 22px; text-shadow: 0 0 40px rgba(155,89,182,0.15); }
+    .tile-mixed .sub-text { color: #9b59b6; opacity: 0.8; font-size: 9px; }
+    .tile-mixed .bar .fill { background: #9b59b6; width: 80%; }
+    .tile-mixed.pulse {
+        animation: mixed-pulse 2s ease-in-out infinite;
+    }
+    @keyframes mixed-pulse {
+        0%,100% { border-color: rgba(155,89,182,0.20); box-shadow: 0 0 20px rgba(155,89,182,0.04); }
+        50% { border-color: rgba(155,89,182,0.40); box-shadow: 0 0 50px rgba(155,89,182,0.12); }
+    }
+    
+    .tile-hundred-healthy {
+        background: rgba(15,151,61,0.08);
+        border-color: rgba(15,151,61,0.04);
+    }
+    .tile-hundred-healthy .val { color: #2ecc71; font-size: 15px; font-weight: 800; }
+    .tile-hundred-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 9px; }
+    .tile-hundred-healthy .bar .fill { background: #2ecc71; width: 15%; }
+    
+    /* ========== TOOLTIP ========== */
+    #customTooltip {
+        position: fixed;
+        display: none;
+        background: rgba(8,12,24,0.96);
+        backdrop-filter: blur(16px);
+        color: #e8edf5;
+        padding: 8px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1px solid rgba(255,255,255,0.04);
+        box-shadow: 0 12px 50px rgba(0,0,0,0.9);
+        pointer-events: none;
+        z-index: 99999;
+        font-family: 'Inter', sans-serif;
+        white-space: nowrap;
+        max-width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        transform: translateX(-50%) translateY(-100%);
+    }
+    #customTooltip::after {
+        content: '';
+        position: absolute;
+        bottom: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 8px solid transparent;
+        border-top-color: rgba(8,12,24,0.96);
+    }
+    #customTooltip.tip-critical { color: #e74c3c; }
+    #customTooltip.tip-healthy { color: #2ecc71; }
+    #customTooltip.tip-td { color: #e74c3c; }
+    #customTooltip.tip-bd { color: #f39c12; }
+    #customTooltip.tip-mixed { color: #9b59b6; }
+    
+    /* ========== MODAL ========== */
+    #modalContainer {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.92);
+        backdrop-filter: blur(24px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 999999;
+        animation: modal-in 0.3s ease;
+        padding: 20px;
+    }
+    @keyframes modal-in {
+        from { opacity: 0; transform: scale(0.95) translateY(30px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    
+    #alertBox {
+        background: linear-gradient(145deg, #111a2e, #080c18);
+        border-radius: 24px;
+        max-width: 620px;
+        width: 95%;
+        max-height: 85vh;
+        padding: 32px 40px 36px 40px;
+        border: 1px solid rgba(255,255,255,0.04);
+        box-shadow: 0 60px 120px rgba(0,0,0,0.9);
+        overflow-y: auto;
+    }
+    #alertBox::-webkit-scrollbar { width: 4px; }
+    #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
+    
+    #alertBox .head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 14px;
+        padding-bottom: 14px;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    #alertBox .head h3 {
+        font-size: 24px;
+        font-weight: 800;
+        color: #e74c3c;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    #alertBox .head h3 i { font-size: 28px; }
+    #alertBox .head .close-btn {
+        background: none;
+        border: none;
+        color: #4a6a8a;
+        font-size: 28px;
+        cursor: pointer;
+        transition: 0.2s;
+        padding: 0 6px;
+        line-height: 1;
+    }
+    #alertBox .head .close-btn:hover { color: #fff; transform: rotate(90deg); }
+    
+    #alertBox .body-text {
+        background: rgba(0,0,0,0.25);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 8px 0 18px 0;
+        border-left: 3px solid #4f9cf7;
+        font-size: 14px;
+        line-height: 2;
+        color: #b0c8e0;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+    #alertBox .body-text b { color: #ffffff; }
+    #alertBox .body-text .highlight-td { color: #e74c3c; font-weight: 700; }
+    #alertBox .body-text .highlight-bd { color: #f39c12; font-weight: 700; }
+    #alertBox .body-text .highlight-mixed { color: #9b59b6; font-weight: 700; }
+    
+    #alertBox .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    #alertBox .field { margin-bottom: 6px; }
+    #alertBox .field label {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        color: #4a6a8a;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 4px;
+    }
+    #alertBox .field select, #alertBox .field textarea {
+        width: 100%;
+        background: rgba(0,0,0,0.35);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: #ffffff;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: 0.2s;
+    }
+    #alertBox .field select:focus, #alertBox .field textarea:focus {
+        outline: none;
+        border-color: #4f9cf7;
+        box-shadow: 0 0 0 4px rgba(79,156,247,0.04);
+    }
+    #alertBox .field textarea { min-height: 50px; resize: vertical; }
+    #alertBox .field.full { grid-column: 1 / -1; }
+    
+    .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 18px;
+        flex-wrap: wrap;
+    }
+    .modal-actions .btn-m {
+        padding: 10px 28px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 12px;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
+    }
+    .modal-actions .btn-m-primary {
+        background: linear-gradient(135deg, #4f9cf7, #7c3aed);
+        color: #fff;
+        box-shadow: 0 4px 20px rgba(79,156,247,0.15);
+    }
+    .modal-actions .btn-m-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(79,156,247,0.25);
+    }
+    .modal-actions .btn-m-danger {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: #fff;
+    }
+    .modal-actions .btn-m-secondary {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.04);
+        color: #6a8aaa;
+    }
+    .modal-actions .btn-m-secondary:hover {
+        background: rgba(255,255,255,0.04);
+    }
+    
+    /* ========== RESPONSIVE ========== */
     @media (max-width: 1400px) { .grid-main { grid-template-columns: repeat(5, 1fr); } }
     @media (max-width: 1100px) { .grid-main { grid-template-columns: repeat(4, 1fr); } .tile-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 768px) { .grid-main { grid-template-columns: repeat(2, 1fr); } .tile-grid { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
     
-    ::-webkit-scrollbar { width: 2px; }
+    ::-webkit-scrollbar { width: 3px; }
     ::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
+    
+    /* ========== GLOW ANIMATION ========== */
+    .glow-pulse {
+        animation: glowPulse 3s ease-in-out infinite;
+    }
+    @keyframes glowPulse {
+        0%,100% { opacity: 0.6; }
+        50% { opacity: 1; }
+    }
 </style>
 </head>
 <body>
 
-<!-- LOADER -->
+<!-- ========== LOADER ========== -->
 <div id="loaderWrapper">
-    <div class="loader-spinner"></div>
-    <div class="loader-text">Loading Nexus Observe...</div>
+    <div class="loader-ring"></div>
+    <div class="loader-text">Initializing <span>Nexus</span></div>
 </div>
 
+<!-- ========== BACKGROUND ========== -->
 <div class="bg-layer"></div>
+<div class="bg-grid"></div>
 
+<!-- ========== WRAPPER ========== -->
 <div class="wrapper">
 
-    <!-- TOP BAR -->
+    <!-- ========== TOP BAR ========== -->
     <div class="top-bar">
         <div class="brand">
             <div class="logo"><i class="fas fa-satellite-dish"></i></div>
             <div>
-                <div class="name"><span class="nx">Nexus</span><span class="ob">Observe</span></div>
+                <div class="name">NEXUS</div>
                 <div class="sub">Command Center</div>
             </div>
         </div>
         <div class="top-actions">
-            <div class="live-badge"><span class="dot"></span> LIVE</div>
+            <div class="live-badge">
+                <span class="dot"></span>
+                <span>LIVE</span>
+                <span style="opacity:0.3;margin-left:4px;">·</span>
+                <span style="color:#4a6a8a;font-weight:400;">All systems</span>
+            </div>
             <span class="timer-glass" id="ten-countdown">5:00</span>
-            <button class="btn-glass btn-primary-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayServiceWiseFailure.jsp','_blank')"><i class="fas fa-list"></i> SW</button>
-            <button class="btn-glass btn-ghost-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayTodayServiceWiseFailure.jsp','_blank')"><i class="fas fa-check-circle"></i> <span class="badge-count-glass"><%= swClosed %></span></button>
-            <button class="btn-glass btn-primary-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp','_blank')"><i class="fas fa-percent"></i> 100%</button>
-            <button class="btn-glass btn-ghost-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayTodayHundredPercentFailure.jsp','_blank')"><i class="fas fa-check-circle"></i> <span class="badge-count-glass"><%= hundredClosed %></span></button>
+            <button class="btn-glass btn-primary-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayServiceWiseFailure.jsp','_blank')">
+                <i class="fas fa-list"></i> SW
+            </button>
+            <button class="btn-glass btn-ghost-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayTodayServiceWiseFailure.jsp','_blank')">
+                <i class="fas fa-check-circle"></i> <span class="badge-count-glass"><%= swClosed %></span>
+            </button>
+            <button class="btn-glass btn-primary-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp','_blank')">
+                <i class="fas fa-percent"></i> 100%
+            </button>
+            <button class="btn-glass btn-ghost-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayTodayHundredPercentFailure.jsp','_blank')">
+                <i class="fas fa-check-circle"></i> <span class="badge-count-glass"><%= hundredClosed %></span>
+            </button>
         </div>
     </div>
 
-    <!-- TICKER -->
+    <!-- ========== TICKER ========== -->
     <div class="ticker-bar">
         <div class="ticker-wrap">
             <div class="ticker-text">
-                <span>● <span class="hl">MONITOR:</span> ServiceWise (TD &gt; 1%) + 100% Failure</span>
-                <span>● <span class="hl">LEGEND:</span> Red=TD · Orange=BD · Purple=Mixed · Green=Healthy</span>
-                <span>● <span class="hl">CLICK:</span> Any tile for detailed alert</span>
+                <span>● <span class="hl">MONITORING:</span> ServiceWise (TD &gt; 1%) + <span class="hl2">100% Failure</span></span>
+                <span>● <span class="hl">LEGEND:</span> <span style="color:#e74c3c;">● TD</span> <span style="color:#f39c12;">● BD</span> <span style="color:#9b59b6;">● Mixed</span> <span style="color:#2ecc71;">● Healthy</span></span>
                 <span>● <span class="hl">REFRESH:</span> Every 5 minutes</span>
+                <span>● <span class="hl">CLICK:</span> Any tile for detailed alert</span>
             </div>
         </div>
     </div>
 
-    <!-- LEGEND + TIMESTAMP -->
+    <!-- ========== INFO BAR ========== -->
     <div class="info-bar">
         <div class="legend">
             <span class="item"><span class="swatch sw-td"></span> TD</span>
@@ -634,7 +822,7 @@
         </div>
     </div>
 
-    <!-- MAIN GRID - 7 CARDS -->
+    <!-- ========== MAIN GRID ========== -->
     <div class="grid-main">
 
         <!-- ============================================================ -->
@@ -835,7 +1023,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- CARD 4: ServiceWise - Combined (I4C·IVR·CAPS) -->
+        <!-- CARD 4: ServiceWise - Combined -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -934,7 +1122,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- CARD 5: 100% Failure - GEN-5 -->
+        <!-- CARD 5: 100% GEN-5 -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -1012,7 +1200,7 @@
                         String name = hTdName.get(i).replace("'", "\\'");
                         String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','GEN-5','TD','" + hTdSource.get(i).replace("'", "\\'") + "','" + hTdError.get(i).replace("'", "\\'") + "','" + hTdHits.get(i) + "','" + hTdCount.get(i) + "','" + hTdTime.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-td' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>TD</span>");
+                        out.print("<span class='val'>100%</span><span class='sub-text'>TD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         hIdx++;
                     }
@@ -1023,7 +1211,7 @@
                         String name = hBdName.get(i).replace("'", "\\'");
                         String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','GEN-5','BD','" + hBdSource.get(i).replace("'", "\\'") + "','" + hBdError.get(i).replace("'", "\\'") + "','" + hBdHits.get(i) + "','" + hBdCount.get(i) + "','" + hBdTime.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-bd' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>BD</span>");
+                        out.print("<span class='val'>100%</span><span class='sub-text'>BD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         hIdx++;
                     }
@@ -1034,7 +1222,7 @@
                         String name = hMixedName.get(i).replace("'", "\\'");
                         String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','GEN-5','MIXED','" + hMixedSource.get(i).replace("'", "\\'") + "','" + hMixedError.get(i).replace("'", "\\'") + "','" + hMixedHits.get(i) + "','" + hMixedTd.get(i) + "','" + hMixedTime.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-mixed' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>MIX</span>");
+                        out.print("<span class='val'>100%</span><span class='sub-text'>MIX</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         hIdx++;
                     }
@@ -1048,7 +1236,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- CARD 6: 100% Failure - SI -->
+        <!-- CARD 6: 100% SI -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -1087,7 +1275,7 @@
                         String name = hSiName.get(i).replace("'", "\\'");
                         String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','SI','TD','','" + hSiError.get(i).replace("'", "\\'") + "','" + hSiHits.get(i) + "','" + hSiTdCount.get(i) + "','" + hSiTime.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-td' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>TD</span>");
+                        out.print("<span class='val'>100%</span><span class='sub-text'>TD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                     }
                     for(int k = hSiTdPer.size(); k < 28; k++) {
@@ -1100,7 +1288,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- CARD 7: 100% Failure - ThirdParty -->
+        <!-- CARD 7: 100% ThirdParty -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -1178,7 +1366,7 @@
                         String name = h3TdName.get(i).replace("'", "\\'");
                         String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','TD','" + h3TdSource.get(i).replace("'", "\\'") + "','" + h3TdError.get(i).replace("'", "\\'") + "','" + h3TdHits.get(i) + "','" + h3TdCount.get(i) + "','" + h3TdTime.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-td' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>TD</span>");
+                        out.print("<span class='val'>100%</span><span class='sub-text'>TD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         h3Idx++;
                     }
@@ -1189,7 +1377,7 @@
                         String name = h3BdName.get(i).replace("'", "\\'");
                         String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','BD','" + h3BdSource.get(i).replace("'", "\\'") + "','" + h3BdError.get(i).replace("'", "\\'") + "','" + h3BdHits.get(i) + "','" + h3BdCount.get(i) + "','" + h3BdTime.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-bd' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>BD</span>");
+                        out.print("<span class='val'>100%</span><span class='sub-text'>BD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         h3Idx++;
                     }
@@ -1200,7 +1388,7 @@
                         String name = h3MixedName.get(i).replace("'", "\\'");
                         String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','MIXED','" + h3MixedSource.get(i).replace("'", "\\'") + "','" + h3MixedError.get(i).replace("'", "\\'") + "','" + h3MixedHits.get(i) + "','" + h3MixedTd.get(i) + "','" + h3MixedTime.get(i).replace("'", "\\'") + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-mixed' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>MIX</span>");
+                        out.print("<span class='val'>100%</span><span class='sub-text'>MIX</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         h3Idx++;
                     }
@@ -1216,18 +1404,14 @@
     </div>
 </div>
 
-<!-- ============================================================ -->
-<!-- TOOLTIP -->
-<!-- ============================================================ -->
+<!-- ========== TOOLTIP ========== -->
 <div id="customTooltip"></div>
 
-<!-- ============================================================ -->
-<!-- MODAL - ServiceWise -->
-<!-- ============================================================ -->
+<!-- ========== MODAL ========== -->
 <div id="modalContainer">
     <div id="alertBox">
         <div class="head">
-            <h3><i class="fas fa-exclamation-triangle"></i> Service Alert</h3>
+            <h3><i class="fas fa-exclamation-triangle"></i> <span id="modalTitle">Service Alert</span></h3>
             <button class="close-btn" onclick="closeModal()">✕</button>
         </div>
         <div class="body-text" id="modalMsg"></div>
@@ -1373,7 +1557,7 @@
         mTD = td || '';
         mTime = time || '';
         isHundred = false;
-        
+        document.getElementById('modalTitle').textContent = 'Service Alert';
         document.getElementById('modalMsg').innerHTML = msg;
         document.getElementById('modalContainer').style.display = 'flex';
         document.getElementById('TextArea').value = '';
@@ -1393,7 +1577,7 @@
         mTD = td || '';
         mTime = time || '';
         isHundred = true;
-        
+        document.getElementById('modalTitle').textContent = '100% Failure Alert';
         document.getElementById('modalMsg').innerHTML = msg;
         document.getElementById('modalContainer').style.display = 'flex';
         document.getElementById('TextArea').value = '';
@@ -1409,15 +1593,31 @@
     // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         // ServiceWise counts
-        document.getElementById('swGen5Count').textContent = document.querySelectorAll('#sw-gen5 .tile-critical').length || 0;
-        document.getElementById('swSiCount').textContent = document.querySelectorAll('#sw-si .tile-critical').length || 0;
-        document.getElementById('swThirdCount').textContent = document.querySelectorAll('#sw-third .tile-critical').length || 0;
-        document.getElementById('swCombCount').textContent = document.querySelectorAll('#sw-comb .tile-critical').length || 0;
+        var swGen5 = document.querySelectorAll('#sw-gen5 .tile-critical').length || 0;
+        var swSi = document.querySelectorAll('#sw-si .tile-critical').length || 0;
+        var swThird = document.querySelectorAll('#sw-third .tile-critical').length || 0;
+        var swComb = document.querySelectorAll('#sw-comb .tile-critical').length || 0;
+        
+        document.getElementById('swGen5Count').textContent = swGen5;
+        document.getElementById('swGen5Count').className = 'badge-count' + (swGen5 > 0 ? ' danger' : '');
+        document.getElementById('swSiCount').textContent = swSi;
+        document.getElementById('swSiCount').className = 'badge-count' + (swSi > 0 ? ' danger' : '');
+        document.getElementById('swThirdCount').textContent = swThird;
+        document.getElementById('swThirdCount').className = 'badge-count' + (swThird > 0 ? ' danger' : '');
+        document.getElementById('swCombCount').textContent = swComb;
+        document.getElementById('swCombCount').className = 'badge-count' + (swComb > 0 ? ' danger' : '');
         
         // 100% counts
-        document.getElementById('hGen5Count').textContent = document.querySelectorAll('#h-gen5 .tile-td, #h-gen5 .tile-bd, #h-gen5 .tile-mixed').length || 0;
-        document.getElementById('hSiCount').textContent = document.querySelectorAll('#h-si .tile-td, #h-si .tile-bd, #h-si .tile-mixed').length || 0;
-        document.getElementById('hThirdCount').textContent = document.querySelectorAll('#h-third .tile-td, #h-third .tile-bd, #h-third .tile-mixed').length || 0;
+        var hGen5 = document.querySelectorAll('#h-gen5 .tile-td, #h-gen5 .tile-bd, #h-gen5 .tile-mixed').length || 0;
+        var hSi = document.querySelectorAll('#h-si .tile-td, #h-si .tile-bd, #h-si .tile-mixed').length || 0;
+        var hThird = document.querySelectorAll('#h-third .tile-td, #h-third .tile-bd, #h-third .tile-mixed').length || 0;
+        
+        document.getElementById('hGen5Count').textContent = hGen5;
+        document.getElementById('hGen5Count').className = 'badge-count' + (hGen5 > 0 ? ' danger' : '');
+        document.getElementById('hSiCount').textContent = hSi;
+        document.getElementById('hSiCount').className = 'badge-count' + (hSi > 0 ? ' danger' : '');
+        document.getElementById('hThirdCount').textContent = hThird;
+        document.getElementById('hThirdCount').className = 'badge-count' + (hThird > 0 ? ' danger' : '');
     });
     
     // ============================================================
