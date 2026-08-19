@@ -13,7 +13,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="60">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Monitor · Command Center</title>
+    <title>Nexus Monitor · Category Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -23,23 +23,19 @@
             background: #0a0e1a;
             color: #e8edf5;
             min-height: 100vh;
-            padding: 20px;
+            padding: 16px;
         }
         
-        /* ========== GLASS BACKGROUND ========== */
         .bg-gradient {
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at 30% 20%, rgba(79,156,247,0.03) 0%, transparent 60%),
-                        radial-gradient(ellipse at 70% 80%, rgba(124,58,237,0.02) 0%, transparent 50%);
+            inset: 0;
+            background: radial-gradient(ellipse at 20% 20%, rgba(79,156,247,0.03) 0%, transparent 50%),
+                        radial-gradient(ellipse at 80% 80%, rgba(124,58,237,0.02) 0%, transparent 50%);
             z-index: 0;
             pointer-events: none;
         }
         
-        /* ========== LOADER ========== */
+        /* LOADER */
         #loader {
             position: fixed;
             inset: 0;
@@ -53,25 +49,23 @@
         }
         #loader.hidden { opacity: 0; pointer-events: none; }
         .loader-ring {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             border: 3px solid rgba(79,156,247,0.05);
             border-top: 3px solid #4f9cf7;
             animation: spin 1s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-            box-shadow: 0 0 60px rgba(79,156,247,0.05);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loader-text {
-            margin-top: 24px;
-            font-size: 13px;
+            margin-top: 16px;
+            font-size: 11px;
             font-weight: 600;
             color: #4a6a8a;
             letter-spacing: 3px;
             text-transform: uppercase;
         }
         
-        /* ========== MAIN CONTAINER ========== */
         .container {
             position: relative;
             z-index: 1;
@@ -79,45 +73,44 @@
             margin: 0 auto;
         }
         
-        /* ========== HEADER ========== */
+        /* HEADER */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 28px;
+            padding: 14px 24px;
             background: rgba(255,255,255,0.02);
             border: 1px solid rgba(255,255,255,0.03);
-            border-radius: 16px;
+            border-radius: 14px;
             backdrop-filter: blur(20px);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
         }
         .header-left {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 14px;
         }
         .header-logo {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             background: linear-gradient(135deg, #4f9cf7, #7c3aed);
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 16px;
             color: #fff;
-            box-shadow: 0 4px 30px rgba(79,156,247,0.15);
         }
         .header-title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 900;
             letter-spacing: -0.5px;
         }
         .header-title span { color: #4f9cf7; }
         .header-sub {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
             color: #4a6a8a;
             text-transform: uppercase;
@@ -126,24 +119,24 @@
         .header-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
             flex-wrap: wrap;
         }
         .status-badge {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 16px 6px 12px;
+            gap: 6px;
+            padding: 5px 14px 5px 10px;
             border-radius: 40px;
             background: rgba(15,151,61,0.06);
             border: 1px solid rgba(15,151,61,0.08);
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 700;
             color: #0f973d;
         }
         .status-badge .dot {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
             background: #0f973d;
             animation: pulse-dot 1.5s infinite;
@@ -153,148 +146,128 @@
             50% { opacity: 0.2; transform: scale(0.7); }
         }
         .header-time {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: #4f9cf7;
             background: rgba(79,156,247,0.04);
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 40px;
             border: 1px solid rgba(79,156,247,0.04);
         }
         
-        /* ========== STATS ROW ========== */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
+        /* CATEGORY TABS */
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
-        .stat-card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.03);
-            border-radius: 12px;
-            padding: 18px 22px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-        .stat-card:hover {
-            border-color: rgba(79,156,247,0.06);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 40px rgba(0,0,0,0.3);
-        }
-        .stat-label {
+        .category-tab {
+            padding: 8px 18px;
+            border-radius: 40px;
             font-size: 10px;
             font-weight: 700;
-            color: #4a6a8a;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 6px;
-        }
-        .stat-value {
-            font-size: 28px;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-        }
-        .stat-value.danger { color: #c0392b; }
-        .stat-value.warning { color: #e67e22; }
-        .stat-value.success { color: #0f973d; }
-        .stat-value.info { color: #4f9cf7; }
-        .stat-change {
-            font-size: 10px;
-            font-weight: 600;
-            margin-top: 4px;
-            opacity: 0.5;
-        }
-        .stat-change i { margin-right: 4px; }
-        
-        /* ========== GRID ========== */
-        .grid-2col {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
-            margin-bottom: 24px;
-        }
-        .grid-3col {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-        
-        @media (max-width: 1200px) {
-            .grid-2col { grid-template-columns: 1fr; }
-            .grid-3col { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 768px) {
-            .grid-3col { grid-template-columns: 1fr; }
-            .header { flex-direction: column; align-items: stretch; }
-            .header-right { justify-content: space-between; }
-        }
-        
-        /* ========== CARDS ========== */
-        .card {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.03);
-            border-radius: 14px;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255,255,255,0.04);
+            background: rgba(255,255,255,0.01);
+            color: #6a8aaa;
+            cursor: pointer;
             transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
         }
-        .card:hover {
-            border-color: rgba(79,156,247,0.05);
-            box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+        .category-tab:hover {
+            border-color: rgba(79,156,247,0.08);
+            color: #b0c8e0;
         }
-        .card-header {
-            padding: 14px 20px;
+        .category-tab.active {
+            background: linear-gradient(135deg, rgba(79,156,247,0.08), rgba(124,58,237,0.06));
+            border-color: rgba(79,156,247,0.12);
+            color: #4f9cf7;
+        }
+        .category-tab .badge {
+            background: rgba(79,156,247,0.06);
+            padding: 0 6px;
+            border-radius: 4px;
+            font-size: 8px;
+            margin-left: 4px;
+        }
+        .category-tab .badge.danger { color: #c0392b; background: rgba(192,57,43,0.08); }
+        .category-tab .badge.warning { color: #e67e22; background: rgba(230,126,34,0.06); }
+        
+        /* CATEGORY SECTION */
+        .category-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .category-section.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .category-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            padding: 10px 16px;
+            margin-bottom: 12px;
             background: rgba(255,255,255,0.01);
+            border-radius: 10px;
+            border-left: 3px solid #4f9cf7;
         }
-        .card-header .title {
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #6a8aaa;
+        .category-header .title {
+            font-size: 13px;
+            font-weight: 800;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        .card-header .title i { color: #4f9cf7; font-size: 13px; }
-        .card-header .badge {
+        .category-header .title i { color: #4f9cf7; font-size: 14px; }
+        .category-header .stats {
             font-size: 9px;
-            font-weight: 700;
-            padding: 2px 12px;
-            border-radius: 40px;
-            background: rgba(79,156,247,0.04);
-            color: #4f9cf7;
-            border: 1px solid rgba(79,156,247,0.04);
+            font-weight: 600;
+            color: #4a6a8a;
+            display: flex;
+            gap: 12px;
         }
-        .card-body {
-            padding: 14px 16px 16px;
+        .category-header .stats span { display: flex; align-items: center; gap: 4px; }
+        .category-header .stats .dot-sm {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
         }
+        .dot-sm.critical { background: #c0392b; }
+        .dot-sm.warning { background: #e67e22; }
+        .dot-sm.healthy { background: #0f973d; }
         
-        /* ========== SERVICE TILES ========== */
+        /* SERVICE GRID */
         .service-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-            gap: 6px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
         }
+        
         .service-tile {
-            padding: 10px 6px;
-            border-radius: 8px;
+            padding: 12px 8px;
+            border-radius: 10px;
             text-align: center;
             border: 1px solid rgba(255,255,255,0.03);
             background: rgba(255,255,255,0.01);
-            transition: all 0.2s ease;
+            transition: all 0.25s ease;
             cursor: pointer;
             position: relative;
+            min-height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
         .service-tile:hover {
-            transform: scale(1.05);
+            transform: scale(1.04) translateY(-3px);
             border-color: rgba(79,156,247,0.08);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
             z-index: 2;
         }
         .service-tile .name {
@@ -307,6 +280,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 100%;
         }
         .service-tile .value {
             font-size: 16px;
@@ -318,14 +292,14 @@
             font-weight: 600;
             opacity: 0.5;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             margin-top: 2px;
         }
         .service-tile .bar {
             position: absolute;
             bottom: 4px;
-            left: 15%;
-            right: 15%;
+            left: 12%;
+            right: 12%;
             height: 2px;
             border-radius: 3px;
             background: rgba(255,255,255,0.03);
@@ -336,13 +310,20 @@
             transition: width 0.8s ease;
         }
         
-        /* Status colors */
+        /* Tile Status Colors */
         .tile-critical {
             background: rgba(192,57,43,0.08);
             border-color: rgba(192,57,43,0.10);
         }
         .tile-critical .value { color: #c0392b; }
         .tile-critical .bar .fill { background: #c0392b; width: 80%; }
+        .tile-critical.pulse {
+            animation: pulse-critical 2s ease-in-out infinite;
+        }
+        @keyframes pulse-critical {
+            0%,100% { border-color: rgba(192,57,43,0.10); }
+            50% { border-color: rgba(192,57,43,0.25); box-shadow: 0 0 25px rgba(192,57,43,0.04); }
+        }
         
         .tile-warning {
             background: rgba(230,126,34,0.06);
@@ -365,111 +346,57 @@
         .tile-mixed .value { color: #8e44ad; }
         .tile-mixed .bar .fill { background: #8e44ad; width: 65%; }
         
-        /* Pulse animation for critical */
-        .pulse-critical {
-            animation: pulse-critical 2s ease-in-out infinite;
+        .tile-bd {
+            background: rgba(230,126,34,0.08);
+            border-color: rgba(230,126,34,0.12);
         }
-        @keyframes pulse-critical {
-            0%,100% { border-color: rgba(192,57,43,0.10); }
-            50% { border-color: rgba(192,57,43,0.25); box-shadow: 0 0 30px rgba(192,57,43,0.04); }
+        .tile-bd .value { color: #e67e22; font-size: 16px; }
+        .tile-bd .bar .fill { background: #e67e22; width: 80%; }
+        .tile-bd.pulse {
+            animation: pulse-bd 2s ease-in-out infinite;
         }
-        
-        /* ========== ALERT LIST ========== */
-        .alert-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .alert-list::-webkit-scrollbar { width: 3px; }
-        .alert-list::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
-        
-        .alert-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.01);
-            border-left: 3px solid #4a6a8a;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-        .alert-item:hover {
-            background: rgba(255,255,255,0.02);
-        }
-        .alert-item .icon {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-        .alert-item .icon.critical { background: rgba(192,57,43,0.12); color: #c0392b; }
-        .alert-item .icon.warning { background: rgba(230,126,34,0.10); color: #e67e22; }
-        .alert-item .icon.info { background: rgba(79,156,247,0.08); color: #4f9cf7; }
-        
-        .alert-item .content {
-            flex: 1;
-            min-width: 0;
-        }
-        .alert-item .content .title {
-            font-size: 11px;
-            font-weight: 700;
-            color: #c8d8e8;
-        }
-        .alert-item .content .desc {
-            font-size: 9px;
-            color: #4a6a8a;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .alert-item .time {
-            font-size: 8px;
-            font-weight: 600;
-            color: #3a5a7a;
-            flex-shrink: 0;
+        @keyframes pulse-bd {
+            0%,100% { border-color: rgba(230,126,34,0.12); }
+            50% { border-color: rgba(230,126,34,0.25); box-shadow: 0 0 25px rgba(230,126,34,0.04); }
         }
         
-        .alert-item.critical { border-left-color: #c0392b; }
-        .alert-item.warning { border-left-color: #e67e22; }
-        .alert-item.info { border-left-color: #4f9cf7; }
+        .tile-td {
+            background: rgba(192,57,43,0.08);
+            border-color: rgba(192,57,43,0.12);
+        }
+        .tile-td .value { color: #c0392b; font-size: 16px; }
+        .tile-td .bar .fill { background: #c0392b; width: 80%; }
+        .tile-td.pulse {
+            animation: pulse-td 2s ease-in-out infinite;
+        }
+        @keyframes pulse-td {
+            0%,100% { border-color: rgba(192,57,43,0.12); }
+            50% { border-color: rgba(192,57,43,0.25); box-shadow: 0 0 25px rgba(192,57,43,0.04); }
+        }
         
-        /* ========== SYSTEM HEALTH ========== */
-        .health-metrics {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
+        .tile-hundred-mixed {
+            background: rgba(142,68,173,0.08);
+            border-color: rgba(142,68,173,0.12);
         }
-        .metric {
-            text-align: center;
-            padding: 12px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.01);
-            border: 1px solid rgba(255,255,255,0.02);
+        .tile-hundred-mixed .value { color: #8e44ad; font-size: 16px; }
+        .tile-hundred-mixed .bar .fill { background: #8e44ad; width: 80%; }
+        .tile-hundred-mixed.pulse {
+            animation: pulse-mixed 2s ease-in-out infinite;
         }
-        .metric .label {
-            font-size: 8px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #4a6a8a;
-            margin-bottom: 4px;
+        @keyframes pulse-mixed {
+            0%,100% { border-color: rgba(142,68,173,0.12); }
+            50% { border-color: rgba(142,68,173,0.25); box-shadow: 0 0 25px rgba(142,68,173,0.04); }
         }
-        .metric .value {
-            font-size: 22px;
-            font-weight: 900;
-        }
-        .metric .value.green { color: #0f973d; }
-        .metric .value.orange { color: #e67e22; }
-        .metric .value.red { color: #c0392b; }
         
-        /* ========== TOOLTIP ========== */
+        /* 100% Specific */
+        .tile-hundred-healthy {
+            background: rgba(15,151,61,0.04);
+            border-color: rgba(15,151,61,0.03);
+        }
+        .tile-hundred-healthy .value { color: #0f973d; font-size: 12px; font-weight: 800; }
+        .tile-hundred-healthy .bar .fill { background: #0f973d; width: 15%; }
+        
+        /* TOOLTIP */
         #tooltip {
             position: fixed;
             display: none;
@@ -490,7 +417,7 @@
             transform: translateX(-50%) translateY(-100%);
         }
         
-        /* ========== MODAL ========== */
+        /* MODAL */
         #modalOverlay {
             position: fixed;
             inset: 0;
@@ -505,30 +432,30 @@
         #modalOverlay.active { display: flex; }
         #modalBox {
             background: linear-gradient(145deg, #111827, #0a0e1a);
-            border-radius: 20px;
-            max-width: 560px;
+            border-radius: 18px;
+            max-width: 540px;
             width: 100%;
             max-height: 80vh;
-            padding: 32px;
+            padding: 28px 30px;
             border: 1px solid rgba(255,255,255,0.04);
             box-shadow: 0 40px 80px rgba(0,0,0,0.8);
             overflow-y: auto;
             animation: modalIn 0.25s ease;
         }
         @keyframes modalIn {
-            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            from { opacity: 0; transform: scale(0.95) translateY(15px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
         #modalBox .head {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
             border-bottom: 1px solid rgba(255,255,255,0.03);
         }
         #modalBox .head h3 {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 800;
             display: flex;
             align-items: center;
@@ -539,23 +466,26 @@
             background: none;
             border: none;
             color: #4a6a8a;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             padding: 0 4px;
             transition: 0.2s;
         }
         #modalBox .head .close:hover { color: #fff; transform: rotate(90deg); }
         #modalBox .body {
-            font-size: 13px;
+            font-size: 12px;
             line-height: 1.8;
             color: #b0c8e0;
             background: rgba(0,0,0,0.2);
-            padding: 12px 16px;
-            border-radius: 10px;
+            padding: 12px 14px;
+            border-radius: 8px;
             border-left: 3px solid #4f9cf7;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
         #modalBox .body b { color: #fff; }
+        #modalBox .body .highlight-td { color: #c0392b; font-weight: 700; }
+        #modalBox .body .highlight-bd { color: #e67e22; font-weight: 700; }
+        #modalBox .body .highlight-mixed { color: #8e44ad; font-weight: 700; }
         #modalBox .actions {
             display: flex;
             gap: 8px;
@@ -563,10 +493,10 @@
             flex-wrap: wrap;
         }
         #modalBox .actions button {
-            padding: 6px 20px;
+            padding: 6px 18px;
             border-radius: 40px;
             font-weight: 700;
-            font-size: 10px;
+            font-size: 9px;
             border: none;
             cursor: pointer;
             transition: 0.2s;
@@ -586,32 +516,50 @@
         }
         #modalBox .actions .btn-secondary:hover { background: rgba(255,255,255,0.04); }
         
-        /* ========== SCROLLBAR ========== */
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .service-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+        }
+        @media (max-width: 768px) {
+            .service-grid { grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); }
+            .header { flex-direction: column; align-items: stretch; }
+            .header-right { justify-content: space-between; }
+            .category-tabs { gap: 4px; }
+            .category-tab { padding: 6px 12px; font-size: 8px; }
+        }
+        
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
         
-        /* ========== ANIMATIONS ========== */
-        .fade-in { animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .glow-text { text-shadow: 0 0 40px rgba(79,156,247,0.05); }
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #3a5a7a;
+            font-size: 11px;
+        }
+        .empty-state i {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 8px;
+            color: #2a3a50;
+        }
     </style>
 </head>
 <body>
 
 <div class="bg-gradient"></div>
 
-<!-- ========== LOADER ========== -->
+<!-- LOADER -->
 <div id="loader">
     <div class="loader-ring"></div>
-    <div class="loader-text">Initializing Nexus Monitor</div>
+    <div class="loader-text">Loading Category Dashboard...</div>
 </div>
 
-<!-- ========== TOOLTIP ========== -->
+<!-- TOOLTIP -->
 <div id="tooltip"></div>
 
-<!-- ========== MODAL ========== -->
+<!-- MODAL -->
 <div id="modalOverlay">
     <div id="modalBox">
         <div class="head">
@@ -626,274 +574,588 @@
     </div>
 </div>
 
-<!-- ========== MAIN ========== -->
+<!-- MAIN -->
 <div class="container">
 
     <!-- HEADER -->
-    <header class="header fade-in">
+    <header class="header">
         <div class="header-left">
-            <div class="header-logo"><i class="fas fa-satellite-dish"></i></div>
+            <div class="header-logo"><i class="fas fa-layer-group"></i></div>
             <div>
                 <div class="header-title">Nexus <span>Monitor</span></div>
-                <div class="header-sub">Real-Time Service Command Center</div>
+                <div class="header-sub">Category · Service Command Center</div>
             </div>
         </div>
         <div class="header-right">
             <div class="status-badge">
                 <span class="dot"></span>
-                <span>All Systems <span style="color:#0f973d;">Operational</span></span>
+                <span><span style="color:#0f973d;">Operational</span></span>
             </div>
-            <div class="header-time" id="liveTime">
-                <i class="far fa-clock"></i> 
-                <span id="currentTime"></span>
+            <div class="header-time">
+                <i class="far fa-clock"></i> <span id="currentTime"></span>
             </div>
         </div>
     </header>
 
-    <!-- STATS ROW -->
-    <div class="stats-row fade-in">
-        <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-server" style="margin-right:4px;color:#4f9cf7;"></i> Total Services</div>
-            <div class="stat-value info" id="totalServices">0</div>
-            <div class="stat-change"><i class="fas fa-arrow-up" style="color:#0f973d;"></i> Monitored</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-exclamation-triangle" style="margin-right:4px;color:#c0392b;"></i> Critical</div>
-            <div class="stat-value danger" id="criticalCount">0</div>
-            <div class="stat-change" style="color:#c0392b;"><i class="fas fa-circle" style="font-size:6px;"></i> Requires attention</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-clock" style="margin-right:4px;color:#e67e22;"></i> Warning</div>
-            <div class="stat-value warning" id="warningCount">0</div>
-            <div class="stat-change" style="color:#e67e22;"><i class="fas fa-circle" style="font-size:6px;"></i> Monitor closely</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-check-circle" style="margin-right:4px;color:#0f973d;"></i> Healthy</div>
-            <div class="stat-value success" id="healthyCount">0</div>
-            <div class="stat-change" style="color:#0f973d;"><i class="fas fa-circle" style="font-size:6px;"></i> All green</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label"><i class="fas fa-bolt" style="margin-right:4px;color:#8e44ad;"></i> Uptime</div>
-            <div class="stat-value" style="color:#8e44ad;" id="uptime">99.98%</div>
-            <div class="stat-change">Last 24 hours</div>
-        </div>
+    <!-- CATEGORY TABS -->
+    <div class="category-tabs" id="categoryTabs">
+        <button class="category-tab active" data-category="gen5">
+            <i class="fas fa-server"></i> GEN-5
+            <span class="badge" id="badge-gen5">0</span>
+        </button>
+        <button class="category-tab" data-category="si">
+            <i class="fas fa-code"></i> SI
+            <span class="badge" id="badge-si">0</span>
+        </button>
+        <button class="category-tab" data-category="thirdparty">
+            <i class="fas fa-plug"></i> ThirdParty
+            <span class="badge" id="badge-thirdparty">0</span>
+        </button>
+        <button class="category-tab" data-category="combined">
+            <i class="fas fa-layer-group"></i> I4C · IVR · CAPS
+            <span class="badge" id="badge-combined">0</span>
+        </button>
+        <button class="category-tab" data-category="hundred">
+            <i class="fas fa-percent"></i> 100% Failure
+            <span class="badge" id="badge-hundred">0</span>
+        </button>
     </div>
 
-    <!-- GRID: Services + Alerts -->
-    <div class="grid-2col fade-in">
-        <!-- SERVICES -->
-        <div class="card">
-            <div class="card-header">
-                <span class="title"><i class="fas fa-th"></i> Service Health Overview</span>
-                <span class="badge" id="serviceBadge">Live</span>
+    <%
+        Connection con = DBUtilityAuto.getReportDBConnection();
+        Statement st = null;
+        ResultSet rs = null;
+    %>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 1: GEN-5 -->
+    <!-- ============================================================ -->
+    <div class="category-section active" id="section-gen5">
+        <div class="category-header">
+            <span class="title"><i class="fas fa-server"></i> GEN-5 Services</span>
+            <div class="stats">
+                <span><span class="dot-sm critical"></span> <span id="gen5-critical">0</span></span>
+                <span><span class="dot-sm warning"></span> <span id="gen5-warning">0</span></span>
+                <span><span class="dot-sm healthy"></span> <span id="gen5-healthy">0</span></span>
             </div>
-            <div class="card-body">
-                <div class="service-grid" id="serviceGrid">
-                    <%
-                        Connection con = DBUtilityAuto.getReportDBConnection();
-                        Statement st = null;
-                        ResultSet rs = null;
-                        List<Map<String, Object>> services = new ArrayList<>();
-                        int critical = 0, warning = 0, healthy = 0;
+        </div>
+        <div class="service-grid" id="grid-gen5">
+            <%
+                List<Map<String, Object>> gen5Services = new ArrayList<>();
+                int gen5Crit = 0, gen5Warn = 0, gen5Health = 0;
+                try {
+                    String q = "SELECT * FROM (SELECT api_name, source_id, error_code, SUM(total_hits) AS total_hits, " +
+                               "SUM(td) AS td, round(AVG(td_per), 2) AS td_per, issue_time, SUM(SI_EEROR) AS SI_EEROR " +
+                               "FROM gen5_servicewise_fail WHERE insert_time >= SYSDATE - INTERVAL '10' MINUTE " +
+                               "AND substr(api_name, 1, 3) NOT IN 'gen' " +
+                               "GROUP BY api_name, source_id, error_code, issue_time ORDER BY td DESC) WHERE ROWNUM <= 48";
+                    rs = con.createStatement().executeQuery(q);
+                    while(rs.next()) {
+                        Map<String, Object> svc = new HashMap<>();
+                        svc.put("name", rs.getString("API_NAME"));
+                        svc.put("td", rs.getInt("TD"));
+                        svc.put("td_per", rs.getDouble("TD_PER"));
+                        svc.put("hits", rs.getInt("TOTAL_HITS"));
+                        svc.put("source", rs.getString("SOURCE_ID"));
+                        svc.put("error", rs.getString("ERROR_CODE"));
+                        svc.put("time", rs.getString("ISSUE_TIME"));
+                        svc.put("si_error", rs.getInt("SI_EEROR"));
+                        gen5Services.add(svc);
                         
-                        try {
-                            String query = "SELECT * FROM (SELECT api_name, source_id, error_code, " +
-                                           "SUM(total_hits) AS total_hits, SUM(td) AS td, " +
-                                           "round(AVG(td_per), 2) AS td_per, issue_time " +
-                                           "FROM gen5_servicewise_fail WHERE insert_time >= SYSDATE - INTERVAL '10' MINUTE " +
-                                           "GROUP BY api_name, source_id, error_code, issue_time " +
-                                           "ORDER BY td DESC) WHERE ROWNUM <= 24";
-                            st = con.createStatement();
-                            rs = st.executeQuery(query);
-                            while(rs.next()) {
-                                Map<String, Object> svc = new HashMap<>();
-                                svc.put("name", rs.getString("API_NAME"));
-                                svc.put("td", rs.getInt("TD"));
-                                svc.put("td_per", rs.getDouble("TD_PER"));
-                                svc.put("hits", rs.getInt("TOTAL_HITS"));
-                                svc.put("time", rs.getString("ISSUE_TIME"));
-                                services.add(svc);
-                                
-                                if(rs.getDouble("TD_PER") >= 5) critical++;
-                                else if(rs.getDouble("TD_PER") >= 2) warning++;
-                                else healthy++;
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                    %>
+                        if(rs.getDouble("TD_PER") >= 5) gen5Crit++;
+                        else if(rs.getDouble("TD_PER") >= 2) gen5Warn++;
+                        else gen5Health++;
+                    }
+                } catch(Exception e) { e.printStackTrace(); }
+            %>
+            <%
+                for(Map<String, Object> svc : gen5Services) {
+                    String name = (String) svc.get("name");
+                    Double td_per = (Double) svc.get("td_per");
+                    Integer td = (Integer) svc.get("td");
+                    String cls = "service-tile tile-healthy";
+                    String val = "✓";
+                    String sub = "OK";
+                    String barW = "15%";
+                    String tip = name + " | OK";
                     
-                    <%
-                        for(int i = 0; i < Math.min(services.size(), 24); i++) {
-                            Map<String, Object> svc = services.get(i);
-                            String name = (String) svc.get("name");
-                            Double td_per = (Double) svc.get("td_per");
-                            Integer td = (Integer) svc.get("td");
-                            
-                            String cls = "service-tile tile-healthy";
-                            String val = "✓";
-                            String sub = "OK";
-                            String barW = "15%";
-                            
-                            if(td_per >= 5.0) {
-                                cls = "service-tile tile-critical pulse-critical";
-                                val = String.format("%.1f", td_per) + "%";
-                                sub = "TD: " + td;
-                                barW = "80%";
-                            } else if(td_per >= 2.0) {
-                                cls = "service-tile tile-warning";
-                                val = String.format("%.1f", td_per) + "%";
-                                sub = "TD: " + td;
-                                barW = "50%";
-                            }
-                            
-                            String alertMsg = "<b>Service:</b> " + name + 
-                                             "<br><b>TD Count:</b> " + td +
-                                             "<br><b>Failure %:</b> " + String.format("%.2f", td_per) + "%" +
-                                             "<br><b>Time:</b> " + svc.get("time");
-                            
-                            String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name.replace("'", "\\'") + "')\"";
-                            
-                            out.print("<div class='" + cls + "' data-tip='" + name + " | " + String.format("%.1f", td_per) + "%' " + onclick + ">");
-                            out.print("<div class='name'>" + name.substring(0, Math.min(name.length(), 12)) + "</div>");
-                            out.print("<div class='value'>" + val + "</div>");
-                            out.print("<div class='sub'>" + sub + "</div>");
-                            out.print("<div class='bar'><div class='fill' style='width:" + barW + ";'></div></div>");
-                            out.print("</div>");
-                        }
-                        
-                        for(int i = services.size(); i < 24; i++) {
-                            out.print("<div class='service-tile tile-healthy'>");
-                            out.print("<div class='name'>—</div>");
-                            out.print("<div class='value'>✓</div>");
-                            out.print("<div class='sub'>OK</div>");
-                            out.print("<div class='bar'><div class='fill' style='width:15%;'></div></div>");
-                            out.print("</div>");
-                        }
-                    %>
-                </div>
-            </div>
-        </div>
-
-        <!-- ALERTS -->
-        <div class="card">
-            <div class="card-header">
-                <span class="title"><i class="fas fa-bell"></i> Recent Alerts</span>
-                <span class="badge" id="alertBadge">0</span>
-            </div>
-            <div class="card-body">
-                <div class="alert-list" id="alertList">
-                    <%
-                        try {
-                            String alertQuery = "SELECT api_name, td, td_per, issue_time, source_id FROM gen5_servicewise_fail " +
-                                               "WHERE insert_time >= SYSDATE - INTERVAL '1' HOUR AND td >= 10 " +
-                                               "ORDER BY td DESC FETCH FIRST 15 ROWS ONLY";
-                            rs = con.createStatement().executeQuery(alertQuery);
-                            int alertCount = 0;
-                            while(rs.next()) {
-                                alertCount++;
-                                String cls = rs.getInt("TD") >= 50 ? "critical" : "warning";
-                                String icon = rs.getInt("TD") >= 50 ? "fa-exclamation-circle" : "fa-triangle-exclamation";
-                                String iconCls = rs.getInt("TD") >= 50 ? "critical" : "warning";
-                                out.print("<div class='alert-item " + cls + "'>");
-                                out.print("<div class='icon " + iconCls + "'><i class='fas " + icon + "'></i></div>");
-                                out.print("<div class='content'>");
-                                out.print("<div class='title'>" + rs.getString("API_NAME") + "</div>");
-                                out.print("<div class='desc'>TD: " + rs.getInt("TD") + " | " + String.format("%.1f", rs.getDouble("TD_PER")) + "%</div>");
-                                out.print("</div>");
-                                out.print("<div class='time'>" + rs.getString("ISSUE_TIME").substring(0, 5) + "</div>");
-                                out.print("</div>");
-                            }
-                            if(alertCount == 0) {
-                                out.print("<div style='text-align:center;padding:30px 0;color:#3a5a7a;font-size:12px;'>");
-                                out.print("<i class='fas fa-check-circle' style='font-size:24px;display:block;margin-bottom:8px;color:#0f973d;'></i>");
-                                out.print("All systems are healthy</div>");
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                    %>
-                </div>
-            </div>
+                    if(td_per >= 5.0) {
+                        cls = "service-tile tile-critical pulse";
+                        val = String.format("%.1f", td_per) + "%";
+                        sub = "TD:" + td;
+                        barW = "80%";
+                        tip = "⚠ " + name + " | TD: " + td + " | " + String.format("%.1f", td_per) + "%";
+                    } else if(td_per >= 2.0) {
+                        cls = "service-tile tile-warning";
+                        val = String.format("%.1f", td_per) + "%";
+                        sub = "TD:" + td;
+                        barW = "50%";
+                        tip = "⚠ " + name + " | TD: " + td + " | " + String.format("%.1f", td_per) + "%";
+                    }
+                    
+                    String alertMsg = "<b>Service:</b> " + name +
+                                     "<br><b>Source:</b> " + svc.get("source") +
+                                     "<br><b>Error:</b> " + svc.get("error") +
+                                     "<br><b>Hits:</b> " + svc.get("hits") +
+                                     "<br><b>TD Count:</b> <span class='highlight-td'>" + td + "</span>" +
+                                     "<br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", td_per) + "%</span>" +
+                                     "<br><b>SI Error:</b> " + svc.get("si_error") +
+                                     "<br><b>Time:</b> " + svc.get("time");
+                    
+                    String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name.replace("'", "\\'") + "')\"";
+                    out.print("<div class='" + cls + "' data-tip='" + tip + "' " + onclick + ">");
+                    out.print("<div class='name'>" + (name.length() > 12 ? name.substring(0, 12) + "…" : name) + "</div>");
+                    out.print("<div class='value'>" + val + "</div>");
+                    out.print("<div class='sub'>" + sub + "</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:" + barW + ";'></div></div>");
+                    out.print("</div>");
+                }
+                for(int i = gen5Services.size(); i < 48; i++) {
+                    out.print("<div class='service-tile tile-healthy' data-tip='✅ Healthy'>");
+                    out.print("<div class='name'>—</div>");
+                    out.print("<div class='value'>✓</div>");
+                    out.print("<div class='sub'>OK</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:15%;'></div></div>");
+                    out.print("</div>");
+                }
+            %>
         </div>
     </div>
 
-    <!-- BOTTOM ROW: Health Metrics -->
-    <div class="grid-3col fade-in">
-        <div class="card">
-            <div class="card-header">
-                <span class="title"><i class="fas fa-heartbeat"></i> System Health</span>
-                <span class="badge">Live</span>
-            </div>
-            <div class="card-body">
-                <div class="health-metrics">
-                    <div class="metric">
-                        <div class="label">CPU</div>
-                        <div class="value green" id="cpu">42%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="label">Memory</div>
-                        <div class="value orange" id="memory">67%</div>
-                    </div>
-                    <div class="metric">
-                        <div class="label">Response</div>
-                        <div class="value green" id="response">124ms</div>
-                    </div>
-                    <div class="metric">
-                        <div class="label">Error Rate</div>
-                        <div class="value green" id="errorRate">0.8%</div>
-                    </div>
-                </div>
+    <!-- ============================================================ -->
+    <!-- CATEGORY 2: SI -->
+    <!-- ============================================================ -->
+    <div class="category-section" id="section-si">
+        <div class="category-header">
+            <span class="title"><i class="fas fa-code"></i> SI Services</span>
+            <div class="stats">
+                <span><span class="dot-sm critical"></span> <span id="si-critical">0</span></span>
+                <span><span class="dot-sm warning"></span> <span id="si-warning">0</span></span>
+                <span><span class="dot-sm healthy"></span> <span id="si-healthy">0</span></span>
             </div>
         </div>
+        <div class="service-grid" id="grid-si">
+            <%
+                List<Map<String, Object>> siServices = new ArrayList<>();
+                int siCrit = 0, siWarn = 0, siHealth = 0;
+                try {
+                    String q = "SELECT * FROM (SELECT api_name, error_code, SUM(total_hits) AS total_hits, " +
+                               "SUM(td) AS td, round(AVG(td_per),2) AS td_per, issue_time " +
+                               "FROM si_ServiceWise_fail WHERE insert_time >= SYSDATE - INTERVAL '10' MINUTE " +
+                               "GROUP BY api_name, error_code, issue_time ORDER BY td DESC) WHERE ROWNUM <= 48";
+                    rs = con.createStatement().executeQuery(q);
+                    while(rs.next()) {
+                        Map<String, Object> svc = new HashMap<>();
+                        svc.put("name", rs.getString("API_NAME"));
+                        svc.put("td", rs.getInt("TD"));
+                        svc.put("td_per", rs.getDouble("TD_PER"));
+                        svc.put("hits", rs.getInt("TOTAL_HITS"));
+                        svc.put("error", rs.getString("ERROR_CODE"));
+                        svc.put("time", rs.getString("ISSUE_TIME"));
+                        siServices.add(svc);
+                        
+                        if(rs.getDouble("TD_PER") >= 5) siCrit++;
+                        else if(rs.getDouble("TD_PER") >= 2) siWarn++;
+                        else siHealth++;
+                    }
+                } catch(Exception e) { e.printStackTrace(); }
+            %>
+            <%
+                for(Map<String, Object> svc : siServices) {
+                    String name = (String) svc.get("name");
+                    Double td_per = (Double) svc.get("td_per");
+                    Integer td = (Integer) svc.get("td");
+                    String cls = "service-tile tile-healthy";
+                    String val = "✓";
+                    String sub = "OK";
+                    String barW = "15%";
+                    String tip = name + " | OK";
+                    
+                    if(td_per >= 5.0) {
+                        cls = "service-tile tile-critical pulse";
+                        val = String.format("%.1f", td_per) + "%";
+                        sub = "TD:" + td;
+                        barW = "80%";
+                        tip = "⚠ " + name + " | TD: " + td + " | " + String.format("%.1f", td_per) + "%";
+                    } else if(td_per >= 2.0) {
+                        cls = "service-tile tile-warning";
+                        val = String.format("%.1f", td_per) + "%";
+                        sub = "TD:" + td;
+                        barW = "50%";
+                        tip = "⚠ " + name + " | TD: " + td + " | " + String.format("%.1f", td_per) + "%";
+                    }
+                    
+                    String alertMsg = "<b>Service:</b> " + name +
+                                     "<br><b>Error:</b> " + svc.get("error") +
+                                     "<br><b>Hits:</b> " + svc.get("hits") +
+                                     "<br><b>TD Count:</b> <span class='highlight-td'>" + td + "</span>" +
+                                     "<br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", td_per) + "%</span>" +
+                                     "<br><b>Time:</b> " + svc.get("time");
+                    
+                    String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name.replace("'", "\\'") + "')\"";
+                    out.print("<div class='" + cls + "' data-tip='" + tip + "' " + onclick + ">");
+                    out.print("<div class='name'>" + (name.length() > 12 ? name.substring(0, 12) + "…" : name) + "</div>");
+                    out.print("<div class='value'>" + val + "</div>");
+                    out.print("<div class='sub'>" + sub + "</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:" + barW + ";'></div></div>");
+                    out.print("</div>");
+                }
+                for(int i = siServices.size(); i < 48; i++) {
+                    out.print("<div class='service-tile tile-healthy' data-tip='✅ Healthy'>");
+                    out.print("<div class='name'>—</div>");
+                    out.print("<div class='value'>✓</div>");
+                    out.print("<div class='sub'>OK</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:15%;'></div></div>");
+                    out.print("</div>");
+                }
+            %>
+        </div>
+    </div>
 
-        <div class="card">
-            <div class="card-header">
-                <span class="title"><i class="fas fa-clock"></i> Quick Actions</span>
-                <span class="badge">⚡</span>
-            </div>
-            <div class="card-body" style="display:flex;flex-wrap:wrap;gap:8px;padding:14px 16px;">
-                <button style="flex:1;min-width:80px;padding:10px 16px;border-radius:8px;border:1px solid rgba(79,156,247,0.08);background:rgba(79,156,247,0.04);color:#4f9cf7;font-weight:700;font-size:10px;cursor:pointer;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.5px;transition:0.2s;" 
-                        onmouseover="this.style.background='rgba(79,156,247,0.08)'" 
-                        onmouseout="this.style.background='rgba(79,156,247,0.04)'">
-                    <i class="fas fa-sync"></i> Refresh
-                </button>
-                <button style="flex:1;min-width:80px;padding:10px 16px;border-radius:8px;border:1px solid rgba(230,126,34,0.08);background:rgba(230,126,34,0.04);color:#e67e22;font-weight:700;font-size:10px;cursor:pointer;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.5px;transition:0.2s;"
-                        onmouseover="this.style.background='rgba(230,126,34,0.08)'"
-                        onmouseout="this.style.background='rgba(230,126,34,0.04)'">
-                    <i class="fas fa-bell-slash"></i> Mute
-                </button>
-                <button style="flex:1;min-width:80px;padding:10px 16px;border-radius:8px;border:1px solid rgba(15,151,61,0.08);background:rgba(15,151,61,0.04);color:#0f973d;font-weight:700;font-size:10px;cursor:pointer;font-family:'Inter',sans-serif;text-transform:uppercase;letter-spacing:0.5px;transition:0.2s;"
-                        onmouseover="this.style.background='rgba(15,151,61,0.08)'"
-                        onmouseout="this.style.background='rgba(15,151,61,0.04)'">
-                    <i class="fas fa-file-pdf"></i> Report
-                </button>
+    <!-- ============================================================ -->
+    <!-- CATEGORY 3: ThirdParty -->
+    <!-- ============================================================ -->
+    <div class="category-section" id="section-thirdparty">
+        <div class="category-header">
+            <span class="title"><i class="fas fa-plug"></i> ThirdParty Services</span>
+            <div class="stats">
+                <span><span class="dot-sm critical"></span> <span id="third-critical">0</span></span>
+                <span><span class="dot-sm warning"></span> <span id="third-warning">0</span></span>
+                <span><span class="dot-sm healthy"></span> <span id="third-healthy">0</span></span>
             </div>
         </div>
+        <div class="service-grid" id="grid-thirdparty">
+            <%
+                List<Map<String, Object>> thirdServices = new ArrayList<>();
+                int thirdCrit = 0, thirdWarn = 0, thirdHealth = 0;
+                try {
+                    String q = "SELECT * FROM (SELECT original_urn, sup_url, source_id, error_code, " +
+                               "SUM(total_hits) AS total_hits, SUM(td) AS td, round(AVG(td_percent),2) AS td_percent, " +
+                               "issue_time, SUM(SI_EEROR) AS SI_EEROR " +
+                               "FROM gen5_ThirdParty_servicewise_fail WHERE insert_time >= SYSDATE - INTERVAL '10' MINUTE " +
+                               "GROUP BY original_urn, sup_url, source_id, error_code, issue_time ORDER BY td DESC) WHERE ROWNUM <= 48";
+                    rs = con.createStatement().executeQuery(q);
+                    while(rs.next()) {
+                        Map<String, Object> svc = new HashMap<>();
+                        svc.put("name", rs.getString("original_urn"));
+                        svc.put("td", rs.getInt("TD"));
+                        svc.put("td_per", rs.getDouble("TD_PERCENT"));
+                        svc.put("hits", rs.getInt("TOTAL_HITS"));
+                        svc.put("source", rs.getString("SOURCE_ID"));
+                        svc.put("error", rs.getString("ERROR_CODE"));
+                        svc.put("time", rs.getString("ISSUE_TIME"));
+                        svc.put("si_error", rs.getInt("SI_EEROR"));
+                        thirdServices.add(svc);
+                        
+                        if(rs.getDouble("TD_PERCENT") >= 5) thirdCrit++;
+                        else if(rs.getDouble("TD_PERCENT") >= 2) thirdWarn++;
+                        else thirdHealth++;
+                    }
+                } catch(Exception e) { e.printStackTrace(); }
+            %>
+            <%
+                for(Map<String, Object> svc : thirdServices) {
+                    String name = (String) svc.get("name");
+                    Double td_per = (Double) svc.get("td_per");
+                    Integer td = (Integer) svc.get("td");
+                    String cls = "service-tile tile-healthy";
+                    String val = "✓";
+                    String sub = "OK";
+                    String barW = "15%";
+                    String tip = name + " | OK";
+                    
+                    if(td_per >= 5.0) {
+                        cls = "service-tile tile-critical pulse";
+                        val = String.format("%.1f", td_per) + "%";
+                        sub = "TD:" + td;
+                        barW = "80%";
+                        tip = "⚠ " + name + " | TD: " + td + " | " + String.format("%.1f", td_per) + "%";
+                    } else if(td_per >= 2.0) {
+                        cls = "service-tile tile-warning";
+                        val = String.format("%.1f", td_per) + "%";
+                        sub = "TD:" + td;
+                        barW = "50%";
+                        tip = "⚠ " + name + " | TD: " + td + " | " + String.format("%.1f", td_per) + "%";
+                    }
+                    
+                    String alertMsg = "<b>Service:</b> " + name +
+                                     "<br><b>Source:</b> " + svc.get("source") +
+                                     "<br><b>Error:</b> " + svc.get("error") +
+                                     "<br><b>Hits:</b> " + svc.get("hits") +
+                                     "<br><b>TD Count:</b> <span class='highlight-td'>" + td + "</span>" +
+                                     "<br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", td_per) + "%</span>" +
+                                     "<br><b>SI Error:</b> " + svc.get("si_error") +
+                                     "<br><b>Time:</b> " + svc.get("time");
+                    
+                    String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name.replace("'", "\\'") + "')\"";
+                    out.print("<div class='" + cls + "' data-tip='" + tip + "' " + onclick + ">");
+                    out.print("<div class='name'>" + (name.length() > 12 ? name.substring(0, 12) + "…" : name) + "</div>");
+                    out.print("<div class='value'>" + val + "</div>");
+                    out.print("<div class='sub'>" + sub + "</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:" + barW + ";'></div></div>");
+                    out.print("</div>");
+                }
+                for(int i = thirdServices.size(); i < 48; i++) {
+                    out.print("<div class='service-tile tile-healthy' data-tip='✅ Healthy'>");
+                    out.print("<div class='name'>—</div>");
+                    out.print("<div class='value'>✓</div>");
+                    out.print("<div class='sub'>OK</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:15%;'></div></div>");
+                    out.print("</div>");
+                }
+            %>
+        </div>
+    </div>
 
-        <div class="card">
-            <div class="card-header">
-                <span class="title"><i class="fas fa-info-circle"></i> System Info</span>
-                <span class="badge" id="infoBadge">v2.0</span>
+    <!-- ============================================================ -->
+    <!-- CATEGORY 4: I4C · IVR · CAPS -->
+    <!-- ============================================================ -->
+    <div class="category-section" id="section-combined">
+        <div class="category-header">
+            <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
+            <div class="stats">
+                <span><span class="dot-sm critical"></span> <span id="comb-critical">0</span></span>
+                <span><span class="dot-sm warning"></span> <span id="comb-warning">0</span></span>
+                <span><span class="dot-sm healthy"></span> <span id="comb-healthy">0</span></span>
             </div>
-            <div class="card-body" style="display:flex;flex-direction:column;gap:6px;padding:14px 16px;">
-                <div style="display:flex;justify-content:space-between;font-size:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.02);">
-                    <span style="color:#4a6a8a;">Environment</span>
-                    <span style="font-weight:700;color:#4f9cf7;">Production</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.02);">
-                    <span style="color:#4a6a8a;">Last Updated</span>
-                    <span style="font-weight:700;color:#8aaac0;" id="lastUpdate">—</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:10px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.02);">
-                    <span style="color:#4a6a8a;">Active Alerts</span>
-                    <span style="font-weight:700;color:#e67e22;" id="activeAlerts">0</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;font-size:10px;padding:4px 0;">
-                    <span style="color:#4a6a8a;">Service Status</span>
-                    <span style="font-weight:700;color:#0f973d;"><i class="fas fa-circle" style="font-size:6px;"></i> Operational</span>
-                </div>
+        </div>
+        <div class="service-grid" id="grid-combined">
+            <%
+                List<Map<String, Object>> combServices = new ArrayList<>();
+                int combCrit = 0, combWarn = 0, combHealth = 0;
+                try {
+                    // I4C
+                    String q = "SELECT * FROM (SELECT original_urn, sup_url, source_id, error_code, " +
+                               "SUM(total_hits) AS total_hits, SUM(td) AS td, round(AVG(td_percent),2) AS td_percent, issue_time " +
+                               "FROM gen5_ThirdParty_servicewise_fail WHERE insert_time >= SYSDATE - INTERVAL '10' MINUTE " +
+                               "AND source_id = 'I4' GROUP BY original_urn, sup_url, source_id, error_code, issue_time ORDER BY td DESC) WHERE ROWNUM <= 16";
+                    rs = con.createStatement().executeQuery(q);
+                    while(rs.next()) {
+                        Map<String, Object> svc = new HashMap<>();
+                        svc.put("name", rs.getString("original_urn"));
+                        svc.put("td", rs.getInt("TD"));
+                        svc.put("td_per", rs.getDouble("TD_PERCENT"));
+                        svc.put("hits", rs.getInt("TOTAL_HITS"));
+                        svc.put("source", rs.getString("SOURCE_ID"));
+                        svc.put("error", rs.getString("ERROR_CODE"));
+                        svc.put("time", rs.getString("ISSUE_TIME"));
+                        svc.put("cat", "I4C");
+                        combServices.add(svc);
+                    }
+                    // IVR
+                    q = "SELECT * FROM (SELECT api_name, source_id, error_code, SUM(total_hits) AS total_hits, " +
+                        "SUM(td) AS td, round(AVG(td_per),2) AS td_per, issue_time " +
+                        "FROM gen5_ServiceWise_fail WHERE insert_time >= SYSDATE - INTERVAL '10' MINUTE " +
+                        "AND source_id = 'CC' GROUP BY api_name, source_id, error_code, issue_time ORDER BY td DESC) WHERE ROWNUM <= 16";
+                    rs = con.createStatement().executeQuery(q);
+                    while(rs.next()) {
+                        Map<String, Object> svc = new HashMap<>();
+                        svc.put("name", rs.getString("API_NAME"));
+                        svc.put("td", rs.getInt("TD"));
+                        svc.put("td_per", rs.getDouble("TD_PER"));
+                        svc.put("hits", rs.getInt("TOTAL_HITS"));
+                        svc.put("source", rs.getString("SOURCE_ID"));
+                        svc.put("error", rs.getString("ERROR_CODE"));
+                        svc.put("time", rs.getString("ISSUE_TIME"));
+                        svc.put("cat", "IVR");
+                        combServices.add(svc);
+                    }
+                    // SBICAPS
+                    q = "SELECT * FROM (SELECT api_name, source_id, error_code, SUM(total_hits) AS total_hits, " +
+                        "SUM(td) AS td, round(AVG(TD_PERCENT),2) AS td_per, issue_time " +
+                        "FROM gen5_SBICABS_servicewise_fail WHERE insert_time >= SYSDATE - INTERVAL '10' MINUTE " +
+                        "GROUP BY api_name, source_id, error_code, issue_time ORDER BY td DESC) WHERE ROWNUM <= 16";
+                    rs = con.createStatement().executeQuery(q);
+                    while(rs.next()) {
+                        Map<String, Object> svc = new HashMap<>();
+                        svc.put("name", rs.getString("API_NAME"));
+                        svc.put("td", rs.getInt("TD"));
+                        svc.put("td_per", rs.getDouble("TD_PER"));
+                        svc.put("hits", rs.getInt("TOTAL_HITS"));
+                        svc.put("source", rs.getString("SOURCE_ID"));
+                        svc.put("error", rs.getString("ERROR_CODE"));
+                        svc.put("time", rs.getString("ISSUE_TIME"));
+                        svc.put("cat", "SBICAPS");
+                        combServices.add(svc);
+                    }
+                    
+                    for(Map<String, Object> svc : combServices) {
+                        Double td_per = (Double) svc.get("td_per");
+                        if(td_per >= 5) combCrit++;
+                        else if(td_per >= 2) combWarn++;
+                        else combHealth++;
+                    }
+                } catch(Exception e) { e.printStackTrace(); }
+            %>
+            <%
+                for(Map<String, Object> svc : combServices) {
+                    String name = (String) svc.get("name");
+                    Double td_per = (Double) svc.get("td_per");
+                    Integer td = (Integer) svc.get("td");
+                    String cls = "service-tile tile-healthy";
+                    String val = "✓";
+                    String sub = "OK";
+                    String barW = "15%";
+                    String tip = name + " | OK";
+                    
+                    if(td_per >= 5.0) {
+                        cls = "service-tile tile-critical pulse";
+                        val = String.format("%.1f", td_per) + "%";
+                        sub = "TD:" + td;
+                        barW = "80%";
+                        tip = "⚠ " + name + " | TD: " + td + " | " + String.format("%.1f", td_per) + "%";
+                    } else if(td_per >= 2.0) {
+                        cls = "service-tile tile-warning";
+                        val = String.format("%.1f", td_per) + "%";
+                        sub = "TD:" + td;
+                        barW = "50%";
+                        tip = "⚠ " + name + " | TD: " + td + " | " + String.format("%.1f", td_per) + "%";
+                    }
+                    
+                    String alertMsg = "<b>Service:</b> " + name +
+                                     "<br><b>Category:</b> " + svc.get("cat") +
+                                     "<br><b>Source:</b> " + svc.get("source") +
+                                     "<br><b>Error:</b> " + svc.get("error") +
+                                     "<br><b>Hits:</b> " + svc.get("hits") +
+                                     "<br><b>TD Count:</b> <span class='highlight-td'>" + td + "</span>" +
+                                     "<br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", td_per) + "%</span>" +
+                                     "<br><b>Time:</b> " + svc.get("time");
+                    
+                    String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name.replace("'", "\\'") + "')\"";
+                    out.print("<div class='" + cls + "' data-tip='" + tip + "' " + onclick + ">");
+                    out.print("<div class='name'>" + (name.length() > 12 ? name.substring(0, 12) + "…" : name) + "</div>");
+                    out.print("<div class='value'>" + val + "</div>");
+                    out.print("<div class='sub'>" + sub + "</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:" + barW + ";'></div></div>");
+                    out.print("</div>");
+                }
+                for(int i = combServices.size(); i < 48; i++) {
+                    out.print("<div class='service-tile tile-healthy' data-tip='✅ Healthy'>");
+                    out.print("<div class='name'>—</div>");
+                    out.print("<div class='value'>✓</div>");
+                    out.print("<div class='sub'>OK</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:15%;'></div></div>");
+                    out.print("</div>");
+                }
+            %>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- CATEGORY 5: 100% Failure -->
+    <!-- ============================================================ -->
+    <div class="category-section" id="section-hundred">
+        <div class="category-header">
+            <span class="title"><i class="fas fa-percent"></i> 100% Failure Services</span>
+            <div class="stats">
+                <span><span class="dot-sm critical"></span> TD <span id="hundred-td">0</span></span>
+                <span><span class="dot-sm warning"></span> BD <span id="hundred-bd">0</span></span>
+                <span><span class="dot-sm healthy"></span> Mixed <span id="hundred-mixed">0</span></span>
             </div>
+        </div>
+        <div class="service-grid" id="grid-hundred">
+            <%
+                List<Map<String, Object>> hundredServices = new ArrayList<>();
+                int hTd = 0, hBd = 0, hMixed = 0;
+                try {
+                    String q = "SELECT * FROM (SELECT api_name, source_id, error_code, SUM(total_hits) AS total_hits, " +
+                               "SUM(td) AS td, round(AVG(td_percent),2) AS td_percent, SUM(bd) AS bd, round(AVG(bd_per),2) AS bd_per, " +
+                               "CASE WHEN (SUM(td_percent) <> 0 AND SUM(bd_per) <> 0) THEN round(round(AVG(td_percent),2) + round(AVG(bd_per),2)) ELSE 0 END AS tdbd_per, " +
+                               "issue_time, SUM(SI_EEROR) AS SI_EEROR " +
+                               "FROM gen5_100_percentage_fail WHERE insert_time >= SYSDATE - INTERVAL '10' MINUTE " +
+                               "GROUP BY api_name, source_id, error_code, issue_time ORDER BY td DESC) WHERE ROWNUM <= 48";
+                    rs = con.createStatement().executeQuery(q);
+                    while(rs.next()) {
+                        Map<String, Object> svc = new HashMap<>();
+                        svc.put("name", rs.getString("API_NAME"));
+                        svc.put("td", rs.getInt("TD"));
+                        svc.put("td_per", rs.getDouble("TD_PERCENT"));
+                        svc.put("bd", rs.getInt("BD"));
+                        svc.put("bd_per", rs.getDouble("BD_PER"));
+                        svc.put("tdbd_per", rs.getDouble("TDBD_PER"));
+                        svc.put("hits", rs.getInt("TOTAL_HITS"));
+                        svc.put("source", rs.getString("SOURCE_ID"));
+                        svc.put("error", rs.getString("ERROR_CODE"));
+                        svc.put("time", rs.getString("ISSUE_TIME"));
+                        svc.put("si_error", rs.getInt("SI_EEROR"));
+                        
+                        if(rs.getDouble("TD_PERCENT") == 100 && rs.getInt("TD") >= 10) {
+                            svc.put("type", "TD");
+                            hundredServices.add(svc);
+                            hTd++;
+                        } else if(rs.getDouble("BD_PER") == 100 && rs.getInt("BD") >= 10) {
+                            svc.put("type", "BD");
+                            hundredServices.add(svc);
+                            hBd++;
+                        } else if(rs.getDouble("TDBD_PER") == 100 && (rs.getInt("TD") + rs.getInt("BD")) >= 10) {
+                            svc.put("type", "MIXED");
+                            hundredServices.add(svc);
+                            hMixed++;
+                        }
+                    }
+                } catch(Exception e) { e.printStackTrace(); }
+            %>
+            <%
+                for(Map<String, Object> svc : hundredServices) {
+                    String name = (String) svc.get("name");
+                    String type = (String) svc.get("type");
+                    String cls = "service-tile";
+                    String val = "100%";
+                    String sub = type;
+                    String tip = "⚠ " + name + " | " + type + " 100%";
+                    
+                    if("TD".equals(type)) {
+                        cls = "service-tile tile-td pulse";
+                        tip = "⚠ TD 100% | " + name;
+                    } else if("BD".equals(type)) {
+                        cls = "service-tile tile-bd pulse";
+                        tip = "⚠ BD 100% | " + name;
+                    } else if("MIXED".equals(type)) {
+                        cls = "service-tile tile-hundred-mixed pulse";
+                        tip = "⚠ MIXED 100% | " + name;
+                    }
+                    
+                    String alertMsg = "<b>Service:</b> " + name +
+                                     "<br><b>Type:</b> " + type +
+                                     "<br><b>Source:</b> " + svc.get("source") +
+                                     "<br><b>Error:</b> " + svc.get("error") +
+                                     "<br><b>Hits:</b> " + svc.get("hits");
+                    if("TD".equals(type)) {
+                        alertMsg += "<br><b>TD Count:</b> <span class='highlight-td'>" + svc.get("td") + "</span>";
+                    } else if("BD".equals(type)) {
+                        alertMsg += "<br><b>BD Count:</b> <span class='highlight-bd'>" + svc.get("bd") + "</span>";
+                    } else if("MIXED".equals(type)) {
+                        alertMsg += "<br><b>TD Count:</b> <span class='highlight-td'>" + svc.get("td") + "</span>" +
+                                   "<br><b>BD Count:</b> <span class='highlight-bd'>" + svc.get("bd") + "</span>";
+                    }
+                    alertMsg += "<br><b>SI Error:</b> " + svc.get("si_error") +
+                               "<br><b>Time:</b> " + svc.get("time");
+                    
+                    String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name.replace("'", "\\'") + "')\"";
+                    out.print("<div class='" + cls + "' data-tip='" + tip + "' " + onclick + ">");
+                    out.print("<div class='name'>" + (name.length() > 12 ? name.substring(0, 12) + "…" : name) + "</div>");
+                    out.print("<div class='value'>" + val + "</div>");
+                    out.print("<div class='sub'>" + sub + "</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:80%;'></div></div>");
+                    out.print("</div>");
+                }
+                for(int i = hundredServices.size(); i < 48; i++) {
+                    out.print("<div class='service-tile tile-hundred-healthy' data-tip='✅ Healthy'>");
+                    out.print("<div class='name'>—</div>");
+                    out.print("<div class='value'>✓</div>");
+                    out.print("<div class='sub'>OK</div>");
+                    out.print("<div class='bar'><div class='fill' style='width:15%;'></div></div>");
+                    out.print("</div>");
+                }
+            %>
         </div>
     </div>
 
 </div>
+
+<%
+    try { if(rs != null) rs.close(); if(st != null) st.close(); if(con != null) con.close(); } catch(Exception e) {}
+%>
 
 <script>
     // ============================================================
@@ -947,51 +1209,91 @@
         setInterval(updateClock, 1000);
         
         // ============================================================
-        // STATS UPDATE
+        // CATEGORY TABS
         // ============================================================
-        var critical = document.querySelectorAll('.tile-critical').length || 0;
-        var warning = document.querySelectorAll('.tile-warning').length || 0;
-        var healthy = document.querySelectorAll('.tile-healthy:not(.tile-critical):not(.tile-warning)').length || 0;
-        var total = critical + warning + healthy;
+        var tabs = document.querySelectorAll('.category-tab');
+        var sections = {
+            gen5: document.getElementById('section-gen5'),
+            si: document.getElementById('section-si'),
+            thirdparty: document.getElementById('section-thirdparty'),
+            combined: document.getElementById('section-combined'),
+            hundred: document.getElementById('section-hundred')
+        };
         
-        document.getElementById('totalServices').textContent = total || 24;
-        document.getElementById('criticalCount').textContent = critical;
-        document.getElementById('warningCount').textContent = warning;
-        document.getElementById('healthyCount').textContent = healthy;
-        document.getElementById('alertBadge').textContent = critical + warning;
-        document.getElementById('activeAlerts').textContent = critical + warning;
-        
-        // ============================================================
-        // MOCK HEALTH METRICS (animated)
-        // ============================================================
-        function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-        function randomFloat(min, max) { return (Math.random() * (max - min) + min).toFixed(1); }
-        
-        setInterval(function() {
-            var cpu = randomInt(30, 75);
-            var mem = randomInt(55, 85);
-            var resp = randomInt(80, 250);
-            var err = randomFloat(0.2, 2.5);
-            
-            document.getElementById('cpu').textContent = cpu + '%';
-            document.getElementById('cpu').className = 'value ' + (cpu > 70 ? 'red' : cpu > 50 ? 'orange' : 'green');
-            
-            document.getElementById('memory').textContent = mem + '%';
-            document.getElementById('memory').className = 'value ' + (mem > 80 ? 'red' : mem > 65 ? 'orange' : 'green');
-            
-            document.getElementById('response').textContent = resp + 'ms';
-            document.getElementById('response').className = 'value ' + (resp > 200 ? 'orange' : 'green');
-            
-            document.getElementById('errorRate').textContent = err + '%';
-            document.getElementById('errorRate').className = 'value ' + (err > 1.5 ? 'orange' : 'green');
-        }, 3000);
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() {
+                tabs.forEach(function(t) { t.classList.remove('active'); });
+                this.classList.add('active');
+                
+                var cat = this.getAttribute('data-category');
+                Object.keys(sections).forEach(function(key) {
+                    sections[key].classList.remove('active');
+                });
+                sections[cat].classList.add('active');
+            });
+        });
         
         // ============================================================
-        // LAST UPDATE
+        // UPDATE BADGES
         // ============================================================
-        var now = new Date();
-        document.getElementById('lastUpdate').textContent = 
-            now.toLocaleTimeString('en-IN', { hour12: false, hour: '2-digit', minute: '2-digit' });
+        function updateBadge(id, count) {
+            var el = document.getElementById(id);
+            if(el) {
+                el.textContent = count || 0;
+                if(count > 0) {
+                    el.className = 'badge danger';
+                } else if(count > 0) {
+                    el.className = 'badge warning';
+                } else {
+                    el.className = 'badge';
+                }
+            }
+        }
+        
+        // GEN-5
+        var gen5Crit = document.querySelectorAll('#grid-gen5 .tile-critical').length || 0;
+        var gen5Warn = document.querySelectorAll('#grid-gen5 .tile-warning').length || 0;
+        var gen5Health = document.querySelectorAll('#grid-gen5 .tile-healthy').length || 0;
+        document.getElementById('gen5-critical').textContent = gen5Crit;
+        document.getElementById('gen5-warning').textContent = gen5Warn;
+        document.getElementById('gen5-healthy').textContent = gen5Health;
+        document.getElementById('badge-gen5').textContent = gen5Crit + gen5Warn;
+        
+        // SI
+        var siCrit = document.querySelectorAll('#grid-si .tile-critical').length || 0;
+        var siWarn = document.querySelectorAll('#grid-si .tile-warning').length || 0;
+        var siHealth = document.querySelectorAll('#grid-si .tile-healthy').length || 0;
+        document.getElementById('si-critical').textContent = siCrit;
+        document.getElementById('si-warning').textContent = siWarn;
+        document.getElementById('si-healthy').textContent = siHealth;
+        document.getElementById('badge-si').textContent = siCrit + siWarn;
+        
+        // ThirdParty
+        var thirdCrit = document.querySelectorAll('#grid-thirdparty .tile-critical').length || 0;
+        var thirdWarn = document.querySelectorAll('#grid-thirdparty .tile-warning').length || 0;
+        var thirdHealth = document.querySelectorAll('#grid-thirdparty .tile-healthy').length || 0;
+        document.getElementById('third-critical').textContent = thirdCrit;
+        document.getElementById('third-warning').textContent = thirdWarn;
+        document.getElementById('third-healthy').textContent = thirdHealth;
+        document.getElementById('badge-thirdparty').textContent = thirdCrit + thirdWarn;
+        
+        // Combined
+        var combCrit = document.querySelectorAll('#grid-combined .tile-critical').length || 0;
+        var combWarn = document.querySelectorAll('#grid-combined .tile-warning').length || 0;
+        var combHealth = document.querySelectorAll('#grid-combined .tile-healthy').length || 0;
+        document.getElementById('comb-critical').textContent = combCrit;
+        document.getElementById('comb-warning').textContent = combWarn;
+        document.getElementById('comb-healthy').textContent = combHealth;
+        document.getElementById('badge-combined').textContent = combCrit + combWarn;
+        
+        // Hundred
+        var hTd = document.querySelectorAll('#grid-hundred .tile-td').length || 0;
+        var hBd = document.querySelectorAll('#grid-hundred .tile-bd').length || 0;
+        var hMixed = document.querySelectorAll('#grid-hundred .tile-hundred-mixed').length || 0;
+        document.getElementById('hundred-td').textContent = hTd;
+        document.getElementById('hundred-bd').textContent = hBd;
+        document.getElementById('hundred-mixed').textContent = hMixed;
+        document.getElementById('badge-hundred').textContent = hTd + hBd + hMixed;
         
         // ============================================================
         // MODAL
