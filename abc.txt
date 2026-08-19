@@ -74,7 +74,6 @@
         color: #ffffff;
     }
     
-    /* ========== BACKGROUND ========== */
     .bg-layer {
         position: fixed;
         inset: 0;
@@ -105,7 +104,7 @@
         overflow: hidden;
     }
     
-    /* ========== LOADER ========== */
+    /* LOADER */
     #loaderWrapper {
         position: fixed;
         inset: 0;
@@ -131,7 +130,7 @@
     .loader-text { margin-top: 18px; font-size: 14px; font-weight: 700; color: #4a6a8a; letter-spacing: 4px; text-transform: uppercase; }
     .loader-text span { color: #4f9cf7; }
     
-    /* ========== TOP BAR ========== */
+    /* TOP BAR */
     .top-bar {
         display: flex;
         justify-content: space-between;
@@ -255,7 +254,7 @@
         color: #4f9cf7;
     }
     
-    /* ========== TICKER ========== */
+    /* TICKER */
     .ticker-bar {
         display: flex;
         align-items: center;
@@ -281,7 +280,7 @@
     .ticker-text .hl2 { color: #e74c3c; font-weight: 700; }
     @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
     
-    /* ========== INFO BAR ========== */
+    /* INFO BAR */
     .info-bar {
         display: flex;
         justify-content: space-between;
@@ -325,7 +324,7 @@
     }
     .timestamp-display i { margin-right: 5px; }
     
-    /* ========== MAIN GRID ========== */
+    /* MAIN GRID */
     .grid-main {
         flex: 1;
         display: grid;
@@ -334,7 +333,7 @@
         min-height: 0;
     }
     
-    /* ========== CARDS ========== */
+    /* CARDS */
     .card-modern {
         background: rgba(255,255,255,0.015);
         border-radius: 12px;
@@ -387,7 +386,7 @@
         border-color: rgba(231,76,60,0.08);
     }
     
-    /* ========== TILE GRID - BIG TILES WITH SCROLL ========== */
+    /* TILE GRID - FIXED 4 COLUMNS */
     .tile-grid {
         flex: 1;
         padding: 4px 6px 6px 6px;
@@ -400,7 +399,6 @@
         overflow-x: hidden;
     }
     
-    /* Custom scrollbar */
     .tile-grid::-webkit-scrollbar { width: 3px; }
     .tile-grid::-webkit-scrollbar-thumb { 
         background: rgba(79,156,247,0.2); 
@@ -408,7 +406,7 @@
     }
     .tile-grid::-webkit-scrollbar-track { background: transparent; }
     
-    /* ========== BIG 3D TILES ========== */
+    /* BIG 3D TILES - FIXED FONT */
     .tile {
         display: flex;
         flex-direction: column;
@@ -424,12 +422,10 @@
         border: 1.5px solid rgba(255,255,255,0.03);
         background: rgba(255,255,255,0.01);
         overflow: hidden;
-        /* 3D Effect */
         box-shadow: 
             0 3px 6px rgba(0,0,0,0.4),
             inset 0 1px 0 rgba(255,255,255,0.02);
         transform: perspective(300px) rotateX(1deg) rotateY(1deg);
-        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
     }
     .tile:hover {
         transform: perspective(300px) rotateX(3deg) rotateY(3deg) scale(1.04);
@@ -440,10 +436,11 @@
         border-color: rgba(79,156,247,0.12);
     }
     
+    /* FIX: Font properly visible */
     .tile .val {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: 900;
-        line-height: 1.1;
+        line-height: 1.2;
         text-align: center;
         max-width: 100%;
         padding: 0 2px;
@@ -457,7 +454,7 @@
     .tile .sub-text {
         font-size: 8px;
         font-weight: 700;
-        opacity: 0.7;
+        opacity: 0.8;
         text-transform: uppercase;
         letter-spacing: 0.4px;
         margin-top: 2px;
@@ -488,7 +485,7 @@
         box-shadow: 0 0 15px rgba(255,255,255,0.05);
     }
     
-    /* ========== TILE STATUSES - 3D STYLED ========== */
+    /* TILE STATUSES */
     .tile-critical {
         background: linear-gradient(145deg, rgba(231,76,60,0.15), rgba(192,57,43,0.06));
         border-color: rgba(231,76,60,0.15);
@@ -496,8 +493,8 @@
             0 3px 10px rgba(231,76,60,0.05),
             inset 0 1px 0 rgba(255,255,255,0.02);
     }
-    .tile-critical .val { color: #e74c3c; font-size: 17px; }
-    .tile-critical .sub-text { color: #e74c3c; opacity: 0.8; font-size: 8px; }
+    .tile-critical .val { color: #e74c3c; font-size: 19px; }
+    .tile-critical .sub-text { color: #e74c3c; opacity: 0.9; font-size: 8px; }
     .tile-critical .bar .fill { background: #e74c3c; width: 80%; box-shadow: 0 0 20px rgba(231,76,60,0.2); }
     .tile-critical.pulse {
         animation: crit-pulse 2s ease-in-out infinite;
@@ -512,7 +509,7 @@
         border-color: rgba(46,204,113,0.04);
         box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
-    .tile-healthy .val { color: #2ecc71; font-size: 13px; font-weight: 800; }
+    .tile-healthy .val { color: #2ecc71; font-size: 15px; font-weight: 800; }
     .tile-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 8px; }
     .tile-healthy .bar .fill { background: #2ecc71; width: 15%; box-shadow: 0 0 15px rgba(46,204,113,0.1); }
     
@@ -523,8 +520,8 @@
             0 3px 12px rgba(231,76,60,0.08),
             inset 0 1px 0 rgba(255,255,255,0.02);
     }
-    .tile-td .val { color: #e74c3c; font-size: 19px; text-shadow: 0 0 25px rgba(231,76,60,0.1); }
-    .tile-td .sub-text { color: #e74c3c; opacity: 0.8; font-size: 8px; }
+    .tile-td .val { color: #e74c3c; font-size: 20px; text-shadow: 0 0 25px rgba(231,76,60,0.1); }
+    .tile-td .sub-text { color: #e74c3c; opacity: 0.9; font-size: 8px; }
     .tile-td .bar .fill { background: #e74c3c; width: 80%; box-shadow: 0 0 25px rgba(231,76,60,0.2); }
     .tile-td.pulse {
         animation: td-pulse 2s ease-in-out infinite;
@@ -541,8 +538,8 @@
             0 3px 12px rgba(243,156,18,0.08),
             inset 0 1px 0 rgba(255,255,255,0.02);
     }
-    .tile-bd .val { color: #f39c12; font-size: 19px; text-shadow: 0 0 25px rgba(243,156,18,0.1); }
-    .tile-bd .sub-text { color: #f39c12; opacity: 0.8; font-size: 8px; }
+    .tile-bd .val { color: #f39c12; font-size: 20px; text-shadow: 0 0 25px rgba(243,156,18,0.1); }
+    .tile-bd .sub-text { color: #f39c12; opacity: 0.9; font-size: 8px; }
     .tile-bd .bar .fill { background: #f39c12; width: 80%; box-shadow: 0 0 25px rgba(243,156,18,0.2); }
     .tile-bd.pulse {
         animation: bd-pulse 2s ease-in-out infinite;
@@ -559,8 +556,8 @@
             0 3px 12px rgba(155,89,182,0.08),
             inset 0 1px 0 rgba(255,255,255,0.02);
     }
-    .tile-mixed .val { color: #9b59b6; font-size: 19px; text-shadow: 0 0 25px rgba(155,89,182,0.1); }
-    .tile-mixed .sub-text { color: #9b59b6; opacity: 0.8; font-size: 8px; }
+    .tile-mixed .val { color: #9b59b6; font-size: 20px; text-shadow: 0 0 25px rgba(155,89,182,0.1); }
+    .tile-mixed .sub-text { color: #9b59b6; opacity: 0.9; font-size: 8px; }
     .tile-mixed .bar .fill { background: #9b59b6; width: 80%; box-shadow: 0 0 25px rgba(155,89,182,0.2); }
     .tile-mixed.pulse {
         animation: mixed-pulse 2s ease-in-out infinite;
@@ -575,11 +572,11 @@
         border-color: rgba(46,204,113,0.04);
         box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
-    .tile-hundred-healthy .val { color: #2ecc71; font-size: 14px; font-weight: 800; }
+    .tile-hundred-healthy .val { color: #2ecc71; font-size: 15px; font-weight: 800; }
     .tile-hundred-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 8px; }
     .tile-hundred-healthy .bar .fill { background: #2ecc71; width: 15%; box-shadow: 0 0 15px rgba(46,204,113,0.1); }
     
-    /* ========== TOOLTIP ========== */
+    /* TOOLTIP */
     #customTooltip {
         position: fixed;
         display: none;
@@ -616,7 +613,7 @@
     #customTooltip.tip-bd { color: #f39c12; }
     #customTooltip.tip-mixed { color: #9b59b6; }
     
-    /* ========== MODAL ========== */
+    /* MODAL */
     #modalContainer {
         position: fixed;
         inset: 0;
@@ -772,7 +769,7 @@
         background: rgba(255,255,255,0.04);
     }
     
-    /* ========== RESPONSIVE ========== */
+    /* RESPONSIVE */
     @media (max-width: 1400px) { 
         .grid-main { grid-template-columns: repeat(5, 1fr); } 
         .tile-grid { grid-template-columns: repeat(4, 1fr); }
@@ -793,20 +790,20 @@
 </head>
 <body>
 
-<!-- ========== LOADER ========== -->
+<!-- LOADER -->
 <div id="loaderWrapper">
     <div class="loader-ring"></div>
     <div class="loader-text">Initializing <span>EIS Command</span></div>
 </div>
 
-<!-- ========== BACKGROUND ========== -->
+<!-- BACKGROUND -->
 <div class="bg-layer"></div>
 <div class="bg-grid"></div>
 
-<!-- ========== WRAPPER ========== -->
+<!-- WRAPPER -->
 <div class="wrapper">
 
-    <!-- ========== TOP BAR ========== -->
+    <!-- TOP BAR -->
     <div class="top-bar">
         <div class="brand">
             <div class="logo"><i class="fas fa-shield-halved"></i></div>
@@ -838,7 +835,7 @@
         </div>
     </div>
 
-    <!-- ========== TICKER ========== -->
+    <!-- TICKER -->
     <div class="ticker-bar">
         <div class="ticker-wrap">
             <div class="ticker-text">
@@ -850,7 +847,7 @@
         </div>
     </div>
 
-    <!-- ========== INFO BAR ========== -->
+    <!-- INFO BAR -->
     <div class="info-bar">
         <div class="legend">
             <span class="item"><span class="swatch sw-td"></span> TD</span>
@@ -863,7 +860,7 @@
         </div>
     </div>
 
-    <!-- ========== MAIN GRID - 7 CARDS ========== -->
+    <!-- MAIN GRID -->
     <div class="grid-main">
 
         <!-- ============================================================ -->
@@ -903,7 +900,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swGen5Per.size(), 38);
+                    int totalTiles = Math.max(swGen5Per.size(), 40);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -967,7 +964,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swSiPer.size(), 38);
+                    int totalTiles = Math.max(swSiPer.size(), 40);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1035,7 +1032,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swThirdPer.size(), 38);
+                    int totalTiles = Math.max(swThirdPer.size(), 40);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1134,7 +1131,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swCombPer.size(), 38);
+                    int totalTiles = Math.max(swCombPer.size(), 40);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1237,7 +1234,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 38);
+                    int totalTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 40);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1314,7 +1311,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(hSiTdPer.size(), 38);
+                    int totalTiles = Math.max(hSiTdPer.size(), 40);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1415,7 +1412,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 38);
+                    int totalTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 40);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1462,10 +1459,10 @@
     </div>
 </div>
 
-<!-- ========== TOOLTIP ========== -->
+<!-- TOOLTIP -->
 <div id="customTooltip"></div>
 
-<!-- ========== MODAL ========== -->
+<!-- MODAL -->
 <div id="modalContainer">
     <div id="alertBox">
         <div class="head">
@@ -1529,15 +1526,11 @@
 %>
 
 <script>
-    // ============================================================
     // GLOBALS
-    // ============================================================
     var mApi = '', mCat = '', mType = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
     var isHundred = false;
     
-    // ============================================================
     // TOOLTIP
-    // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         var tooltip = document.getElementById('customTooltip');
         var tiles = document.querySelectorAll('.tile[data-tip]');
@@ -1568,9 +1561,7 @@
         });
     });
     
-    // ============================================================
     // LOADER
-    // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         setTimeout(function() {
             document.getElementById('loaderWrapper').classList.add('hidden');
@@ -1580,9 +1571,7 @@
         });
     });
     
-    // ============================================================
     // TIMER
-    // ============================================================
     function countdownTimer(el, minutes, seconds) {
         var element = document.getElementById(el);
         if(!element) return;
@@ -1602,9 +1591,7 @@
     }
     countdownTimer('ten-countdown', 5, 0);
     
-    // ============================================================
     // MODAL - ServiceWise
-    // ============================================================
     function openModal(msg, api, cat, type, src, err, hits, td, time) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
@@ -1622,9 +1609,7 @@
         document.getElementById('closeName').value = '';
     }
     
-    // ============================================================
     // MODAL - 100%
-    // ============================================================
     function openModal100(msg, api, cat, type, src, err, hits, td, time) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
@@ -1646,11 +1631,8 @@
         document.getElementById('modalContainer').style.display = 'none';
     }
     
-    // ============================================================
     // COUNTS
-    // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
-        // ServiceWise counts
         var swGen5 = document.querySelectorAll('#sw-gen5 .tile-critical').length || 0;
         var swSi = document.querySelectorAll('#sw-si .tile-critical').length || 0;
         var swThird = document.querySelectorAll('#sw-third .tile-critical').length || 0;
@@ -1665,7 +1647,6 @@
         document.getElementById('swCombCount').textContent = swComb;
         document.getElementById('swCombCount').className = 'badge-count' + (swComb > 0 ? ' danger' : '');
         
-        // 100% counts
         var hGen5 = document.querySelectorAll('#h-gen5 .tile-td, #h-gen5 .tile-bd, #h-gen5 .tile-mixed').length || 0;
         var hSi = document.querySelectorAll('#h-si .tile-td, #h-si .tile-bd, #h-si .tile-mixed').length || 0;
         var hThird = document.querySelectorAll('#h-third .tile-td, #h-third .tile-bd, #h-third .tile-mixed').length || 0;
@@ -1678,9 +1659,7 @@
         document.getElementById('hThirdCount').className = 'badge-count' + (hThird > 0 ? ' danger' : '');
     });
     
-    // ============================================================
     // CLOSE BUTTON
-    // ============================================================
     document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('closeBtn').addEventListener('click', function() {
             var comment = document.getElementById('TextArea').value;
@@ -1728,9 +1707,7 @@
         });
     });
     
-    // ============================================================
     // MODAL CLOSE EVENTS
-    // ============================================================
     document.getElementById('modalContainer').addEventListener('click', function(e) {
         if(e.target === this) closeModal();
     });
