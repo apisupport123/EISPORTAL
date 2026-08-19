@@ -1,1156 +1,227 @@
-<%@page import="java.util.Calendar"%>
-<%@page import="java.text.SimpleDateFormat"%>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib uri="http://struts.apache.org/tags-html" prefix="html"%>
-<%@taglib uri="http://struts.apache.org/tags-bean" prefix="bean"%>
-<%@taglib uri="http://struts.apache.org/tags-logic" prefix="logic"%>
-<%@page import="java.sql.PreparedStatement"%>
-<%@page import="java.sql.SQLException"%>
-<%@page import="java.util.ArrayList"%>
-<%@page import="java.util.List"%>
-<%@page import="java.sql.DriverManager"%>
-<%@page import="java.sql.ResultSet"%>
-<%@page import="java.sql.Statement"%>
-<%@page import="java.sql.Connection"%>
+<%@ page import="java.sql.*, java.util.ArrayList, java.util.List" %>
 <%@page import="com.jdbc.DBUtilityAuto"%>
-<%@page import="java.time.LocalDate,java.time.format.DateTimeFormatter,java.time.LocalDateTime,java.util.Date,java.util.Calendar"%>
-<%@page import="java.sql.Timestamp"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="300">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>ServiceWise 100% · Command Center</title>
+    <title>100% Failure Records</title>
+   <link rel='stylesheet' href='../css/bootstrap.min_Display100PerFail.css'>
+    <script src="../js/jquery-3.6.0.min_Diaplay100PerFail.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/datatables.min_Dispaly100PerFail.css">
+    <script type="text/javascript" charset="utf8" src="../js/datatables.min_Display100PerFail.js"></script>
+    <script>
+    $(document).ready(function(){
+     	 $('#recordsTable').DataTable({
+     		
+     		 "order": []
+     	 });
+      });
+      new DataTable('#recordsTable', {
+     	    layout: {
+     	        top1: 'searchBuilder'
+     	    }
+     	});
+      
+        function homeFunction() {
+			var url = location.replace('<%=request.getContextPath() + "/jsp/100PercentFailure.jsp"%>');
+			window.open(url, '_blank');
+		}
+        
+    </script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        html, body {
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-            background: #000000;
-            color: #ffffff;
-        }
-        
-        .bg-layer {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: #000000;
-            z-index: 0;
-        }
-        
-        .wrapper {
-            position: relative;
-            z-index: 1;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 6px 12px 10px 12px;
-            overflow: hidden;
-        }
-        
-        /* LOADER */
-        #loaderWrapper {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: #000000;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-            transition: opacity 0.5s ease;
-        }
-        #loaderWrapper.hidden { opacity: 0; pointer-events: none; }
-        
-        .loader-spinner {
-            width: 60px; height: 60px;
-            border: 4px solid rgba(79,156,247,0.1);
-            border-top: 4px solid #4f9cf7;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            box-shadow: 0 0 40px rgba(79,156,247,0.1);
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loader-text { margin-top: 20px; font-size: 16px; font-weight: 700; color: #4a6a8a; letter-spacing: 2px; text-transform: uppercase; }
-        
-        /* TOP BAR - ServiceWise Style */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 20px;
-            background: rgba(6,6,6,0.98);
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.04);
-            flex-shrink: 0;
-            height: 56px;
-            margin-bottom: 6px;
-            flex-wrap: wrap;
-            gap: 6px;
-            box-shadow: 0 4px 40px rgba(0,0,0,0.9);
-        }
-        
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand .logo {
-            width: 38px; height: 38px;
-            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px; color: #fff;
-            box-shadow: 0 4px 30px rgba(79,156,247,0.15);
-        }
-        .brand .name { font-weight: 900; font-size: 22px; letter-spacing: -0.5px; color: #ffffff; }
-        .brand .name .sw { color: #4f9cf7; }
-        .brand .name .hundred { color: #7c3aed; }
-        .brand .sub { font-size: 9px; font-weight: 700; color: #2a4a6a; letter-spacing: 2px; text-transform: uppercase; }
-        
-        .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .live-badge {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 12px; font-weight: 700; color: #0f973d;
-            padding: 5px 16px 5px 10px; border-radius: 40px;
-            background: rgba(15,151,61,0.04); border: 1px solid rgba(15,151,61,0.06);
-        }
-        .live-badge .dot {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: #0f973d;
-            animation: pulse-dot 1.5s infinite;
-            box-shadow: 0 0 25px rgba(15,151,61,0.15);
-        }
-        @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.2; transform: scale(0.6); } }
-        
-        .timer-glass {
-            font-weight: 700; font-size: 15px; color: #4f9cf7;
-            padding: 5px 14px; border-radius: 40px;
-            background: rgba(79,156,247,0.03); border: 1px solid rgba(79,156,247,0.04);
-            font-variant-numeric: tabular-nums;
-        }
-        
-        .btn-glass {
-            padding: 5px 18px; border-radius: 40px;
-            font-weight: 700; font-size: 11px; border: none;
-            cursor: pointer; transition: all 0.25s ease;
-            display: inline-flex; align-items: center; gap: 5px;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            font-family: 'Inter', sans-serif;
-        }
-        .btn-primary-glass { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; box-shadow: 0 4px 20px rgba(79,156,247,0.12); }
-        .btn-primary-glass:hover { transform: translateY(-2px); box-shadow: 0 8px 35px rgba(79,156,247,0.2); }
-        .btn-ghost-glass { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); color: #6a8aaa; }
-        .btn-ghost-glass:hover { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06); }
-        .badge-count-glass { background: rgba(79,156,247,0.04); padding: 0 8px; border-radius: 4px; font-weight: 700; font-size: 12px; }
-        
-        /* TICKER */
-        .ticker-bar {
-            display: flex; align-items: center;
-            padding: 4px 14px;
-            background: rgba(255,255,255,0.005);
-            border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.01);
-            flex-shrink: 0; margin-bottom: 4px;
-        }
-        .ticker-wrap { flex: 1; overflow: hidden; padding: 0 8px; }
-        .ticker-text {
-            display: inline-block; white-space: nowrap;
-            animation: marquee 25s linear infinite;
-            font-size: 12px; font-weight: 600; color: #3a5a7a;
-        }
-        .ticker-text span { margin: 0 20px; color: #4a6a8a; }
-        .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        
-        /* LEGEND + TIMESTAMP */
-        .info-bar {
-            display: flex; justify-content: center; align-items: center;
-            padding: 3px 0 6px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.02);
-            flex-shrink: 0; margin-bottom: 4px;
-            flex-wrap: wrap; gap: 12px;
-        }
-        .legend { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
-        .legend .item {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 11px; font-weight: 700; color: #4a6a8a;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .legend .swatch { width: 12px; height: 12px; border-radius: 3px; }
-        .sw-td { background: #c0392b; box-shadow: 0 0 20px rgba(192,57,43,0.15); }
-        .sw-bd { background: #e67e22; box-shadow: 0 0 20px rgba(230,126,34,0.15); }
-        .sw-mixed { background: #8e44ad; box-shadow: 0 0 20px rgba(142,68,173,0.15); }
-        .sw-health { background: #0f973d; box-shadow: 0 0 20px rgba(15,151,61,0.1); }
-        
-        .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 12px; }
-        .timestamp-display i { margin-right: 5px; color: #4f9cf7; }
-        
-        /* GRID - 3 SERVICES */
-        .grid-main {
-            flex: 1;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            min-height: 0;
-        }
-        
-        .card-modern {
-            background: rgba(4,4,4,0.95);
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.02);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.6);
-        }
-        .card-modern:hover { border-color: rgba(79,156,247,0.03); box-shadow: 0 8px 50px rgba(0,0,0,0.7); transform: translateY(-1px); }
-        
-        .card-header-modern {
-            padding: 5px 14px 4px 14px;
-            display: flex; justify-content: space-between; align-items: center;
-            flex-shrink: 0; height: 34px;
-            background: rgba(255,255,255,0.005);
-            border-bottom: 1px solid rgba(255,255,255,0.02);
-        }
-        .card-header-modern .title {
-            font-weight: 800; font-size: 14px;
-            display: flex; align-items: center; gap: 8px;
-            color: #8aaac0;
-        }
-        .card-header-modern .title i { color: #4f9cf7; font-size: 14px; }
-        .card-header-modern .badge-count {
-            font-size: 9px; font-weight: 700;
-            padding: 2px 12px; border-radius: 40px;
-            background: rgba(79,156,247,0.03);
-            color: #4f9cf7; border: 1px solid rgba(79,156,247,0.03);
-        }
-        
-        .tile-grid {
-            flex: 1;
-            padding: 3px 8px 8px 8px;
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            grid-auto-rows: 1fr;
-            gap: 5px;
-            min-height: 0;
-        }
-        
-        .tile {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            transition: all 0.15s ease;
-            cursor: pointer;
-            position: relative;
-            aspect-ratio: 1;
-            min-height: 44px;
-            padding: 6px 4px;
-            border: 2px solid rgba(255, 255, 255, 0.02);
-            background: rgba(255, 255, 255, 0.01);
-            overflow: hidden;
-        }
-        
-        .tile:hover {
-            transform: scale(1.06) translateY(-3px);
-            z-index: 10;
-            box-shadow: 0 12px 50px rgba(0, 0, 0, 0.6);
-            border-color: rgba(79, 156, 247, 0.10);
-        }
-        
-        .tile .val {
-            font-size: 18px;
-            font-weight: 900;
-            line-height: 1.1;
-            text-align: center;
-            word-break: break-word;
-            max-width: 100%;
-            padding: 0 2px;
-        }
-        
-        .tile .sub-text {
-            font-size: 8px;
-            font-weight: 700;
-            opacity: 0.6;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 2px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-            padding: 0 2px;
-        }
-        
-        .tile .bar {
-            position: absolute;
-            bottom: 3px;
-            left: 15%;
-            right: 15%;
-            height: 3px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.03);
-            overflow: hidden;
-        }
-        
-        .tile .bar .fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.8s ease;
-        }
-        
-        /* TD - RED */
-        .tile-td {
-            background: rgba(192, 57, 43, 0.12);
-            border-color: rgba(192, 57, 43, 0.18);
-        }
-        .tile-td .val { color: #c0392b; font-size: 20px; }
-        .tile-td .sub-text { color: #c0392b; opacity: 0.7; font-size: 8px; }
-        .tile-td .bar .fill { background: #c0392b; width: 80%; }
-        .tile-td.pulse { animation: td-pulse 2s ease-in-out infinite; }
-        @keyframes td-pulse {
-            0%, 100% { border-color: rgba(192,57,43,0.18); box-shadow: 0 0 25px rgba(192,57,43,0.05); }
-            50% { border-color: rgba(192,57,43,0.35); box-shadow: 0 0 50px rgba(192,57,43,0.12); }
-        }
-        
-        /* BD - ORANGE */
-        .tile-bd {
-            background: rgba(230, 126, 34, 0.12);
-            border-color: rgba(230, 126, 34, 0.18);
-        }
-        .tile-bd .val { color: #e67e22; font-size: 20px; }
-        .tile-bd .sub-text { color: #e67e22; opacity: 0.7; font-size: 8px; }
-        .tile-bd .bar .fill { background: #e67e22; width: 80%; }
-        .tile-bd.pulse { animation: bd-pulse 2s ease-in-out infinite; }
-        @keyframes bd-pulse {
-            0%, 100% { border-color: rgba(230,126,34,0.18); box-shadow: 0 0 25px rgba(230,126,34,0.05); }
-            50% { border-color: rgba(230,126,34,0.35); box-shadow: 0 0 50px rgba(230,126,34,0.12); }
-        }
-        
-        /* MIXED - PURPLE */
-        .tile-mixed {
-            background: rgba(142, 68, 173, 0.12);
-            border-color: rgba(142, 68, 173, 0.18);
-        }
-        .tile-mixed .val { color: #8e44ad; font-size: 20px; }
-        .tile-mixed .sub-text { color: #8e44ad; opacity: 0.7; font-size: 8px; }
-        .tile-mixed .bar .fill { background: #8e44ad; width: 80%; }
-        .tile-mixed.pulse { animation: mixed-pulse 2s ease-in-out infinite; }
-        @keyframes mixed-pulse {
-            0%, 100% { border-color: rgba(142,68,173,0.18); box-shadow: 0 0 25px rgba(142,68,173,0.05); }
-            50% { border-color: rgba(142,68,173,0.35); box-shadow: 0 0 50px rgba(142,68,173,0.12); }
-        }
-        
-        /* HEALTHY - GREEN */
-        .tile-healthy {
-            background: rgba(15, 151, 61, 0.10);
-            border-color: rgba(15, 151, 61, 0.06);
-        }
-        .tile-healthy .val { color: #0f973d; font-size: 14px; font-weight: 800; }
-        .tile-healthy .sub-text { color: #0f973d; opacity: 0.7; font-size: 9px; }
-        .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
-        
-        /* TOOLTIP */
-        #customTooltip {
-            position: fixed;
-            display: none;
-            background: rgba(8, 10, 16, 0.95);
-            backdrop-filter: blur(12px);
-            color: #e8edf5;
-            padding: 8px 18px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            box-shadow: 0 12px 50px rgba(0, 0, 0, 0.9);
-            pointer-events: none;
-            z-index: 99999;
-            font-family: 'Inter', sans-serif;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-            max-width: 400px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            transform: translateX(-50%) translateY(-100%);
-            transition: none;
-        }
-        
-        #customTooltip::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 8px solid transparent;
-            border-top-color: rgba(8, 10, 16, 0.95);
-        }
-        
-        #customTooltip.tip-td { color: #c0392b; }
-        #customTooltip.tip-bd { color: #e67e22; }
-        #customTooltip.tip-mixed { color: #8e44ad; }
-        #customTooltip.tip-healthy { color: #0f973d; }
-        
-        /* RESPONSIVE */
-        @media (max-width: 1600px) { .tile-grid { grid-template-columns: repeat(5, 1fr); } }
-        @media (max-width: 1400px) { .tile-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 1100px) { .tile-grid { grid-template-columns: repeat(3, 1fr); } .grid-main { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
-        @media (max-width: 768px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } .grid-main { grid-template-columns: 1fr; } body { padding: 4px; } }
-        
-        /* MODAL */
-        #modalContainer {
-            position: fixed; top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.92);
-            backdrop-filter: blur(24px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 999999;
-            animation: modal-in 0.3s ease;
-            padding: 20px;
-        }
-        @keyframes modal-in { from { opacity: 0; transform: scale(0.95) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        
-        #alertBox {
-            background: linear-gradient(145deg, #0d1420, #060a12);
-            border-radius: 24px;
-            max-width: 680px;
-            width: 95%;
-            max-height: 85vh;
-            padding: 32px 38px 38px 38px;
-            border: 1px solid rgba(255,255,255,0.04);
-            box-shadow: 0 60px 120px rgba(0,0,0,0.9);
-            overflow-y: auto;
-        }
-        #alertBox::-webkit-scrollbar { width: 4px; }
-        #alertBox::-webkit-scrollbar-track { background: transparent; }
-        #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
-        
-        #alertBox .head {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 12px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
-        #alertBox .head h3 {
-            font-size: 26px;
-            font-weight: 800;
-            color: #c0392b;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        #alertBox .head h3 i { font-size: 30px; }
-        #alertBox .head .close-btn {
-            background: none;
-            border: none;
-            color: #4a6a8a;
-            font-size: 32px;
-            cursor: pointer;
-            transition: 0.2s;
-            padding: 0 6px;
-            line-height: 1;
-        }
-        #alertBox .head .close-btn:hover { color: #fff; transform: rotate(90deg); }
-        
-        #alertBox .body-text {
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin: 8px 0 18px 0;
-            border-left: 3px solid #4f9cf7;
-            font-size: 15px;
-            line-height: 1.9;
-            color: #b0c8e0;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        #alertBox .body-text b { color: #ffffff; }
-        #alertBox .body-text .highlight-td { color: #c0392b; font-weight: 700; }
-        #alertBox .body-text .highlight-bd { color: #e67e22; font-weight: 700; }
-        #alertBox .body-text .highlight-mixed { color: #8e44ad; font-weight: 700; }
-        #alertBox .body-text .highlight-green { color: #0f973d; font-weight: 700; }
-        
-        #alertBox .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        #alertBox .field { margin-bottom: 8px; }
-        #alertBox .field label {
-            display: block;
-            font-size: 11px;
-            font-weight: 700;
-            color: #4a6a8a;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 4px;
-        }
-        #alertBox .field select, #alertBox .field textarea {
-            width: 100%;
-            background: rgba(0,0,0,0.35);
-            border: 1px solid rgba(255,255,255,0.04);
-            border-radius: 10px;
-            padding: 12px 16px;
-            color: #ffffff;
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: 0.2s;
-        }
-        #alertBox .field select:focus, #alertBox .field textarea:focus {
-            outline: none;
-            border-color: #4f9cf7;
-            box-shadow: 0 0 0 4px rgba(79,156,247,0.04);
-        }
-        #alertBox .field textarea { min-height: 60px; resize: vertical; }
-        #alertBox .field.full { grid-column: 1 / -1; }
-        
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        .modal-actions .btn-m {
-            padding: 10px 30px;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 13px;
-            border: none;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-family: 'Inter', sans-serif;
-        }
-        .modal-actions .btn-m-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; box-shadow: 0 4px 20px rgba(79,156,247,0.12); }
-        .modal-actions .btn-m-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,156,247,0.2); }
-        .modal-actions .btn-m-danger { background: linear-gradient(135deg, #c0392b, #922b21); color: #fff; }
-        .modal-actions .btn-m-secondary { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color: #6a8aaa; }
-        .modal-actions .btn-m-secondary:hover { background: rgba(255,255,255,0.04); }
+     input.right {
+        position: absolute;
+        left: 1740px;
+        top: 20px;
+      }
     </style>
 </head>
-<body>
-
-<!-- LOADER -->
-<div id="loaderWrapper">
-    <div class="loader-spinner"></div>
-    <div class="loader-text">Loading ServiceWise 100% ...</div>
-</div>
-
-<div class="bg-layer"></div>
-
-<div class="wrapper">
-
-    <!-- TOP BAR -->
-    <div class="top-bar">
-        <div class="brand">
-            <div class="logo"><i class="fas fa-chart-simple"></i></div>
-            <div>
-                <div class="name">Service<span class="sw">Wise</span> <span class="hundred">100%</span></div>
-                <div class="sub">Command Center</div>
-            </div>
-        </div>
-        <div class="top-actions">
-            <div class="live-badge"><span class="dot"></span> LIVE</div>
-            <span class="timer-glass" id="ten-countdown">5:00</span>
-            <button class="btn-glass btn-primary-glass" id="openPopupButton"><i class="fas fa-list"></i> Closed</button>
-            <button class="btn-glass btn-ghost-glass" id="openPopup"><i class="fas fa-check-circle"></i> <span class="badge-count-glass" id="closedCountBadge">
-                <%
-                    String closedCount = "0";
-                    try {
-                        Connection con = DBUtilityAuto.getReportDBConnection();
-                        Statement stmt = con.createStatement();
-                        ResultSet rs = stmt.executeQuery("SELECT COUNT(1) as cnt FROM pause_log_master WHERE TRUNC(sysdate)=TRUNC(pause_time)");
-                        if(rs.next()) closedCount = rs.getString("cnt");
-                        rs.close(); stmt.close(); con.close();
-                    } catch(Exception e) { }
-                    out.print(closedCount);
-                %>
-            </span></button>
-        </div>
-    </div>
-
-    <!-- TICKER -->
-    <div class="ticker-bar">
-        <div class="ticker-wrap">
-            <div class="ticker-text">
-                <span>● <span class="hl">STATUS:</span> 100% failure monitoring active</span>
-                <span>● <span class="hl">TD:</span> Technical Decline (Red)</span>
-                <span>● <span class="hl">BD:</span> Business Decline (Orange)</span>
-                <span>● <span class="hl">MIXED:</span> TD + BD (Purple)</span>
-                <span>● <span class="hl">REFRESH:</span> Every 5 minutes</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- LEGEND + TIMESTAMP -->
-    <div class="info-bar">
-        <div class="legend">
-            <span class="item"><span class="swatch sw-td"></span> TD 100%</span>
-            <span class="item"><span class="swatch sw-bd"></span> BD 100%</span>
-            <span class="item"><span class="swatch sw-mixed"></span> Mixed 100%</span>
-            <span class="item"><span class="swatch sw-health"></span> Healthy</span>
-        </div>
-        <div class="timestamp-display">
-            <i class="fas fa-clock"></i> Last Update: 
+<body class="border border-dark">
+<div class="container-fluid">
+    <h1 style="text-align: center">Today's 100% Failure Records</h1>
+    <table id="recordsTable" class="display">
+        <thead>
+            <tr>
+              <th>SERVICE CATEGORY</th>
+              <th>SERVICE NAME</th>
+              <th>SOURCE ID</th>
+              <th>ERROR CODE</th>
+			  <th>DESCRIPTION</th>
+			  <th>CREATED BY</th>
+			  <th>PAUSE TIME</th>
+			  <th>RESUME_TIME</th>
+            </tr>
+        </thead>
+        <tbody>
             <%
-                try {
-                    Connection con = DBUtilityAuto.getReportDBConnection();
-                    Statement st = con.createStatement();
-                    ResultSet rs = st.executeQuery("SELECT INSERT_TIME FROM gen5_100_percentage_fail ORDER BY insert_time DESC");
-                    if(rs.next()) {
-                        Timestamp ts = rs.getTimestamp("INSERT_TIME");
-                        Date d = new Date(ts.getTime());
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
-                        out.print(sdf.format(d));
-                    }
-                    rs.close(); st.close(); con.close();
-                } catch(Exception e) { out.print("—"); }
-            %>
-        </div>
-    </div>
+            // Replace with your Oracle database connection logic
+            Connection con = null;
+            List<String[]> records = new ArrayList<>();
+            try {
+            	con = DBUtilityAuto.getReportDBConnection();
 
-    <!-- GRID - 3 SERVICES -->
-    <div class="grid-main">
-        
-        <!-- ==================== GEN-5 ==================== -->
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <span class="title"><i class="fas fa-server"></i> GEN-5</span>
-                <span class="badge-count" id="gen5count">0</span>
-            </div>
-            <div class="tile-grid" id="panel-gen5">
-                <%
-                    Connection con = DBUtilityAuto.getReportDBConnection();
-                    Statement l_bjst = null;
-                    ResultSet l_bjres = null;
-                    List<Double> td_per = new ArrayList<>();
-                    List<Double> bd_per = new ArrayList<>();
-                    List<Double> mixed_per = new ArrayList<>();
-                    List<String> td_name = new ArrayList<>();
-                    List<String> td_source = new ArrayList<>();
-                    List<String> td_error = new ArrayList<>();
-                    List<Integer> td_hits = new ArrayList<>();
-                    List<Integer> td_count = new ArrayList<>();
-                    List<String> td_time = new ArrayList<>();
-                    List<Integer> td_siCount = new ArrayList<>();
-                    List<String> bd_name = new ArrayList<>();
-                    List<String> bd_source = new ArrayList<>();
-                    List<String> bd_error = new ArrayList<>();
-                    List<Integer> bd_hits = new ArrayList<>();
-                    List<Integer> bd_count = new ArrayList<>();
-                    List<String> bd_time = new ArrayList<>();
-                    List<String> mixed_name = new ArrayList<>();
-                    List<String> mixed_source = new ArrayList<>();
-                    List<String> mixed_error = new ArrayList<>();
-                    List<Integer> mixed_hits = new ArrayList<>();
-                    List<Integer> mixed_td = new ArrayList<>();
-                    List<Integer> mixed_bd = new ArrayList<>();
-                    List<String> mixed_time = new ArrayList<>();
-                    
-                    try {
-                        String l_strQuery = "SELECT * FROM (SELECT api_name, Source_id, error_code, SUM(total_hits) AS total_hits,issue_time,SUM(td) AS td, round(AVG(td_percent), 2) AS td_percent, SUM(bd) AS bd, round(AVG(bd_per), 2) AS bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, CASE WHEN ( SUM(td_percent) <> 0 AND SUM (bd_per) <> 0 ) THEN round(round(AVG(td_percent), 2) + round(AVG(bd_per), 2)) ELSE 0 END AS tdbd_per FROM gen5_100_percentage_fail TEMP WHERE substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name NOT IN (SELECT service_name FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from gen5_100_percentage_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
-                        l_bjst = con.createStatement();
-                        l_bjres = l_bjst.executeQuery(l_strQuery);
-                        while(l_bjres.next()) {
-                            if(l_bjres.getDouble("TD_PERCENT") == 100 && (l_bjres.getInt("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
-                                td_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                td_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                td_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                td_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                td_hits.add(l_bjres.getInt("total_hits"));
-                                td_count.add(l_bjres.getInt("td"));
-                                td_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                td_siCount.add(l_bjres.getInt("SI_EEROR"));
-                            }
-                            if(l_bjres.getDouble("BD_PER") == 100 && l_bjres.getInt("BD") >= 10) {
-                                bd_per.add(l_bjres.getDouble("BD_PER"));
-                                bd_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                bd_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                bd_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                bd_hits.add(l_bjres.getInt("total_hits"));
-                                bd_count.add(l_bjres.getInt("bd"));
-                                bd_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                            }
-                            if(l_bjres.getDouble("tdbd_per") == 100 && (l_bjres.getInt("TD") + l_bjres.getInt("BD")) >= 10) {
-                                mixed_per.add(l_bjres.getDouble("tdbd_per"));
-                                mixed_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                mixed_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                mixed_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                mixed_hits.add(l_bjres.getInt("total_hits"));
-                                mixed_td.add(l_bjres.getInt("td"));
-                                mixed_bd.add(l_bjres.getInt("bd"));
-                                mixed_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                            }
-                        }
-                    } catch(Exception e) { e.printStackTrace(); }
-                    
-                    int tileIndex = 0;
-                    
-                    for(int i = 0; i < td_per.size(); i++) {
-                        String cls = "tile tile-td pulse";
-                        String tooltipText = "⚠ TD 100% | " + td_name.get(i);
-                        String alertMsg = "<b>Service:</b> " + td_name.get(i) + "<br><b>Source:</b> " + td_source.get(i) + "<br><b>Error:</b> " + td_error.get(i) + "<br><b>Hits:</b> " + td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + td_count.get(i) + "</span><br><b>SI Error:</b> " + td_siCount.get(i) + "<br><b>Time:</b> " + td_time.get(i);
-                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + td_name.get(i).replace("'", "\\'") + "','GEN-5','TD','" + td_source.get(i).replace("'", "\\'") + "','" + td_error.get(i).replace("'", "\\'") + "','" + td_hits.get(i) + "','" + td_count.get(i) + "','" + td_time.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                        tileIndex++;
-                    }
-                    
-                    for(int i = 0; i < bd_per.size(); i++) {
-                        String cls = "tile tile-bd pulse";
-                        String tooltipText = "⚠ BD 100% | " + bd_name.get(i);
-                        String alertMsg = "<b>Service:</b> " + bd_name.get(i) + "<br><b>Source:</b> " + bd_source.get(i) + "<br><b>Error:</b> " + bd_error.get(i) + "<br><b>Hits:</b> " + bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + bd_count.get(i) + "</span><br><b>Time:</b> " + bd_time.get(i);
-                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + bd_name.get(i).replace("'", "\\'") + "','GEN-5','BD','" + bd_source.get(i).replace("'", "\\'") + "','" + bd_error.get(i).replace("'", "\\'") + "','" + bd_hits.get(i) + "','" + bd_count.get(i) + "','" + bd_time.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                        tileIndex++;
-                    }
-                    
-                    for(int i = 0; i < mixed_per.size(); i++) {
-                        String cls = "tile tile-mixed pulse";
-                        String tooltipText = "⚠ Mixed 100% | " + mixed_name.get(i);
-                        String alertMsg = "<b>Service:</b> " + mixed_name.get(i) + "<br><b>Source:</b> " + mixed_source.get(i) + "<br><b>Error:</b> " + mixed_error.get(i) + "<br><b>Hits:</b> " + mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + mixed_bd.get(i) + "</span><br><b>Time:</b> " + mixed_time.get(i);
-                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + mixed_name.get(i).replace("'", "\\'") + "','GEN-5','MIXED','" + mixed_source.get(i).replace("'", "\\'") + "','" + mixed_error.get(i).replace("'", "\\'") + "','" + mixed_hits.get(i) + "','" + mixed_td.get(i) + "','" + mixed_time.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                        tileIndex++;
-                    }
-                    
-                    for(int k = tileIndex; k < 60; k++) {
-                        out.print("<div class='tile tile-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                        out.print("<span class='val'>✓ Healthy</span>");
-                        out.print("<span class='sub-text'>OK</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                    }
-                %>
-            </div>
-        </div>
+                String query = "SELECT SERVICE_CATEGORY,SERVICE_NAME,SOURCE_ID,ERROR_CODE,DESCRIPTION,CLOSED_BY,PAUSE_TIME,RESUME_TIME FROM pause_log_master where trunc(PAUSE_TIME)=trunc(sysdate) ORDER BY 7 desc";
+                PreparedStatement preparedStatement = con.prepareStatement(query);
 
-        <!-- ==================== SI ==================== -->
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <span class="title"><i class="fas fa-code"></i> SI Services</span>
-                <span class="badge-count" id="sicount">0</span>
-            </div>
-            <div class="tile-grid" id="panel-si">
-                <%
-                    List<Double> si_td_per = new ArrayList<>();
-                    List<String> si_name = new ArrayList<>();
-                    List<String> si_error = new ArrayList<>();
-                    List<Integer> si_hits = new ArrayList<>();
-                    List<Integer> si_td_count = new ArrayList<>();
-                    List<String> si_time = new ArrayList<>();
-                    
-                    try {
-                        String l_strQuery = "SELECT * FROM (SELECT function_name, SUM(total_hits) AS total_hits,SUM(td) AS td,round(AVG(td_percent), 2) AS td_percent, error_code, issue_time FROM si_100_percent_fail temp WHERE trim(CONCAT(temp.FUNCTION_NAME,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) and trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) and insert_time >= sysdate - INTERVAL '10' MINUTE AND function_name NOT IN (SELECT trim(service_name) FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY function_name, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM si_100_percent_fail temp_in WHERE temp_in.function_name = temp.function_name GROUP BY function_name) AND ROWNUM <= 60";
-                        l_bjres = con.createStatement().executeQuery(l_strQuery);
-                        while(l_bjres.next()) {
-                            if(l_bjres.getDouble("TD_PERCENT") == 100 && l_bjres.getInt("TD") >= 10) {
-                                si_td_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                si_name.add(nvl(l_bjres.getString("function_name"), "N/A"));
-                                si_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                si_hits.add(l_bjres.getInt("total_hits"));
-                                si_td_count.add(l_bjres.getInt("td"));
-                                si_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                            }
-                        }
-                    } catch(Exception e) { e.printStackTrace(); }
-                    
-                    for(int i = 0; i < si_td_per.size(); i++) {
-                        String cls = "tile tile-td pulse";
-                        String tooltipText = "⚠ TD 100% | " + si_name.get(i);
-                        String alertMsg = "<b>Service:</b> " + si_name.get(i) + "<br><b>Error:</b> " + si_error.get(i) + "<br><b>Hits:</b> " + si_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + si_td_count.get(i) + "</span><br><b>Time:</b> " + si_time.get(i);
-                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + si_name.get(i).replace("'", "\\'") + "','SI','TD','','" + si_error.get(i).replace("'", "\\'") + "','" + si_hits.get(i) + "','" + si_td_count.get(i) + "','" + si_time.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                    }
-                    
-                    for(int k = si_td_per.size(); k < 60; k++) {
-                        out.print("<div class='tile tile-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                        out.print("<span class='val'>✓ Healthy</span>");
-                        out.print("<span class='sub-text'>OK</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                    }
-                %>
-            </div>
-        </div>
+                ResultSet resultSet = preparedStatement.executeQuery();
 
-        <!-- ==================== THIRDPARTY ==================== -->
-        <div class="card-modern">
-            <div class="card-header-modern">
-                <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
-                <span class="badge-count" id="thirdcount">0</span>
-            </div>
-            <div class="tile-grid" id="panel-third">
-                <%
-                    List<Double> third_td_per = new ArrayList<>();
-                    List<String> third_td_name = new ArrayList<>();
-                    List<String> third_td_source = new ArrayList<>();
-                    List<String> third_td_error = new ArrayList<>();
-                    List<Integer> third_td_hits = new ArrayList<>();
-                    List<Integer> third_td_count = new ArrayList<>();
-                    List<String> third_td_time = new ArrayList<>();
-                    List<Integer> third_td_siCount = new ArrayList<>();
-                    List<Double> third_bd_per = new ArrayList<>();
-                    List<String> third_bd_name = new ArrayList<>();
-                    List<String> third_bd_source = new ArrayList<>();
-                    List<String> third_bd_error = new ArrayList<>();
-                    List<Integer> third_bd_hits = new ArrayList<>();
-                    List<Integer> third_bd_count = new ArrayList<>();
-                    List<String> third_bd_time = new ArrayList<>();
-                    List<Double> third_mixed_per = new ArrayList<>();
-                    List<String> third_mixed_name = new ArrayList<>();
-                    List<String> third_mixed_source = new ArrayList<>();
-                    List<String> third_mixed_error = new ArrayList<>();
-                    List<Integer> third_mixed_hits = new ArrayList<>();
-                    List<Integer> third_mixed_td = new ArrayList<>();
-                    List<Integer> third_mixed_bd = new ArrayList<>();
-                    List<String> third_mixed_time = new ArrayList<>();
-                    
-                    try {
-                        String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,error_code,source_id, issue_time from thirdparty_100_percentage_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from thirdparty_100_percentage_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
-                        l_bjres = con.createStatement().executeQuery(l_strQuery);
-                        while(l_bjres.next()) {
-                            if(l_bjres.getDouble("TD_PERCENT") == 100) {
-                                third_td_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                third_td_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                third_td_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                third_td_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                third_td_hits.add(l_bjres.getInt("total_hits"));
-                                third_td_count.add(l_bjres.getInt("td"));
-                                third_td_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                third_td_siCount.add(l_bjres.getInt("SI_EEROR"));
-                            }
-                            if(l_bjres.getDouble("BD_PER") == 100) {
-                                third_bd_per.add(l_bjres.getDouble("BD_PER"));
-                                third_bd_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                third_bd_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                third_bd_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                third_bd_hits.add(l_bjres.getInt("total_hits"));
-                                third_bd_count.add(l_bjres.getInt("bd"));
-                                third_bd_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                            }
-                            if(l_bjres.getDouble("tdbd_per") == 100) {
-                                third_mixed_per.add(l_bjres.getDouble("tdbd_per"));
-                                third_mixed_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                third_mixed_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                third_mixed_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                third_mixed_hits.add(l_bjres.getInt("total_hits"));
-                                third_mixed_td.add(l_bjres.getInt("td"));
-                                third_mixed_bd.add(l_bjres.getInt("bd"));
-                                third_mixed_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                            }
-                        }
-                    } catch(Exception e) { e.printStackTrace(); }
-                    
-                    int thirdIdx = 0;
-                    
-                    for(int i = 0; i < third_td_per.size(); i++) {
-                        String cls = "tile tile-td pulse";
-                        String tooltipText = "⚠ TD 100% | " + third_td_name.get(i);
-                        String alertMsg = "<b>Service:</b> " + third_td_name.get(i) + "<br><b>Source:</b> " + third_td_source.get(i) + "<br><b>Error:</b> " + third_td_error.get(i) + "<br><b>Hits:</b> " + third_td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + third_td_count.get(i) + "</span><br><b>SI Error:</b> " + third_td_siCount.get(i) + "<br><b>Time:</b> " + third_td_time.get(i);
-                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + third_td_name.get(i).replace("'", "\\'") + "','ThirdParty','TD','" + third_td_source.get(i).replace("'", "\\'") + "','" + third_td_error.get(i).replace("'", "\\'") + "','" + third_td_hits.get(i) + "','" + third_td_count.get(i) + "','" + third_td_time.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                        thirdIdx++;
-                    }
-                    
-                    for(int i = 0; i < third_bd_per.size(); i++) {
-                        String cls = "tile tile-bd pulse";
-                        String tooltipText = "⚠ BD 100% | " + third_bd_name.get(i);
-                        String alertMsg = "<b>Service:</b> " + third_bd_name.get(i) + "<br><b>Source:</b> " + third_bd_source.get(i) + "<br><b>Error:</b> " + third_bd_error.get(i) + "<br><b>Hits:</b> " + third_bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + third_bd_count.get(i) + "</span><br><b>Time:</b> " + third_bd_time.get(i);
-                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + third_bd_name.get(i).replace("'", "\\'") + "','ThirdParty','BD','" + third_bd_source.get(i).replace("'", "\\'") + "','" + third_bd_error.get(i).replace("'", "\\'") + "','" + third_bd_hits.get(i) + "','" + third_bd_count.get(i) + "','" + third_bd_time.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                        thirdIdx++;
-                    }
-                    
-                    for(int i = 0; i < third_mixed_per.size(); i++) {
-                        String cls = "tile tile-mixed pulse";
-                        String tooltipText = "⚠ Mixed 100% | " + third_mixed_name.get(i);
-                        String alertMsg = "<b>Service:</b> " + third_mixed_name.get(i) + "<br><b>Source:</b> " + third_mixed_source.get(i) + "<br><b>Error:</b> " + third_mixed_error.get(i) + "<br><b>Hits:</b> " + third_mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + third_mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + third_mixed_bd.get(i) + "</span><br><b>Time:</b> " + third_mixed_time.get(i);
-                        String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + third_mixed_name.get(i).replace("'", "\\'") + "','ThirdParty','MIXED','" + third_mixed_source.get(i).replace("'", "\\'") + "','" + third_mixed_error.get(i).replace("'", "\\'") + "','" + third_mixed_hits.get(i) + "','" + third_mixed_td.get(i) + "','" + third_mixed_time.get(i).replace("'", "\\'") + "')\"";
-                        out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
-                        out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                        thirdIdx++;
-                    }
-                    
-                    for(int k = thirdIdx; k < 60; k++) {
-                        out.print("<div class='tile tile-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                        out.print("<span class='val'>✓ Healthy</span>");
-                        out.print("<span class='sub-text'>OK</span>");
-                        out.print("<div class='bar'><div class='fill'></div></div>");
-                        out.print("</div>");
-                    }
-                %>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<!-- ============================================================
-   CUSTOM TOOLTIP
-   ============================================================ -->
-<div id="customTooltip"></div>
-
-<!-- ============================================================
-   MODAL
-   ============================================================ -->
-<div id="modalContainer">
-    <div id="alertBox">
-        <div class="head">
-            <h3><i class="fas fa-exclamation-triangle"></i> 100% Failure Alert</h3>
-            <button class="close-btn" onclick="closeModal()">✕</button>
-        </div>
-        <div class="body-text" id="modalMsg"></div>
-        
-        <div class="form-row">
-            <div class="field">
-                <label>Closed Time</label>
-                <select id="pasuseTime">
-                    <option value="1">1 Hour</option><option value="2">2 Hours</option>
-                    <option value="3">3 Hours</option><option value="4">4 Hours</option>
-                    <option value="5">5 Hours</option><option value="6">6 Hours</option>
-                    <option value="7">7 Hours</option><option value="8">8 Hours</option>
-                    <option value="9">9 Hours</option><option value="10">10 Hours</option>
-                    <option value="11">11 Hours</option><option value="12">12 Hours</option>
-                    <option value="13">13 Hours</option><option value="14">14 Hours</option>
-                    <option value="15">15 Hours</option><option value="16">16 Hours</option>
-                    <option value="17">17 Hours</option><option value="18">18 Hours</option>
-                    <option value="19">19 Hours</option><option value="20">20 Hours</option>
-                    <option value="21">21 Hours</option><option value="22">22 Hours</option>
-                    <option value="23">23 Hours</option><option value="24">24 Hours</option>
-                </select>
-            </div>
-            <div class="field">
-                <label>Closed By</label>
-                <select id="closeName">
-                    <option value="">Select</option>
-                    <%
-                        try {
-                            Connection c = DBUtilityAuto.getReportDBConnection();
-                            String sql1="select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";
-                            Statement stmt1=c.createStatement();
-                            ResultSet rs1= stmt1.executeQuery(sql1);
-                            while(rs1.next()){
-                                String name = rs1.getString("Fullname");
-                                out.print("<option value='"+name+"'>"+name+"</option>");
-                            }
-                            rs1.close(); stmt1.close(); c.close();
-                        } catch(Exception e) { }
-                    %>
-                </select>
-            </div>
-        </div>
-        <div class="field full">
-            <label>Comment</label>
-            <textarea id="TextArea" placeholder="Enter closure comments..."></textarea>
-        </div>
-        
-        <div class="modal-actions">
-            <button class="btn-m btn-m-primary" id="closeBtn"><i class="fas fa-check"></i> Close</button>
-            <button class="btn-m btn-m-danger" id="detailsBtn"><i class="fas fa-eye"></i> View</button>
-            <button class="btn-m btn-m-secondary" onclick="closeModal()">Cancel</button>
-        </div>
-    </div>
-</div>
-
-<%!
-    public static String nvl(String value, String defaultValue) {
-        return (value == null || value.trim().isEmpty()) ? defaultValue : value;
-    }
-%>
-
-<script>
-    // TOOLTIP
-    document.addEventListener('DOMContentLoaded', function() {
-        var tooltip = document.getElementById('customTooltip');
-        var tiles = document.querySelectorAll('.tile[data-tip]');
-        var timeoutId = null;
-        
-        tiles.forEach(function(tile) {
-            tile.addEventListener('mouseenter', function(e) {
-                var text = this.getAttribute('data-tip');
-                var tipClass = this.getAttribute('data-tip-class') || '';
-                
-                tooltip.textContent = text;
-                tooltip.className = tipClass;
-                tooltip.style.display = 'block';
-                
-                var rect = this.getBoundingClientRect();
-                var x = rect.left + rect.width / 2;
-                var y = rect.top - 12;
-                
-                tooltip.style.left = x + 'px';
-                tooltip.style.top = y + 'px';
-                tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
-                
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                    timeoutId = null;
+                while (resultSet.next()) {
+                    String[] record = new String[8];
+                    record[0] = resultSet.getString(1);
+                    record[1] = resultSet.getString(2);
+                    record[2] = resultSet.getString(3);
+                    record[3] = resultSet.getString(4);
+                    record[4] = resultSet.getString(5);
+                    record[5] = resultSet.getString(6);
+                    record[6] = resultSet.getString(7);
+                    record[7] = resultSet.getString(8);
+                    records.add(record);
                 }
-            });
-            
-            tile.addEventListener('mousemove', function(e) {
-                var x = e.clientX;
-                var y = e.clientY - 12;
-                tooltip.style.left = x + 'px';
-                tooltip.style.top = y + 'px';
-                tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
-            });
-            
-            tile.addEventListener('mouseleave', function() {
-                timeoutId = setTimeout(function() {
-                    tooltip.style.display = 'none';
-                    timeoutId = null;
-                }, 100);
-            });
-        });
-    });
-    
-    // LOADER
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            document.getElementById('loaderWrapper').classList.add('hidden');
-        }, 1500);
-        window.addEventListener('load', function() {
-            document.getElementById('loaderWrapper').classList.add('hidden');
-        });
-    });
-    
-    // MODAL
-    var mApi = '', mCat = '', mType = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
-    
-    function openModal(msg, api, cat, type, src, err, hits, td, time) {
-        mApi = api || '';
-        mCat = cat || 'GEN-5';
-        mType = type || 'TD';
-        mSource = src || '';
-        mError = err || '';
-        mHits = hits || '';
-        mTD = td || '';
-        mTime = time || '';
-        
-        document.getElementById('modalMsg').innerHTML = msg;
-        document.getElementById('modalContainer').style.display = 'flex';
-        document.getElementById('TextArea').value = '';
-        document.getElementById('closeName').value = '';
-    }
-    
-    function closeModal() {
-        document.getElementById('modalContainer').style.display = 'none';
-    }
-    
-    // COUNTS
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('gen5count').textContent = document.querySelectorAll('#panel-gen5 .tile-td, #panel-gen5 .tile-bd, #panel-gen5 .tile-mixed').length || 0;
-        document.getElementById('sicount').textContent = document.querySelectorAll('#panel-si .tile-td, #panel-si .tile-bd, #panel-si .tile-mixed').length || 0;
-        document.getElementById('thirdcount').textContent = document.querySelectorAll('#panel-third .tile-td, #panel-third .tile-bd, #panel-third .tile-mixed').length || 0;
-        
-        document.getElementById('closeBtn').addEventListener('click', function() {
-            var comment = document.getElementById('TextArea').value;
-            var closer = document.getElementById('closeName').value;
-            var pTime = document.getElementById('pasuseTime').value;
-            
-            if(comment.trim() == '' || closer == '') {
-                alert('⚠️ Please fill Comment and Closed By');
-                return;
-            }
-            
-            var url = '<%=request.getContextPath() %>/jsp/100PercentFailureAction.jsp?Api_Name=' 
-                + encodeURIComponent(mApi)
-                + '&SourceID=' + encodeURIComponent(mSource)
-                + '&TextArea=' + encodeURIComponent(comment)
-                + '&pasuseTime=' + encodeURIComponent(pTime)
-                + '&ErrorCode=' + encodeURIComponent(mError)
-                + '&closeName=' + encodeURIComponent(closer)
-                + '&ServiceCategory=' + encodeURIComponent(mCat)
-                + '&FailureType=' + encodeURIComponent(mType);
-            
-            closeModal();
-            location.replace(url);
-        });
-        
-        document.getElementById('detailsBtn').addEventListener('click', function() {
-            if(mCat != 'SI' && mCat != 'SIServices') {
-                var url = '<%=request.getContextPath() %>/showFailureServicesWise.do?action=showFailureServicesWise&url=' 
-                    + encodeURIComponent(mApi) 
-                    + '&ServiceCategory=' + encodeURIComponent(mCat);
-                window.open(url, '_blank');
-            }
-        });
-        
-        document.getElementById('openPopupButton').addEventListener('click', function() {
-            window.open('<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp', '_blank');
-        });
-        
-        document.getElementById('openPopup').addEventListener('click', function() {
-            window.open('DisplayTodayHundredPercentFailure.jsp', 'DataPopup', 'width=800,height=600');
-        });
-    });
-    
-    // TIMER
-    function countdownTimer(el, minutes, seconds) {
-        var element = document.getElementById(el);
-        if(!element) return;
-        var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
-        function update() {
-            var msLeft = endTime - (+new Date);
-            if (msLeft < 1000) { element.innerHTML = "⟳"; }
-            else {
-                var t = new Date(msLeft);
-                var m = t.getUTCMinutes();
-                var s = t.getUTCSeconds();
-                element.innerHTML = (m ? m + ':' : '') + (m ? String(s).padStart(2,'0') : s);
-                setTimeout(update, 100);
-            }
-        }
-        update();
-    }
-    countdownTimer('ten-countdown', 5, 0);
-    
-    document.getElementById('modalContainer').addEventListener('click', function(e) {
-        if(e.target === this) closeModal();
-    });
-    document.addEventListener('keydown', function(e) {
-        if(e.key === 'Escape') closeModal();
-    });
-</script>
 
+                resultSet.close();
+                preparedStatement.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (con != null) {
+                	con.close();
+                }
+            }
+
+            for (String[] record : records) {
+            %>
+            <tr>
+                <td><%= record[0] %></td>
+                <td><%= record[1] %></td>
+                <td><%= record[2] %></td>
+                <td><%= record[3] %></td>
+                <td><%= record[4] %></td>
+                <td><%= record[5] %></td>
+                <td><%= record[6] %></td>
+                <td><%= record[7] %></td>
+            </tr>
+            <%
+            }
+            %>
+        </tbody>
+    </table>
+    </div>
+</body>
+</html>
+
+
+----------------------------------------------------------------------------------------------------
+
+
+<%@ page import="java.sql.*, java.util.ArrayList, java.util.List" %>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>100% Failure Records</title>
+    <link rel='stylesheet' href='../css/bootstrap.min_Display100PerFail.css'>
+    <script src="../js/jquery-3.6.0.min_Diaplay100PerFail.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/datatables.min_Dispaly100PerFail.css">
+    <script type="text/javascript" charset="utf8" src="../js/datatables.min_Display100PerFail.js"></script>
+    <script>
+    $(document).ready(function(){
+     	 $('#recordsTable').DataTable({
+     		
+     		 "order": []
+     	 });
+      });
+      new DataTable('#recordsTable', {
+     	    layout: {
+     	        top1: 'searchBuilder'
+     	    }
+     	});
+        
+        function homeFunction() {
+			var url = location.replace('<%=request.getContextPath() + "/jsp/100PercentFailure.jsp"%>');
+			window.open(url, '_blank');
+		}
+        
+    </script>
+    <style>
+     input.right {
+        position: absolute;
+        left: 1740px;
+        top: 20px;
+      }
+    </style>
+</head>
+<body class="border border-dark">
+<div class="container-fluid">
+    <h1 style="text-align: center">100% Failure Records</h1>
+    <table id="recordsTable" class="display">
+        <thead>
+            <tr>
+              <th>SERVICE CATEGORY</th>
+              <th>SERVICE NAME</th>
+              <th>SOURCE ID</th>
+              <th>ERROR CODE</th>
+			  <th>DESCRIPTION</th>
+			  <th>CREATED BY</th>
+			  <th>PAUSE TIME</th>
+			  <th>RESUME_TIME</th>
+            </tr>
+        </thead>
+        <tbody>
+            <%
+            // Replace with your Oracle database connection logic
+            Connection con = null;
+            List<String[]> records = new ArrayList<>();
+            try {
+            	con = DBUtilityAuto.getReportDBConnection();
+
+                String query = "SELECT SERVICE_CATEGORY,SERVICE_NAME,SOURCE_ID,ERROR_CODE,DESCRIPTION,CLOSED_BY,PAUSE_TIME,RESUME_TIME FROM pause_log_master ORDER BY 7 desc";
+                PreparedStatement preparedStatement = con.prepareStatement(query);
+
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                while (resultSet.next()) {
+                    String[] record = new String[8];
+                    record[0] = resultSet.getString(1);
+                    record[1] = resultSet.getString(2);
+                    record[2] = resultSet.getString(3);
+                    record[3] = resultSet.getString(4);
+                    record[4] = resultSet.getString(5);
+                    record[5] = resultSet.getString(6);
+                    record[6] = resultSet.getString(7);
+                    record[7] = resultSet.getString(8);
+                    records.add(record);
+                }
+
+                resultSet.close();
+                preparedStatement.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if (con != null) {
+                	con.close();
+                }
+            }
+
+            for (String[] record : records) {
+            %>
+            <tr>
+                <td><%= record[0] %></td>
+                <td><%= record[1] %></td>
+                <td><%= record[2] %></td>
+                <td><%= record[3] %></td>
+                <td><%= record[4] %></td>
+                <td><%= record[5] %></td>
+                <td><%= record[6] %></td>
+                <td><%= record[7] %></td>
+            </tr>
+            <%
+            }
+            %>
+        </tbody>
+    </table>
+    </div>
 </body>
 </html>
