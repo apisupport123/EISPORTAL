@@ -1,5 +1,6 @@
 <%@page import="java.util.Calendar"%>
 <%@page import="java.text.SimpleDateFormat"%>
+<%@page import="java.sql.Date"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib uri="http://struts.apache.org/tags-html" prefix="html"%>
 <%@taglib uri="http://struts.apache.org/tags-bean" prefix="bean"%>
@@ -406,7 +407,7 @@
     }
     .tile-grid::-webkit-scrollbar-track { background: transparent; }
     
-    /* BIG 3D TILES - FIXED FONT */
+    /* BIG 3D TILES - FIXED FONT VISIBILITY */
     .tile {
         display: flex;
         flex-direction: column;
@@ -417,7 +418,7 @@
         cursor: pointer;
         position: relative;
         aspect-ratio: 1;
-        min-height: 44px;
+        min-height: 50px;
         padding: 6px 4px;
         border: 1.5px solid rgba(255,255,255,0.03);
         background: rgba(255,255,255,0.01);
@@ -436,23 +437,23 @@
         border-color: rgba(79,156,247,0.12);
     }
     
-    /* FIX: Font properly visible */
+    /* FIX: Font properly visible - no cut-off */
     .tile .val {
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 900;
-        line-height: 1.2;
+        line-height: 1.3;
         text-align: center;
         max-width: 100%;
         padding: 0 2px;
         word-break: break-word;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
+        text-overflow: clip;
         white-space: nowrap;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     
     .tile .sub-text {
-        font-size: 8px;
+        font-size: 9px;
         font-weight: 700;
         opacity: 0.8;
         text-transform: uppercase;
@@ -461,8 +462,8 @@
         text-align: center;
         max-width: 100%;
         padding: 0 2px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
+        text-overflow: clip;
         white-space: nowrap;
         text-shadow: 0 1px 3px rgba(0,0,0,0.4);
     }
@@ -493,8 +494,8 @@
             0 3px 10px rgba(231,76,60,0.05),
             inset 0 1px 0 rgba(255,255,255,0.02);
     }
-    .tile-critical .val { color: #e74c3c; font-size: 19px; }
-    .tile-critical .sub-text { color: #e74c3c; opacity: 0.9; font-size: 8px; }
+    .tile-critical .val { color: #e74c3c; font-size: 21px; }
+    .tile-critical .sub-text { color: #e74c3c; opacity: 0.9; font-size: 9px; }
     .tile-critical .bar .fill { background: #e74c3c; width: 80%; box-shadow: 0 0 20px rgba(231,76,60,0.2); }
     .tile-critical.pulse {
         animation: crit-pulse 2s ease-in-out infinite;
@@ -509,8 +510,8 @@
         border-color: rgba(46,204,113,0.04);
         box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
-    .tile-healthy .val { color: #2ecc71; font-size: 15px; font-weight: 800; }
-    .tile-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 8px; }
+    .tile-healthy .val { color: #2ecc71; font-size: 16px; font-weight: 800; }
+    .tile-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 9px; }
     .tile-healthy .bar .fill { background: #2ecc71; width: 15%; box-shadow: 0 0 15px rgba(46,204,113,0.1); }
     
     .tile-td {
@@ -520,8 +521,8 @@
             0 3px 12px rgba(231,76,60,0.08),
             inset 0 1px 0 rgba(255,255,255,0.02);
     }
-    .tile-td .val { color: #e74c3c; font-size: 20px; text-shadow: 0 0 25px rgba(231,76,60,0.1); }
-    .tile-td .sub-text { color: #e74c3c; opacity: 0.9; font-size: 8px; }
+    .tile-td .val { color: #e74c3c; font-size: 22px; text-shadow: 0 0 25px rgba(231,76,60,0.1); }
+    .tile-td .sub-text { color: #e74c3c; opacity: 0.9; font-size: 9px; }
     .tile-td .bar .fill { background: #e74c3c; width: 80%; box-shadow: 0 0 25px rgba(231,76,60,0.2); }
     .tile-td.pulse {
         animation: td-pulse 2s ease-in-out infinite;
@@ -538,8 +539,8 @@
             0 3px 12px rgba(243,156,18,0.08),
             inset 0 1px 0 rgba(255,255,255,0.02);
     }
-    .tile-bd .val { color: #f39c12; font-size: 20px; text-shadow: 0 0 25px rgba(243,156,18,0.1); }
-    .tile-bd .sub-text { color: #f39c12; opacity: 0.9; font-size: 8px; }
+    .tile-bd .val { color: #f39c12; font-size: 22px; text-shadow: 0 0 25px rgba(243,156,18,0.1); }
+    .tile-bd .sub-text { color: #f39c12; opacity: 0.9; font-size: 9px; }
     .tile-bd .bar .fill { background: #f39c12; width: 80%; box-shadow: 0 0 25px rgba(243,156,18,0.2); }
     .tile-bd.pulse {
         animation: bd-pulse 2s ease-in-out infinite;
@@ -556,8 +557,8 @@
             0 3px 12px rgba(155,89,182,0.08),
             inset 0 1px 0 rgba(255,255,255,0.02);
     }
-    .tile-mixed .val { color: #9b59b6; font-size: 20px; text-shadow: 0 0 25px rgba(155,89,182,0.1); }
-    .tile-mixed .sub-text { color: #9b59b6; opacity: 0.9; font-size: 8px; }
+    .tile-mixed .val { color: #9b59b6; font-size: 22px; text-shadow: 0 0 25px rgba(155,89,182,0.1); }
+    .tile-mixed .sub-text { color: #9b59b6; opacity: 0.9; font-size: 9px; }
     .tile-mixed .bar .fill { background: #9b59b6; width: 80%; box-shadow: 0 0 25px rgba(155,89,182,0.2); }
     .tile-mixed.pulse {
         animation: mixed-pulse 2s ease-in-out infinite;
@@ -572,8 +573,8 @@
         border-color: rgba(46,204,113,0.04);
         box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
-    .tile-hundred-healthy .val { color: #2ecc71; font-size: 15px; font-weight: 800; }
-    .tile-hundred-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 8px; }
+    .tile-hundred-healthy .val { color: #2ecc71; font-size: 16px; font-weight: 800; }
+    .tile-hundred-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 9px; }
     .tile-hundred-healthy .bar .fill { background: #2ecc71; width: 15%; box-shadow: 0 0 15px rgba(46,204,113,0.1); }
     
     /* TOOLTIP */
@@ -900,8 +901,8 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swGen5Per.size(), 40);
-                    for(int i = 0; i < totalTiles; i++) {
+                    int maxTiles = Math.max(swGen5Per.size(), 40);
+                    for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -964,8 +965,8 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swSiPer.size(), 40);
-                    for(int i = 0; i < totalTiles; i++) {
+                    int maxTiles = Math.max(swSiPer.size(), 40);
+                    for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -1032,8 +1033,8 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swThirdPer.size(), 40);
-                    for(int i = 0; i < totalTiles; i++) {
+                    int maxTiles = Math.max(swThirdPer.size(), 40);
+                    for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -1131,8 +1132,8 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swCombPer.size(), 40);
-                    for(int i = 0; i < totalTiles; i++) {
+                    int maxTiles = Math.max(swCombPer.size(), 40);
+                    for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -1234,7 +1235,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 40);
+                    int maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 40);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1269,7 +1270,7 @@
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         hIdx++;
                     }
-                    for(int k = hIdx; k < totalTiles; k++) {
+                    for(int k = hIdx; k < maxTiles; k++) {
                         out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
                         out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
@@ -1311,8 +1312,8 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(hSiTdPer.size(), 40);
-                    for(int i = 0; i < totalTiles; i++) {
+                    int maxTiles = Math.max(hSiTdPer.size(), 40);
+                    for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
                         String sub = "OK";
@@ -1412,7 +1413,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 40);
+                    int maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 40);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1447,7 +1448,7 @@
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         h3Idx++;
                     }
-                    for(int k = h3Idx; k < totalTiles; k++) {
+                    for(int k = h3Idx; k < maxTiles; k++) {
                         out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
                         out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
