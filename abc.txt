@@ -62,7 +62,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
 <link rel="stylesheet" href="../css/all.min.css">
-<title>Aegis Observe · Command Center</title>
+<title>EIS COMMAND · Service Monitor</title>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
@@ -70,7 +70,7 @@
         height: 100vh;
         overflow: hidden;
         font-family: 'Inter', sans-serif;
-        background: #080c18;
+        background: #0a0e1a;
         color: #ffffff;
     }
     
@@ -79,8 +79,9 @@
         position: fixed;
         inset: 0;
         background: 
-            radial-gradient(ellipse at 15% 25%, rgba(79,156,247,0.05) 0%, transparent 55%),
-            radial-gradient(ellipse at 85% 75%, rgba(124,58,237,0.03) 0%, transparent 50%);
+            radial-gradient(ellipse at 15% 25%, rgba(79,156,247,0.04) 0%, transparent 55%),
+            radial-gradient(ellipse at 85% 75%, rgba(124,58,237,0.03) 0%, transparent 50%),
+            radial-gradient(ellipse at 50% 50%, rgba(15,151,61,0.01) 0%, transparent 40%);
         z-index: 0;
     }
     
@@ -109,7 +110,7 @@
     #loaderWrapper {
         position: fixed;
         inset: 0;
-        background: #080c18;
+        background: #0a0e1a;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -136,12 +137,12 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 8px 22px;
+        padding: 8px 24px;
         background: rgba(255,255,255,0.02);
         border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 14px;
+        border-radius: 16px;
         flex-shrink: 0;
-        height: 58px;
+        height: 62px;
         margin-bottom: 6px;
         flex-wrap: wrap;
         gap: 6px;
@@ -151,50 +152,50 @@
     
     .brand { display: flex; align-items: center; gap: 14px; }
     .brand .logo {
-        width: 40px;
-        height: 40px;
+        width: 42px;
+        height: 42px;
         background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-        border-radius: 10px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 20px;
         color: #fff;
         box-shadow: 0 4px 30px rgba(79,156,247,0.2);
     }
     .brand .name {
         font-weight: 900;
-        font-size: 22px;
+        font-size: 24px;
         letter-spacing: -0.5px;
-        background: linear-gradient(135deg, #ffffff, #4f9cf7);
+        background: linear-gradient(135deg, #ffffff 60%, #4f9cf7);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
     .brand .sub {
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 700;
         color: #4a6a8a;
         letter-spacing: 2px;
         text-transform: uppercase;
         -webkit-text-fill-color: #4a6a8a;
     }
-    .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .top-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     
     .live-badge {
         display: flex;
         align-items: center;
-        gap: 6px;
-        font-size: 11px;
+        gap: 8px;
+        font-size: 12px;
         font-weight: 700;
         color: #0f973d;
-        padding: 5px 16px 5px 10px;
+        padding: 6px 18px 6px 12px;
         border-radius: 40px;
         background: rgba(15,151,61,0.06);
         border: 1px solid rgba(15,151,61,0.08);
     }
     .live-badge .dot {
-        width: 7px;
-        height: 7px;
+        width: 8px;
+        height: 8px;
         border-radius: 50%;
         background: #0f973d;
         animation: pulse-dot 1.5s infinite;
@@ -204,9 +205,9 @@
     
     .timer-glass {
         font-weight: 700;
-        font-size: 15px;
+        font-size: 16px;
         color: #4f9cf7;
-        padding: 5px 14px;
+        padding: 6px 16px;
         border-radius: 40px;
         background: rgba(79,156,247,0.04);
         border: 1px solid rgba(79,156,247,0.06);
@@ -214,16 +215,16 @@
     }
     
     .btn-glass {
-        padding: 5px 16px;
+        padding: 6px 18px;
         border-radius: 40px;
         font-weight: 700;
-        font-size: 10px;
+        font-size: 11px;
         border: none;
         cursor: pointer;
         transition: all 0.25s ease;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 6px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-family: 'Inter', sans-serif;
@@ -251,7 +252,7 @@
         padding: 0 8px;
         border-radius: 4px;
         font-weight: 700;
-        font-size: 11px;
+        font-size: 12px;
         color: #4f9cf7;
     }
     
@@ -259,24 +260,24 @@
     .ticker-bar {
         display: flex;
         align-items: center;
-        padding: 3px 14px;
+        padding: 4px 16px;
         background: rgba(255,255,255,0.01);
         border-radius: 8px;
         border: 1px solid rgba(255,255,255,0.02);
         flex-shrink: 0;
-        margin-bottom: 3px;
-        height: 26px;
+        margin-bottom: 4px;
+        height: 28px;
     }
     .ticker-wrap { flex: 1; overflow: hidden; padding: 0 6px; }
     .ticker-text {
         display: inline-block;
         white-space: nowrap;
         animation: marquee 35s linear infinite;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: 600;
         color: #4a6a8a;
     }
-    .ticker-text span { margin: 0 18px; color: #5a7a9a; }
+    .ticker-text span { margin: 0 20px; color: #5a7a9a; }
     .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
     .ticker-text .hl2 { color: #7c3aed; font-weight: 700; }
     @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
@@ -286,28 +287,28 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 3px 0 5px 0;
+        padding: 4px 0 6px 0;
         border-bottom: 1px solid rgba(255,255,255,0.02);
         flex-shrink: 0;
         margin-bottom: 4px;
         flex-wrap: wrap;
-        gap: 6px;
+        gap: 8px;
     }
-    .legend { display: flex; gap: 18px; flex-wrap: wrap; }
+    .legend { display: flex; gap: 20px; flex-wrap: wrap; }
     .legend .item {
         display: flex;
         align-items: center;
-        gap: 5px;
-        font-size: 10px;
+        gap: 6px;
+        font-size: 11px;
         font-weight: 700;
         color: #6a8aaa;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
     .legend .swatch {
-        width: 12px;
-        height: 12px;
-        border-radius: 3px;
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
         border: 1px solid rgba(255,255,255,0.04);
     }
     .sw-td { background: #e74c3c; box-shadow: 0 0 20px rgba(231,76,60,0.2); }
@@ -317,27 +318,27 @@
     .timestamp-display {
         color: #4f9cf7;
         font-weight: 700;
-        font-size: 11px;
+        font-size: 12px;
         background: rgba(79,156,247,0.04);
-        padding: 3px 14px;
+        padding: 4px 16px;
         border-radius: 40px;
         border: 1px solid rgba(79,156,247,0.04);
     }
-    .timestamp-display i { margin-right: 5px; }
+    .timestamp-display i { margin-right: 6px; }
     
     /* ========== MAIN GRID ========== */
     .grid-main {
         flex: 1;
         display: grid;
         grid-template-columns: repeat(7, 1fr);
-        gap: 6px;
+        gap: 8px;
         min-height: 0;
     }
     
     /* ========== CARDS ========== */
     .card-modern {
         background: rgba(255,255,255,0.015);
-        border-radius: 12px;
+        border-radius: 14px;
         border: 1px solid rgba(255,255,255,0.03);
         overflow: hidden;
         display: flex;
@@ -351,31 +352,31 @@
     }
     
     .card-header-modern {
-        padding: 6px 12px 4px 12px;
+        padding: 8px 14px 6px 14px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-shrink: 0;
-        height: 34px;
+        height: 38px;
         background: rgba(255,255,255,0.01);
         border-bottom: 1px solid rgba(255,255,255,0.02);
     }
     .card-header-modern .title {
         font-weight: 800;
-        font-size: 12px;
+        font-size: 13px;
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         color: #b0c8e0;
     }
     .card-header-modern .title i {
         color: #4f9cf7;
-        font-size: 12px;
+        font-size: 14px;
     }
     .card-header-modern .badge-count {
-        font-size: 10px;
+        font-size: 11px;
         font-weight: 700;
-        padding: 1px 12px;
+        padding: 2px 14px;
         border-radius: 40px;
         background: rgba(79,156,247,0.06);
         color: #4f9cf7;
@@ -387,168 +388,221 @@
         border-color: rgba(231,76,60,0.08);
     }
     
-    /* ========== DYNAMIC TILE GRID - AUTO ADJUST ========== */
+    /* ========== DYNAMIC TILE GRID ========== */
     .tile-grid {
         flex: 1;
-        padding: 3px 6px 6px 6px;
+        padding: 4px 8px 8px 8px;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+        grid-template-columns: repeat(6, 1fr);
         grid-auto-rows: 1fr;
-        gap: 3px;
+        gap: 4px;
         min-height: 0;
         overflow-y: auto;
         overflow-x: hidden;
     }
     
-    /* Scrollbar for tiles if too many */
-    .tile-grid::-webkit-scrollbar { width: 2px; }
-    .tile-grid::-webkit-scrollbar-thumb { background: rgba(79,156,247,0.2); border-radius: 10px; }
+    /* Scrollbar styling */
+    .tile-grid::-webkit-scrollbar { width: 4px; }
+    .tile-grid::-webkit-scrollbar-thumb { background: rgba(79,156,247,0.3); border-radius: 10px; }
     .tile-grid::-webkit-scrollbar-track { background: transparent; }
     
-    /* ========== TILES ========== */
+    /* ========== 3D TILES ========== */
     .tile {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        border-radius: 6px;
-        transition: all 0.12s ease;
+        border-radius: 10px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
         position: relative;
         aspect-ratio: 1;
-        min-height: 30px;
-        padding: 4px 2px;
-        border: 1.5px solid rgba(255,255,255,0.02);
-        background: rgba(255,255,255,0.01);
+        min-height: 36px;
+        padding: 6px 4px;
+        border: none;
+        background: rgba(255,255,255,0.03);
         overflow: hidden;
+        /* 3D Effect */
+        transform: perspective(400px) rotateX(0deg) rotateY(0deg);
+        box-shadow: 
+            0 4px 15px rgba(0,0,0,0.3),
+            inset 0 1px 0 rgba(255,255,255,0.05),
+            inset 0 -1px 0 rgba(0,0,0,0.2);
     }
+    
+    .tile::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 40%;
+        background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+        border-radius: 10px 10px 0 0;
+        pointer-events: none;
+    }
+    
     .tile:hover {
-        transform: scale(1.05) translateY(-2px);
+        transform: perspective(400px) rotateX(2deg) rotateY(2deg) translateY(-4px) scale(1.03);
+        box-shadow: 
+            0 12px 40px rgba(0,0,0,0.5),
+            0 0 30px rgba(79,156,247,0.05),
+            inset 0 1px 0 rgba(255,255,255,0.08),
+            inset 0 -1px 0 rgba(0,0,0,0.2);
         z-index: 10;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-        border-color: rgba(79,156,247,0.10);
     }
     
     .tile .val {
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 900;
         line-height: 1.1;
         text-align: center;
         max-width: 100%;
-        padding: 0 1px;
+        padding: 0 2px;
         word-break: break-word;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
     
     .tile .sub-text {
-        font-size: 7px;
+        font-size: 8px;
         font-weight: 700;
-        opacity: 0.6;
+        opacity: 0.7;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
-        margin-top: 1px;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
         text-align: center;
         max-width: 100%;
-        padding: 0 1px;
+        padding: 0 2px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        position: relative;
+        z-index: 1;
     }
     
     .tile .bar {
         position: absolute;
-        bottom: 2px;
+        bottom: 4px;
         left: 12%;
         right: 12%;
-        height: 2px;
-        border-radius: 3px;
-        background: rgba(255,255,255,0.02);
+        height: 3px;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.03);
         overflow: hidden;
+        z-index: 1;
     }
     .tile .bar .fill {
         height: 100%;
-        border-radius: 3px;
+        border-radius: 4px;
         transition: width 0.8s ease;
+        box-shadow: 0 0 10px rgba(255,255,255,0.1);
     }
     
-    /* ========== TILE STATUSES ========== */
+    /* ========== TILE STATUSES - 3D EFFECTS ========== */
     .tile-critical {
-        background: rgba(231,76,60,0.12);
-        border-color: rgba(231,76,60,0.15);
+        background: linear-gradient(145deg, rgba(231,76,60,0.15), rgba(192,57,43,0.20));
+        box-shadow: 
+            0 4px 20px rgba(231,76,60,0.15),
+            inset 0 1px 0 rgba(255,255,255,0.06),
+            inset 0 -1px 0 rgba(0,0,0,0.3);
+        border: 1px solid rgba(231,76,60,0.15);
     }
-    .tile-critical .val { color: #e74c3c; font-size: 15px; }
+    .tile-critical .val { color: #e74c3c; font-size: 18px; }
     .tile-critical .sub-text { color: #e74c3c; opacity: 0.8; }
-    .tile-critical .bar .fill { background: #e74c3c; width: 80%; }
+    .tile-critical .bar .fill { background: linear-gradient(90deg, #e74c3c, #ff6b6b); width: 80%; }
     .tile-critical.pulse {
         animation: crit-pulse 2s ease-in-out infinite;
     }
     @keyframes crit-pulse {
-        0%,100% { border-color: rgba(231,76,60,0.15); }
-        50% { border-color: rgba(231,76,60,0.30); box-shadow: 0 0 20px rgba(231,76,60,0.06); }
+        0%,100% { box-shadow: 0 4px 20px rgba(231,76,60,0.15), inset 0 1px 0 rgba(255,255,255,0.06); }
+        50% { box-shadow: 0 4px 40px rgba(231,76,60,0.30), 0 0 60px rgba(231,76,60,0.05), inset 0 1px 0 rgba(255,255,255,0.06); }
     }
     
     .tile-healthy {
-        background: rgba(46,204,113,0.08);
-        border-color: rgba(46,204,113,0.04);
+        background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(15,151,61,0.12));
+        box-shadow: 
+            0 4px 15px rgba(46,204,113,0.05),
+            inset 0 1px 0 rgba(255,255,255,0.05),
+            inset 0 -1px 0 rgba(0,0,0,0.2);
+        border: 1px solid rgba(46,204,113,0.04);
     }
-    .tile-healthy .val { color: #2ecc71; font-size: 12px; font-weight: 800; }
-    .tile-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 8px; }
-    .tile-healthy .bar .fill { background: #2ecc71; width: 15%; }
+    .tile-healthy .val { color: #2ecc71; font-size: 14px; font-weight: 800; }
+    .tile-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 9px; }
+    .tile-healthy .bar .fill { background: linear-gradient(90deg, #2ecc71, #58d68d); width: 15%; }
     
     .tile-td {
-        background: rgba(231,76,60,0.14);
-        border-color: rgba(231,76,60,0.18);
+        background: linear-gradient(145deg, rgba(231,76,60,0.18), rgba(192,57,43,0.25));
+        box-shadow: 
+            0 4px 25px rgba(231,76,60,0.20),
+            inset 0 1px 0 rgba(255,255,255,0.06),
+            inset 0 -1px 0 rgba(0,0,0,0.3);
+        border: 1px solid rgba(231,76,60,0.20);
     }
-    .tile-td .val { color: #e74c3c; font-size: 17px; }
-    .tile-td .sub-text { color: #e74c3c; opacity: 0.8; font-size: 8px; }
-    .tile-td .bar .fill { background: #e74c3c; width: 80%; }
+    .tile-td .val { color: #e74c3c; font-size: 20px; text-shadow: 0 0 30px rgba(231,76,60,0.2); }
+    .tile-td .sub-text { color: #e74c3c; opacity: 0.8; font-size: 9px; }
+    .tile-td .bar .fill { background: linear-gradient(90deg, #e74c3c, #ff6b6b); width: 80%; }
     .tile-td.pulse {
         animation: td-pulse 2s ease-in-out infinite;
     }
     @keyframes td-pulse {
-        0%,100% { border-color: rgba(231,76,60,0.18); }
-        50% { border-color: rgba(231,76,60,0.35); box-shadow: 0 0 30px rgba(231,76,60,0.08); }
+        0%,100% { box-shadow: 0 4px 25px rgba(231,76,60,0.20), inset 0 1px 0 rgba(255,255,255,0.06); }
+        50% { box-shadow: 0 4px 50px rgba(231,76,60,0.35), 0 0 80px rgba(231,76,60,0.06), inset 0 1px 0 rgba(255,255,255,0.06); }
     }
     
     .tile-bd {
-        background: rgba(243,156,18,0.14);
-        border-color: rgba(243,156,18,0.18);
+        background: linear-gradient(145deg, rgba(243,156,18,0.18), rgba(211,84,0,0.22));
+        box-shadow: 
+            0 4px 25px rgba(243,156,18,0.15),
+            inset 0 1px 0 rgba(255,255,255,0.06),
+            inset 0 -1px 0 rgba(0,0,0,0.3);
+        border: 1px solid rgba(243,156,18,0.20);
     }
-    .tile-bd .val { color: #f39c12; font-size: 17px; }
-    .tile-bd .sub-text { color: #f39c12; opacity: 0.8; font-size: 8px; }
-    .tile-bd .bar .fill { background: #f39c12; width: 80%; }
+    .tile-bd .val { color: #f39c12; font-size: 20px; text-shadow: 0 0 30px rgba(243,156,18,0.2); }
+    .tile-bd .sub-text { color: #f39c12; opacity: 0.8; font-size: 9px; }
+    .tile-bd .bar .fill { background: linear-gradient(90deg, #f39c12, #f1c40f); width: 80%; }
     .tile-bd.pulse {
         animation: bd-pulse 2s ease-in-out infinite;
     }
     @keyframes bd-pulse {
-        0%,100% { border-color: rgba(243,156,18,0.18); }
-        50% { border-color: rgba(243,156,18,0.35); box-shadow: 0 0 30px rgba(243,156,18,0.08); }
+        0%,100% { box-shadow: 0 4px 25px rgba(243,156,18,0.15), inset 0 1px 0 rgba(255,255,255,0.06); }
+        50% { box-shadow: 0 4px 50px rgba(243,156,18,0.30), 0 0 80px rgba(243,156,18,0.05), inset 0 1px 0 rgba(255,255,255,0.06); }
     }
     
     .tile-mixed {
-        background: rgba(155,89,182,0.14);
-        border-color: rgba(155,89,182,0.18);
+        background: linear-gradient(145deg, rgba(155,89,182,0.18), rgba(142,68,173,0.22));
+        box-shadow: 
+            0 4px 25px rgba(155,89,182,0.15),
+            inset 0 1px 0 rgba(255,255,255,0.06),
+            inset 0 -1px 0 rgba(0,0,0,0.3);
+        border: 1px solid rgba(155,89,182,0.20);
     }
-    .tile-mixed .val { color: #9b59b6; font-size: 17px; }
-    .tile-mixed .sub-text { color: #9b59b6; opacity: 0.8; font-size: 8px; }
-    .tile-mixed .bar .fill { background: #9b59b6; width: 80%; }
+    .tile-mixed .val { color: #9b59b6; font-size: 20px; text-shadow: 0 0 30px rgba(155,89,182,0.2); }
+    .tile-mixed .sub-text { color: #9b59b6; opacity: 0.8; font-size: 9px; }
+    .tile-mixed .bar .fill { background: linear-gradient(90deg, #9b59b6, #af7ac5); width: 80%; }
     .tile-mixed.pulse {
         animation: mixed-pulse 2s ease-in-out infinite;
     }
     @keyframes mixed-pulse {
-        0%,100% { border-color: rgba(155,89,182,0.18); }
-        50% { border-color: rgba(155,89,182,0.35); box-shadow: 0 0 30px rgba(155,89,182,0.08); }
+        0%,100% { box-shadow: 0 4px 25px rgba(155,89,182,0.15), inset 0 1px 0 rgba(255,255,255,0.06); }
+        50% { box-shadow: 0 4px 50px rgba(155,89,182,0.30), 0 0 80px rgba(155,89,182,0.05), inset 0 1px 0 rgba(255,255,255,0.06); }
     }
     
     .tile-hundred-healthy {
-        background: rgba(46,204,113,0.08);
-        border-color: rgba(46,204,113,0.04);
+        background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(15,151,61,0.10));
+        box-shadow: 
+            0 4px 15px rgba(46,204,113,0.04),
+            inset 0 1px 0 rgba(255,255,255,0.05),
+            inset 0 -1px 0 rgba(0,0,0,0.2);
+        border: 1px solid rgba(46,204,113,0.04);
     }
-    .tile-hundred-healthy .val { color: #2ecc71; font-size: 13px; font-weight: 800; }
-    .tile-hundred-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 8px; }
-    .tile-hundred-healthy .bar .fill { background: #2ecc71; width: 15%; }
+    .tile-hundred-healthy .val { color: #2ecc71; font-size: 15px; font-weight: 800; }
+    .tile-hundred-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 9px; }
+    .tile-hundred-healthy .bar .fill { background: linear-gradient(90deg, #2ecc71, #58d68d); width: 15%; }
     
     /* ========== TOOLTIP ========== */
     #customTooltip {
@@ -557,9 +611,9 @@
         background: rgba(8,12,24,0.96);
         backdrop-filter: blur(16px);
         color: #e8edf5;
-        padding: 7px 18px;
-        border-radius: 10px;
-        font-size: 12px;
+        padding: 8px 20px;
+        border-radius: 12px;
+        font-size: 13px;
         font-weight: 600;
         border: 1px solid rgba(255,255,255,0.04);
         box-shadow: 0 12px 50px rgba(0,0,0,0.9);
@@ -567,7 +621,7 @@
         z-index: 99999;
         font-family: 'Inter', sans-serif;
         white-space: nowrap;
-        max-width: 380px;
+        max-width: 400px;
         overflow: hidden;
         text-overflow: ellipsis;
         transform: translateX(-50%) translateY(-100%);
@@ -606,12 +660,12 @@
     }
     
     #alertBox {
-        background: linear-gradient(145deg, #111a2e, #080c18);
-        border-radius: 20px;
-        max-width: 600px;
+        background: linear-gradient(145deg, #111a2e, #0a0e1a);
+        border-radius: 24px;
+        max-width: 620px;
         width: 95%;
         max-height: 85vh;
-        padding: 28px 34px 32px 34px;
+        padding: 32px 40px 36px 40px;
         border: 1px solid rgba(255,255,255,0.04);
         box-shadow: 0 60px 120px rgba(0,0,0,0.9);
         overflow-y: auto;
@@ -623,24 +677,24 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 12px;
-        padding-bottom: 12px;
+        margin-bottom: 14px;
+        padding-bottom: 14px;
         border-bottom: 1px solid rgba(255,255,255,0.04);
     }
     #alertBox .head h3 {
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 800;
         color: #e74c3c;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
     }
-    #alertBox .head h3 i { font-size: 26px; }
+    #alertBox .head h3 i { font-size: 28px; }
     #alertBox .head .close-btn {
         background: none;
         border: none;
         color: #4a6a8a;
-        font-size: 26px;
+        font-size: 28px;
         cursor: pointer;
         transition: 0.2s;
         padding: 0 6px;
@@ -650,14 +704,14 @@
     
     #alertBox .body-text {
         background: rgba(0,0,0,0.25);
-        border-radius: 10px;
-        padding: 14px 18px;
-        margin: 6px 0 16px 0;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin: 8px 0 18px 0;
         border-left: 3px solid #4f9cf7;
-        font-size: 13px;
+        font-size: 14px;
         line-height: 2;
         color: #b0c8e0;
-        max-height: 160px;
+        max-height: 180px;
         overflow-y: auto;
     }
     #alertBox .body-text b { color: #ffffff; }
@@ -668,26 +722,26 @@
     #alertBox .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 14px;
     }
-    #alertBox .field { margin-bottom: 4px; }
+    #alertBox .field { margin-bottom: 6px; }
     #alertBox .field label {
         display: block;
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 700;
         color: #4a6a8a;
         text-transform: uppercase;
         letter-spacing: 0.8px;
-        margin-bottom: 3px;
+        margin-bottom: 4px;
     }
     #alertBox .field select, #alertBox .field textarea {
         width: 100%;
         background: rgba(0,0,0,0.35);
         border: 1px solid rgba(255,255,255,0.04);
-        border-radius: 8px;
-        padding: 8px 12px;
+        border-radius: 10px;
+        padding: 10px 14px;
         color: #ffffff;
-        font-size: 13px;
+        font-size: 14px;
         font-family: 'Inter', sans-serif;
         transition: 0.2s;
     }
@@ -696,27 +750,27 @@
         border-color: #4f9cf7;
         box-shadow: 0 0 0 4px rgba(79,156,247,0.04);
     }
-    #alertBox .field textarea { min-height: 44px; resize: vertical; }
+    #alertBox .field textarea { min-height: 50px; resize: vertical; }
     #alertBox .field.full { grid-column: 1 / -1; }
     
     .modal-actions {
         display: flex;
         gap: 10px;
         justify-content: flex-end;
-        margin-top: 16px;
+        margin-top: 18px;
         flex-wrap: wrap;
     }
     .modal-actions .btn-m {
-        padding: 8px 24px;
+        padding: 10px 28px;
         border-radius: 40px;
         font-weight: 700;
-        font-size: 11px;
+        font-size: 12px;
         border: none;
         cursor: pointer;
         transition: 0.2s;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-family: 'Inter', sans-serif;
@@ -746,15 +800,15 @@
     /* ========== RESPONSIVE ========== */
     @media (max-width: 1400px) { 
         .grid-main { grid-template-columns: repeat(5, 1fr); } 
-        .tile-grid { grid-template-columns: repeat(auto-fill, minmax(55px, 1fr)); }
+        .tile-grid { grid-template-columns: repeat(5, 1fr); }
     }
     @media (max-width: 1100px) { 
         .grid-main { grid-template-columns: repeat(4, 1fr); } 
-        .tile-grid { grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); }
+        .tile-grid { grid-template-columns: repeat(4, 1fr); }
     }
     @media (max-width: 768px) { 
         .grid-main { grid-template-columns: repeat(2, 1fr); } 
-        .tile-grid { grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); }
+        .tile-grid { grid-template-columns: repeat(3, 1fr); }
         .top-bar { flex-wrap: wrap; height: auto; }
     }
     
@@ -767,7 +821,7 @@
 <!-- ========== LOADER ========== -->
 <div id="loaderWrapper">
     <div class="loader-ring"></div>
-    <div class="loader-text">Initializing <span>Aegis</span></div>
+    <div class="loader-text">Initializing <span>EIS COMMAND</span></div>
 </div>
 
 <!-- ========== BACKGROUND ========== -->
@@ -782,8 +836,8 @@
         <div class="brand">
             <div class="logo"><i class="fas fa-shield-halved"></i></div>
             <div>
-                <div class="name">AEGIS</div>
-                <div class="sub">Observe · Command Center</div>
+                <div class="name">EIS COMMAND</div>
+                <div class="sub">Service Monitoring Center</div>
             </div>
         </div>
         <div class="top-actions">
@@ -817,7 +871,7 @@
                 <span>● <span class="hl">LEGEND:</span> <span style="color:#e74c3c;">● TD</span> <span style="color:#f39c12;">● BD</span> <span style="color:#9b59b6;">● Mixed</span> <span style="color:#2ecc71;">● Healthy</span></span>
                 <span>● <span class="hl">REFRESH:</span> Every 5 minutes</span>
                 <span>● <span class="hl">CLICK:</span> Any tile for detailed alert</span>
-                <span>● <span class="hl">DYNAMIC:</span> Tiles auto-adjust</span>
+                <span>● <span class="hl">SCROLL:</span> Auto-adjusts for any number of failures</span>
             </div>
         </div>
     </div>
@@ -860,7 +914,6 @@
                     try {
                         String q = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per, SUM(SI_EEROR) AS SI_EEROR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name)";
                         ResultSet rs = con.createStatement().executeQuery(q);
-                        int count = 0;
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
                                 swGen5Per.add(rs.getDouble("TD_PER"));
@@ -871,13 +924,12 @@
                                 swGen5Td.add(rs.getInt("TD"));
                                 swGen5Time.add(nvl(rs.getString("ISSUE_TIME"), "N/A"));
                                 swGen5Si.add(rs.getInt("SI_EEROR"));
-                                count++;
                             }
                         }
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swGen5Per.size(), 28);
+                    int totalTiles = Math.max(swGen5Per.size(), 48);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -941,7 +993,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swSiPer.size(), 28);
+                    int totalTiles = Math.max(swSiPer.size(), 48);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1009,7 +1061,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swThirdPer.size(), 28);
+                    int totalTiles = Math.max(swThirdPer.size(), 48);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1108,7 +1160,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(swCombPer.size(), 28);
+                    int totalTiles = Math.max(swCombPer.size(), 48);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1211,7 +1263,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 28);
+                    int totalTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 48);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1288,7 +1340,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(hSiTdPer.size(), 28);
+                    int totalTiles = Math.max(hSiTdPer.size(), 48);
                     for(int i = 0; i < totalTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1389,7 +1441,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int totalTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 28);
+                    int totalTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 48);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
