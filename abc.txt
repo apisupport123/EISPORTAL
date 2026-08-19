@@ -1,744 +1,2024 @@
-<%@ page import="java.sql.*, java.util.ArrayList, java.util.List" %>
+<%@page import="java.util.Calendar"%>
+<%@page import="java.text.SimpleDateFormat"%>
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@taglib uri="http://struts.apache.org/tags-html" prefix="html"%>
+<%@taglib uri="http://struts.apache.org/tags-bean" prefix="bean"%>
+<%@taglib uri="http://struts.apache.org/tags-logic" prefix="logic"%>
+<%@page import="java.sql.PreparedStatement"%>
+<%@page import="java.sql.SQLException"%>
+<%@page import="java.util.ArrayList"%>
+<%@page import="java.util.List"%>
+<%@page import="java.sql.DriverManager"%>
+<%@page import="java.sql.ResultSet"%>
+<%@page import="java.sql.Statement"%>
+<%@page import="java.sql.Connection"%>
 <%@page import="com.jdbc.DBUtilityAuto"%>
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@page import="java.time.LocalDate,java.time.format.DateTimeFormatter,java.time.LocalDateTime,java.util.Date,java.util.Calendar"%>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>EIS ServiceWise · Today's Closed Records</title>
-    <link rel='stylesheet' href='../css/bootstrap.min_Display100PerFail.css'>
-    <script src="../js/jquery-3.6.0.min_Diaplay100PerFail.js"></script>
-    <link rel="stylesheet" type="text/css" href="../css/datatables.min_Dispaly100PerFail.css">
-    <script type="text/javascript" charset="utf8" src="../js/datatables.min_Display100PerFail.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #000000;
-            color: #ffffff;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .bg-layer {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: #000000;
-            z-index: 0;
-        }
-        
-        .wrapper {
-            position: relative;
-            z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        /* TOP BAR */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 24px;
-            background: rgba(6,6,6,0.98);
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.04);
-            margin-bottom: 20px;
-            box-shadow: 0 4px 40px rgba(0,0,0,0.9);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand .logo {
-            width: 38px; height: 38px;
-            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px; color: #fff;
-            box-shadow: 0 4px 30px rgba(79,156,247,0.15);
-        }
-        .brand .name { font-weight: 900; font-size: 20px; color: #ffffff; }
-        .brand .name .eis { color: #4f9cf7; }
-        .brand .name .wise { color: #7c3aed; }
-        .brand .sub { font-size: 9px; font-weight: 700; color: #2a4a6a; letter-spacing: 2px; text-transform: uppercase; }
-        
-        .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .btn-glass {
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 12px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-family: 'Inter', sans-serif;
-            text-decoration: none;
-        }
-        .btn-primary-glass {
-            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(79,156,247,0.12);
-        }
-        .btn-primary-glass:hover { transform: translateY(-2px); box-shadow: 0 8px 35px rgba(79,156,247,0.2); }
-        .btn-success-glass {
-            background: linear-gradient(135deg, #0f973d, #0a7a30);
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(15,151,61,0.12);
-        }
-        .btn-success-glass:hover { transform: translateY(-2px); box-shadow: 0 8px 35px rgba(15,151,61,0.2); }
-        .btn-ghost-glass {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.04);
-            color: #6a8aaa;
-        }
-        .btn-ghost-glass:hover { background: rgba(255,255,255,0.04); }
-        
-        /* PAGE TITLE */
-        .page-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 0 16px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.02);
-            margin-bottom: 20px;
-        }
-        .page-title h1 {
-            font-size: 24px;
-            font-weight: 800;
-            color: #e8edf5;
-        }
-        .page-title h1 span { color: #4f9cf7; }
-        .page-title .badge-count {
-            background: rgba(79,156,247,0.06);
-            padding: 4px 16px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #4f9cf7;
-            border: 1px solid rgba(79,156,247,0.04);
-        }
-        
-        /* TABLE */
-        .table-container {
-            background: rgba(4,4,4,0.95);
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.02);
-            padding: 20px;
-            overflow-x: auto;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.6);
-        }
-        
-        #recordsTable {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        
-        #recordsTable thead th {
-            background: rgba(255,255,255,0.02);
-            color: #8aaac0;
-            font-weight: 700;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 12px 14px;
-            border-bottom: 2px solid rgba(255,255,255,0.04);
-            text-align: left;
-        }
-        
-        #recordsTable tbody td {
-            padding: 10px 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.02);
-            color: #c8d8f0;
-        }
-        
-        #recordsTable tbody tr:hover {
-            background: rgba(79,156,247,0.02);
-        }
-        
-        #recordsTable tbody tr td:first-child {
-            font-weight: 600;
-            color: #4f9cf7;
-        }
-        
-        /* DataTables customization */
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter,
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_paginate {
-            color: #6a8aaa !important;
-        }
-        
-        .dataTables_wrapper .dataTables_filter input {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.04);
-            border-radius: 6px;
-            padding: 6px 12px;
-            color: #ffffff;
-        }
-        
-        .dataTables_wrapper .dataTables_filter input:focus {
-            outline: none;
-            border-color: #4f9cf7;
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            color: #6a8aaa !important;
-            border-radius: 6px !important;
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: rgba(79,156,247,0.06) !important;
-            color: #4f9cf7 !important;
-            border-color: rgba(79,156,247,0.04) !important;
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: rgba(79,156,247,0.04) !important;
-            color: #ffffff !important;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .top-bar { flex-direction: column; align-items: flex-start; }
-            .page-title h1 { font-size: 18px; }
-            #recordsTable { font-size: 11px; }
-            #recordsTable thead th, #recordsTable tbody td { padding: 6px 8px; }
-        }
-        
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4f9cf7; }
-    </style>
-    <script>
-        $(document).ready(function(){
-            $('#recordsTable').DataTable({
-                "order": [],
-                "pageLength": 25,
-                "language": {
-                    "search": "Search:",
-                    "lengthMenu": "Show _MENU_ entries",
-                    "info": "Showing _START_ to _END_ of _TOTAL_ records"
-                }
-            });
-        });
-        
-        function homeFunction() {
-            window.open('<%=request.getContextPath() + "/jsp/ServiceWiseFailureDashboard.jsp"%>', '_blank');
-        }
-        
-        function exportToExcel() {
-            let workbook = XLSX.utils.book_new();
-            let table = document.getElementById('recordsTable');
-            let worksheet = XLSX.utils.table_to_sheet(table);
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'TodayClosedRecords');
-            XLSX.writeFile(workbook, 'ServiceWise_Today_Closed.xlsx');
-        }
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content="300">
+<link rel="stylesheet" href="../css/w3-100perfail.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../css/bootstrap.min_100PERFail.css">
+<script src="../js/jquery.slim.min_100PerFail.js"></script>
+<script src="../js/popper.min_100PerFail.js"></script>
+<script src="../js/bootstrap.bundle.min_100PerFail.js"></script>
+
+<title>100% Failure</title>
+<style>
+#loader {
+position: absolute;
+left: 50%;
+top: 50%;
+z-index: 1;
+width: 120px;
+height: 120px;
+margin: -76px 0 0 -76px;
+border: 16px solid #f3f3f3;
+border-radius: 50%;
+border-top: 16px solid #3498db;
+-webkit-animation: spin 2s linear infinite;
+animation: spin 2s linear infinite;
+}
+
+@
+-webkit-keyframes spin { 0% {
+-webkit-transform: rotate(0deg);
+}
+
+100
+%
+{
+-webkit-transform
+:
+rotate(
+360deg
+);
+}
+}
+@
+keyframes spin { 0% {
+transform: rotate(0deg);
+}
+
+100
+%
+{
+transform
+:
+rotate(
+360deg
+);
+}
+}
+
+/* Add animation to "page content" */
+.animate-bottom {
+position: relative;
+-webkit-animation-name: animatebottom;
+-webkit-animation-duration: 1s;
+animation-name: animatebottom;
+animation-duration: 1s
+}
+
+@
+-webkit-keyframes animatebottom {from { bottom:-100px;
+opacity: 0
+}
+
+to {
+bottom: 0px;
+opacity: 1
+}
+
+}
+@
+keyframes animatebottom {from { bottom:-100px;
+opacity: 0
+}
+
+to {
+bottom: 0;
+opacity: 1
+}
+
+}
+#myDiv {
+display: none;
+text-align: center;
+}
+
+/* NEW: Color Legend Styles */
+.color-legend {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 10px auto 20px auto;
+    padding: 10px 20px;
+    background: #1a1a1a;
+    border-radius: 40px;
+    border: 1px solid #333;
+    width: fit-content;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.color-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+/* Color boxes matching your hex colors */
+.red-box { background-color: #ff3333; }      /* TD Failures */
+.orange-box { background-color: #ffcc66; }    /* BD Failures */
+.purple-box { background-color: #6666ff; }    /* Mixed TD+BD */
+.green-box { background-color: #008800; }     /* Healthy */
+
+.hexagon-gallery {
+margin: auto;
+margin-top: 50px;
+max-width: 2000px;
+display: grid;
+grid-template-columns: repeat(10, 1fr);
+grid-auto-rows: 200px;
+grid-gap: 14px;
+padding-bottom: 50px;
+}
+
+.hex {
+display: flex;
+position: relative;
+width: 240px;
+height: 265px;
+background-color: #008800;
+-webkit-clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.hex:first-child {
+grid-row-start: 1;
+grid-column: 2/span 2;
+}
+
+.hex:nth-child(2) {
+grid-row-start: 1;
+grid-column: 4/span 2;
+}
+
+.hex:nth-child(3) {
+grid-row-start: 1;
+grid-column: 6/span 2;
+}
+
+.hex:nth-child(29) {
+grid-row-start: 1;
+grid-column: 8/span 2;
+}
+
+.hex:nth-child(30) {
+grid-row-start: 1;
+grid-column: 10/span 2;
+}
+
+.hex:nth-child(31) {
+grid-row-start: 1;
+grid-column: 12/span 2;
+}
+
+.hex:nth-child(32) {
+grid-row-start: 1;
+grid-column: 14/span 2;
+}
+
+.hex:nth-child(4) {
+grid-row-start: 2;
+grid-column: 1/span 2;
+}
+
+.hex:nth-child(5) {
+grid-row-start: 2;
+grid-column: 3/span 2;
+}
+
+.hex:nth-child(6) {
+grid-row-start: 2;
+grid-column: 5/span 2;
+}
+
+.hex:nth-child(7) {
+grid-row-start: 2;
+grid-column: 7/span 2;
+}
+
+.hex:nth-child(33) {
+grid-row-start: 2;
+grid-column: 9/span 2;
+}
+
+.hex:nth-child(34) {
+grid-row-start: 2;
+grid-column: 11/span 2;
+}
+
+.hex:nth-child(35) {
+grid-row-start: 2;
+grid-column: 13/span 2;
+}
+
+.hex:nth-child(36) {
+grid-row-start: 2;
+grid-column: 15/span 2;
+}
+
+.hex:nth-child(8) {
+grid-row-start: 3;
+grid-column: 2/span 2;
+}
+
+.hex:nth-child(9) {
+grid-row-start: 3;
+grid-column: 4/span 2;
+}
+
+.hex:nth-child(10) {
+grid-row-start: 3;
+grid-column: 6/span 2;
+}
+
+.hex:nth-child(37) {
+grid-row-start: 3;
+grid-column: 8/span 2;
+}
+
+.hex:nth-child(38) {
+grid-row-start: 3;
+grid-column: 10/span 2;
+}
+
+.hex:nth-child(39) {
+grid-row-start: 3;
+grid-column: 12/span 2;
+}
+
+.hex:nth-child(40) {
+grid-row-start: 3;
+grid-column: 14/span 2;
+}
+
+.hex:nth-child(11) {
+grid-row-start: 4;
+grid-column: 1/span 2;
+}
+
+.hex:nth-child(12) {
+grid-row-start: 4;
+grid-column: 3/span 2;
+}
+
+.hex:nth-child(13) {
+grid-row-start: 4;
+grid-column: 5/span 2;
+}
+
+.hex:nth-child(14) {
+grid-row-start: 4;
+grid-column: 7/span 2;
+}
+
+.hex:nth-child(41) {
+grid-row-start: 4;
+grid-column: 9/span 2;
+}
+
+.hex:nth-child(42) {
+grid-row-start: 4;
+grid-column: 11/span 2;
+}
+
+.hex:nth-child(43) {
+grid-row-start: 4;
+grid-column: 13/span 2;
+}
+
+.hex:nth-child(44) {
+grid-row-start: 4;
+grid-column: 15/span 2;
+}
+
+.hex:nth-child(15) {
+grid-row-start: 5;
+grid-column: 2/span 2;
+}
+
+.hex:nth-child(16) {
+grid-row-start: 5;
+grid-column: 4/span 2;
+}
+
+.hex:nth-child(17) {
+grid-row-start: 5;
+grid-column: 6/span 2;
+}
+
+.hex:nth-child(45) {
+grid-row-start: 5;
+grid-column: 8/span 2;
+}
+
+.hex:nth-child(46) {
+grid-row-start: 5;
+grid-column: 10/span 2;
+}
+
+.hex:nth-child(47) {
+grid-row-start: 5;
+grid-column: 12/span 2;
+}
+
+.hex:nth-child(48) {
+grid-row-start: 5;
+grid-column: 14/span 2;
+}
+
+.hex:nth-child(18) {
+grid-row-start: 6;
+grid-column: 1/span 2;
+}
+
+.hex:nth-child(19) {
+grid-row-start: 6;
+grid-column: 3/span 2;
+}
+
+.hex:nth-child(20) {
+grid-row-start: 6;
+grid-column: 5/span 2;
+}
+
+.hex:nth-child(21) {
+grid-row-start: 6;
+grid-column: 7/span 2;
+}
+
+.hex:nth-child(49) {
+grid-row-start: 6;
+grid-column: 9/span 2;
+}
+
+.hex:nth-child(50) {
+grid-row-start: 6;
+grid-column: 11/span 2;
+}
+
+.hex:nth-child(51) {
+grid-row-start: 6;
+grid-column: 13/span 2;
+}
+
+.hex:nth-child(52) {
+grid-row-start: 6;
+grid-column: 15/span 2;
+}
+
+.hex:nth-child(22) {
+grid-row-start: 7;
+grid-column: 2/span 2;
+}
+
+.hex:nth-child(23) {
+grid-row-start: 7;
+grid-column: 4/span 2;
+}
+
+.hex:nth-child(24) {
+grid-row-start: 7;
+grid-column: 6/span 2;
+}
+
+.hex:nth-child(53) {
+grid-row-start: 7;
+grid-column: 8/span 2;
+}
+
+.hex:nth-child(54) {
+grid-row-start: 7;
+grid-column: 10/span 2;
+}
+
+.hex:nth-child(55) {
+grid-row-start: 7;
+grid-column: 12/span 2;
+}
+
+.hex:nth-child(56) {
+grid-row-start: 7;
+grid-column: 14/span 2;
+}
+
+.hex:nth-child(25) {
+grid-row-start: 8;
+grid-column: 1/span 2;
+}
+
+.hex:nth-child(26) {
+grid-row-start: 8;
+grid-column: 3/span 2;
+}
+
+.hex:nth-child(27) {
+grid-row-start: 8;
+grid-column: 5/span 2;
+}
+
+.hex:nth-child(28) {
+grid-row-start: 8;
+grid-column: 7/span 2;
+}
+
+.hex:nth-child(57) {
+grid-row-start: 8;
+grid-column: 9/span 2;
+}
+
+.hex:nth-child(58) {
+grid-row-start: 8;
+grid-column: 11/span 2;
+}
+
+.hex:nth-child(59) {
+grid-row-start: 8;
+grid-column: 13/span 2;
+}
+
+.hex:nth-child(60) {
+grid-row-start: 8;
+grid-column: 15/span 2;
+}
+
+.container {
+display: flex;
+justify-content: space-between;
+}
+
+.center {
+justify-content: center;
+}
+
+.item {
+width: 15%;
+background: #007ed3;
+min-height: 100px;
+border: solid 2px #305077;
+margin: 5px;
+text-align: center;
+font-size: 4em;
+color: white;
+font-weight: bold;
+line-height: 1.4;
+}
+
+.zoom {
+transition: transform .2s;
+}
+
+.zoom:hover {
+-ms-transform: scale(1.1); /* IE 9 */
+-webkit-transform: scale(1.1); /* Safari 3-8 */
+transform: scale(1.1);
+}
+
+/* grduighufhusihfeiushfuieshfuieshfuieshfuiehfueshfuih */
+#modalContainer {
+background-color: transparent;
+position: absolute;
+width: auto;
+height: 100%;
+top: 20px;
+left: 80px;
+z-index: 10000;
+background-image: url(tp.png);
+/* required by MSIE to prevent actions on lower z-index elements */
+}
+
+#alertBox {
+position: relative;
+width: 600px;
+height: 850px;
+min-height: 100px;
+margin-top: 250px;
+border: 1px solid #666;
+background-color: #fff;
+background-repeat: no-repeat;
+background-position: 20px 30px;
+margin-left: 350px;
+}
+
+#modalContainer>#alertBox {
+position: relative;
+}
+
+#alertBox h1 {
+margin: 0;
+font: bold 50px verdana, arial;
+background-color: #ff3333;
+color: #FFF;
+border-bottom: 1px solid #000;
+padding: 2px 0 2px 5px;
+text-align: center;
+}
+
+#alertBox p {
+font: 20px verdana, arial;
+height: 280px;
+padding: 10px;
+margin-left: 5px;
+}
+
+#alertBox textarea {
+font: 20px verdana, arial;
+height: 50px;
+position: relative;
+float: left;
+margin-left: 16px;
+top: 0px
+}
+
+#alertBox input {
+position: relative;
+margin-left: -265px;
+top: 50px
+}
+
+
+#alertBox label {
+display: inline-block;
+margin-bottom: 0.5rem;
+font: 20px verdana, arial;
+height: 50px;
+position: relative;
+float: left;
+margin-left: 16px;
+top: 0px;
+font-weight: bold;
+}
+
+#alertBox label1 {
+display: inline-block;
+margin-bottom: 0.5rem;
+font: 20px verdana, arial;
+position: relative;
+margin-left: -330px;
+top: 50px;
+font-weight: bold;
+}
+
+#alertBox label2 {
+display: inline-block;
+margin-bottom: 0.5rem;
+font: 20px verdana, arial;
+position: relative;
+margin-left: 12px;
+top: 346px;
+font-weight: bold;
+}
+
+#alertBox label3 {
+display: inline-block;
+margin-bottom: 0.5rem;
+font: 20px verdana, arial;
+position: relative;
+margin-left: -330px;
+top: 50px;
+font-weight: bold;
+}
+
+#alertBox label4 {
+display: inline-block;
+margin-bottom: 0.5rem;
+font: 20px verdana, arial;
+position: relative;
+margin-left: -412px;
+font-weight: bold;
+top: 106px;
+}
+
+#alertBox #closeBtn {
+display: block;
+position: relative;
+margin: 5px auto;
+padding: 7px;
+border: 0 none;
+width: 70px;
+top: 376px;
+left: 47px;
+font: 0.7em verdana, arial;
+text-transform: uppercase;
+text-align: center;
+color: #FFF;
+background-color: #28a745;
+border-radius: 3px;
+text-decoration: none;
+}
+
+#alertBox #detailsBtn {
+display: block;
+position: relative;
+margin: 5px auto;
+padding: 7px;
+border: 0 none;
+width: 70px;
+top: 266px;
+left: -56px;
+font: 0.7em verdana, arial;
+text-transform: uppercase;
+text-align: center;
+color: #FFF;
+background-color: RED;
+border-radius: 3px;
+text-decoration: none;
+}
+
+#alertBox #closeAlertBtn {
+display: block;
+position: relative;
+margin: 5px auto;
+/* padding: 7px; */
+border: 0 none;
+width: 50px;
+height: 60px;
+top: -437px;
+left: 263px;
+font: 0.7em verdana, arial;
+text-transform: uppercase;
+text-align: center;
+color: #FFF;
+background-color: transparent;
+border-radius: 3px;
+font-size: 45px;
+text-decoration: none;
+text-align: center;
+}
+
+#alertBox #pasuseTime {
+position: relative;
+top: 344px;
+margin-left: 20px;
+}
+
+#alertBox #closeName {
+position: relative;
+margin-left: 10px;
+top: 104px;
+}
+
+/* unrelated styles */
+#mContainer {
+position: relative;
+width: 600px;
+margin: auto;
+padding: 5px;
+border-top: 2px solid #000;
+border-bottom: 2px solid #000;
+font: 0.7em verdana, arial;
+}
+
+h1, h2 {
+margin: 0;
+padding: 4px;
+font: bold 1.5em verdana;
+border-bottom: 1px solid #000;
+}
+
+code {
+font-size: 1.2em;
+color: #069;
+}
+
+#credits {
+position: relative;
+margin: 25px auto 0px auto;
+width: 350px;
+font: 0.7em verdana;
+border-top: 1px solid #000;
+border-bottom: 1px solid #000;
+height: 90px;
+padding-top: 4px;
+}
+
+#credits img {
+float: left;
+margin: 5px 10px 5px 0px;
+border: 1px solid #000000;
+width: 80px;
+height: 79px;
+}
+
+.important {
+background-color: #F5FCC8;
+padding: 2px;
+}
+
+code span {
+color: #008800;
+}
+
+.timer {
+/* text-align: center; */
+border: 2px solid white;
+display: inline;
+padding: 5px;
+color: white;
+font-family: Verdana, sans-serif, Arial;
+font-size: 20px;
+height: 50px;
+font-weight: bold;
+text-decoration: none;
+}
+
+input.right {
+position: absolute;
+left: 2000px;
+top: 0px;
+}
+
+table {
+float: right;
+margin-right: 20px;
+}
+</style>
+<script>
+
+var ALERT_TITLE = "FAILURE !!!";
+var ALERT_BUTTON_TEXT = "Close Problem";
+var ALERT_BUTTON3_TEXT = "View Problem";
+var ALERT_BUTTON2_TEXT = "X";
+
+
+if(document.getElementById) {
+window.alert = function(txt) {
+createCustomAlert(txt);
+}
+}
+
+function createCustomAlert(txt) {
+d = document;
+
+if(d.getElementById("modalContainer")) return;
+
+mObj = d.getElementsByTagName("body")[0].appendChild(d.createElement("div"));
+mObj.id = "modalContainer";
+mObj.style.height = d.documentElement.scrollHeight + "px";
+
+alertObj = mObj.appendChild(d.createElement("div"));
+alertObj.id = "alertBox";
+if(d.all && !window.opera) alertObj.style.top = document.documentElement.scrollTop + "px";
+alertObj.style.left = (d.documentElement.scrollWidth - alertObj.offsetWidth)/2 + "px";
+alertObj.style.visiblity="visible";
+
+h1 = alertObj.appendChild(d.createElement("h1"));
+h1.appendChild(d.createTextNode(ALERT_TITLE));
+
+msg = alertObj.appendChild(d.createElement("p"));
+
+//msg.appendChild(d.createTextNode(txt));
+msg.innerHTML = txt;
+var label1 = alertObj.appendChild(d.createElement("label2"));
+label1.textContent = "Closed Time :";
+select =alertObj.appendChild(d.createElement("select"));
+// var option = new Option('1', '2','3','4');
+var resp = [
+{"id":"1", "name":"1 Hour"},
+{"id":"2", "name":"2 Hours"},
+{"id":"3", "name":"3 Hours"},
+{"id":"4", "name":"4 Hours"},
+{"id":"5", "name":"5 Hours"},
+{"id":"6", "name":"6 Hours"},
+{"id":"7", "name":"7 Hours"},
+{"id":"8", "name":"8 Hours"},
+{"id":"9", "name":"9 Hours"},
+{"id":"10", "name":"10 Hours"},
+{"id":"11", "name":"11 Hours"},
+{"id":"12", "name":"12 Hours"},
+{"id":"13", "name":"13 Hours"},
+{"id":"14", "name":"14 Hours"},
+{"id":"15", "name":"15 Hours"},
+{"id":"16", "name":"16 Hours"},
+{"id":"17", "name":"17 Hours"},
+{"id":"18", "name":"18 Hours"},
+{"id":"19", "name":"19 Hours"},
+{"id":"20", "name":"20 Hours"},
+{"id":"21", "name":"21 Hours"},
+{"id":"22", "name":"22 Hours"},
+{"id":"23", "name":"23 Hours"},
+{"id":"24", "name":"24 Hours"}
+
+]
+var option = "";
+for (i=0; i<resp.length; i++) {
+option += "<option value='" + resp[i].id + "'>" + resp[i].name + "</option>";
+}
+//select.appendChild(option);
+select.id = "pasuseTime";
+$('#pasuseTime').html(option);
+btn = alertObj.appendChild(d.createElement("a"));
+btnClose = alertObj.appendChild(d.createElement("a"));
+btnDetails = alertObj.appendChild(d.createElement("a"));
+//------------------------------------Name of Service-----------------------------------------
+/* var inputString = txt;
+var wordsArray = inputString.split(" ");
+var result = "";
+// for(var i = 0; i < wordsArray.length; i++)
+// {
+result += wordsArray[7];
+//}
+var storedResult = result; */
+var inputString = txt;
+
+// Function to find all data between "Name of Service :" and "Error Code :"
+function findServiceInformation(inputString) {
+var regex = /<B>Name of Service:<\/B>\s*(.*?)\s*<br>\s*<B>Error Code:<\/B>/i;
+var match = inputString.match(regex);
+if (match && match[1]) {
+return match[1].trim();
+} else {
+return null;
+}
+}
+
+var result = findServiceInformation(inputString);
+
+if (result !== null) {
+var storedResult = result;
+console.log("Service Information found: " + storedResult);
+} else {
+console.log("Service Information not found.");
+}
+//------------------------------------Source ID------------------------------------------------
+/* var inputString = txt;
+var wordsArray = inputString.split(" ");
+var resultSourceID = "";
+resultSourceID += wordsArray[11];
+var storedResult1 = resultSourceID; */
+var inputString = txt;
+var wordsArray = inputString.split(" ");
+
+function findImportantWord1(wordsArray) {
+for (var i = 0; i < wordsArray.length; i++) {
+if(wordsArray[i] == "ID:</B>")
+{
+return wordsArray[i + 1];
+}
+}
+return null;
+}
+
+var resultSourceID = findImportantWord1(wordsArray);
+
+if (resultSourceID !== null) {
+var storedResult2 = resultSourceID;
+console.log("Important word found In Source Id : " + storedResult2);
+} else {
+console.log("Important word not found.");
+}
+//-------------------------------------Error Code----------------------------------------------------
+
+/* var inputString = txt;
+var wordsArray = inputString.split(" ");
+var resultErrorCode = "";
+resultErrorCode += wordsArray[15];
+var storedResult2 = resultErrorCode; */
+var inputString = txt;
+var wordsArray = inputString.split(" ");
+
+function findImportantWord(wordsArray) {
+for (var i = 0; i < wordsArray.length; i++) {
+if(wordsArray[i] == "Code:</B>")
+{
+return wordsArray[i + 1];
+}
+}
+return null;
+}
+
+var resultErrorCode = findImportantWord(wordsArray);
+
+if (resultErrorCode !== null) {
+var storedResult1 = resultErrorCode;
+console.log("Important word found in Error Code: " + storedResult1);
+} else {
+console.log("Important word not found.");
+}
+//-----------------------------------------------------------------------------------------------------------
+var inputString = txt;
+var wordsArray = inputString.split(" ");
+var resultServiceCat = "";
+resultServiceCat += wordsArray[2];
+var storedResult3 = resultServiceCat;
+var label = alertObj.appendChild(d.createElement("label"));
+label.textContent = "Comment :";
+/* txtField = alertObj.appendChild(d.createElement("input"));
+txtField.id="TextField";
+var label1 = alertObj.appendChild(d.createElement("label1"));
+label1.textContent = "Closed By :"; */
+txtArea = alertObj.appendChild(d.createElement("textarea"));
+txtArea.id="TextArea";
+
+var label3 = alertObj.appendChild(d.createElement("label4"));
+label3.textContent = "Closed By : ";
+select =alertObj.appendChild(d.createElement("select"));
+// var option = new Option('1', '2','3','4');
+var Arr = new Array();
+var resp1;
+resp1 = [ {"id":"NA", "name":"Please Select Name :"},<%
+String m_strtxnArray="";
+response.setIntHeader("Refresh", 600);
+Connection conn=DBUtilityAuto.getReportDBConnection();
+String sql1="select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";
+//System.out.println(sql1);
+Statement statement=conn.createStatement();
+ResultSet resultSet= statement.executeQuery(sql1);
+List<String> labels= new ArrayList<String>();
+List<Double> failure= new ArrayList<Double>();
+int p=0;
+while(resultSet.next()){
+//String name="<p style='color:#ff9933; font-weight: bolder; '>"+Integer.toString(resultSet.getInt("td_count"))+"</p><br><p style='color:#FFFFFF; font-weight: bolder;'>"+resultSet.getString("txn_endpoint").replaceAll("_", "</p><br><p style='color:#FFFFFF; font-weight: bolder;'>")+"</p><br>"+"<p style='color:#32CD32; font-weight: bolder;'>"+Integer.toString(resultSet.getInt("total_hits")) +"</p>";
+// String name="<p style='color:#ff9933; font-weight: bolder; '>"+Integer.toString(resultSet.getInt("TD_COUNT"))+"</p><br>"+"<p style='color:#FFFFFF; font-weight: bolder;'>"+resultSet.getString("txn_endpoint")+"</p><br>"+"<p style='color:#32CD32; font-weight: bolder;'>"+Integer.toString(resultSet.getInt("TOTAL_HITS")) +"</p>";
+%>
+//Arr[<%=p %>] = '<%=resultSet.getString("Fullname") %>';
+{"id":"Arr[<%=p %>]", "name":"<%=resultSet.getString("Fullname") %>"},
+<%
+//double value= resultSet.getDouble("td_percent");
+//labels.add(name);
+//failure.add(value);
+p++;
+}
+resultSet.close();
+statement.close();
+conn.close();
+%>
+]
+var option1 = "";
+for (i=0; i<resp1.length; i++) {
+option1 += "<option value='" + resp1[i].name + "'>" + resp1[i].name + "</option>";
+}
+select.id = "closeName";
+$('#closeName').html(option1);
+//var textField = document.createElement()
+btnClose.id = "closeAlertBtn";
+btnClose.appendChild(d.createTextNode(ALERT_BUTTON2_TEXT));
+btnClose.href = "#";
+btnClose.focus();
+btnClose.onclick = function() {
+removeCustomAlert();
+return false;
+}
+btn.id = "closeBtn";
+btn.appendChild(d.createTextNode(ALERT_BUTTON_TEXT));
+btn.href = "#";
+btn.focus();
+btn.onclick = function() {
+if(document.getElementById("TextArea").value == '')
+{
+getElementById("closeBtn").disabled=true;
+}
+
+if(document.getElementById("closeName").value == 'Please Select Name :')
+{
+getElementById("closeBtn").disabled=true;
+}
+TextArea = document.getElementById("TextArea").value;
+closeName = document.getElementById("closeName").value;
+pasuseTime = document.getElementById("pasuseTime").value;
+removeCustomAlert();
+var url = '<%=request.getContextPath() + "/jsp/100PercentFailureAction.jsp?&Api_Name="%>'+result+"&SourceID="+resultSourceID+"&TextArea="+TextArea+"&pasuseTime="+pasuseTime+"&ErrorCode="+resultErrorCode+"&closeName="+closeName+"&ServiceCategory="+resultServiceCat;
+//window.open(url, '_blank');
+location.replace(url, '_blank');
+return false;
+}
+
+btnDetails.appendChild(d.createTextNode(ALERT_BUTTON3_TEXT));
+btnDetails.href = "#";
+btnDetails.focus();
+btnDetails.id = "detailsBtn";
+if(resultServiceCat != 'SI-Service')
+{
+btnDetails.onclick = function() {
+var a = '<%=request.getContextPath() + "/showFailureServicesWise.do?action=showFailureServicesWise&url="%>'+result+"&ServiceCategory="+resultServiceCat;
+window.open(a,'_blank');
+return false;
+}
+}
+alertObj.style.display = "block";
+
+}
+
+function removeCustomAlert() {
+document.getElementsByTagName("body")[0].removeChild(document.getElementById("modalContainer"));
+}
+
+var myVar;
+
+function myFunction() {
+myVar = setTimeout(showPage, 3000);
+}
+
+function showPage() {
+document.getElementById("loader").style.display = "none";
+document.getElementById("myDiv").style.display = "block";
+}
+
+function DisplayRecords() {
+var url = location.replace('<%=request.getContextPath() + "/jsp/DisplayHundredPercentFailure.jsp"%>');
+window.open(url, '_blank');
+}
+
+// Function to open the popup
+function openPopup() {
+var width=800;
+var height=600;
+var left= (window.innerWidth - width) / 2;
+var top= (window.innerHeight - height) / 2;
+var popupWindow = window.open('DisplayHundredPercentFailure.jsp', 'DataPopup', 'width='+ width +', height='+ height +', left='+ left +', top='+top);
+popupWindow.focus();
+
+}
+
+function openPopupToday() {
+var width=800;
+var height=600;
+var left= (window.innerWidth - width) / 2;
+var top= (window.innerHeight - height) / 2;
+var popupWindow = window.open('DisplayTodayHundredPercentFailure.jsp', 'DataPopup', 'width='+ width +', height='+ height +', left='+ left +', top='+top);
+popupWindow.focus();
+}
+
+// Event listener for the button click
+
+
+document.addEventListener('DOMContentLoaded', function(){
+document.getElementById('openPopupButton').addEventListener('click', openPopup);
+document.getElementById('openPopup').addEventListener('click', openPopupToday);
+});
+
+</script>
 </head>
-<body>
 
-<div class="bg-layer"></div>
+<body style="background-color: black; zoom: 70%;">
+<%@include file="./DRPRHeader.jsp"%>
+<%-- <%@include file="./userheader.jsp"%> --%>
 
-<div class="wrapper">
-
-    <!-- TOP BAR -->
-    <div class="top-bar">
-        <div class="brand">
-            <div class="logo"><i class="fas fa-chart-simple"></i></div>
-            <div>
-                <div class="name"><span class="eis">EIS</span>Service<span class="wise">Wise</span></div>
-                <div class="sub">Today's Closed Records</div>
-            </div>
+<!-- NEW: Color Legend Section -->
+<div style="display: flex; justify-content: center; width: 100%; margin: 10px 0;">
+    <div class="color-legend">
+        <div class="legend-item">
+            <div class="color-box red-box"></div>
+            <span>Red = TD Failures (100% Technical Decline)</span>
         </div>
-        <div class="top-actions">
-            <button class="btn-glass btn-success-glass" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i> Export
-            </button>
-            <button class="btn-glass btn-primary-glass" onclick="homeFunction()">
-                <i class="fas fa-arrow-left"></i> Dashboard
-            </button>
+        <div class="legend-item">
+            <div class="color-box orange-box"></div>
+            <span>Orange = BD Failures (Business Decline)</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box purple-box"></div>
+            <span>Purple = Mixed (TD + BD Failures)</span>
+        </div>
+        <div class="legend-item">
+            <div class="color-box green-box"></div>
+            <span>Green = Healthy / No Failures</span>
         </div>
     </div>
+</div>
 
-    <!-- PAGE TITLE -->
-    <div class="page-title">
-        <h1>Today's <span>Closed Issues</span></h1>
-        <span class="badge-count">
-            <i class="fas fa-check-circle" style="color:#0f973d;"></i>
-            <%
-                int count = 0;
-                try {
-                    Connection c = DBUtilityAuto.getReportDBConnection();
-                    Statement st = c.createStatement();
-                    ResultSet rs = st.executeQuery("SELECT COUNT(1) as cnt FROM service_pause_log_master WHERE TRUNC(PAUSE_TIME)=TRUNC(SYSDATE)");
-                    if(rs.next()) count = rs.getInt("cnt");
-                    rs.close(); st.close(); c.close();
-                } catch(Exception e) { }
-                out.print(count);
-            %>
-        </span>
-    </div>
+<h1
+style="color: white; text-align: center; font-size: xx-large; position: relative; top: 8px;">
+EIS 100 % Failure Dashboard will get refresh in <span
+style="color: white; text-align: center; font-size: xx-large;"
+class="timer" id="ten-countdown"></span> Minutes <input type="button"
+value="View Overall Closed Issues" class="btn btn-primary "
+id="openPopupButton" style="font-size: 20px;" />
+<%
+Connection con = DBUtilityAuto.getReportDBConnection();
+Statement l_bjst = null;
+ResultSet l_bjres = null;
+try {
+try {
+String query = "select count(1) from pause_log_master WHERE TRUNC(sysdate)=trunc(pause_time)";
+Statement stmt = con.createStatement();
+ResultSet rs = stmt.executeQuery(query);
+//System.out.println(rs);
 
-    <!-- TABLE -->
-    <div class="table-container">
-        <table id="recordsTable" class="display" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>Category</th>
-                    <th>Service Name</th>
-                    <th>Source ID</th>
-                    <th>Error Code</th>
-                    <th>Description</th>
-                    <th>Closed By</th>
-                    <th>Pause Time</th>
-                    <th>Resume Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                <%
-                    Connection con = null;
-                    List<String[]> records = new ArrayList<>();
-                    try {
-                        con = DBUtilityAuto.getReportDBConnection();
-                        String query = "SELECT SERVICE_CATEGORY,SERVICE_NAME,SOURCE_ID,ERROR_CODE,DESCRIPTION,CLOSED_BY,PAUSE_TIME,RESUME_TIME FROM service_pause_log_master WHERE TRUNC(PAUSE_TIME)=TRUNC(SYSDATE) ORDER BY PAUSE_TIME DESC";
-                        PreparedStatement ps = con.prepareStatement(query);
-                        ResultSet rs = ps.executeQuery();
-                        while (rs.next()) {
-                            String[] record = new String[8];
-                            record[0] = rs.getString(1);
-                            record[1] = rs.getString(2);
-                            record[2] = rs.getString(3);
-                            record[3] = rs.getString(4);
-                            record[4] = rs.getString(5);
-                            record[5] = rs.getString(6);
-                            record[6] = rs.getString(7);
-                            record[7] = rs.getString(8);
-                            records.add(record);
-                        }
-                        rs.close(); ps.close();
-                    } catch (Exception e) { e.printStackTrace(); } finally { if (con != null) con.close(); }
+while (rs.next()) {
+%>
+<input type="button" id="openPopup" style="font-size: 20px;"
+value="Today's Closed Issues Count is : <%
+out.println(rs.getString("count(1)"));
+%>"
+class="btn btn-primary " />
 
-                    for (String[] record : records) {
-                %>
-                <tr>
-                    <td><%= record[0] %></td>
-                    <td><strong><%= record[1] %></strong></td>
-                    <td><%= record[2] %></td>
-                    <td><span style="color:#ffa502;"><%= record[3] %></span></td>
-                    <td><%= record[4] %></td>
-                    <td><%= record[5] %></td>
-                    <td><%= record[6] %></td>
-                    <td><%= record[7] %></td>
-                </tr>
-                <%
-                    }
-                %>
-            </tbody>
-        </table>
-    </div>
+<%
+}
+
+} catch (Exception e) {
+
+e.printStackTrace();
+
+}
+%>
+
+</h1>
+<br>
+<h2
+style="color: white; text-align: center; font-size: xx-large; position: relative; top: 20px;">
+<%
+try {
+String query = "select * from(select INSERT_TIME from gen5_100_percentage_fail ORDER BY insert_time desc)where rownum<=1";
+Statement stmt = con.createStatement();
+ResultSet rs = stmt.executeQuery(query);
+//System.out.println(rs);
+if (rs.next()) {
+Timestamp OrignalTime = rs.getTimestamp("INSERT_TIME");
+Date date = new Date(OrignalTime.getTime());
+//System.out.println(date);
+Calendar calendar = Calendar.getInstance();
+calendar.setTime(date);
+calendar.add(Calendar.MINUTE,-10);
+Date NewDate = calendar.getTime();
+Timestamp newTimestamp = new Timestamp(NewDate.getTime());
+SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MMM-yy hh:mm:ss");
+String formattedOrignalTimeStamp = dateFormat.format(OrignalTime);
+String formattednewTimestamp = dateFormat.format(newTimestamp);
+//System.out.println(formattedOrignalTimeStamp);
+//System.out.println(formattednewTimestamp);
+%>
+EIS 100 % Failure Dashboard Data Display for <%=formattednewTimestamp%> TO <%=formattedOrignalTimeStamp%>
+
+<%
+}
+
+} catch (Exception e) {
+
+e.printStackTrace();
+
+}
+
+
+%>
+
+</h2>
+<br><br>
+<div style="position: relative; top: 30px;">
+
+<div class="container center">
+<div class="container">
+
+<%
+String connectiontype = request.getParameter("connectiontype");
+con = DBUtilityAuto.getReportDBConnection();
+try
+{
+String sql = "DELETE FROM temporary_pause_master WHERE resume_time <= SYSTIMESTAMP";
+//System.out.println(sql);
+PreparedStatement preparedStatement = con.prepareStatement(sql);
+int rowsAffected = preparedStatement.executeUpdate();
+preparedStatement.close();
+//System.out.println(rowsAffected);
+}
+catch(SQLException e)
+{
+e.printStackTrace();
+}
+%>
+
+<div class="card" style="width: 650px; height: 500px;">
+
+<div class="card-body" style="background-color: black;">
+<ul>
+<h4 class="card-title" style="color: white;">GEN-5 Service</h4>
+</ul>
+<section class="hexagon-gallery"
+style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+
+<%
+try {
+String l_strQuery = "SELECT * FROM (SELECT api_name, Source_id, error_code, SUM(total_hits) AS total_hits,issue_time,SUM(td) AS td, round(AVG(td_percent), 2) AS td_percent, SUM(bd) AS bd, round(AVG(bd_per), 2) AS bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, CASE WHEN ( SUM(td_percent) <> 0 AND SUM (bd_per) <> 0 ) THEN round(round(AVG(td_percent), 2) + round(AVG(bd_per), 2)) ELSE 0 END AS tdbd_per FROM gen5_100_percentage_fail TEMP WHERE substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name NOT IN (SELECT service_name FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from gen5_100_percentage_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 60";
+System.out.println(l_strQuery);
+l_bjst = con.createStatement();
+l_bjres = l_bjst.executeQuery(l_strQuery);
+//System.out.println(l_bjres);
+List<String> API_TD = new ArrayList<String>();
+List<String> Source_Id_TD = new ArrayList<String>();
+List<String> Error_Code_TD = new ArrayList<String>();
+List<Integer> TOTAL_HITS_TD = new ArrayList<Integer>();
+List<Integer> TD_Count = new ArrayList<Integer>();
+List<Double> TD_Per = new ArrayList<Double>();
+List<String> TD_Issue_Time = new ArrayList<String>();
+List<Integer> SI_EEROR_Count = new ArrayList<Integer>();
+List<Double> SI_EEROR_PR_Per = new ArrayList<Double>();
+List<String> API_BD = new ArrayList<String>();
+List<String> Source_Id_BD = new ArrayList<String>();
+List<String> Error_Code_BD = new ArrayList<String>();
+List<Double> BD = new ArrayList<Double>();
+List<Integer> BD_Count = new ArrayList<Integer>();
+List<Integer> TOTAL_HITS_BD = new ArrayList<Integer>();
+List<String> BD_Issue_Time = new ArrayList<String>();
+List<Double> td_bd_per = new ArrayList<Double>();
+List<String> Source_Id_TD_BD = new ArrayList<String>();
+List<String> Error_Code_TD_BD = new ArrayList<String>();
+List<String> API_TD_BD = new ArrayList<String>();
+List<Integer> TOTAL_HITS_TD_BD = new ArrayList<Integer>();
+List<Integer> TD1_Count = new ArrayList<Integer>();
+List<Integer> BD1_Count = new ArrayList<Integer>();
+List<String> TD_BD_Issue_Time = new ArrayList<String>();
+//System.out.println(td_bd_per);
+while (l_bjres.next()) {
+System.out.println("Count : "+ (l_bjres.getInt("TD") + l_bjres.getInt("SI_EEROR")));
+if(l_bjres.getDouble("TD_PERCENT") == 100 && (l_bjres.getInt("TD") + l_bjres.getInt("SI_EEROR")) >=10)
+{
+API_TD.add(l_bjres.getString("api_name"));
+Source_Id_TD.add(l_bjres.getString("Source_id"));
+Error_Code_TD.add(l_bjres.getString("error_code"));
+TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
+TD_Count.add(l_bjres.getInt("TD"));
+TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
+TD_Issue_Time.add(l_bjres.getString("issue_time"));
+SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR"));
+
+}
+if(l_bjres.getDouble("BD_PER") == 100 && l_bjres.getInt("BD") >=10)
+{
+API_BD.add(l_bjres.getString("API_NAME"));
+Source_Id_BD.add(l_bjres.getString("Source_id"));
+Error_Code_BD.add(l_bjres.getString("error_code"));
+TOTAL_HITS_BD.add(l_bjres.getInt("TOTAL_HITS"));
+BD_Count.add(l_bjres.getInt("BD"));
+BD.add(l_bjres.getDouble("BD_PER"));
+BD_Issue_Time.add(l_bjres.getString("issue_time"));
+
+}
+if(l_bjres.getDouble("tdbd_per") == 100 && (l_bjres.getInt("TD")+l_bjres.getInt("BD")) >=10)
+{
+API_TD_BD.add(l_bjres.getString("api_name"));
+Source_Id_TD_BD.add(l_bjres.getString("Source_id"));
+Error_Code_TD_BD.add(l_bjres.getString("error_code"));
+TOTAL_HITS_TD_BD.add(l_bjres.getInt("TOTAL_HITS"));
+TD1_Count.add(l_bjres.getInt("TD"));
+BD1_Count.add(l_bjres.getInt("BD"));
+td_bd_per.add(l_bjres.getDouble("tdbd_per"));
+TD_BD_Issue_Time.add(l_bjres.getString("issue_time"));
+}
+}
+if(TD_Per != null || BD != null || td_bd_per != null)
+{
+for(int i=0; i<API_BD.size(); i++)
+{
+System.out.println("1");
+//System.out.println("API_BD :"+API_BD.size());
+%>
+<div class="hex zoom" style="background-color: #ffcc66;" title=""
+name="ABC<%=(i)%>" id="ABC<%=(i)%>" value="<%=API_BD.get(i)%>"
+onclick="alert('<B>Service Category:</B> GEN-5 <br> <B>Name of Service:</B> <%=API_BD.get(i)%> <br> <B>Error Code:</B> <%=Error_Code_BD.get(i)%> <br> <B>Source ID:</B> <%=Source_Id_BD.get(i)%> <br> <B>TOTAL HITS:</B> <%=TOTAL_HITS_BD.get(i)%> <br> <B>BD COUNT:</B> <%=BD_Count.get(i)%> <br> <B>Issue Time(Last 3 Hour):</B> <br><%=BD_Issue_Time.get(i)%> <br>');"><%=BD.get(i)%></div>
+
+
+<%
+}
+if(API_TD != null && !API_TD.isEmpty())
+{
+//System.out.println("4");
+for(int j=0; j<API_TD.size(); j++)
+{
+//System.out.println("2");
+System.out.println("API_TD :"+API_TD.size());
+%>
+
+<div class="hex zoom" style="background-color: #ff3333;" title=""
+id='ABC<%=(j)%>' name='ABC<%=(j)%>'
+onclick="alert('<B>Service Category:</B> GEN-5 <br> <B>Name of Service:</B> <%=API_TD.get(j)%> <br> <B>Error Code:</B> <%=Error_Code_TD.get(j)%> <br> <B>Source ID:</B> <%=Source_Id_TD.get(j)%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_TD.get(j)%> <br> <B>TD COUNT:</B> <%=TD_Count.get(j)%> <br> <B>SI ERROR COUNT:</B> <%=SI_EEROR_Count.get(j)%> <br> <B>Issue Time(Last 3 Hour):</B> <br><%=TD_Issue_Time.get(j)%> <br>');"><%=TD_Per.get(j)%></div>
+<%
+//System.out.println("5");
+}
+//System.out.println("6");
+}
+for(int a=0; a<td_bd_per.size(); a++)
+{
+System.out.println("3");
+//System.out.println("td_bd_per :"+td_bd_per.size());
+String m_strtmp = Error_Code_TD_BD.get(a);
+String m_strErrorcode = "";
+if ( m_strtmp != null && m_strtmp.contains(",")) {
+String tmparr[] = m_strtmp.split(",");
+for (int b = 0; b < tmparr.length; b++) {
+if (b == 0) {
+m_strErrorcode = tmparr[b];
+} else {
+if (b % 6 == 0) {
+m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>";
+} else {
+m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+}
+}
+}
+
+System.out.print("String is =" + m_strErrorcode);
+} else {
+//i =0;
+if(Error_Code_TD_BD != null && a >=0 && a<Error_Code_TD_BD.size())
+{
+m_strErrorcode = Error_Code_TD_BD.get(a);
+}
+else
+{
+m_strErrorcode = m_strtmp;
+}
+}
+%>
+
+<div class="hex zoom" style="background-color: #6666ff" title=""
+id='ABC<%=(a)%>' name='ABC<%=(a)%>'
+onclick="alert('<B>Service Category:</B> GEN-5 <br> <B>Name of Service:</B> <%=API_TD_BD.get(a)%> <br> <B>Error Code:</B> <%=m_strErrorcode%> <br> <B>Source ID:</B> <%=Source_Id_TD_BD.get(a)%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_TD_BD.get(a)%> <br> <B>TD COUNT:</B> <%=TD1_Count.get(a)%> <br> <B>BD COUNT:</B> <%=BD1_Count.get(a)%><br> <B>Issue Time(Last 3 Hour):</B> <br><%=TD_BD_Issue_Time.get(a)%> <br> ');"><%=td_bd_per.get(a)%></div>
+<%
+}
+
+//System.out.println( API_TD.size() +"-"+ API_BD.size());
+for(int k = API_TD.size() + API_BD.size() + td_bd_per.size(); k<60; k++)
+{
+//System.out.println("API_TD.size()+ API_BD.size() + td_bd_per.size() :"+API_TD.size()+ API_BD.size() + td_bd_per.size());
+%>
+<div class="hex zoom" style="background-color: #008800;" title=""><%=k%></div>
+<%
+}
+}
+else
+{
+for(int i=0; i<100; i++)
+{
+
+%>
+<div class="hex zoom" style="background-color: Green;" title=""><%=i%></div>
+
+<%  }
+}
+%>
+
+</section>
+</div>
+
+<%
+} catch (Exception e) {
+// TODO: handle exception
+e.printStackTrace();
+}
+%>
+</div>
+</div>
+
+<%-- <div class="container">
+
+<div class="card" style="width: 650px">
+
+<div class="card-body" style="background-color: black;">
+<ul>
+<h4 class="card-title" style="color: white;">NONGEN-5
+Service</h4>
+</ul>
+<section class="hexagon-gallery"
+style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+
+<%
+try {
+String l_strQuery = "select * from (select api_name, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,source_id,error_code, issue_time from nongen5_100_percentage_fail TEMP where insert_time >= SYSDATE - INTERVAL '15' minute and substr(api_name,1,3) not in 'gen' and api_name not in ('CASANomineeEnquiry','amendMaturityInstructions') and api_name not in (select service_name from temporary_pause_master where service_name is not null ) GROUP BY api_name,issue_time,source_id,error_code order by 4 desc ) TEMP where issue_time = (select max(issue_time) from nongen5_100_percentage_fail temp_in where temp_in.api_name = temp.api_name group by api_name ) and ROWNUM <= 60";
+System.out.println(l_strQuery);
+l_bjst = con.createStatement();
+l_bjres = l_bjst.executeQuery(l_strQuery);
+//System.out.println(l_bjres);
+List<String> API_BD = new ArrayList<String>();
+List<Double> BD = new ArrayList<Double>();
+List<Integer> BD_Count = new ArrayList<Integer>();
+List<Integer> TOTAL_HITS_BD = new ArrayList<Integer>();
+List<String> BD_Issue_Time = new ArrayList<String>();
+List<String> Source_Id_TD = new ArrayList<String>();
+List<String> Error_Code_TD = new ArrayList<String>();
+List<String> API_TD = new ArrayList<String>();
+List<Integer> TOTAL_HITS_TD = new ArrayList<Integer>();
+List<Integer> TD_Count = new ArrayList<Integer>();
+List<Double> TD_Per = new ArrayList<Double>();
+List<String> TD_Issue_Time = new ArrayList<String>();
+List<String> Source_Id_BD = new ArrayList<String>();
+List<String> Error_Code_BD = new ArrayList<String>();
+List<Double> td_bd_per = new ArrayList<Double>();
+List<String> API_TD_BD = new ArrayList<String>();
+List<Integer> TOTAL_HITS_TD_BD = new ArrayList<Integer>();
+List<Integer> TD1_Count = new ArrayList<Integer>();
+List<Integer> BD1_Count = new ArrayList<Integer>();
+List<String> TD_BD_Issue_Time = new ArrayList<String>();
+List<String> Source_Id_TD_BD = new ArrayList<String>();
+List<String> Error_Code_TD_BD = new ArrayList<String>();
+while (l_bjres.next()) {
+
+if(l_bjres.getDouble("TD_PERCENT") == 100 && l_bjres.getInt("TD") >=10)
+{
+API_TD.add(l_bjres.getString("api_name"));
+TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
+TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
+TD_Count.add(l_bjres.getInt("TD"));
+TD_Issue_Time.add(l_bjres.getString("issue_time"));
+Source_Id_TD.add(l_bjres.getString("Source_id"));
+Error_Code_TD.add(l_bjres.getString("error_code"));
+}
+if(l_bjres.getDouble("BD_PER") == 100 && l_bjres.getInt("BD") >=10)
+{
+API_BD.add(l_bjres.getString("api_name"));
+BD.add(l_bjres.getDouble("BD_PER"));
+TOTAL_HITS_BD.add(l_bjres.getInt("TOTAL_HITS"));
+BD_Count.add(l_bjres.getInt("BD"));
+BD_Issue_Time.add(l_bjres.getString("issue_time"));
+Source_Id_BD.add(l_bjres.getString("Source_id"));
+Error_Code_BD.add(l_bjres.getString("error_code"));
+}
+if(l_bjres.getDouble("tdbd_per") == 100 && (l_bjres.getInt("BD")+l_bjres.getInt("BD")>=10))
+{
+API_TD_BD.add(l_bjres.getString("api_name"));
+TOTAL_HITS_TD_BD.add(l_bjres.getInt("TOTAL_HITS"));
+TD1_Count.add(l_bjres.getInt("TD"));
+BD1_Count.add(l_bjres.getInt("BD"));
+td_bd_per.add(l_bjres.getDouble("tdbd_per"));
+TD_BD_Issue_Time.add(l_bjres.getString("issue_time"));
+Source_Id_TD_BD.add(l_bjres.getString("Source_id"));
+Error_Code_TD_BD.add(l_bjres.getString("error_code"));
+}
+}
+if(TD_Per != null || BD != null)
+{
+for(int i=0; i<API_BD.size(); i++)
+{
+%>
+<div class="hex zoom" style="background-color: #ffcc66;" title=""
+onclick="alert('<B>Service Category:</B> NONGEN-5 <br> <B>Name of Service:</B> <%=API_BD.get(i)%> <br> <B>Error Code:</B> <%=Error_Code_BD.get(i)%> <br> <B>Source ID:</B> <%=Source_Id_BD.get(i)%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_BD.get(i)%> <br> <B>BD COUNT:</B><%=BD_Count.get(i)%> <br> <B>Issue Time(Last 3 Hour):</B> <br><%=BD_Issue_Time.get(i)%> <br>');"><%=BD.get(i)%></div>
+<%
+}
+for(int j=0; j<API_TD.size(); j++)
+{
+%>
+
+<div class="hex zoom" style="background-color: #ff3333;" title=""
+onclick="alert('<B>Service Category:</B> NONGEN-5 <br> <B>Name of Service:</B> <%=API_TD.get(j)%> <br> <B>Error Code:</B> <%=Error_Code_TD.get(j)%> <br> <B>Source ID:</B> <%=Source_Id_TD.get(j)%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_TD.get(j)%> <br> <B>TD COUNT:</B><%=TD_Count.get(j)%> <br> <B>Issue Time(Last 3 Hour):</B> <br><%=TD_Issue_Time.get(j)%> <br>');"><%=TD_Per.get(j)%></div>
+<%
+}
+for(int a=0; a<td_bd_per.size(); a++)
+{
+String m_strtmp = Error_Code_TD_BD.get(a);
+String m_strErrorcode = "";
+if ( m_strtmp != null && m_strtmp.contains(",")) {
+String tmparr[] = m_strtmp.split(",");
+for (int b = 0; b < tmparr.length; b++) {
+if (b == 0) {
+m_strErrorcode = tmparr[b];
+} else {
+if (b % 6 == 0) {
+m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>";
+} else {
+m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+}
+}
+}
+
+System.out.print("String is =" + m_strErrorcode);
+} else {
+//i =0;
+if(Error_Code_TD_BD != null && a >=0 && a<Error_Code_TD_BD.size())
+{
+m_strErrorcode = Error_Code_TD_BD.get(a);
+}
+else
+{
+m_strErrorcode = m_strtmp;
+}
+}
+%>
+
+<div class="hex zoom" style="background-color: #6666ff" title=""
+id='ABC<%=(a)%>' name='ABC<%=(a)%>'
+onclick="alert('<B>Service Category:</B> NONGEN-5 <br> <B>Name of Service:</B> <%=API_TD_BD.get(a)%> <br> <B>Error Code:</B> <%=m_strErrorcode%> <br> <B>Source ID:</B> <%=Source_Id_TD_BD.get(a)%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_TD_BD.get(a)%> <br> <B>TD COUNT:</B> <%=TD1_Count.get(a)%> <br> <B>BD COUNT:</B> <%=BD1_Count.get(a)%><br> <B>Issue Time(Last 3 Hour):</B> <br><%=TD_BD_Issue_Time.get(a)%> <br> ');"><%=td_bd_per.get(a)%></div>
+<%
+}
+for(int k = API_TD.size()+ API_BD.size() + td_bd_per.size(); k<60; k++)
+{
+%>
+<div class="hex zoom" style="background-color: #008800;" title=""><%=k%></div>
+<%
+}
+}
+else
+{
+%>
+
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+
+<%
+}
+%>
+</section>
+</div>
+<%
+} catch (Exception e) {
+// TODO: handle exception
+e.printStackTrace();
+}
+%>
+</div>
+</div> --%>
+<!-- </div> -->
+<!-- <div class="container center"> -->
+<div class="container">
+
+<div class="card" style="width: 650px">
+
+<div class="card-body" style="background-color: black;">
+<ul>
+<h4 class="card-title" style="color: white;">SI Service</h4>
+</ul>
+<section class="hexagon-gallery"
+style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+<%
+try {
+//String l_strQuery = "select * from (select function_name, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, error_code,issue_time from si_100_percent_fail TEMP where insert_time >= SYSDATE - INTERVAL '15' minute and function_name not in (select service_name from temporary_pause_master where service_name is not null ) GROUP BY function_name,error_code,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from si_100_percent_fail temp_in where temp_in.function_name = temp.function_name group by function_name ) and ROWNUM <= 60";
+/* String l_strQuery = "SELECT * FROM (SELECT function_name, SUM(total_hits) AS total_hits,SUM(td) AS td,round(AVG(td_percent), 2) AS td_percent, error_code, issue_time FROM si_100_percent_fail temp WHERE trim(CONCAT(temp.FUNCTION_NAME,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) and trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map) and insert_time >= sysdate - INTERVAL '10' MINUTE AND function_name NOT IN (SELECT service_name FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map) GROUP BY function_name, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM si_100_percent_fail temp_in WHERE temp_in.function_name = temp.function_name GROUP BY function_name) AND ROWNUM <= 60"; */
+String l_strQuery= "SELECT * FROM (SELECT function_name, SUM(total_hits) AS total_hits,SUM(td) AS td,round(AVG(td_percent), 2) AS td_percent, error_code, issue_time FROM si_100_percent_fail temp WHERE trim(CONCAT(temp.FUNCTION_NAME,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) and trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) and insert_time >= sysdate - INTERVAL '10' MINUTE AND function_name NOT IN (SELECT trim(service_name) FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY function_name, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM si_100_percent_fail temp_in WHERE temp_in.function_name = temp.function_name GROUP BY function_name) AND ROWNUM <= 60";
+System.out.println(l_strQuery);
+l_bjst = con.createStatement();
+l_bjres = l_bjst.executeQuery(l_strQuery);
+//System.out.println(l_bjres);
+List<String> API_TD = new ArrayList<String>();
+List<Integer> TOTAL_HITS_TD = new ArrayList<Integer>();
+List<Integer> TD_Count = new ArrayList<Integer>();
+List<Double> TD_Per = new ArrayList<Double>();
+List<String> TD_Issue_Time = new ArrayList<String>();
+List<String> Error_Code_TD = new ArrayList<String>();
+while (l_bjres.next()) {
+
+if(l_bjres.getDouble("TD_PERCENT") == 100 && l_bjres.getInt("TD") >=10)
+{
+API_TD.add(l_bjres.getString("function_name"));
+TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
+TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
+TD_Count.add(l_bjres.getInt("TD"));
+TD_Issue_Time.add(l_bjres.getString("issue_time"));
+Error_Code_TD.add(l_bjres.getString("error_code"));
+}
+}
+if(TD_Per != null )
+{
+
+for(int i=0; i<API_TD.size(); i++)
+{
+String m_strtmp = Error_Code_TD.get(i);
+String m_strErrorcode = "";
+if ( m_strtmp != null && m_strtmp.contains(",")) {
+String tmparr[] = m_strtmp.split(",");
+for (int b = 0; b < tmparr.length; b++) {
+if (b == 0) {
+m_strErrorcode = tmparr[b];
+} else {
+if (b % 6 == 0) {
+m_strErrorcode = m_strErrorcode + "," + tmparr[b] + ",<br>";
+} else {
+m_strErrorcode = m_strErrorcode + "," + tmparr[b];
+}
+}
+}
+
+System.out.print("String is =" + m_strErrorcode);
+} else {
+//i =0;
+if(Error_Code_TD != null && i >=0 && i<Error_Code_TD.size())
+{
+m_strErrorcode = Error_Code_TD.get(i);
+}
+else
+{
+m_strErrorcode = m_strtmp;
+}
+}
+%>
+
+<div class="hex zoom" style="background-color: #ff3333;" title=""
+onclick="alert('<B>Service Category:</B> SI-Service <br> <B>Name of Service:</B> <%=API_TD.get(i)%> <br> <B>Error Code:</B> <%=m_strErrorcode%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_TD.get(i)%> <br> <B>TD COUNT:</B><%=TD_Count.get(i)%> <br> <B>Issue Time(Last 3 Hour):</B> <br><%=TD_Issue_Time.get(i)%> <br> ');"><%=TD_Per.get(i)%></div>
+<%
+}
+for(int k = API_TD.size(); k<60; k++)
+{
+%>
+<div class="hex zoom" style="background-color: #008800;" title=""><%=k%></div>
+<%
+}
+}
+else
+{
+%>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<%
+}
+%>
+</section>
+</div>
+<%
+} catch (Exception e) {
+// TODO: handle exception
+e.printStackTrace();
+}
+%>
+</div>
+</div>
+</div>
+
+
+<br><br>
+<div class="container center" style="position: relative; left: 200px;">
+<div class="container">
+
+<div class="card" style="width: 650px">
+
+<div class="card-body" style="background-color: black;">
+<ul>
+<h4 class="card-title" style="color: white;">ThirdParty
+Service</h4>
+</ul>
+<section class="hexagon-gallery"
+style="zoom: 22%; background-color: rgb(41, 40, 40); height: auto; width: auto;">
+<%
+try {
+String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,error_code,source_id, issue_time from thirdparty_100_percentage_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from thirdparty_100_percentage_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 60";
+System.out.println(l_strQuery);
+l_bjst = con.createStatement();
+l_bjres = l_bjst.executeQuery(l_strQuery);
+//System.out.println(l_bjres);
+List<String> API_TD = new ArrayList<String>();
+List<Integer> TOTAL_HITS_TD = new ArrayList<Integer>();
+List<Integer> TD_Count = new ArrayList<Integer>();
+List<Double> TD_Per = new ArrayList<Double>();
+List<String> Transction_URN_TD = new ArrayList<String>();
+List<String> Original_URN_TD = new ArrayList<String>();
+List<String> TD_Issue_Time = new ArrayList<String>();
+List<String> Source_Id_TD = new ArrayList<String>();
+List<String> Error_Code_TD = new ArrayList<String>();
+List<Integer> SI_EEROR_Count = new ArrayList<Integer>();
+List<Double> SI_EEROR_PR_Per = new ArrayList<Double>();
+List<String> API_BD = new ArrayList<String>();
+List<Double> BD = new ArrayList<Double>();
+List<Integer> BD_Count = new ArrayList<Integer>();
+List<Integer> TOTAL_HITS_BD = new ArrayList<Integer>();
+List<String> Transction_URN_BD = new ArrayList<String>();
+List<String> Original_URN_BD = new ArrayList<String>();
+List<String> BD_Issue_Time = new ArrayList<String>();
+List<String> Source_Id_BD = new ArrayList<String>();
+List<String> Error_Code_BD = new ArrayList<String>();
+List<Double> td_bd_per = new ArrayList<Double>();
+List<String> API_TD_BD = new ArrayList<String>();
+List<Integer> TOTAL_HITS_TD_BD = new ArrayList<Integer>();
+List<Integer> TD1_Count = new ArrayList<Integer>();
+List<Integer> BD1_Count = new ArrayList<Integer>();
+List<String> Transction_URN_TD_BD = new ArrayList<String>();
+List<String> Original_URN_TD_BD = new ArrayList<String>();
+List<String> TD_BD_Issue_Time = new ArrayList<String>();
+List<String> Source_Id_TD_BD = new ArrayList<String>();
+List<String> Error_Code_TD_BD = new ArrayList<String>();
+while (l_bjres.next()) {
+if(l_bjres.getDouble("TD_PERCENT") == 100)
+{
+API_TD.add(l_bjres.getString("sup_url"));
+TD_Per.add(l_bjres.getDouble("TD_PERCENT"));
+TOTAL_HITS_TD.add(l_bjres.getInt("TOTAL_HITS"));
+TD_Count.add(l_bjres.getInt("TD"));
+Transction_URN_TD.add(l_bjres.getString("transaction_urn"));
+Original_URN_TD.add(l_bjres.getString("original_urn"));
+TD_Issue_Time.add(l_bjres.getString("issue_time"));
+Source_Id_TD.add(l_bjres.getString("Source_id"));
+Error_Code_TD.add(l_bjres.getString("error_code"));
+SI_EEROR_Count.add(l_bjres.getInt("SI_EEROR"));
+SI_EEROR_PR_Per.add(l_bjres.getDouble("SI_EEROR_PR"));
+}
+if(l_bjres.getDouble("BD_PER") == 100 )
+{
+API_BD.add(l_bjres.getString("sup_url"));
+BD.add(l_bjres.getDouble("BD_PER"));
+TOTAL_HITS_BD.add(l_bjres.getInt("TOTAL_HITS"));
+BD_Count.add(l_bjres.getInt("BD"));
+Transction_URN_BD.add(l_bjres.getString("transaction_urn"));
+Original_URN_TD_BD.add(l_bjres.getString("original_urn"));
+BD_Issue_Time.add(l_bjres.getString("issue_time"));
+Source_Id_BD.add(l_bjres.getString("Source_id"));
+Error_Code_BD.add(l_bjres.getString("error_code"));
+}
+if(l_bjres.getDouble("tdbd_per") == 100 )
+{
+API_TD_BD.add(l_bjres.getString("sup_url"));
+TOTAL_HITS_TD_BD.add(l_bjres.getInt("TOTAL_HITS"));
+TD1_Count.add(l_bjres.getInt("TD"));
+BD1_Count.add(l_bjres.getInt("BD"));
+td_bd_per.add(l_bjres.getDouble("tdbd_per"));
+Transction_URN_TD_BD.add(l_bjres.getString("transaction_urn"));
+Original_URN_TD_BD.add(l_bjres.getString("original_urn"));
+TD_BD_Issue_Time.add(l_bjres.getString("issue_time"));
+Source_Id_TD_BD.add(l_bjres.getString("Source_id"));
+Error_Code_TD_BD.add(l_bjres.getString("error_code"));
+}
+}
+if(TD_Per.size()>0 || BD.size()>0)
+{
+for(int i=0; i<API_BD.size(); i++)
+{
+%>
+<div class="hex zoom" style="background-color: #ffcc66;" title=""
+onclick="alert('<B>Service Category:</B> ThirdParty-GEN-5 <br> <B>Name of Service:</B> <%=Original_URN_TD_BD.get(i)%> <br> <B>Error Code:</B> <%=Error_Code_BD.get(i)%> <br> <B>Source ID:</B> <%=Source_Id_BD.get(i)%> <br> <B>TRANSACTION URN:</B><%=Transction_URN_BD.get(i)%> <br> <B>SUP Url:</B><%=API_BD.get(i)%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_BD.get(i)%> <br> <B>BD COUNT:</B><%=BD_Count.get(i)%> <br> <B>Issue Time(Last 3 Hour):</B> <br><%=BD_Issue_Time.get(i)%> <br>');"></div>
+<%
+}
+for(int j=0; j<API_TD.size(); j++)
+{
+%>
+
+<div class="hex zoom" style="background-color: #ff3333;" title=""
+onclick="alert('<B>Service Category:</B> ThirdParty-GEN-5 <br> <B>Name of Service:</B> <%=Original_URN_TD.get(j)%> <br> <B>Error Code:</B> <%=Error_Code_TD.get(j)%> <br> <B>Source ID:</B> <%=Source_Id_TD.get(j)%> <br> <B>TRANSACTION URN:</B><%=Transction_URN_TD.get(j)%> <br> <B>SUP Url:</B><%=API_TD.get(j)%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_TD.get(j)%> <br> <B>TD COUNT:</B><%=TD_Count.get(j)%> <br> <B>SI ERROR COUNT:</B> <%=SI_EEROR_Count.get(j)%> <br> <B>Issue Time(Last 3 Hour):</B> <br><%=TD_Issue_Time.get(j)%> <br>');"><%=TD_Per.get(j)%></div>
+<%
+}
+for(int a=0; a<td_bd_per.size(); a++)
+{
+String m_strtmp = Error_Code_TD_BD.get(a);
+String m_strErrorcode = "";
+if (m_strtmp.contains(",")) {
+String tmparr[] = m_strtmp.split(",");
+
+for (int i = 0; i < tmparr.length; i++) {
+if (i == 0) {
+m_strErrorcode = tmparr[i];
+} else {
+if (i % 5 == 0) {
+m_strErrorcode = m_strErrorcode + "," + tmparr[i] + ",<br>";
+} else {
+m_strErrorcode = m_strErrorcode + "," + tmparr[i];
+}
+}
+}
+
+System.out.print("String is =" + m_strErrorcode);
+} else {
+m_strErrorcode = Error_Code_TD_BD.get(a);
+}
+%>
+
+<div class="hex zoom" style="background-color: #6666ff" title=""
+id='ABC<%=(a)%>' name='ABC<%=(a)%>'
+onclick="alert('<B>Service Category:</B> ThirdParty-GEN-5 <br> <B>Name of Service:</B> <%=Original_URN_TD_BD.get(a)%> <br> <B>Error Code:</B> <%=m_strErrorcode%> <br> <B>Source ID:</B> <%=Source_Id_TD_BD.get(a)%> <br> <B>TRANSACTION URN:</B><%=API_TD_BD.get(a)%> <br> <B>SUP Url:</B><%=Original_URN_TD_BD.get(a)%> <br> <B>TOTAL HITS:</B><%=TOTAL_HITS_TD_BD.get(a)%> <br> <B>TD COUNT:</B> <%=TD1_Count.get(a)%> <br> <B>BD COUNT:</B> <%=BD1_Count.get(a)%><br> <B>Issue Time(Last 3 Hour):</B> <br><%=TD_BD_Issue_Time.get(a)%> <br> ');"><%=td_bd_per.get(a)%></div>
+<%
+}
+for(int k = API_TD.size()+ API_BD.size() + td_bd_per.size(); k<60; k++)
+{
+%>
+<div class="hex zoom" style="background-color: #008800;" title=""><%=k%></div>
+<%
+}
+}
+else
+{
+%>
+
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+<div class="hex zoom"></div>
+
+<%
+}
+%>
+</section>
+</div>
+<%
+} catch (Exception e) {
+// TODO: handle exception
+e.printStackTrace();
+}
+} catch (Exception e) {
+// TODO: handle exception
+e.printStackTrace();
+}
+%>
+</div>
+</div>
+</div>
 
 </div>
 
-</body>
-</html>
 
+<script>
+function countdown(elementName, minutes, seconds) {
+var element, endTime, hours, mins, msLeft, time;
 
-----------------------------------------------------------------
+function twoDigits(n) {
+return (n <= 9 ? "0" + n : n);
+}
 
+function updateTimer() {
+msLeft = endTime - (+new Date);
+if (msLeft < 1000) {
+element.innerHTML = "Please Wait Fetching the Latest Data!";
+} else {
+time = new Date(msLeft);
+hours = time.getUTCHours();
+mins = time.getUTCMinutes();
+element.innerHTML = (hours ? hours + ':' + twoDigits(mins) : mins) + ':' + twoDigits(time.getUTCSeconds());
+setTimeout(updateTimer, time.getUTCMilliseconds() + 50);
+}
+}
 
-<%@ page import="java.sql.*, java.util.ArrayList, java.util.List" %>
-<%@page import="com.jdbc.DBUtilityAuto"%>
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-<!DOCTYPE html>
-<html>
-<head>
-    <title>EIS ServiceWise · Closed Records</title>
-    <link rel='stylesheet' href='../css/bootstrap.min_Display100PerFail.css'>
-    <script src="../js/jquery-3.6.0.min_Diaplay100PerFail.js"></script>
-    <link rel="stylesheet" type="text/css" href="../css/datatables.min_Dispaly100PerFail.css">
-    <script type="text/javascript" charset="utf8" src="../js/datatables.min_Display100PerFail.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #000000;
-            color: #ffffff;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .bg-layer {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            background: #000000;
-            z-index: 0;
-        }
-        
-        .wrapper {
-            position: relative;
-            z-index: 1;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        /* TOP BAR */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 24px;
-            background: rgba(6,6,6,0.98);
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.04);
-            margin-bottom: 20px;
-            box-shadow: 0 4px 40px rgba(0,0,0,0.9);
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand .logo {
-            width: 38px; height: 38px;
-            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px; color: #fff;
-            box-shadow: 0 4px 30px rgba(79,156,247,0.15);
-        }
-        .brand .name { font-weight: 900; font-size: 20px; color: #ffffff; }
-        .brand .name .eis { color: #4f9cf7; }
-        .brand .name .wise { color: #7c3aed; }
-        .brand .sub { font-size: 9px; font-weight: 700; color: #2a4a6a; letter-spacing: 2px; text-transform: uppercase; }
-        
-        .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .btn-glass {
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 12px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-family: 'Inter', sans-serif;
-            text-decoration: none;
-        }
-        .btn-primary-glass {
-            background: linear-gradient(135deg, #4f9cf7, #7c3aed);
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(79,156,247,0.12);
-        }
-        .btn-primary-glass:hover { transform: translateY(-2px); box-shadow: 0 8px 35px rgba(79,156,247,0.2); }
-        .btn-success-glass {
-            background: linear-gradient(135deg, #0f973d, #0a7a30);
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(15,151,61,0.12);
-        }
-        .btn-success-glass:hover { transform: translateY(-2px); box-shadow: 0 8px 35px rgba(15,151,61,0.2); }
-        .btn-ghost-glass {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.04);
-            color: #6a8aaa;
-        }
-        .btn-ghost-glass:hover { background: rgba(255,255,255,0.04); }
-        
-        /* PAGE TITLE */
-        .page-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 0 16px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.02);
-            margin-bottom: 20px;
-        }
-        .page-title h1 {
-            font-size: 24px;
-            font-weight: 800;
-            color: #e8edf5;
-        }
-        .page-title h1 span { color: #4f9cf7; }
-        .page-title .badge-count {
-            background: rgba(79,156,247,0.06);
-            padding: 4px 16px;
-            border-radius: 40px;
-            font-size: 13px;
-            font-weight: 700;
-            color: #4f9cf7;
-            border: 1px solid rgba(79,156,247,0.04);
-        }
-        
-        /* TABLE */
-        .table-container {
-            background: rgba(4,4,4,0.95);
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.02);
-            padding: 20px;
-            overflow-x: auto;
-            box-shadow: 0 4px 30px rgba(0,0,0,0.6);
-        }
-        
-        #recordsTable {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        
-        #recordsTable thead th {
-            background: rgba(255,255,255,0.02);
-            color: #8aaac0;
-            font-weight: 700;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 12px 14px;
-            border-bottom: 2px solid rgba(255,255,255,0.04);
-            text-align: left;
-        }
-        
-        #recordsTable tbody td {
-            padding: 10px 14px;
-            border-bottom: 1px solid rgba(255,255,255,0.02);
-            color: #c8d8f0;
-        }
-        
-        #recordsTable tbody tr:hover {
-            background: rgba(79,156,247,0.02);
-        }
-        
-        #recordsTable tbody tr td:first-child {
-            font-weight: 600;
-            color: #4f9cf7;
-        }
-        
-        /* DataTables customization */
-        .dataTables_wrapper .dataTables_length,
-        .dataTables_wrapper .dataTables_filter,
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_paginate {
-            color: #6a8aaa !important;
-        }
-        
-        .dataTables_wrapper .dataTables_filter input {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.04);
-            border-radius: 6px;
-            padding: 6px 12px;
-            color: #ffffff;
-        }
-        
-        .dataTables_wrapper .dataTables_filter input:focus {
-            outline: none;
-            border-color: #4f9cf7;
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button {
-            color: #6a8aaa !important;
-            border-radius: 6px !important;
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: rgba(79,156,247,0.06) !important;
-            color: #4f9cf7 !important;
-            border-color: rgba(79,156,247,0.04) !important;
-        }
-        
-        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: rgba(79,156,247,0.04) !important;
-            color: #ffffff !important;
-        }
-        
-        /* Status Badge */
-        .status-badge {
-            display: inline-block;
-            padding: 2px 12px;
-            border-radius: 40px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .status-badge.closed { background: rgba(15,151,61,0.06); color: #0f973d; border: 1px solid rgba(15,151,61,0.04); }
-        .status-badge.pending { background: rgba(255,165,2,0.06); color: #ffa502; border: 1px solid rgba(255,165,2,0.04); }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .top-bar { flex-direction: column; align-items: flex-start; }
-            .page-title h1 { font-size: 18px; }
-            #recordsTable { font-size: 11px; }
-            #recordsTable thead th, #recordsTable tbody td { padding: 6px 8px; }
-        }
-        
-        /* DataTables search builder override */
-        .dt-search-builder {
-            background: rgba(255,255,255,0.01);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        
-        /* scrollbar */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: #0a0a0a; }
-        ::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #4f9cf7; }
-    </style>
-    <script>
-        $(document).ready(function(){
-            $('#recordsTable').DataTable({
-                "order": [],
-                "pageLength": 25,
-                "language": {
-                    "search": "Search:",
-                    "lengthMenu": "Show _MENU_ entries",
-                    "info": "Showing _START_ to _END_ of _TOTAL_ records"
-                }
-            });
-        });
-        
-        function homeFunction() {
-            window.open('<%=request.getContextPath() + "/jsp/ServiceWiseFailureDashboard.jsp"%>', '_blank');
-        }
-        
-        function exportToExcel() {
-            let workbook = XLSX.utils.book_new();
-            let table = document.getElementById('recordsTable');
-            let worksheet = XLSX.utils.table_to_sheet(table);
-            XLSX.utils.book_append_sheet(workbook, worksheet, 'ClosedRecords');
-            XLSX.writeFile(workbook, 'ServiceWise_Closed_Records.xlsx');
-        }
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-</head>
-<body>
+element = document.getElementById(elementName);
+endTime = (+new Date) + 1000 * (60 * minutes + seconds);
+updateTimer();
+}
 
-<div class="bg-layer"></div>
-
-<div class="wrapper">
-
-    <!-- TOP BAR -->
-    <div class="top-bar">
-        <div class="brand">
-            <div class="logo"><i class="fas fa-chart-simple"></i></div>
-            <div>
-                <div class="name"><span class="eis">EIS</span>Service<span class="wise">Wise</span></div>
-                <div class="sub">Closed Records</div>
-            </div>
-        </div>
-        <div class="top-actions">
-            <button class="btn-glass btn-success-glass" onclick="exportToExcel()">
-                <i class="fas fa-file-excel"></i> Export
-            </button>
-            <button class="btn-glass btn-primary-glass" onclick="homeFunction()">
-                <i class="fas fa-arrow-left"></i> Dashboard
-            </button>
-        </div>
-    </div>
-
-    <!-- PAGE TITLE -->
-    <div class="page-title">
-        <h1>Closed <span>Issues</span></h1>
-        <span class="badge-count">
-            <i class="fas fa-check-circle" style="color:#0f973d;"></i>
-            <%
-                int count = 0;
-                try {
-                    Connection c = DBUtilityAuto.getReportDBConnection();
-                    Statement st = c.createStatement();
-                    ResultSet rs = st.executeQuery("SELECT COUNT(1) as cnt FROM service_pause_log_master WHERE TRUNC(PAUSE_TIME)=TRUNC(SYSDATE)");
-                    if(rs.next()) count = rs.getInt("cnt");
-                    rs.close(); st.close(); c.close();
-                } catch(Exception e) { }
-                out.print(count);
-            %>
-        </span>
-    </div>
-
-    <!-- TABLE -->
-    <div class="table-container">
-        <table id="recordsTable" class="display" style="width:100%;">
-            <thead>
-                <tr>
-                    <th>Category</th>
-                    <th>Service Name</th>
-                    <th>Source ID</th>
-                    <th>Error Code</th>
-                    <th>Description</th>
-                    <th>Closed By</th>
-                    <th>Pause Time</th>
-                    <th>Resume Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                <%
-                    Connection con = null;
-                    List<String[]> records = new ArrayList<>();
-                    try {
-                        con = DBUtilityAuto.getReportDBConnection();
-                        String query = "SELECT SERVICE_CATEGORY,SERVICE_NAME,SOURCE_ID,ERROR_CODE,DESCRIPTION,CLOSED_BY,PAUSE_TIME,RESUME_TIME FROM service_pause_log_master WHERE TRUNC(PAUSE_TIME)=TRUNC(SYSDATE) ORDER BY PAUSE_TIME DESC";
-                        PreparedStatement ps = con.prepareStatement(query);
-                        ResultSet rs = ps.executeQuery();
-                        while (rs.next()) {
-                            String[] record = new String[8];
-                            record[0] = rs.getString(1);
-                            record[1] = rs.getString(2);
-                            record[2] = rs.getString(3);
-                            record[3] = rs.getString(4);
-                            record[4] = rs.getString(5);
-                            record[5] = rs.getString(6);
-                            record[6] = rs.getString(7);
-                            record[7] = rs.getString(8);
-                            records.add(record);
-                        }
-                        rs.close(); ps.close();
-                    } catch (Exception e) { e.printStackTrace(); } finally { if (con != null) con.close(); }
-
-                    for (String[] record : records) {
-                %>
-                <tr>
-                    <td><%= record[0] %></td>
-                    <td><strong><%= record[1] %></strong></td>
-                    <td><%= record[2] %></td>
-                    <td><span style="color:#ffa502;"><%= record[3] %></span></td>
-                    <td><%= record[4] %></td>
-                    <td><%= record[5] %></td>
-                    <td><%= record[6] %></td>
-                    <td><%= record[7] %></td>
-                </tr>
-                <%
-                    }
-                %>
-            </tbody>
-        </table>
-    </div>
-
-</div>
-
+countdown("ten-countdown", 5, 0);
+</script>
 </body>
 </html>
