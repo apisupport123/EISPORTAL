@@ -1,1139 +1,289 @@
-<%@page import="java.util.Calendar"%>
-<%@page import="java.text.SimpleDateFormat"%>
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
-<%@taglib uri="http://struts.apache.org/tags-html" prefix="html"%>
-<%@taglib uri="http://struts.apache.org/tags-bean" prefix="bean"%>
-<%@taglib uri="http://struts.apache.org/tags-logic" prefix="logic"%>
-<%@page import="java.sql.PreparedStatement"%>
-<%@page import="java.sql.SQLException"%>
-<%@page import="java.util.ArrayList"%>
-<%@page import="java.util.List"%>
-<%@page import="java.sql.DriverManager"%>
-<%@page import="java.sql.ResultSet"%>
-<%@page import="java.sql.Statement"%>
-<%@page import="java.sql.Connection"%>
-<%@page import="com.jdbc.DBUtilityAuto"%>
-<%@page import="java.time.LocalDate,java.time.format.DateTimeFormatter,java.time.LocalDateTime,java.util.Date,java.util.Calendar"%>
-<%@page import="java.sql.Timestamp"%>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="300">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <title>ServiceWise · Combined Command Center</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html, body { width: 100vw; height: 100vh; overflow: hidden; font-family: 'Inter', sans-serif; background: #000000; color: #ffffff; }
-        .bg-layer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000000; z-index: 0; }
-        .wrapper { position: relative; z-index: 1; width: 100vw; height: 100vh; display: flex; flex-direction: column; padding: 6px 12px 10px 12px; overflow: hidden; }
-        
-        /* LOADER */
-        #loaderWrapper { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 99999; transition: opacity 0.5s ease; }
-        #loaderWrapper.hidden { opacity: 0; pointer-events: none; }
-        .loader-spinner { width: 60px; height: 60px; border: 4px solid rgba(79,156,247,0.1); border-top: 4px solid #4f9cf7; border-radius: 50%; animation: spin 1s linear infinite; box-shadow: 0 0 40px rgba(79,156,247,0.1); }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .loader-text { margin-top: 20px; font-size: 16px; font-weight: 700; color: #4a6a8a; letter-spacing: 2px; text-transform: uppercase; }
-        
-        /* TOP BAR */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 6px 16px; background: rgba(6,6,6,0.98); border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); flex-shrink: 0; height: 48px; margin-bottom: 4px; flex-wrap: wrap; gap: 4px; box-shadow: 0 4px 30px rgba(0,0,0,0.9); }
-        .brand { display: flex; align-items: center; gap: 10px; }
-        .brand .logo { width: 32px; height: 32px; background: linear-gradient(135deg, #4f9cf7, #7c3aed); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; box-shadow: 0 4px 20px rgba(79,156,247,0.15); }
-        .brand .name { font-weight: 900; font-size: 16px; color: #ffffff; }
-        .brand .name .sw { color: #4f9cf7; }
-        .brand .sub { font-size: 7px; font-weight: 700; color: #2a4a6a; letter-spacing: 1.5px; text-transform: uppercase; }
-        .top-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .live-badge { display: flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; color: #0f973d; padding: 3px 10px 3px 6px; border-radius: 40px; background: rgba(15,151,61,0.04); border: 1px solid rgba(15,151,61,0.06); }
-        .live-badge .dot { width: 5px; height: 5px; border-radius: 50%; background: #0f973d; animation: pulse-dot 1.5s infinite; box-shadow: 0 0 15px rgba(15,151,61,0.15); }
-        @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.2; transform: scale(0.6); } }
-        .timer-glass { font-weight: 700; font-size: 11px; color: #4f9cf7; padding: 3px 10px; border-radius: 40px; background: rgba(79,156,247,0.03); border: 1px solid rgba(79,156,247,0.04); font-variant-numeric: tabular-nums; }
-        .btn-glass { padding: 3px 12px; border-radius: 40px; font-weight: 700; font-size: 8px; border: none; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Inter', sans-serif; }
-        .btn-primary-glass { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; box-shadow: 0 4px 15px rgba(79,156,247,0.1); }
-        .btn-primary-glass:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(79,156,247,0.15); }
-        .btn-ghost-glass { background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); color: #6a8aaa; }
-        .btn-ghost-glass:hover { background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06); }
-        .badge-count-glass { background: rgba(79,156,247,0.04); padding: 0 6px; border-radius: 4px; font-weight: 700; font-size: 9px; }
-        
-        /* TICKER */
-        .ticker-bar { display: flex; align-items: center; padding: 2px 10px; background: rgba(255,255,255,0.005); border-radius: 6px; border: 1px solid rgba(255,255,255,0.01); flex-shrink: 0; margin-bottom: 3px; height: 24px; }
-        .ticker-wrap { flex: 1; overflow: hidden; padding: 0 4px; }
-        .ticker-text { display: inline-block; white-space: nowrap; animation: marquee 20s linear infinite; font-size: 9px; font-weight: 600; color: #3a5a7a; }
-        .ticker-text span { margin: 0 12px; color: #4a6a8a; }
-        .ticker-text .hl { color: #4f9cf7; font-weight: 700; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        
-        /* LEGEND + TIMESTAMP */
-        .info-bar { display: flex; justify-content: space-between; align-items: center; padding: 2px 0 4px 0; border-bottom: 1px solid rgba(255,255,255,0.02); flex-shrink: 0; margin-bottom: 3px; flex-wrap: wrap; gap: 4px; }
-        .legend { display: flex; gap: 10px; flex-wrap: wrap; }
-        .legend .item { display: flex; align-items: center; gap: 4px; font-size: 7px; font-weight: 700; color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.5px; }
-        .legend .swatch { width: 8px; height: 8px; border-radius: 2px; }
-        .sw-td { background: #c0392b; box-shadow: 0 0 15px rgba(192,57,43,0.1); }
-        .sw-bd { background: #e67e22; box-shadow: 0 0 15px rgba(230,126,34,0.1); }
-        .sw-mixed { background: #8e44ad; box-shadow: 0 0 15px rgba(142,68,173,0.1); }
-        .sw-health { background: #0f973d; box-shadow: 0 0 15px rgba(15,151,61,0.05); }
-        .timestamp-display { color: #4f9cf7; font-weight: 700; font-size: 9px; }
-        .timestamp-display i { margin-right: 3px; color: #4f9cf7; }
-        
-        /* GRID */
-        .grid-main { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 6px; min-height: 0; }
-        .row-servicewise { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; min-height: 0; }
-        .row-hundred { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; min-height: 0; }
-        
-        .section-header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; padding: 2px 10px; background: rgba(255,255,255,0.005); border-radius: 6px; border-bottom: 1px solid rgba(255,255,255,0.02); height: 22px; }
-        .section-header .title { font-size: 9px; font-weight: 700; color: #6a8aaa; text-transform: uppercase; letter-spacing: 1px; }
-        .section-header .title i { color: #4f9cf7; margin-right: 4px; }
-        .section-header .badge { font-size: 7px; font-weight: 700; color: #4f9cf7; background: rgba(79,156,247,0.04); padding: 1px 8px; border-radius: 40px; border: 1px solid rgba(79,156,247,0.04); }
-        
-        .card-modern { background: rgba(4,4,4,0.95); border-radius: 8px; border: 1px solid rgba(255,255,255,0.02); overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s ease; box-shadow: 0 2px 20px rgba(0,0,0,0.5); }
-        .card-modern:hover { border-color: rgba(79,156,247,0.03); box-shadow: 0 4px 30px rgba(0,0,0,0.6); transform: translateY(-1px); }
-        .card-header-modern { padding: 3px 10px 2px 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; height: 24px; background: rgba(255,255,255,0.005); border-bottom: 1px solid rgba(255,255,255,0.02); }
-        .card-header-modern .title { font-weight: 800; font-size: 10px; display: flex; align-items: center; gap: 5px; color: #8aaac0; }
-        .card-header-modern .title i { color: #4f9cf7; font-size: 10px; }
-        .card-header-modern .badge-count { font-size: 7px; font-weight: 700; padding: 1px 8px; border-radius: 40px; background: rgba(79,156,247,0.03); color: #4f9cf7; border: 1px solid rgba(79,156,247,0.03); }
-        
-        .tile-grid { flex: 1; padding: 2px 6px 6px 6px; display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 1fr; gap: 3px; min-height: 0; }
-        
-        .tile { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 6px; transition: all 0.12s ease; cursor: pointer; position: relative; aspect-ratio: 1; min-height: 30px; padding: 3px 2px; border: 1.5px solid rgba(255, 255, 255, 0.02); background: rgba(255, 255, 255, 0.01); overflow: hidden; }
-        .tile:hover { transform: scale(1.05) translateY(-2px); z-index: 10; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); border-color: rgba(79, 156, 247, 0.08); }
-        .tile .val { font-size: 13px; font-weight: 900; line-height: 1.1; text-align: center; word-break: break-word; max-width: 100%; padding: 0 1px; }
-        .tile .sub-text { font-size: 6px; font-weight: 700; opacity: 0.5; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 1px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; padding: 0 1px; }
-        .tile .bar { position: absolute; bottom: 2px; left: 15%; right: 15%; height: 2px; border-radius: 3px; background: rgba(255, 255, 255, 0.03); overflow: hidden; }
-        .tile .bar .fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
-        
-        .tile-critical { background: rgba(192, 57, 43, 0.10); border-color: rgba(192, 57, 43, 0.12); }
-        .tile-critical .val { color: #c0392b; font-size: 14px; }
-        .tile-critical .sub-text { color: #c0392b; opacity: 0.7; font-size: 6px; }
-        .tile-critical .bar .fill { background: #c0392b; width: 80%; }
-        .tile-critical.pulse { animation: crit-pulse 2s ease-in-out infinite; }
-        @keyframes crit-pulse { 0%,100% { border-color: rgba(192,57,43,0.12); box-shadow: 0 0 15px rgba(192,57,43,0.02); } 50% { border-color: rgba(192,57,43,0.25); box-shadow: 0 0 30px rgba(192,57,43,0.06); } }
-        
-        .tile-warning { background: rgba(230, 126, 34, 0.08); border-color: rgba(230, 126, 34, 0.10); }
-        .tile-warning .val { color: #e67e22; font-size: 13px; }
-        .tile-warning .sub-text { color: #e67e22; opacity: 0.7; font-size: 6px; }
-        .tile-warning .bar .fill { background: #e67e22; width: 50%; }
-        
-        .tile-mixed { background: rgba(142, 68, 173, 0.08); border-color: rgba(142, 68, 173, 0.10); }
-        .tile-mixed .val { color: #8e44ad; font-size: 13px; }
-        .tile-mixed .sub-text { color: #8e44ad; opacity: 0.7; font-size: 6px; }
-        .tile-mixed .bar .fill { background: #8e44ad; width: 35%; }
-        
-        .tile-healthy { background: rgba(15, 151, 61, 0.06); border-color: rgba(15, 151, 61, 0.04); }
-        .tile-healthy .val { color: #0f973d; font-size: 10px; font-weight: 800; }
-        .tile-healthy .sub-text { color: #0f973d; opacity: 0.5; font-size: 7px; }
-        .tile-healthy .bar .fill { background: #0f973d; width: 15%; }
-        
-        .tile-td { background: rgba(192, 57, 43, 0.12); border-color: rgba(192, 57, 43, 0.15); }
-        .tile-td .val { color: #c0392b; font-size: 15px; }
-        .tile-td .sub-text { color: #c0392b; opacity: 0.7; font-size: 6px; }
-        .tile-td .bar .fill { background: #c0392b; width: 80%; }
-        .tile-td.pulse { animation: td-pulse 2s ease-in-out infinite; }
-        @keyframes td-pulse { 0%,100% { border-color: rgba(192,57,43,0.15); box-shadow: 0 0 15px rgba(192,57,43,0.02); } 50% { border-color: rgba(192,57,43,0.30); box-shadow: 0 0 30px rgba(192,57,43,0.08); } }
-        
-        .tile-bd { background: rgba(230, 126, 34, 0.12); border-color: rgba(230, 126, 34, 0.15); }
-        .tile-bd .val { color: #e67e22; font-size: 15px; }
-        .tile-bd .sub-text { color: #e67e22; opacity: 0.7; font-size: 6px; }
-        .tile-bd .bar .fill { background: #e67e22; width: 80%; }
-        .tile-bd.pulse { animation: bd-pulse 2s ease-in-out infinite; }
-        @keyframes bd-pulse { 0%,100% { border-color: rgba(230,126,34,0.15); box-shadow: 0 0 15px rgba(230,126,34,0.02); } 50% { border-color: rgba(230,126,34,0.30); box-shadow: 0 0 30px rgba(230,126,34,0.08); } }
-        
-        .tile-hundred-mixed { background: rgba(142, 68, 173, 0.12); border-color: rgba(142, 68, 173, 0.15); }
-        .tile-hundred-mixed .val { color: #8e44ad; font-size: 15px; }
-        .tile-hundred-mixed .sub-text { color: #8e44ad; opacity: 0.7; font-size: 6px; }
-        .tile-hundred-mixed .bar .fill { background: #8e44ad; width: 80%; }
-        .tile-hundred-mixed.pulse { animation: mixed-pulse 2s ease-in-out infinite; }
-        @keyframes mixed-pulse { 0%,100% { border-color: rgba(142,68,173,0.15); box-shadow: 0 0 15px rgba(142,68,173,0.02); } 50% { border-color: rgba(142,68,173,0.30); box-shadow: 0 0 30px rgba(142,68,173,0.08); } }
-        
-        .tile-hundred-healthy { background: rgba(15, 151, 61, 0.08); border-color: rgba(15, 151, 61, 0.04); }
-        .tile-hundred-healthy .val { color: #0f973d; font-size: 11px; font-weight: 800; }
-        .tile-hundred-healthy .sub-text { color: #0f973d; opacity: 0.5; font-size: 7px; }
-        .tile-hundred-healthy .bar .fill { background: #0f973d; width: 15%; }
-        
-        #customTooltip { position: fixed; display: none; background: rgba(8, 10, 16, 0.95); backdrop-filter: blur(12px); color: #e8edf5; padding: 6px 14px; border-radius: 8px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255, 255, 255, 0.06); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8); pointer-events: none; z-index: 99999; font-family: 'Inter', sans-serif; letter-spacing: 0.3px; white-space: nowrap; max-width: 350px; overflow: hidden; text-overflow: ellipsis; transform: translateX(-50%) translateY(-100%); transition: none; }
-        #customTooltip::after { content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border: 6px solid transparent; border-top-color: rgba(8, 10, 16, 0.95); }
-        
-        @media (max-width: 1600px) { .tile-grid { grid-template-columns: repeat(5, 1fr); } }
-        @media (max-width: 1400px) { .tile-grid { grid-template-columns: repeat(4, 1fr); } .row-servicewise { grid-template-columns: repeat(2, 1fr); } .row-hundred { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 1100px) { .tile-grid { grid-template-columns: repeat(3, 1fr); } .row-servicewise { grid-template-columns: 1fr; } .row-hundred { grid-template-columns: 1fr; } .top-bar { flex-wrap: wrap; height: auto; } }
-        @media (max-width: 768px) { .tile-grid { grid-template-columns: repeat(2, 1fr); } body { padding: 4px; } }
-        
-        /* MODAL */
-        #modalContainer { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.92); backdrop-filter: blur(20px); display: none; align-items: center; justify-content: center; z-index: 999999; animation: modal-in 0.25s ease; padding: 20px; }
-        @keyframes modal-in { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-        
-        #alertBox { background: linear-gradient(145deg, #0d1420, #060a12); border-radius: 20px; max-width: 620px; width: 95%; max-height: 85vh; padding: 28px 32px 32px 32px; border: 1px solid rgba(255,255,255,0.04); box-shadow: 0 40px 80px rgba(0,0,0,0.9); overflow-y: auto; }
-        #alertBox::-webkit-scrollbar { width: 4px; }
-        #alertBox::-webkit-scrollbar-track { background: transparent; }
-        #alertBox::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
-        #alertBox .head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        #alertBox .head h3 { font-size: 20px; font-weight: 800; color: #c0392b; display: flex; align-items: center; gap: 10px; }
-        #alertBox .head h3 i { font-size: 24px; }
-        #alertBox .head .close-btn { background: none; border: none; color: #4a6a8a; font-size: 24px; cursor: pointer; transition: 0.2s; padding: 0 4px; line-height: 1; }
-        #alertBox .head .close-btn:hover { color: #fff; transform: rotate(90deg); }
-        #alertBox .body-text { background: rgba(0,0,0,0.2); border-radius: 10px; padding: 12px 16px; margin: 6px 0 14px 0; border-left: 3px solid #4f9cf7; font-size: 13px; line-height: 1.8; color: #b0c8e0; max-height: 160px; overflow-y: auto; }
-        #alertBox .body-text b { color: #ffffff; }
-        #alertBox .body-text .highlight-td { color: #c0392b; font-weight: 700; }
-        #alertBox .body-text .highlight-bd { color: #e67e22; font-weight: 700; }
-        #alertBox .body-text .highlight-mixed { color: #8e44ad; font-weight: 700; }
-        #alertBox .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        #alertBox .field { margin-bottom: 6px; }
-        #alertBox .field label { display: block; font-size: 9px; font-weight: 700; color: #4a6a8a; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 2px; }
-        #alertBox .field select, #alertBox .field textarea { width: 100%; background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.04); border-radius: 8px; padding: 8px 12px; color: #ffffff; font-size: 13px; font-family: 'Inter', sans-serif; transition: 0.2s; }
-        #alertBox .field select:focus, #alertBox .field textarea:focus { outline: none; border-color: #4f9cf7; box-shadow: 0 0 0 3px rgba(79,156,247,0.04); }
-        #alertBox .field textarea { min-height: 44px; resize: vertical; }
-        #alertBox .field.full { grid-column: 1 / -1; }
-        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; flex-wrap: wrap; }
-        .modal-actions .btn-m { padding: 6px 22px; border-radius: 40px; font-weight: 700; font-size: 10px; border: none; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Inter', sans-serif; }
-        .modal-actions .btn-m-primary { background: linear-gradient(135deg, #4f9cf7, #7c3aed); color: #fff; box-shadow: 0 4px 15px rgba(79,156,247,0.1); }
-        .modal-actions .btn-m-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 25px rgba(79,156,247,0.15); }
-        .modal-actions .btn-m-danger { background: linear-gradient(135deg, #c0392b, #922b21); color: #fff; }
-        .modal-actions .btn-m-secondary { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); color: #6a8aaa; }
-        .modal-actions .btn-m-secondary:hover { background: rgba(255,255,255,0.04); }
-    </style>
-</head>
-<body>
+Aug 19, 2026 12:31:39 PM org.apache.catalina.core.StandardWrapperValve invoke
+SEVERE: Servlet.service() for servlet [jsp] in context with path [/EISPortalVer1] threw exception [Unable to compile class for JSP: 
 
-<!-- LOADER -->
-<div id="loaderWrapper">
-    <div class="loader-spinner"></div>
-    <div class="loader-text">Loading Combined Dashboard...</div>
-</div>
+An error occurred at line: [331] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+328:                                 tipClass = "tip-td";
+329:                                 
+330:                                 alertMsg = "<b>Service:</b> " + sw_gen5_name.get(i) + "<br><b>Source:</b> " + sw_gen5_source.get(i) + "<br><b>Error:</b> " + sw_gen5_error.get(i) + "<br><b>Hits:</b> " + sw_gen5_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_gen5_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + sw_gen5_siCount.get(i) + "<br><b>Time:</b> " + sw_gen5_time.get(i);
+331:                                 onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_gen5_name.get(i).replace("'", "\\'") + "','GEN-5','ServiceWise','" + sw_gen5_source.get(i).replace("'", "\\'") + "','" + sw_gen5_error.get(i).replace("'", "\\'") + "','" + sw_gen5_hits.get(i) + "','" + sw_gen5_td.get(i) + "','" + sw_gen5_time.get(i).replace("'", "\\'") + "')\"");
+332:                             }
+333:                             
+334:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
 
-<div class="bg-layer"></div>
 
-<div class="wrapper">
+An error occurred at line: [392] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+389:                                 tipClass = "tip-td";
+390:                                 
+391:                                 alertMsg = "<b>Service:</b> " + sw_si_name.get(i) + "<br><b>Error:</b> " + sw_si_error.get(i) + "<br><b>Hits:</b> " + sw_si_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_si_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>Time:</b> " + sw_si_time.get(i);
+392:                                 onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_si_name.get(i).replace("'", "\\'") + "','SI','ServiceWise','','" + sw_si_error.get(i).replace("'", "\\'") + "','" + sw_si_hits.get(i) + "','" + sw_si_td.get(i) + "','" + sw_si_time.get(i).replace("'", "\\'") + "')\"");
+393:                             }
+394:                             
+395:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
 
-    <!-- TOP BAR -->
-    <div class="top-bar">
-        <div class="brand">
-            <div class="logo"><i class="fas fa-chart-simple"></i></div>
-            <div>
-                <div class="name">Service<span class="sw">Wise</span></div>
-                <div class="sub">Combined Command Center</div>
-            </div>
-        </div>
-        <div class="top-actions">
-            <div class="live-badge"><span class="dot"></span> LIVE</div>
-            <span class="timer-glass" id="ten-countdown">5:00</span>
-            <button class="btn-glass btn-primary-glass" id="openPopupButtonSW"><i class="fas fa-list"></i> SW</button>
-            <button class="btn-glass btn-ghost-glass" id="openPopupSW"><i class="fas fa-check-circle"></i> <span class="badge-count-glass" id="closedCountSW">0</span></button>
-            <button class="btn-glass btn-primary-glass" id="openPopupButton100"><i class="fas fa-percent"></i> 100%</button>
-            <button class="btn-glass btn-ghost-glass" id="openPopup100"><i class="fas fa-check-circle"></i> <span class="badge-count-glass" id="closedCount100">0</span></button>
-        </div>
-    </div>
 
-    <!-- TICKER -->
-    <div class="ticker-bar">
-        <div class="ticker-wrap">
-            <div class="ticker-text">
-                <span>● <span class="hl">COMBINED:</span> ServiceWise (TD &gt; 1%) + 100% Failure</span>
-                <span>● <span class="hl">REFRESH:</span> Every 5 minutes</span>
-                <span>● <span class="hl">LEGEND:</span> Red=TD, Orange=BD, Purple=Mixed, Green=Healthy</span>
-                <span>● <span class="hl">CLICK:</span> Any tile for detailed alert</span>
-            </div>
-        </div>
-    </div>
+An error occurred at line: [457] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+454:                                 tipClass = "tip-td";
+455:                                 
+456:                                 alertMsg = "<b>Service:</b> " + sw_third_name.get(i) + "<br><b>Error:</b> " + sw_third_error.get(i) + "<br><b>Source:</b> " + sw_third_source.get(i) + "<br><b>Hits:</b> " + sw_third_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_third_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + sw_third_siCount.get(i) + "<br><b>Time:</b> " + sw_third_time.get(i);
+457:                                 onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_third_name.get(i).replace("'", "\\'") + "','ThirdParty','ServiceWise','" + sw_third_source.get(i).replace("'", "\\'") + "','" + sw_third_error.get(i).replace("'", "\\'") + "','" + sw_third_hits.get(i) + "','" + sw_third_td.get(i) + "','" + sw_third_time.get(i).replace("'", "\\'") + "')\"");
+458:                             }
+459:                             
+460:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
 
-    <!-- LEGEND + TIMESTAMP -->
-    <div class="info-bar">
-        <div class="legend">
-            <span class="item"><span class="swatch sw-td"></span> TD</span>
-            <span class="item"><span class="swatch sw-bd"></span> BD</span>
-            <span class="item"><span class="swatch sw-mixed"></span> Mixed</span>
-            <span class="item"><span class="swatch sw-health"></span> Healthy</span>
-        </div>
-        <div class="timestamp-display">
-            <i class="fas fa-clock"></i>
-            <%
-                try {
-                    Connection con = DBUtilityAuto.getReportDBConnection();
-                    Statement st = con.createStatement();
-                    ResultSet rs = st.executeQuery("SELECT INSERT_TIME FROM gen5_servicewise_fail ORDER BY insert_time DESC");
-                    if(rs.next()) {
-                        Timestamp ts = rs.getTimestamp("INSERT_TIME");
-                        Date d = new Date(ts.getTime());
-                        SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
-                        out.print(sdf.format(d));
-                    }
-                    rs.close(); st.close(); con.close();
-                } catch(Exception e) { out.print("—"); }
-            %>
-        </div>
-    </div>
 
-    <!-- GRID -->
-    <div class="grid-main">
-        
-        <!-- ==================== ROW 1: ServiceWise ==================== -->
-        <div class="row-servicewise">
-            <div class="section-header">
-                <span class="title"><i class="fas fa-chart-line"></i> ServiceWise · TD &gt; 1%</span>
-                <span class="badge" id="swTotal">0 failures</span>
-            </div>
-            
-            <!-- GEN-5 -->
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <span class="title"><i class="fas fa-server"></i> GEN-5</span>
-                    <span class="badge-count" id="swGen5Count">0</span>
-                </div>
-                <div class="tile-grid" id="sw-gen5">
-                    <%
-                        Connection con = DBUtilityAuto.getReportDBConnection();
-                        Statement l_bjst = null;
-                        ResultSet l_bjres = null;
-                        List<Double> sw_gen5_per = new ArrayList<>();
-                        List<String> sw_gen5_name = new ArrayList<>();
-                        List<String> sw_gen5_source = new ArrayList<>();
-                        List<String> sw_gen5_error = new ArrayList<>();
-                        List<Integer> sw_gen5_hits = new ArrayList<>();
-                        List<Integer> sw_gen5_td = new ArrayList<>();
-                        List<String> sw_gen5_time = new ArrayList<>();
-                        List<Integer> sw_gen5_siCount = new ArrayList<>();
-                        
-                        try {
-                            String l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(td_per), 2) AS td_per, SUM(SI_EEROR) AS SI_EEROR FROM gen5_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 48";
-                            l_bjst = con.createStatement();
-                            l_bjres = l_bjst.executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD") >= 50) {
-                                    sw_gen5_per.add(l_bjres.getDouble("TD_PER"));
-                                    sw_gen5_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
-                                    sw_gen5_source.add(nvl(l_bjres.getString("SOURCE_ID"), "N/A"));
-                                    sw_gen5_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
-                                    sw_gen5_hits.add(l_bjres.getInt("TOTAL_HITS"));
-                                    sw_gen5_td.add(l_bjres.getInt("TD"));
-                                    sw_gen5_time.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
-                                    sw_gen5_siCount.add(l_bjres.getInt("SI_EEROR"));
-                                }
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                        
-                        for(int i = 0; i < 48; i++) {
-                            String cls = "tile tile-healthy";
-                            String val = "✓";
-                            String subText = "OK";
-                            String onclick = "";
-                            String alertMsg = "";
-                            String tooltipText = "✅ Healthy";
-                            String tipClass = "tip-healthy";
-                            
-                            if(i < sw_gen5_per.size()) {
-                                Double pct = sw_gen5_per.get(i);
-                                cls = "tile tile-critical pulse";
-                                val = String.format("%.2f", pct) + "%";
-                                subText = "TD";
-                                tooltipText = "⚠ " + sw_gen5_name.get(i) + " | TD: " + sw_gen5_td.get(i);
-                                tipClass = "tip-td";
-                                
-                                alertMsg = "<b>Service:</b> " + sw_gen5_name.get(i) + "<br><b>Source:</b> " + sw_gen5_source.get(i) + "<br><b>Error:</b> " + sw_gen5_error.get(i) + "<br><b>Hits:</b> " + sw_gen5_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_gen5_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + sw_gen5_siCount.get(i) + "<br><b>Time:</b> " + sw_gen5_time.get(i);
-                                onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_gen5_name.get(i).replace("'", "\\'") + "','GEN-5','ServiceWise','" + sw_gen5_source.get(i).replace("'", "\\'") + "','" + sw_gen5_error.get(i).replace("'", "\\'") + "','" + sw_gen5_hits.get(i) + "','" + sw_gen5_td.get(i) + "','" + sw_gen5_time.get(i).replace("'", "\\'") + "')\"");
-                            }
-                            
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
-                            out.print("<span class='val'>" + val + "</span>");
-                            out.print("<span class='sub-text'>" + subText + "</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                        }
-                    %>
-                </div>
-            </div>
+An error occurred at line: [553] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+550:                                 tipClass = "tip-td";
+551:                                 
+552:                                 alertMsg = "<b>Service:</b> " + sw_comb_name.get(i) + "<br><b>Category:</b> " + sw_comb_cat.get(i) + "<br><b>Error:</b> " + sw_comb_error.get(i) + "<br><b>Source:</b> " + sw_comb_source.get(i) + "<br><b>Hits:</b> " + sw_comb_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_comb_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>Time:</b> " + sw_comb_time.get(i);
+553:                                 onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_comb_name.get(i).replace("'", "\\'") + "','" + sw_comb_cat.get(i) + "','ServiceWise','" + sw_comb_source.get(i).replace("'", "\\'") + "','" + sw_comb_error.get(i).replace("'", "\\'") + "','" + sw_comb_hits.get(i) + "','" + sw_comb_td.get(i) + "','" + sw_comb_time.get(i).replace("'", "\\'") + "')\"");
+554:                             }
+555:                             
+556:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
 
-            <!-- SI -->
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <span class="title"><i class="fas fa-code"></i> SI</span>
-                    <span class="badge-count" id="swSiCount">0</span>
-                </div>
-                <div class="tile-grid" id="sw-si">
-                    <%
-                        List<Double> sw_si_per = new ArrayList<>();
-                        List<String> sw_si_name = new ArrayList<>();
-                        List<String> sw_si_error = new ArrayList<>();
-                        List<Integer> sw_si_hits = new ArrayList<>();
-                        List<Integer> sw_si_td = new ArrayList<>();
-                        List<String> sw_si_time = new ArrayList<>();
-                        
-                        try {
-                            String l_strQuery = "select * from (select api_name, error_code, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_per),2) as td_per, sum(SUCCESS) as SUCCESS, issue_time from si_ServiceWise_fail TEMP where trim(CONCAT(temp.api_name,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570'))GROUP BY api_name,error_code,issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from si_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 48";
-                            l_bjres = con.createStatement().executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD") >= 50) {
-                                    sw_si_per.add(l_bjres.getDouble("TD_PER"));
-                                    sw_si_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
-                                    sw_si_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
-                                    sw_si_hits.add(l_bjres.getInt("TOTAL_HITS"));
-                                    sw_si_td.add(l_bjres.getInt("TD"));
-                                    sw_si_time.add(nvl(l_bjres.getString("ISSUE_TIME"), "N/A"));
-                                }
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                        
-                        for(int i = 0; i < 48; i++) {
-                            String cls = "tile tile-healthy";
-                            String val = "✓";
-                            String subText = "OK";
-                            String onclick = "";
-                            String alertMsg = "";
-                            String tooltipText = "✅ Healthy";
-                            String tipClass = "tip-healthy";
-                            
-                            if(i < sw_si_per.size()) {
-                                Double pct = sw_si_per.get(i);
-                                cls = "tile tile-critical pulse";
-                                val = String.format("%.2f", pct) + "%";
-                                subText = "TD";
-                                tooltipText = "⚠ " + sw_si_name.get(i) + " | TD: " + sw_si_td.get(i);
-                                tipClass = "tip-td";
-                                
-                                alertMsg = "<b>Service:</b> " + sw_si_name.get(i) + "<br><b>Error:</b> " + sw_si_error.get(i) + "<br><b>Hits:</b> " + sw_si_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_si_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>Time:</b> " + sw_si_time.get(i);
-                                onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_si_name.get(i).replace("'", "\\'") + "','SI','ServiceWise','','" + sw_si_error.get(i).replace("'", "\\'") + "','" + sw_si_hits.get(i) + "','" + sw_si_td.get(i) + "','" + sw_si_time.get(i).replace("'", "\\'") + "')\"");
-                            }
-                            
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
-                            out.print("<span class='val'>" + val + "</span>");
-                            out.print("<span class='sub-text'>" + subText + "</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                        }
-                    %>
-                </div>
-            </div>
 
-            <!-- ThirdParty -->
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
-                    <span class="badge-count" id="swThirdCount">0</span>
-                </div>
-                <div class="tile-grid" id="sw-third">
-                    <%
-                        List<Double> sw_third_per = new ArrayList<>();
-                        List<String> sw_third_name = new ArrayList<>();
-                        List<String> sw_third_source = new ArrayList<>();
-                        List<String> sw_third_error = new ArrayList<>();
-                        List<Integer> sw_third_hits = new ArrayList<>();
-                        List<Integer> sw_third_td = new ArrayList<>();
-                        List<String> sw_third_time = new ArrayList<>();
-                        List<Integer> sw_third_siCount = new ArrayList<>();
-                        
-                        try {
-                            String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 48";
-                            l_bjres = con.createStatement().executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD") >= 50) {
-                                    sw_third_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                    sw_third_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                    sw_third_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                    sw_third_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    sw_third_hits.add(l_bjres.getInt("TOTAL_HITS"));
-                                    sw_third_td.add(l_bjres.getInt("TD"));
-                                    sw_third_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                    sw_third_siCount.add(l_bjres.getInt("SI_EEROR"));
-                                }
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                        
-                        for(int i = 0; i < 48; i++) {
-                            String cls = "tile tile-healthy";
-                            String val = "✓";
-                            String subText = "OK";
-                            String onclick = "";
-                            String alertMsg = "";
-                            String tooltipText = "✅ Healthy";
-                            String tipClass = "tip-healthy";
-                            
-                            if(i < sw_third_per.size()) {
-                                Double pct = sw_third_per.get(i);
-                                cls = "tile tile-critical pulse";
-                                val = String.format("%.2f", pct) + "%";
-                                subText = "TD";
-                                tooltipText = "⚠ " + sw_third_name.get(i) + " | TD: " + sw_third_td.get(i);
-                                tipClass = "tip-td";
-                                
-                                alertMsg = "<b>Service:</b> " + sw_third_name.get(i) + "<br><b>Error:</b> " + sw_third_error.get(i) + "<br><b>Source:</b> " + sw_third_source.get(i) + "<br><b>Hits:</b> " + sw_third_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_third_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + sw_third_siCount.get(i) + "<br><b>Time:</b> " + sw_third_time.get(i);
-                                onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_third_name.get(i).replace("'", "\\'") + "','ThirdParty','ServiceWise','" + sw_third_source.get(i).replace("'", "\\'") + "','" + sw_third_error.get(i).replace("'", "\\'") + "','" + sw_third_hits.get(i) + "','" + sw_third_td.get(i) + "','" + sw_third_time.get(i).replace("'", "\\'") + "')\"");
-                            }
-                            
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
-                            out.print("<span class='val'>" + val + "</span>");
-                            out.print("<span class='sub-text'>" + subText + "</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                        }
-                    %>
-                </div>
-            </div>
+An error occurred at line: [648] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+645:                             String cls = "tile tile-td pulse";
+646:                             String tooltipText = "⚠ TD 100% | " + h_td_name.get(i);
+647:                             String alertMsg = "<b>Service:</b> " + h_td_name.get(i) + "<br><b>Source:</b> " + h_td_source.get(i) + "<br><b>Error:</b> " + h_td_error.get(i) + "<br><b>Hits:</b> " + h_td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_td_count.get(i) + "</span><br><b>SI Error:</b> " + h_td_siCount.get(i) + "<br><b>Time:</b> " + h_td_time.get(i);
+648:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_td_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_td_source.get(i).replace("'", "\\'") + "','" + h_td_error.get(i).replace("'", "\\'") + "','" + h_td_hits.get(i) + "','" + h_td_count.get(i) + "','" + h_td_time.get(i).replace("'", "\\'") + "')\"");
+649:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
+650:                             out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
+651:                             out.print("<div class='bar'><div class='fill'></div></div>");
 
-            <!-- Combined (I4C · IVR · CAPS) -->
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <span class="title"><i class="fas fa-layer-group"></i> I4C · IVR · CAPS</span>
-                    <span class="badge-count" id="swCombCount">0</span>
-                </div>
-                <div class="tile-grid" id="sw-comb">
-                    <%
-                        List<Double> sw_comb_per = new ArrayList<>();
-                        List<String> sw_comb_name = new ArrayList<>();
-                        List<String> sw_comb_cat = new ArrayList<>();
-                        List<String> sw_comb_source = new ArrayList<>();
-                        List<String> sw_comb_error = new ArrayList<>();
-                        List<String> sw_comb_hits = new ArrayList<>();
-                        List<String> sw_comb_td = new ArrayList<>();
-                        List<String> sw_comb_time = new ArrayList<>();
-                        
-                        try {
-                            // I4C
-                            String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute AND source_id = 'I4' and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 16";
-                            l_bjres = con.createStatement().executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD") >= 50) {
-                                    sw_comb_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                    sw_comb_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                    sw_comb_cat.add("I4C");
-                                    sw_comb_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                    sw_comb_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    sw_comb_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
-                                    sw_comb_td.add(String.valueOf(l_bjres.getInt("TD")));
-                                    sw_comb_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                }
-                            }
-                            // IVR
-                            l_strQuery = "SELECT * FROM (SELECT api_name, Source_id,error_code,SUM(total_hits) AS total_hits,sum(SUCCESS) as SUCCESS,issue_time,SUM(td) AS td,round(AVG(td_per), 2) AS td_per FROM gen5_ServiceWise_fail TEMP WHERE trim(CONCAT(temp.API_NAME,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) AND substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute and Source_id = 'CC' and api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time =(select max(issue_time) from gen5_ServiceWise_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 16";
-                            l_bjres = con.createStatement().executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD") >= 10) {
-                                    sw_comb_per.add(l_bjres.getDouble("TD_PER"));
-                                    sw_comb_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
-                                    sw_comb_cat.add("IVR");
-                                    sw_comb_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                    sw_comb_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
-                                    sw_comb_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
-                                    sw_comb_td.add(String.valueOf(l_bjres.getInt("TD")));
-                                    sw_comb_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                }
-                            }
-                            // SBICAPS
-                            l_strQuery = "SELECT * FROM(SELECT api_name,source_id, error_code,SUM(total_hits) AS total_hits,SUM(success) AS success,issue_time, SUM(td) AS td,round(AVG(TD_PERCENT), 2) AS td_per FROM gen5_SBICABS_servicewise_fail temp WHERE TRIM(concat(temp.api_name, temp.source_id)) NOT IN (SELECT TRIM(concat(api_name, source_id) || error_description) FROM vaild_bd_master) AND trim(temp.error_code ) not in (select DISTINCT ERRCODE FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) AND substr(api_name, 1, 3) NOT IN 'gen' AND insert_time >= sysdate - INTERVAL '10' MINUTE AND api_name NOT IN (SELECT service_name FROM service_temporary_pause_master WHERE service_name IS NOT NULL) GROUP BY api_name, source_id, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM gen5_SBICABS_servicewise_fail temp_in WHERE temp_in.api_name = temp.api_name GROUP BY api_name) AND ROWNUM <= 16";
-                            l_bjres = con.createStatement().executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD") >= 10) {
-                                    sw_comb_per.add(l_bjres.getDouble("TD_PER"));
-                                    sw_comb_name.add(nvl(l_bjres.getString("API_NAME"), "N/A"));
-                                    sw_comb_cat.add("SBICAPS");
-                                    sw_comb_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                    sw_comb_error.add(nvl(l_bjres.getString("ERROR_CODE"), "N/A"));
-                                    sw_comb_hits.add(String.valueOf(l_bjres.getInt("TOTAL_HITS")));
-                                    sw_comb_td.add(String.valueOf(l_bjres.getInt("TD")));
-                                    sw_comb_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                }
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                        
-                        for(int i = 0; i < 48; i++) {
-                            String cls = "tile tile-healthy";
-                            String val = "✓";
-                            String subText = "OK";
-                            String onclick = "";
-                            String alertMsg = "";
-                            String tooltipText = "✅ Healthy";
-                            String tipClass = "tip-healthy";
-                            
-                            if(i < sw_comb_per.size()) {
-                                Double pct = sw_comb_per.get(i);
-                                cls = "tile tile-critical pulse";
-                                val = String.format("%.2f", pct) + "%";
-                                subText = "TD";
-                                tooltipText = "⚠ " + sw_comb_name.get(i) + " | TD: " + sw_comb_td.get(i);
-                                tipClass = "tip-td";
-                                
-                                alertMsg = "<b>Service:</b> " + sw_comb_name.get(i) + "<br><b>Category:</b> " + sw_comb_cat.get(i) + "<br><b>Error:</b> " + sw_comb_error.get(i) + "<br><b>Source:</b> " + sw_comb_source.get(i) + "<br><b>Hits:</b> " + sw_comb_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_comb_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>Time:</b> " + sw_comb_time.get(i);
-                                onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_comb_name.get(i).replace("'", "\\'") + "','" + sw_comb_cat.get(i) + "','ServiceWise','" + sw_comb_source.get(i).replace("'", "\\'") + "','" + sw_comb_error.get(i).replace("'", "\\'") + "','" + sw_comb_hits.get(i) + "','" + sw_comb_td.get(i) + "','" + sw_comb_time.get(i).replace("'", "\\'") + "')\"");
-                            }
-                            
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
-                            out.print("<span class='val'>" + val + "</span>");
-                            out.print("<span class='sub-text'>" + subText + "</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                        }
-                    %>
-                </div>
-            </div>
-        </div>
 
-        <!-- ==================== ROW 2: 100% Failure ==================== -->
-        <div class="row-hundred">
-            <div class="section-header">
-                <span class="title"><i class="fas fa-percent"></i> 100% Failure</span>
-                <span class="badge" id="hundredTotal">0 failures</span>
-            </div>
-            
-            <!-- 100% GEN-5 -->
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <span class="title"><i class="fas fa-server"></i> GEN-5</span>
-                    <span class="badge-count" id="hGen5Count">0</span>
-                </div>
-                <div class="tile-grid" id="h-gen5">
-                    <%
-                        List<Double> h_td_per = new ArrayList<>();
-                        List<Double> h_bd_per = new ArrayList<>();
-                        List<Double> h_mixed_per = new ArrayList<>();
-                        List<String> h_td_name = new ArrayList<>();
-                        List<String> h_td_source = new ArrayList<>();
-                        List<String> h_td_error = new ArrayList<>();
-                        List<Integer> h_td_hits = new ArrayList<>();
-                        List<Integer> h_td_count = new ArrayList<>();
-                        List<String> h_td_time = new ArrayList<>();
-                        List<Integer> h_td_siCount = new ArrayList<>();
-                        List<String> h_bd_name = new ArrayList<>();
-                        List<String> h_bd_source = new ArrayList<>();
-                        List<String> h_bd_error = new ArrayList<>();
-                        List<Integer> h_bd_hits = new ArrayList<>();
-                        List<Integer> h_bd_count = new ArrayList<>();
-                        List<String> h_bd_time = new ArrayList<>();
-                        List<String> h_mixed_name = new ArrayList<>();
-                        List<String> h_mixed_source = new ArrayList<>();
-                        List<String> h_mixed_error = new ArrayList<>();
-                        List<Integer> h_mixed_hits = new ArrayList<>();
-                        List<Integer> h_mixed_td = new ArrayList<>();
-                        List<Integer> h_mixed_bd = new ArrayList<>();
-                        List<String> h_mixed_time = new ArrayList<>();
-                        
-                        try {
-                            String l_strQuery = "SELECT * FROM (SELECT api_name, Source_id, error_code, SUM(total_hits) AS total_hits,issue_time,SUM(td) AS td, round(AVG(td_percent), 2) AS td_percent, SUM(bd) AS bd, round(AVG(bd_per), 2) AS bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, CASE WHEN ( SUM(td_percent) <> 0 AND SUM (bd_per) <> 0 ) THEN round(round(AVG(td_percent), 2) + round(AVG(bd_per), 2)) ELSE 0 END AS tdbd_per FROM gen5_100_percentage_fail TEMP WHERE substr(api_name,1,3) not in 'gen' AND insert_time >= SYSDATE - INTERVAL '10' minute AND api_name NOT IN (SELECT service_name FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY api_name,Source_id,error_code, issue_time ORDER BY 2 DESC) TEMP WHERE issue_time = (select max(issue_time) from gen5_100_percentage_fail temp_in where temp_in.api_name = temp.api_name group by api_name) AND ROWNUM <= 48";
-                            l_bjres = con.createStatement().executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD_PERCENT") == 100 && (l_bjres.getInt("TD") + l_bjres.getInt("SI_EEROR")) >= 10) {
-                                    h_td_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                    h_td_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                    h_td_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                    h_td_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    h_td_hits.add(l_bjres.getInt("total_hits"));
-                                    h_td_count.add(l_bjres.getInt("td"));
-                                    h_td_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                    h_td_siCount.add(l_bjres.getInt("SI_EEROR"));
-                                }
-                                if(l_bjres.getDouble("BD_PER") == 100 && l_bjres.getInt("BD") >= 10) {
-                                    h_bd_per.add(l_bjres.getDouble("BD_PER"));
-                                    h_bd_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                    h_bd_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                    h_bd_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    h_bd_hits.add(l_bjres.getInt("total_hits"));
-                                    h_bd_count.add(l_bjres.getInt("bd"));
-                                    h_bd_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                }
-                                if(l_bjres.getDouble("tdbd_per") == 100 && (l_bjres.getInt("TD") + l_bjres.getInt("BD")) >= 10) {
-                                    h_mixed_per.add(l_bjres.getDouble("tdbd_per"));
-                                    h_mixed_name.add(nvl(l_bjres.getString("api_name"), "N/A"));
-                                    h_mixed_source.add(nvl(l_bjres.getString("Source_id"), "N/A"));
-                                    h_mixed_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    h_mixed_hits.add(l_bjres.getInt("total_hits"));
-                                    h_mixed_td.add(l_bjres.getInt("td"));
-                                    h_mixed_bd.add(l_bjres.getInt("bd"));
-                                    h_mixed_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                }
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                        
-                        int hIdx = 0;
-                        
-                        for(int i = 0; i < h_td_per.size(); i++) {
-                            String cls = "tile tile-td pulse";
-                            String tooltipText = "⚠ TD 100% | " + h_td_name.get(i);
-                            String alertMsg = "<b>Service:</b> " + h_td_name.get(i) + "<br><b>Source:</b> " + h_td_source.get(i) + "<br><b>Error:</b> " + h_td_error.get(i) + "<br><b>Hits:</b> " + h_td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_td_count.get(i) + "</span><br><b>SI Error:</b> " + h_td_siCount.get(i) + "<br><b>Time:</b> " + h_td_time.get(i);
-                            String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_td_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_td_source.get(i).replace("'", "\\'") + "','" + h_td_error.get(i).replace("'", "\\'") + "','" + h_td_hits.get(i) + "','" + h_td_count.get(i) + "','" + h_td_time.get(i).replace("'", "\\'") + "')\"");
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
-                            out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                            hIdx++;
-                        }
-                        
-                        for(int i = 0; i < h_bd_per.size(); i++) {
-                            String cls = "tile tile-bd pulse";
-                            String tooltipText = "⚠ BD 100% | " + h_bd_name.get(i);
-                            String alertMsg = "<b>Service:</b> " + h_bd_name.get(i) + "<br><b>Source:</b> " + h_bd_source.get(i) + "<br><b>Error:</b> " + h_bd_error.get(i) + "<br><b>Hits:</b> " + h_bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + h_bd_count.get(i) + "</span><br><b>Time:</b> " + h_bd_time.get(i);
-                            String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_bd_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_bd_source.get(i).replace("'", "\\'") + "','" + h_bd_error.get(i).replace("'", "\\'") + "','" + h_bd_hits.get(i) + "','" + h_bd_count.get(i) + "','" + h_bd_time.get(i).replace("'", "\\'") + "')\"");
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
-                            out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                            hIdx++;
-                        }
-                        
-                        for(int i = 0; i < h_mixed_per.size(); i++) {
-                            String cls = "tile tile-hundred-mixed pulse";
-                            String tooltipText = "⚠ Mixed 100% | " + h_mixed_name.get(i);
-                            String alertMsg = "<b>Service:</b> " + h_mixed_name.get(i) + "<br><b>Source:</b> " + h_mixed_source.get(i) + "<br><b>Error:</b> " + h_mixed_error.get(i) + "<br><b>Hits:</b> " + h_mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + h_mixed_bd.get(i) + "</span><br><b>Time:</b> " + h_mixed_time.get(i);
-                            String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_mixed_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_mixed_source.get(i).replace("'", "\\'") + "','" + h_mixed_error.get(i).replace("'", "\\'") + "','" + h_mixed_hits.get(i) + "','" + h_mixed_td.get(i) + "','" + h_mixed_time.get(i).replace("'", "\\'") + "')\"");
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
-                            out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                            hIdx++;
-                        }
-                        
-                        for(int k = hIdx; k < 48; k++) {
-                            out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                            out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                        }
-                    %>
-                </div>
-            </div>
+An error occurred at line: [660] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+657:                             String cls = "tile tile-bd pulse";
+658:                             String tooltipText = "⚠ BD 100% | " + h_bd_name.get(i);
+659:                             String alertMsg = "<b>Service:</b> " + h_bd_name.get(i) + "<br><b>Source:</b> " + h_bd_source.get(i) + "<br><b>Error:</b> " + h_bd_error.get(i) + "<br><b>Hits:</b> " + h_bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + h_bd_count.get(i) + "</span><br><b>Time:</b> " + h_bd_time.get(i);
+660:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_bd_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_bd_source.get(i).replace("'", "\\'") + "','" + h_bd_error.get(i).replace("'", "\\'") + "','" + h_bd_hits.get(i) + "','" + h_bd_count.get(i) + "','" + h_bd_time.get(i).replace("'", "\\'") + "')\"");
+661:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
+662:                             out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
+663:                             out.print("<div class='bar'><div class='fill'></div></div>");
 
-            <!-- 100% SI -->
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <span class="title"><i class="fas fa-code"></i> SI</span>
-                    <span class="badge-count" id="hSiCount">0</span>
-                </div>
-                <div class="tile-grid" id="h-si">
-                    <%
-                        List<Double> h_si_td_per = new ArrayList<>();
-                        List<String> h_si_name = new ArrayList<>();
-                        List<String> h_si_error = new ArrayList<>();
-                        List<Integer> h_si_hits = new ArrayList<>();
-                        List<Integer> h_si_td_count = new ArrayList<>();
-                        List<String> h_si_time = new ArrayList<>();
-                        
-                        try {
-                            String l_strQuery = "SELECT * FROM (SELECT function_name, SUM(total_hits) AS total_hits,SUM(td) AS td,round(AVG(td_percent), 2) AS td_percent, error_code, issue_time FROM si_100_percent_fail temp WHERE trim(CONCAT(temp.FUNCTION_NAME,temp.error_code )) not in (select trim(CONCAT(api_name,error_code )) from vaild_bd_master) and trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) from cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) and insert_time >= sysdate - INTERVAL '10' MINUTE AND function_name NOT IN (SELECT trim(service_name) FROM temporary_pause_master WHERE service_name IS NOT NULL) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY function_name, error_code, issue_time ORDER BY 2 DESC) temp WHERE issue_time = (SELECT MAX(issue_time) FROM si_100_percent_fail temp_in WHERE temp_in.function_name = temp.function_name GROUP BY function_name) AND ROWNUM <= 48";
-                            l_bjres = con.createStatement().executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD_PERCENT") == 100 && l_bjres.getInt("TD") >= 10) {
-                                    h_si_td_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                    h_si_name.add(nvl(l_bjres.getString("function_name"), "N/A"));
-                                    h_si_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    h_si_hits.add(l_bjres.getInt("total_hits"));
-                                    h_si_td_count.add(l_bjres.getInt("td"));
-                                    h_si_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                }
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                        
-                        for(int i = 0; i < h_si_td_per.size(); i++) {
-                            String cls = "tile tile-td pulse";
-                            String tooltipText = "⚠ TD 100% | " + h_si_name.get(i);
-                            String alertMsg = "<b>Service:</b> " + h_si_name.get(i) + "<br><b>Error:</b> " + h_si_error.get(i) + "<br><b>Hits:</b> " + h_si_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_si_td_count.get(i) + "</span><br><b>Time:</b> " + h_si_time.get(i);
-                            String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_si_name.get(i).replace("'", "\\'") + "','SI','100%','','" + h_si_error.get(i).replace("'", "\\'") + "','" + h_si_hits.get(i) + "','" + h_si_td_count.get(i) + "','" + h_si_time.get(i).replace("'", "\\'") + "')\"");
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
-                            out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                        }
-                        
-                        for(int k = h_si_td_per.size(); k < 48; k++) {
-                            out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                            out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                        }
-                    %>
-                </div>
-            </div>
 
-            <!-- 100% ThirdParty -->
-            <div class="card-modern">
-                <div class="card-header-modern">
-                    <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
-                    <span class="badge-count" id="hThirdCount">0</span>
-                </div>
-                <div class="tile-grid" id="h-third">
-                    <%
-                        List<Double> h3_td_per = new ArrayList<>();
-                        List<String> h3_td_name = new ArrayList<>();
-                        List<String> h3_td_source = new ArrayList<>();
-                        List<String> h3_td_error = new ArrayList<>();
-                        List<Integer> h3_td_hits = new ArrayList<>();
-                        List<Integer> h3_td_count = new ArrayList<>();
-                        List<String> h3_td_time = new ArrayList<>();
-                        List<Integer> h3_td_siCount = new ArrayList<>();
-                        List<Double> h3_bd_per = new ArrayList<>();
-                        List<String> h3_bd_name = new ArrayList<>();
-                        List<String> h3_bd_source = new ArrayList<>();
-                        List<String> h3_bd_error = new ArrayList<>();
-                        List<Integer> h3_bd_hits = new ArrayList<>();
-                        List<Integer> h3_bd_count = new ArrayList<>();
-                        List<String> h3_bd_time = new ArrayList<>();
-                        List<Double> h3_mixed_per = new ArrayList<>();
-                        List<String> h3_mixed_name = new ArrayList<>();
-                        List<String> h3_mixed_source = new ArrayList<>();
-                        List<String> h3_mixed_error = new ArrayList<>();
-                        List<Integer> h3_mixed_hits = new ArrayList<>();
-                        List<Integer> h3_mixed_td = new ArrayList<>();
-                        List<Integer> h3_mixed_bd = new ArrayList<>();
-                        List<String> h3_mixed_time = new ArrayList<>();
-                        
-                        try {
-                            String l_strQuery = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,error_code,source_id, issue_time from thirdparty_100_percentage_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from thirdparty_100_percentage_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url) AND ROWNUM <= 48";
-                            l_bjres = con.createStatement().executeQuery(l_strQuery);
-                            while(l_bjres.next()) {
-                                if(l_bjres.getDouble("TD_PERCENT") == 100) {
-                                    h3_td_per.add(l_bjres.getDouble("TD_PERCENT"));
-                                    h3_td_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                    h3_td_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                    h3_td_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    h3_td_hits.add(l_bjres.getInt("total_hits"));
-                                    h3_td_count.add(l_bjres.getInt("td"));
-                                    h3_td_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                    h3_td_siCount.add(l_bjres.getInt("SI_EEROR"));
-                                }
-                                if(l_bjres.getDouble("BD_PER") == 100) {
-                                    h3_bd_per.add(l_bjres.getDouble("BD_PER"));
-                                    h3_bd_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                    h3_bd_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                    h3_bd_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    h3_bd_hits.add(l_bjres.getInt("total_hits"));
-                                    h3_bd_count.add(l_bjres.getInt("bd"));
-                                    h3_bd_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                }
-                                if(l_bjres.getDouble("tdbd_per") == 100) {
-                                    h3_mixed_per.add(l_bjres.getDouble("tdbd_per"));
-                                    h3_mixed_name.add(nvl(l_bjres.getString("original_urn"), "N/A"));
-                                    h3_mixed_source.add(nvl(l_bjres.getString("source_id"), "N/A"));
-                                    h3_mixed_error.add(nvl(l_bjres.getString("error_code"), "N/A"));
-                                    h3_mixed_hits.add(l_bjres.getInt("total_hits"));
-                                    h3_mixed_td.add(l_bjres.getInt("td"));
-                                    h3_mixed_bd.add(l_bjres.getInt("bd"));
-                                    h3_mixed_time.add(nvl(l_bjres.getString("issue_time"), "N/A"));
-                                }
-                            }
-                        } catch(Exception e) { e.printStackTrace(); }
-                        
-                        int h3Idx = 0;
-                        
-                        for(int i = 0; i < h3_td_per.size(); i++) {
-                            String cls = "tile tile-td pulse";
-                            String tooltipText = "⚠ TD 100% | " + h3_td_name.get(i);
-                            String alertMsg = "<b>Service:</b> " + h3_td_name.get(i) + "<br><b>Source:</b> " + h3_td_source.get(i) + "<br><b>Error:</b> " + h3_td_error.get(i) + "<br><b>Hits:</b> " + h3_td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h3_td_count.get(i) + "</span><br><b>SI Error:</b> " + h3_td_siCount.get(i) + "<br><b>Time:</b> " + h3_td_time.get(i);
-                            String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_td_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_td_source.get(i).replace("'", "\\'") + "','" + h3_td_error.get(i).replace("'", "\\'") + "','" + h3_td_hits.get(i) + "','" + h3_td_count.get(i) + "','" + h3_td_time.get(i).replace("'", "\\'") + "')\"");
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
-                            out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                            h3Idx++;
-                        }
-                        
-                        for(int i = 0; i < h3_bd_per.size(); i++) {
-                            String cls = "tile tile-bd pulse";
-                            String tooltipText = "⚠ BD 100% | " + h3_bd_name.get(i);
-                            String alertMsg = "<b>Service:</b> " + h3_bd_name.get(i) + "<br><b>Source:</b> " + h3_bd_source.get(i) + "<br><b>Error:</b> " + h3_bd_error.get(i) + "<br><b>Hits:</b> " + h3_bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + h3_bd_count.get(i) + "</span><br><b>Time:</b> " + h3_bd_time.get(i);
-                            String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_bd_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_bd_source.get(i).replace("'", "\\'") + "','" + h3_bd_error.get(i).replace("'", "\\'") + "','" + h3_bd_hits.get(i) + "','" + h3_bd_count.get(i) + "','" + h3_bd_time.get(i).replace("'", "\\'") + "')\"");
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
-                            out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                            h3Idx++;
-                        }
-                        
-                        for(int i = 0; i < h3_mixed_per.size(); i++) {
-                            String cls = "tile tile-hundred-mixed pulse";
-                            String tooltipText = "⚠ Mixed 100% | " + h3_mixed_name.get(i);
-                            String alertMsg = "<b>Service:</b> " + h3_mixed_name.get(i) + "<br><b>Source:</b> " + h3_mixed_source.get(i) + "<br><b>Error:</b> " + h3_mixed_error.get(i) + "<br><b>Hits:</b> " + h3_mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h3_mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + h3_mixed_bd.get(i) + "</span><br><b>Time:</b> " + h3_mixed_time.get(i);
-                            String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_mixed_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_mixed_source.get(i).replace("'", "\\'") + "','" + h3_mixed_error.get(i).replace("'", "\\'") + "','" + h3_mixed_hits.get(i) + "','" + h3_mixed_td.get(i) + "','" + h3_mixed_time.get(i).replace("'", "\\'") + "')\"");
-                            out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
-                            out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                            h3Idx++;
-                        }
-                        
-                        for(int k = h3Idx; k < 48; k++) {
-                            out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                            out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
-                            out.print("<div class='bar'><div class='fill'></div></div>");
-                            out.print("</div>");
-                        }
-                    %>
-                </div>
-            </div>
+An error occurred at line: [672] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+669:                             String cls = "tile tile-hundred-mixed pulse";
+670:                             String tooltipText = "⚠ Mixed 100% | " + h_mixed_name.get(i);
+671:                             String alertMsg = "<b>Service:</b> " + h_mixed_name.get(i) + "<br><b>Source:</b> " + h_mixed_source.get(i) + "<br><b>Error:</b> " + h_mixed_error.get(i) + "<br><b>Hits:</b> " + h_mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + h_mixed_bd.get(i) + "</span><br><b>Time:</b> " + h_mixed_time.get(i);
+672:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_mixed_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_mixed_source.get(i).replace("'", "\\'") + "','" + h_mixed_error.get(i).replace("'", "\\'") + "','" + h_mixed_hits.get(i) + "','" + h_mixed_td.get(i) + "','" + h_mixed_time.get(i).replace("'", "\\'") + "')\"");
+673:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
+674:                             out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
+675:                             out.print("<div class='bar'><div class='fill'></div></div>");
 
-        </div>
 
-    </div>
-</div>
+An error occurred at line: [724] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+721:                             String cls = "tile tile-td pulse";
+722:                             String tooltipText = "⚠ TD 100% | " + h_si_name.get(i);
+723:                             String alertMsg = "<b>Service:</b> " + h_si_name.get(i) + "<br><b>Error:</b> " + h_si_error.get(i) + "<br><b>Hits:</b> " + h_si_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_si_td_count.get(i) + "</span><br><b>Time:</b> " + h_si_time.get(i);
+724:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_si_name.get(i).replace("'", "\\'") + "','SI','100%','','" + h_si_error.get(i).replace("'", "\\'") + "','" + h_si_hits.get(i) + "','" + h_si_td_count.get(i) + "','" + h_si_time.get(i).replace("'", "\\'") + "')\"");
+725:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
+726:                             out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
+727:                             out.print("<div class='bar'><div class='fill'></div></div>");
 
-<!-- ============================================================
-   CUSTOM TOOLTIP
-   ============================================================ -->
-<div id="customTooltip"></div>
 
-<!-- ============================================================
-   MODAL
-   ============================================================ -->
-<div id="modalContainer">
-    <div id="alertBox">
-        <div class="head">
-            <h3><i class="fas fa-exclamation-triangle"></i> Service Alert</h3>
-            <button class="close-btn" onclick="closeModal()">✕</button>
-        </div>
-        <div class="body-text" id="modalMsg"></div>
-        
-        <div class="form-row">
-            <div class="field">
-                <label>Closed Time</label>
-                <select id="pasuseTime">
-                    <option value="1">1 Hour</option><option value="2">2 Hours</option>
-                    <option value="3">3 Hours</option><option value="4">4 Hours</option>
-                    <option value="5">5 Hours</option><option value="6">6 Hours</option>
-                    <option value="7">7 Hours</option><option value="8">8 Hours</option>
-                    <option value="9">9 Hours</option><option value="10">10 Hours</option>
-                    <option value="11">11 Hours</option><option value="12">12 Hours</option>
-                    <option value="13">13 Hours</option><option value="14">14 Hours</option>
-                    <option value="15">15 Hours</option><option value="16">16 Hours</option>
-                    <option value="17">17 Hours</option><option value="18">18 Hours</option>
-                    <option value="19">19 Hours</option><option value="20">20 Hours</option>
-                    <option value="21">21 Hours</option><option value="22">22 Hours</option>
-                    <option value="23">23 Hours</option><option value="24">24 Hours</option>
-                </select>
-            </div>
-            <div class="field">
-                <label>Closed By</label>
-                <select id="closeName">
-                    <option value="">Select</option>
-                    <%
-                        try {
-                            Connection c = DBUtilityAuto.getReportDBConnection();
-                            String sql1="select FIRSTNAME || ' ' || lastname as Fullname from eisupport_employee_master where lower(team) like '%event%'";
-                            Statement stmt1=c.createStatement();
-                            ResultSet rs1= stmt1.executeQuery(sql1);
-                            while(rs1.next()){
-                                String name = rs1.getString("Fullname");
-                                out.print("<option value='"+name+"'>"+name+"</option>");
-                            }
-                            rs1.close(); stmt1.close(); c.close();
-                        } catch(Exception e) { }
-                    %>
-                </select>
-            </div>
-        </div>
-        <div class="field full">
-            <label>Comment</label>
-            <textarea id="TextArea" placeholder="Enter closure comments..."></textarea>
-        </div>
-        
-        <div class="modal-actions">
-            <button class="btn-m btn-m-primary" id="closeBtn"><i class="fas fa-check"></i> Close</button>
-            <button class="btn-m btn-m-danger" id="detailsBtn"><i class="fas fa-eye"></i> View</button>
-            <button class="btn-m btn-m-secondary" onclick="closeModal()">Cancel</button>
-        </div>
-    </div>
-</div>
+An error occurred at line: [815] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+812:                             String cls = "tile tile-td pulse";
+813:                             String tooltipText = "⚠ TD 100% | " + h3_td_name.get(i);
+814:                             String alertMsg = "<b>Service:</b> " + h3_td_name.get(i) + "<br><b>Source:</b> " + h3_td_source.get(i) + "<br><b>Error:</b> " + h3_td_error.get(i) + "<br><b>Hits:</b> " + h3_td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h3_td_count.get(i) + "</span><br><b>SI Error:</b> " + h3_td_siCount.get(i) + "<br><b>Time:</b> " + h3_td_time.get(i);
+815:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_td_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_td_source.get(i).replace("'", "\\'") + "','" + h3_td_error.get(i).replace("'", "\\'") + "','" + h3_td_hits.get(i) + "','" + h3_td_count.get(i) + "','" + h3_td_time.get(i).replace("'", "\\'") + "')\"");
+816:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
+817:                             out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
+818:                             out.print("<div class='bar'><div class='fill'></div></div>");
 
-<%!
-    public static String nvl(String value, String defaultValue) {
-        return (value == null || value.trim().isEmpty()) ? defaultValue : value;
-    }
-%>
 
-<script>
-    // ============================================================
-    // CUSTOM TOOLTIP
-    // ============================================================
-    document.addEventListener('DOMContentLoaded', function() {
-        var tooltip = document.getElementById('customTooltip');
-        var tiles = document.querySelectorAll('.tile[data-tip]');
-        var timeoutId = null;
-        
-        tiles.forEach(function(tile) {
-            tile.addEventListener('mouseenter', function(e) {
-                var text = this.getAttribute('data-tip');
-                var tipClass = this.getAttribute('data-tip-class') || '';
-                
-                tooltip.textContent = text;
-                tooltip.className = tipClass;
-                tooltip.style.display = 'block';
-                
-                var rect = this.getBoundingClientRect();
-                var x = rect.left + rect.width / 2;
-                var y = rect.top - 10;
-                
-                tooltip.style.left = x + 'px';
-                tooltip.style.top = y + 'px';
-                tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
-                
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                    timeoutId = null;
-                }
-            });
-            
-            tile.addEventListener('mousemove', function(e) {
-                var x = e.clientX;
-                var y = e.clientY - 10;
-                tooltip.style.left = x + 'px';
-                tooltip.style.top = y + 'px';
-                tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
-            });
-            
-            tile.addEventListener('mouseleave', function() {
-                timeoutId = setTimeout(function() {
-                    tooltip.style.display = 'none';
-                    timeoutId = null;
-                }, 100);
-            });
-        });
-    });
-    
-    // LOADER
-    document.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            document.getElementById('loaderWrapper').classList.add('hidden');
-        }, 1500);
-        window.addEventListener('load', function() {
-            document.getElementById('loaderWrapper').classList.add('hidden');
-        });
-    });
-    
-    // ============================================================
-    // MODAL
-    // ============================================================
-    var mApi = '', mCat = '', mType = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
-    
-    function openModal(msg, api, cat, type, src, err, hits, td, time) {
-        mApi = api || '';
-        mCat = cat || 'GEN-5';
-        mType = type || 'ServiceWise';
-        mSource = src || '';
-        mError = err || '';
-        mHits = hits || '';
-        mTD = td || '';
-        mTime = time || '';
-        
-        document.getElementById('modalMsg').innerHTML = msg;
-        document.getElementById('modalContainer').style.display = 'flex';
-        document.getElementById('TextArea').value = '';
-        document.getElementById('closeName').value = '';
-    }
-    
-    function closeModal() {
-        document.getElementById('modalContainer').style.display = 'none';
-    }
-    
-    // ============================================================
-    // COUNTS UPDATE
-    // ============================================================
-    document.addEventListener('DOMContentLoaded', function() {
-        // ServiceWise counts
-        document.getElementById('swGen5Count').textContent = document.querySelectorAll('#sw-gen5 .tile-critical').length || 0;
-        document.getElementById('swSiCount').textContent = document.querySelectorAll('#sw-si .tile-critical').length || 0;
-        document.getElementById('swThirdCount').textContent = document.querySelectorAll('#sw-third .tile-critical').length || 0;
-        document.getElementById('swCombCount').textContent = document.querySelectorAll('#sw-comb .tile-critical').length || 0;
-        
-        var swTotal = document.querySelectorAll('.row-servicewise .tile-critical').length || 0;
-        document.getElementById('swTotal').textContent = swTotal + ' failures';
-        
-        // 100% counts
-        document.getElementById('hGen5Count').textContent = document.querySelectorAll('#h-gen5 .tile-td, #h-gen5 .tile-bd, #h-gen5 .tile-hundred-mixed').length || 0;
-        document.getElementById('hSiCount').textContent = document.querySelectorAll('#h-si .tile-td, #h-si .tile-bd, #h-si .tile-hundred-mixed').length || 0;
-        document.getElementById('hThirdCount').textContent = document.querySelectorAll('#h-third .tile-td, #h-third .tile-bd, #h-third .tile-hundred-mixed').length || 0;
-        
-        var hTotal = document.querySelectorAll('.row-hundred .tile-td, .row-hundred .tile-bd, .row-hundred .tile-hundred-mixed').length || 0;
-        document.getElementById('hundredTotal').textContent = hTotal + ' failures';
-        
-        // Closed counts
-        fetchClosedCounts();
-        
-        // Modal close button
-        document.getElementById('closeBtn').addEventListener('click', function() {
-            var comment = document.getElementById('TextArea').value;
-            var closer = document.getElementById('closeName').value;
-            var pTime = document.getElementById('pasuseTime').value;
-            
-            if(comment.trim() == '' || closer == '') {
-                alert('⚠️ Please fill Comment and Closed By');
-                return;
-            }
-            
-            var url = '<%=request.getContextPath() %>/jsp/ServiceWiseFailureAction.jsp?Api_Name=' 
-                + encodeURIComponent(mApi)
-                + '&SourceID=' + encodeURIComponent(mSource)
-                + '&TextArea=' + encodeURIComponent(comment)
-                + '&pasuseTime=' + encodeURIComponent(pTime)
-                + '&ErrorCode=' + encodeURIComponent(mError)
-                + '&closeName=' + encodeURIComponent(closer)
-                + '&ServiceCategory=' + encodeURIComponent(mCat)
-                + '&Type=' + encodeURIComponent(mType);
-            
-            closeModal();
-            location.replace(url);
-        });
-        
-        document.getElementById('detailsBtn').addEventListener('click', function() {
-            if(mCat != 'SI' && mCat != 'SIServices') {
-                var url = '<%=request.getContextPath() %>/showFailureServicesWise.do?action=showFailureServicesWise&url=' 
-                    + encodeURIComponent(mApi) 
-                    + '&ServiceCategory=' + encodeURIComponent(mCat);
-                window.open(url, '_blank');
-            }
-        });
-        
-        // Popup buttons - ServiceWise
-        document.getElementById('openPopupButtonSW').addEventListener('click', function() {
-            window.open('<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp', '_blank');
-        });
-        
-        document.getElementById('openPopupSW').addEventListener('click', function() {
-            window.open('DisplayTodayServiceWiseFailure.jsp', 'DataPopup', 'width=800,height=600');
-        });
-        
-        // Popup buttons - 100%
-        document.getElementById('openPopupButton100').addEventListener('click', function() {
-            window.open('<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp', '_blank');
-        });
-        
-        document.getElementById('openPopup100').addEventListener('click', function() {
-            window.open('DisplayTodayHundredPercentFailure.jsp', 'DataPopup', 'width=800,height=600');
-        });
-    });
-    
-    function fetchClosedCounts() {
-        // ServiceWise closed count
-        fetch('<%=request.getContextPath() %>/jsp/ServiceWiseFailureAction.jsp?action=getTodayClosedCount')
-            .then(r => r.text())
-            .then(c => { document.getElementById('closedCountSW').textContent = c || '0'; })
-            .catch(() => { document.getElementById('closedCountSW').textContent = '0'; });
-        
-        // 100% closed count
-        fetch('<%=request.getContextPath() %>/jsp/100PercentFailureAction.jsp?action=getTodayClosedCount')
-            .then(r => r.text())
-            .then(c => { document.getElementById('closedCount100').textContent = c || '0'; })
-            .catch(() => { document.getElementById('closedCount100').textContent = '0'; });
-    }
-    
-    // TIMER
-    function countdownTimer(el, minutes, seconds) {
-        var element = document.getElementById(el);
-        if(!element) return;
-        var endTime = (+new Date) + 1000 * (60 * minutes + seconds);
-        function update() {
-            var msLeft = endTime - (+new Date);
-            if (msLeft < 1000) { element.innerHTML = "⟳"; }
-            else {
-                var t = new Date(msLeft);
-                var m = t.getUTCMinutes();
-                var s = t.getUTCSeconds();
-                element.innerHTML = (m ? m + ':' : '') + (m ? String(s).padStart(2,'0') : s);
-                setTimeout(update, 100);
-            }
-        }
-        update();
-    }
-    countdownTimer('ten-countdown', 5, 0);
-    
-    document.getElementById('modalContainer').addEventListener('click', function(e) {
-        if(e.target === this) closeModal();
-    });
-    document.addEventListener('keydown', function(e) {
-        if(e.key === 'Escape') closeModal();
-    });
-</script>
+An error occurred at line: [827] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+824:                             String cls = "tile tile-bd pulse";
+825:                             String tooltipText = "⚠ BD 100% | " + h3_bd_name.get(i);
+826:                             String alertMsg = "<b>Service:</b> " + h3_bd_name.get(i) + "<br><b>Source:</b> " + h3_bd_source.get(i) + "<br><b>Error:</b> " + h3_bd_error.get(i) + "<br><b>Hits:</b> " + h3_bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + h3_bd_count.get(i) + "</span><br><b>Time:</b> " + h3_bd_time.get(i);
+827:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_bd_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_bd_source.get(i).replace("'", "\\'") + "','" + h3_bd_error.get(i).replace("'", "\\'") + "','" + h3_bd_hits.get(i) + "','" + h3_bd_count.get(i) + "','" + h3_bd_time.get(i).replace("'", "\\'") + "')\"");
+828:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
+829:                             out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
+830:                             out.print("<div class='bar'><div class='fill'></div></div>");
 
-</body>
-</html>
+
+An error occurred at line: [839] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+836:                             String cls = "tile tile-hundred-mixed pulse";
+837:                             String tooltipText = "⚠ Mixed 100% | " + h3_mixed_name.get(i);
+838:                             String alertMsg = "<b>Service:</b> " + h3_mixed_name.get(i) + "<br><b>Source:</b> " + h3_mixed_source.get(i) + "<br><b>Error:</b> " + h3_mixed_error.get(i) + "<br><b>Hits:</b> " + h3_mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h3_mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + h3_mixed_bd.get(i) + "</span><br><b>Time:</b> " + h3_mixed_time.get(i);
+839:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_mixed_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_mixed_source.get(i).replace("'", "\\'") + "','" + h3_mixed_error.get(i).replace("'", "\\'") + "','" + h3_mixed_hits.get(i) + "','" + h3_mixed_td.get(i) + "','" + h3_mixed_time.get(i).replace("'", "\\'") + "')\"");
+840:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
+841:                             out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
+842:                             out.print("<div class='bar'><div class='fill'></div></div>");
+
+
+Stacktrace:] with root cause
+org.apache.jasper.JasperException: Unable to compile class for JSP: 
+
+An error occurred at line: [331] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+328:                                 tipClass = "tip-td";
+329:                                 
+330:                                 alertMsg = "<b>Service:</b> " + sw_gen5_name.get(i) + "<br><b>Source:</b> " + sw_gen5_source.get(i) + "<br><b>Error:</b> " + sw_gen5_error.get(i) + "<br><b>Hits:</b> " + sw_gen5_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_gen5_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + sw_gen5_siCount.get(i) + "<br><b>Time:</b> " + sw_gen5_time.get(i);
+331:                                 onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_gen5_name.get(i).replace("'", "\\'") + "','GEN-5','ServiceWise','" + sw_gen5_source.get(i).replace("'", "\\'") + "','" + sw_gen5_error.get(i).replace("'", "\\'") + "','" + sw_gen5_hits.get(i) + "','" + sw_gen5_td.get(i) + "','" + sw_gen5_time.get(i).replace("'", "\\'") + "')\"");
+332:                             }
+333:                             
+334:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
+
+
+An error occurred at line: [392] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+389:                                 tipClass = "tip-td";
+390:                                 
+391:                                 alertMsg = "<b>Service:</b> " + sw_si_name.get(i) + "<br><b>Error:</b> " + sw_si_error.get(i) + "<br><b>Hits:</b> " + sw_si_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_si_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>Time:</b> " + sw_si_time.get(i);
+392:                                 onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_si_name.get(i).replace("'", "\\'") + "','SI','ServiceWise','','" + sw_si_error.get(i).replace("'", "\\'") + "','" + sw_si_hits.get(i) + "','" + sw_si_td.get(i) + "','" + sw_si_time.get(i).replace("'", "\\'") + "')\"");
+393:                             }
+394:                             
+395:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
+
+
+An error occurred at line: [457] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+454:                                 tipClass = "tip-td";
+455:                                 
+456:                                 alertMsg = "<b>Service:</b> " + sw_third_name.get(i) + "<br><b>Error:</b> " + sw_third_error.get(i) + "<br><b>Source:</b> " + sw_third_source.get(i) + "<br><b>Hits:</b> " + sw_third_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_third_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + sw_third_siCount.get(i) + "<br><b>Time:</b> " + sw_third_time.get(i);
+457:                                 onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_third_name.get(i).replace("'", "\\'") + "','ThirdParty','ServiceWise','" + sw_third_source.get(i).replace("'", "\\'") + "','" + sw_third_error.get(i).replace("'", "\\'") + "','" + sw_third_hits.get(i) + "','" + sw_third_td.get(i) + "','" + sw_third_time.get(i).replace("'", "\\'") + "')\"");
+458:                             }
+459:                             
+460:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
+
+
+An error occurred at line: [553] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+550:                                 tipClass = "tip-td";
+551:                                 
+552:                                 alertMsg = "<b>Service:</b> " + sw_comb_name.get(i) + "<br><b>Category:</b> " + sw_comb_cat.get(i) + "<br><b>Error:</b> " + sw_comb_error.get(i) + "<br><b>Source:</b> " + sw_comb_source.get(i) + "<br><b>Hits:</b> " + sw_comb_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + sw_comb_td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>Time:</b> " + sw_comb_time.get(i);
+553:                                 onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + sw_comb_name.get(i).replace("'", "\\'") + "','" + sw_comb_cat.get(i) + "','ServiceWise','" + sw_comb_source.get(i).replace("'", "\\'") + "','" + sw_comb_error.get(i).replace("'", "\\'") + "','" + sw_comb_hits.get(i) + "','" + sw_comb_td.get(i) + "','" + sw_comb_time.get(i).replace("'", "\\'") + "')\"");
+554:                             }
+555:                             
+556:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='" + tipClass + "' " + onclick + ">");
+
+
+An error occurred at line: [648] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+645:                             String cls = "tile tile-td pulse";
+646:                             String tooltipText = "⚠ TD 100% | " + h_td_name.get(i);
+647:                             String alertMsg = "<b>Service:</b> " + h_td_name.get(i) + "<br><b>Source:</b> " + h_td_source.get(i) + "<br><b>Error:</b> " + h_td_error.get(i) + "<br><b>Hits:</b> " + h_td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_td_count.get(i) + "</span><br><b>SI Error:</b> " + h_td_siCount.get(i) + "<br><b>Time:</b> " + h_td_time.get(i);
+648:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_td_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_td_source.get(i).replace("'", "\\'") + "','" + h_td_error.get(i).replace("'", "\\'") + "','" + h_td_hits.get(i) + "','" + h_td_count.get(i) + "','" + h_td_time.get(i).replace("'", "\\'") + "')\"");
+649:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
+650:                             out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
+651:                             out.print("<div class='bar'><div class='fill'></div></div>");
+
+
+An error occurred at line: [660] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+657:                             String cls = "tile tile-bd pulse";
+658:                             String tooltipText = "⚠ BD 100% | " + h_bd_name.get(i);
+659:                             String alertMsg = "<b>Service:</b> " + h_bd_name.get(i) + "<br><b>Source:</b> " + h_bd_source.get(i) + "<br><b>Error:</b> " + h_bd_error.get(i) + "<br><b>Hits:</b> " + h_bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + h_bd_count.get(i) + "</span><br><b>Time:</b> " + h_bd_time.get(i);
+660:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_bd_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_bd_source.get(i).replace("'", "\\'") + "','" + h_bd_error.get(i).replace("'", "\\'") + "','" + h_bd_hits.get(i) + "','" + h_bd_count.get(i) + "','" + h_bd_time.get(i).replace("'", "\\'") + "')\"");
+661:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
+662:                             out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
+663:                             out.print("<div class='bar'><div class='fill'></div></div>");
+
+
+An error occurred at line: [672] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+669:                             String cls = "tile tile-hundred-mixed pulse";
+670:                             String tooltipText = "⚠ Mixed 100% | " + h_mixed_name.get(i);
+671:                             String alertMsg = "<b>Service:</b> " + h_mixed_name.get(i) + "<br><b>Source:</b> " + h_mixed_source.get(i) + "<br><b>Error:</b> " + h_mixed_error.get(i) + "<br><b>Hits:</b> " + h_mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + h_mixed_bd.get(i) + "</span><br><b>Time:</b> " + h_mixed_time.get(i);
+672:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_mixed_name.get(i).replace("'", "\\'") + "','GEN-5','100%','" + h_mixed_source.get(i).replace("'", "\\'") + "','" + h_mixed_error.get(i).replace("'", "\\'") + "','" + h_mixed_hits.get(i) + "','" + h_mixed_td.get(i) + "','" + h_mixed_time.get(i).replace("'", "\\'") + "')\"");
+673:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
+674:                             out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
+675:                             out.print("<div class='bar'><div class='fill'></div></div>");
+
+
+An error occurred at line: [724] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+721:                             String cls = "tile tile-td pulse";
+722:                             String tooltipText = "⚠ TD 100% | " + h_si_name.get(i);
+723:                             String alertMsg = "<b>Service:</b> " + h_si_name.get(i) + "<br><b>Error:</b> " + h_si_error.get(i) + "<br><b>Hits:</b> " + h_si_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h_si_td_count.get(i) + "</span><br><b>Time:</b> " + h_si_time.get(i);
+724:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h_si_name.get(i).replace("'", "\\'") + "','SI','100%','','" + h_si_error.get(i).replace("'", "\\'") + "','" + h_si_hits.get(i) + "','" + h_si_td_count.get(i) + "','" + h_si_time.get(i).replace("'", "\\'") + "')\"");
+725:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
+726:                             out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
+727:                             out.print("<div class='bar'><div class='fill'></div></div>");
+
+
+An error occurred at line: [815] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+812:                             String cls = "tile tile-td pulse";
+813:                             String tooltipText = "⚠ TD 100% | " + h3_td_name.get(i);
+814:                             String alertMsg = "<b>Service:</b> " + h3_td_name.get(i) + "<br><b>Source:</b> " + h3_td_source.get(i) + "<br><b>Error:</b> " + h3_td_error.get(i) + "<br><b>Hits:</b> " + h3_td_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h3_td_count.get(i) + "</span><br><b>SI Error:</b> " + h3_td_siCount.get(i) + "<br><b>Time:</b> " + h3_td_time.get(i);
+815:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_td_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_td_source.get(i).replace("'", "\\'") + "','" + h3_td_error.get(i).replace("'", "\\'") + "','" + h3_td_hits.get(i) + "','" + h3_td_count.get(i) + "','" + h3_td_time.get(i).replace("'", "\\'") + "')\"");
+816:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-td' " + onclick + ">");
+817:                             out.print("<span class='val'>100</span><span class='sub-text'>% TD</span>");
+818:                             out.print("<div class='bar'><div class='fill'></div></div>");
+
+
+An error occurred at line: [827] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+824:                             String cls = "tile tile-bd pulse";
+825:                             String tooltipText = "⚠ BD 100% | " + h3_bd_name.get(i);
+826:                             String alertMsg = "<b>Service:</b> " + h3_bd_name.get(i) + "<br><b>Source:</b> " + h3_bd_source.get(i) + "<br><b>Error:</b> " + h3_bd_error.get(i) + "<br><b>Hits:</b> " + h3_bd_hits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + h3_bd_count.get(i) + "</span><br><b>Time:</b> " + h3_bd_time.get(i);
+827:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_bd_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_bd_source.get(i).replace("'", "\\'") + "','" + h3_bd_error.get(i).replace("'", "\\'") + "','" + h3_bd_hits.get(i) + "','" + h3_bd_count.get(i) + "','" + h3_bd_time.get(i).replace("'", "\\'") + "')\"");
+828:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-bd' " + onclick + ">");
+829:                             out.print("<span class='val'>100</span><span class='sub-text'>% BD</span>");
+830:                             out.print("<div class='bar'><div class='fill'></div></div>");
+
+
+An error occurred at line: [839] in the jsp file: [/jsp/CombinedServiceWise&HundreadPerFailure.jsp]
+Syntax error on token ")", delete this token
+836:                             String cls = "tile tile-hundred-mixed pulse";
+837:                             String tooltipText = "⚠ Mixed 100% | " + h3_mixed_name.get(i);
+838:                             String alertMsg = "<b>Service:</b> " + h3_mixed_name.get(i) + "<br><b>Source:</b> " + h3_mixed_source.get(i) + "<br><b>Error:</b> " + h3_mixed_error.get(i) + "<br><b>Hits:</b> " + h3_mixed_hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h3_mixed_td.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + h3_mixed_bd.get(i) + "</span><br><b>Time:</b> " + h3_mixed_time.get(i);
+839:                             String onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + h3_mixed_name.get(i).replace("'", "\\'") + "','ThirdParty','100%','" + h3_mixed_source.get(i).replace("'", "\\'") + "','" + h3_mixed_error.get(i).replace("'", "\\'") + "','" + h3_mixed_hits.get(i) + "','" + h3_mixed_td.get(i) + "','" + h3_mixed_time.get(i).replace("'", "\\'") + "')\"");
+840:                             out.print("<div class='" + cls + "' data-tip='" + tooltipText + "' data-tip-class='tip-mixed' " + onclick + ">");
+841:                             out.print("<span class='val'>100</span><span class='sub-text'>% MIX</span>");
+842:                             out.print("<div class='bar'><div class='fill'></div></div>");
+
+
+Stacktrace:
+	at org.apache.jasper.compiler.DefaultErrorHandler.javacError(DefaultErrorHandler.java:72)
+	at org.apache.jasper.compiler.ErrorDispatcher.javacError(ErrorDispatcher.java:192)
+	at org.apache.jasper.compiler.JDTCompiler.generateClass(JDTCompiler.java:542)
+	at org.apache.jasper.compiler.Compiler.compile(Compiler.java:371)
+	at org.apache.jasper.compiler.Compiler.compile(Compiler.java:343)
+	at org.apache.jasper.compiler.Compiler.compile(Compiler.java:329)
+	at org.apache.jasper.JspCompilationContext.compile(JspCompilationContext.java:603)
+	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:399)
+	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
+	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1791)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+
