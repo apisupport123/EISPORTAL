@@ -894,7 +894,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(swSiPer.size(), 36);
+                    maxTiles = Math.max(swSiPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -962,7 +962,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(swThirdPer.size(), 36);
+                    maxTiles = Math.max(swThirdPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1061,7 +1061,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(swCombPer.size(), 36);
+                    maxTiles = Math.max(swCombPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1164,7 +1164,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 36);
+                    maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 36);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1241,7 +1241,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(hSiTdPer.size(), 36);
+                    maxTiles = Math.max(hSiTdPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1342,7 +1342,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 36);
+                    maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 36);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
