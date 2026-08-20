@@ -702,3 +702,512 @@ $(document).on('keypress', '#inventoryForm input, #inventoryForm textarea', func
 </script>
 </body>
 </html>
+
+
+package com.action;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.jdbc.DBUtilityAuto;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import java.io.OutputStream;
+
+/**
+ * Servlet implementation class DesktopDetailServlet
+ */
+@WebServlet("/DesktopDetailServlet")
+public class DesktopDetailServlet extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public DesktopDetailServlet() {
+        super();
+        // TODO Auto-generated constructor stub
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		String action = request.getParameter("action");
+        if ("export".equals(action)) {
+            exportToExcel(request, response);
+        } else {
+        	try {
+        		listInventory(request, response);
+        	}catch(JSONException e) {
+        		e.printStackTrace();
+        	}
+            
+        }
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		String action = request.getParameter("action");
+		try {
+		if ("insert".equals(action)) {
+            insertInventory(request, response);
+        } else if ("update".equals(action)) {
+            updateInventory(request, response);
+        } else if ("delete".equals(action)) {
+            deleteInventory(request, response);
+        } else if ("list".equals(action)) {
+            listInventory(request, response);
+        } else if ("getById".equals(action)) {
+            getInventoryById(request, response);
+        }
+		}catch(JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void insertInventory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, JSONException {
+        String serialNo = request.getParameter("serialNo");
+        String manufacturer = request.getParameter("manufacturer");
+        String modelNo = request.getParameter("modelNo");
+        String ip = request.getParameter("ip");
+        String hostname = request.getParameter("hostname");
+        String seatNo = request.getParameter("seatNo");
+        String remark = request.getParameter("remark");
+
+        String sql = "INSERT INTO A_Desktop_RECORDS (ASSET_SERIAL_NO, MANUFACTURER, MODEL_NO, IP, HOSTNAME, SEAT_NO, REMARK) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DBUtilityAuto.getReportDBConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, serialNo);
+            pstmt.setString(2, manufacturer);
+            pstmt.setString(3, modelNo);
+            pstmt.setString(4, ip);
+            pstmt.setString(5, hostname);
+            pstmt.setString(6, seatNo);
+            pstmt.setString(7, remark);
+
+            int result = pstmt.executeUpdate();
+            JSONObject jsonResponse = new JSONObject();
+            if (result > 0) {
+                jsonResponse.put("status", "success");
+                jsonResponse.put("message", "Record inserted successfully");
+            } else {
+                jsonResponse.put("status", "error");
+                jsonResponse.put("message", "Failed to insert record");
+            }
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("status", "error");
+            jsonResponse.put("message", "Database error: " + e.getMessage());
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse.toString());
+        }
+    }
+
+    private void updateInventory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, JSONException {
+        String srNo = request.getParameter("srNo");
+        String serialNo = request.getParameter("serialNo");
+        String manufacturer = request.getParameter("manufacturer");
+        String modelNo = request.getParameter("modelNo");
+        String ip = request.getParameter("ip");
+        String hostname = request.getParameter("hostname");
+        String seatNo = request.getParameter("seatNo");
+        String remark = request.getParameter("remark");
+
+        String sql = "UPDATE A_Desktop_RECORDS SET ASSET_SERIAL_NO=?, MANUFACTURER=?, MODEL_NO=?, IP=?, HOSTNAME=?, SEAT_NO=?, REMARK=? WHERE ID=?";
+
+        try (Connection conn = DBUtilityAuto.getReportDBConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, serialNo);
+            pstmt.setString(2, manufacturer);
+            pstmt.setString(3, modelNo);
+            pstmt.setString(4, ip);
+            pstmt.setString(5, hostname);
+            pstmt.setString(6, seatNo);
+            pstmt.setString(7, remark);
+            pstmt.setInt(8, Integer.parseInt(srNo));
+
+            int result = pstmt.executeUpdate();
+            JSONObject jsonResponse = new JSONObject();
+            if (result > 0) {
+                jsonResponse.put("status", "success");
+                jsonResponse.put("message", "Record updated successfully");
+            } else {
+                jsonResponse.put("status", "error");
+                jsonResponse.put("message", "Failed to update record");
+            }
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("status", "error");
+            jsonResponse.put("message", "Database error: " + e.getMessage());
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse.toString());
+        }
+    }
+
+    private void deleteInventory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, JSONException {
+        String srNo = request.getParameter("srNo");
+        String sql = "DELETE FROM A_Desktop_RECORDS WHERE ID=?";
+
+        try (Connection conn = DBUtilityAuto.getReportDBConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, Integer.parseInt(srNo));
+            int result = pstmt.executeUpdate();
+            JSONObject jsonResponse = new JSONObject();
+            if (result > 0) {
+                jsonResponse.put("status", "success");
+                jsonResponse.put("message", "Record deleted successfully");
+            } else {
+                jsonResponse.put("status", "error");
+                jsonResponse.put("message", "Failed to delete record");
+            }
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("status", "error");
+            jsonResponse.put("message", "Database error: " + e.getMessage());
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse.toString());
+        }
+    }
+
+    private void listInventory(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, JSONException {
+        int draw = Integer.parseInt(request.getParameter("draw"));
+        int start = Integer.parseInt(request.getParameter("start"));
+        int length = Integer.parseInt(request.getParameter("length"));
+        
+        // FIX: Handle "All" entries (length = -1)
+        if (length == -1) {
+        	System.out.println("max lenth : "+ Integer.MAX_VALUE);
+            length = Integer.MAX_VALUE; // Set to a large number to get all records
+        }
+        
+        String searchValue = request.getParameter("search[value]");
+        // Fix: Handle null search value
+        if (searchValue == null) searchValue = "";
+        
+        List<JSONObject> inventoryList = new ArrayList<>();
+        int totalRecords = 0;
+        int filteredRecords = 0;
+        
+        try (Connection conn = DBUtilityAuto.getReportDBConnection()) {
+            // Get total count (without filter)
+            String countSql = "SELECT COUNT(*) FROM A_Desktop_RECORDS";
+            try (PreparedStatement pstmtCount = conn.prepareStatement(countSql)) {
+                ResultSet rsCount = pstmtCount.executeQuery();
+                if (rsCount.next()) {
+                    totalRecords = rsCount.getInt(1);
+                }
+            }
+            
+            // Build search condition
+            String searchCondition = "";
+            if (!searchValue.isEmpty()) {
+                searchCondition = " WHERE UPPER(ASSET_SERIAL_NO) LIKE UPPER(?) OR " +
+                        "UPPER(MANUFACTURER) LIKE UPPER(?) OR " +
+                        "UPPER(MODEL_NO) LIKE UPPER(?) OR " +
+                        "UPPER(IP) LIKE UPPER(?) OR " +
+                        "UPPER(HOSTNAME) LIKE UPPER(?) OR " +
+                        "UPPER(SEAT_NO) LIKE UPPER(?) OR " +
+                        "UPPER(NVL(REMARK,'')) LIKE UPPER(?)";
+            }
+            
+            // Get filtered count
+            String filteredCountSql = "SELECT COUNT(*) FROM A_Desktop_RECORDS" + searchCondition;
+            try (PreparedStatement pstmtFiltered = conn.prepareStatement(filteredCountSql)) {
+                if (!searchValue.isEmpty()) {
+                    String searchPattern = "%" + searchValue + "%";
+                    for (int i = 1; i <= 7; i++) {
+                        pstmtFiltered.setString(i, searchPattern);
+                    }
+                }
+                ResultSet rsFiltered = pstmtFiltered.executeQuery();
+                if (rsFiltered.next()) {
+                    filteredRecords = rsFiltered.getInt(1);
+                }
+            }
+            
+            // Proper Oracle pagination
+            String dataSql;
+            PreparedStatement pstmtData;
+            
+            if (!searchValue.isEmpty()) {
+                // With search filter
+                dataSql = "SELECT * FROM (SELECT a.*, ROWNUM rnum FROM (" +
+                        "SELECT ID, ASSET_SERIAL_NO, MANUFACTURER, MODEL_NO, IP, HOSTNAME, SEAT_NO, REMARK " +
+                        "FROM A_Desktop_RECORDS WHERE UPPER(ASSET_SERIAL_NO) LIKE UPPER(?) OR " +
+                        "UPPER(MANUFACTURER) LIKE UPPER(?) OR UPPER(MODEL_NO) LIKE UPPER(?) OR " +
+                        "UPPER(IP) LIKE UPPER(?) OR UPPER(HOSTNAME) LIKE UPPER(?) OR " +
+                        "UPPER(SEAT_NO) LIKE UPPER(?) OR UPPER(NVL(REMARK,'')) LIKE UPPER(?) " +
+                        "ORDER BY ID) a WHERE ROWNUM <= ?) WHERE rnum > ?";
+                pstmtData = conn.prepareStatement(dataSql);
+                String searchPattern = "%" + searchValue + "%";
+                for (int i = 1; i <= 7; i++) {
+                    pstmtData.setString(i, searchPattern);
+                }
+                pstmtData.setInt(8, start + length);
+                pstmtData.setInt(9, start);
+            } else {
+                // Without search filter
+                dataSql = "SELECT * FROM (SELECT a.*, ROWNUM rnum FROM (" +
+                        "SELECT ID, ASSET_SERIAL_NO, MANUFACTURER, MODEL_NO, IP, HOSTNAME, SEAT_NO, REMARK " +
+                        "FROM A_Desktop_RECORDS ORDER BY ID) a WHERE ROWNUM <= ?) WHERE rnum > ?";
+                pstmtData = conn.prepareStatement(dataSql);
+                pstmtData.setInt(1, start + length);
+                pstmtData.setInt(2, start);
+            }
+            
+            ResultSet rs = pstmtData.executeQuery();
+            while (rs.next()) {
+                JSONObject obj = new JSONObject();
+                obj.put("srNo", rs.getInt("ID"));
+                obj.put("assetSerialNo", rs.getString("ASSET_SERIAL_NO") != null ? rs.getString("ASSET_SERIAL_NO") : "");
+                obj.put("manufacturer", rs.getString("MANUFACTURER") != null ? rs.getString("MANUFACTURER") : "");
+                obj.put("modelNo", rs.getString("MODEL_NO") != null ? rs.getString("MODEL_NO") : "");
+                obj.put("ip", rs.getString("IP") != null ? rs.getString("IP") : "");
+                obj.put("hostname", rs.getString("HOSTNAME") != null ? rs.getString("HOSTNAME") : "");
+                obj.put("seatNo", rs.getString("SEAT_NO") != null ? rs.getString("SEAT_NO") : "");
+                String remark = rs.getString("REMARK");
+                obj.put("remark", remark != null ? remark : "");
+                inventoryList.add(obj);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        JSONObject jsonResponse = new JSONObject();
+        jsonResponse.put("draw", draw);
+        jsonResponse.put("recordsTotal", totalRecords);
+        jsonResponse.put("recordsFiltered", filteredRecords);
+        jsonResponse.put("data", new JSONArray(inventoryList));
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(jsonResponse.toString());
+    }
+
+    private void getInventoryById(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException, JSONException {
+        String srNo = request.getParameter("srNo");
+        String sql = "SELECT * FROM A_Desktop_RECORDS WHERE ID=?";
+
+        try (Connection conn = DBUtilityAuto.getReportDBConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, Integer.parseInt(srNo));
+            ResultSet rs = pstmt.executeQuery();
+            JSONObject jsonResponse = new JSONObject();
+            if (rs.next()) {
+                jsonResponse.put("srNo", rs.getInt("ID"));
+                jsonResponse.put("assetSerialNo", rs.getString("ASSET_SERIAL_NO") != null ? rs.getString("ASSET_SERIAL_NO") : "");
+                jsonResponse.put("manufacturer", rs.getString("MANUFACTURER") != null ? rs.getString("MANUFACTURER") : "");
+                jsonResponse.put("modelNo", rs.getString("MODEL_NO") != null ? rs.getString("MODEL_NO") : "");
+                jsonResponse.put("ip", rs.getString("IP") != null ? rs.getString("IP") : "");
+                jsonResponse.put("hostname", rs.getString("HOSTNAME") != null ? rs.getString("HOSTNAME") : "");
+                jsonResponse.put("seatNo", rs.getString("SEAT_NO") != null ? rs.getString("SEAT_NO") : "");
+                jsonResponse.put("remark", rs.getString("REMARK") != null ? rs.getString("REMARK") : "");
+                jsonResponse.put("status", "success");
+            } else {
+                jsonResponse.put("status", "error");
+                jsonResponse.put("message", "Record not found");
+            }
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            JSONObject jsonResponse = new JSONObject();
+            jsonResponse.put("status", "error");
+            jsonResponse.put("message", "Database error: " + e.getMessage());
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.getWriter().write(jsonResponse.toString());
+        }
+    }
+
+    private void exportToExcel(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        String sql = "SELECT ID, ASSET_SERIAL_NO, MANUFACTURER, MODEL_NO, IP, HOSTNAME, SEAT_NO, REMARK FROM A_Desktop_RECORDS ORDER BY ID";
+        
+        SXSSFWorkbook workbook = null;
+        try (Connection conn = DBUtilityAuto.getReportDBConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            // Set response headers
+            response.reset();
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setHeader("Content-Disposition", "attachment; filename=Desktop_Details_" +
+                    new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + ".xlsx");
+            response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+            response.setHeader("Pragma", "no-cache");
+            response.setDateHeader("Expires", 0);
+            
+            // Use SXSSFWorkbook with 100 rows in memory
+            workbook = new SXSSFWorkbook(100);
+            Sheet sheet = workbook.createSheet("Desktop Inventory");
+            
+            // FIX: Track all columns for auto-sizing
+            if (sheet instanceof SXSSFSheet) {
+                SXSSFSheet sxssfSheet = (SXSSFSheet) sheet;
+                sxssfSheet.trackAllColumnsForAutoSizing(); // Track all columns
+            }
+            
+            // Create header row with styling
+            Row headerRow = sheet.createRow(0);
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setFontHeightInPoints((short) 12);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setBorderBottom(BorderStyle.THIN);
+            headerStyle.setBorderTop(BorderStyle.THIN);
+            headerStyle.setBorderLeft(BorderStyle.THIN);
+            headerStyle.setBorderRight(BorderStyle.THIN);
+            
+            String[] columns = {"SR NO", "Asset Serial No", "Manufacturer", "Model No",
+                    "IP", "Hostname", "Seat No", "Remark"};
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                cell.setCellStyle(headerStyle);
+            }
+            
+            // Create data rows
+            CellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setBorderBottom(BorderStyle.THIN);
+            dataStyle.setBorderTop(BorderStyle.THIN);
+            dataStyle.setBorderLeft(BorderStyle.THIN);
+            dataStyle.setBorderRight(BorderStyle.THIN);
+            
+            int rowNum = 1;
+            int srNo = 1;
+            
+            while (rs.next()) {
+                Row row = sheet.createRow(rowNum++);
+                
+                Cell srCell = row.createCell(0);
+                srCell.setCellValue(srNo++);
+                srCell.setCellStyle(dataStyle);
+                
+                Cell assetCell = row.createCell(1);
+                assetCell.setCellValue(rs.getString("ASSET_SERIAL_NO") != null ? rs.getString("ASSET_SERIAL_NO") : "");
+                assetCell.setCellStyle(dataStyle);
+                
+                Cell manuCell = row.createCell(2);
+                manuCell.setCellValue(rs.getString("MANUFACTURER") != null ? rs.getString("MANUFACTURER") : "");
+                manuCell.setCellStyle(dataStyle);
+                
+                Cell modelCell = row.createCell(3);
+                modelCell.setCellValue(rs.getString("MODEL_NO") != null ? rs.getString("MODEL_NO") : "");
+                modelCell.setCellStyle(dataStyle);
+                
+                Cell ipCell = row.createCell(4);
+                ipCell.setCellValue(rs.getString("IP") != null ? rs.getString("IP") : "");
+                ipCell.setCellStyle(dataStyle);
+                
+                Cell hostCell = row.createCell(5);
+                hostCell.setCellValue(rs.getString("HOSTNAME") != null ? rs.getString("HOSTNAME") : "");
+                hostCell.setCellStyle(dataStyle);
+                
+                Cell seatCell = row.createCell(6);
+                seatCell.setCellValue(rs.getString("SEAT_NO") != null ? rs.getString("SEAT_NO") : "");
+                seatCell.setCellStyle(dataStyle);
+                
+                Cell remarkCell = row.createCell(7);
+                remarkCell.setCellValue(rs.getString("REMARK") != null ? rs.getString("REMARK") : "");
+                remarkCell.setCellStyle(dataStyle);
+            }
+            
+            // Auto-size columns (now works because we tracked all columns)
+            for (int i = 0; i < columns.length; i++) {
+                sheet.autoSizeColumn(i);
+                // Set minimum width
+                if (sheet.getColumnWidth(i) < 3000) {
+                    sheet.setColumnWidth(i, 3000);
+                }
+                // Set maximum width
+                if (sheet.getColumnWidth(i) > 20000) {
+                    sheet.setColumnWidth(i, 20000);
+                }
+            }
+            
+            // Write to output stream
+            try (OutputStream outputStream = response.getOutputStream()) {
+                workbook.write(outputStream);
+                outputStream.flush();
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (!response.isCommitted()) {
+                response.reset();
+                response.setContentType("text/html");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write("Error exporting data: " + e.getMessage());
+            }
+        } finally {
+            if (workbook != null) {
+                workbook.dispose();
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    
+    private String escapeHtml(String str) {
+        if (str == null) return "";
+        return str.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
+    }
+
+}
+
