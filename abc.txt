@@ -211,53 +211,6 @@
         font-variant-numeric: tabular-nums;
     }
     
-    /* NAV LINKS - NEW */
-    .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .nav-link {
-        padding: 4px 14px;
-        border-radius: 40px;
-        font-weight: 700;
-        font-size: 9px;
-        text-decoration: none;
-        cursor: pointer;
-        transition: all 0.25s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        font-family: 'Inter', sans-serif;
-        border: 1px solid rgba(255,255,255,0.04);
-        background: rgba(255,255,255,0.01);
-        color: #8aaac0;
-    }
-    .nav-link:hover {
-        background: rgba(79,156,247,0.06);
-        border-color: rgba(79,156,247,0.08);
-        color: #4f9cf7;
-        transform: translateY(-1px);
-    }
-    .nav-link.active {
-        background: rgba(79,156,247,0.08);
-        border-color: rgba(79,156,247,0.12);
-        color: #4f9cf7;
-    }
-    .nav-link .badge-nav {
-        font-size: 8px;
-        background: rgba(79,156,247,0.06);
-        padding: 0 5px;
-        border-radius: 4px;
-        color: #4f9cf7;
-    }
-    .nav-link .badge-nav.danger {
-        background: rgba(231,76,60,0.1);
-        color: #e74c3c;
-    }
-    
     .btn-glass {
         padding: 3px 12px;
         border-radius: 40px;
@@ -292,6 +245,64 @@
         font-weight: 700;
         font-size: 9px;
         color: #4f9cf7;
+    }
+    
+    /* SHORTCUT LINKS - NEW */
+    .shortcut-links {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .shortcut-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 9px;
+        text-decoration: none;
+        transition: all 0.25s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        border: 1px solid rgba(255,255,255,0.04);
+        background: rgba(255,255,255,0.02);
+        color: #8aaac0;
+    }
+    .shortcut-link:hover {
+        transform: translateY(-1px);
+        border-color: rgba(79,156,247,0.12);
+        color: #ffffff;
+        box-shadow: 0 4px 20px rgba(79,156,247,0.05);
+    }
+    .shortcut-link.sw {
+        border-color: rgba(79,156,247,0.15);
+        background: rgba(79,156,247,0.04);
+        color: #4f9cf7;
+    }
+    .shortcut-link.sw:hover {
+        background: rgba(79,156,247,0.08);
+        border-color: rgba(79,156,247,0.25);
+        box-shadow: 0 4px 25px rgba(79,156,247,0.08);
+    }
+    .shortcut-link.hundred {
+        border-color: rgba(231,76,60,0.15);
+        background: rgba(231,76,60,0.04);
+        color: #e74c3c;
+    }
+    .shortcut-link.hundred:hover {
+        background: rgba(231,76,60,0.08);
+        border-color: rgba(231,76,60,0.25);
+        box-shadow: 0 4px 25px rgba(231,76,60,0.08);
+    }
+    .shortcut-link i { font-size: 10px; }
+    .shortcut-divider {
+        width: 1px;
+        height: 20px;
+        background: rgba(255,255,255,0.04);
     }
     
     /* TICKER - COMPACT */
@@ -528,8 +539,8 @@
         background: linear-gradient(145deg, rgba(46,204,113,0.07), rgba(15,151,61,0.02));
         border-color: rgba(46,204,113,0.04);
     }
-    .tile-healthy .val { color: #2ecc71; font-size: 12px; font-weight: 800; }
-    .tile-healthy .sub-text { color: #2ecc71; opacity: 0.6; font-size: 6.5px; }
+    .tile-healthy .val { color: #2ecc71; font-size: 13px; font-weight: 800; }
+    .tile-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 7px; }
     .tile-healthy .bar .fill { background: #2ecc71; width: 15%; }
     
     .tile-td {
@@ -576,7 +587,7 @@
         border-color: rgba(46,204,113,0.04);
     }
     .tile-hundred-healthy .val { color: #2ecc71; font-size: 13px; font-weight: 800; }
-    .tile-hundred-healthy .sub-text { color: #2ecc71; opacity: 0.6; font-size: 6.5px; }
+    .tile-hundred-healthy .sub-text { color: #2ecc71; opacity: 0.7; font-size: 7px; }
     .tile-hundred-healthy .bar .fill { background: #2ecc71; width: 15%; }
     
     /* TOOLTIP */
@@ -798,23 +809,25 @@
             <div class="live-badge"><span class="dot"></span> LIVE</div>
             <span class="timer-glass" id="ten-countdown">5:00</span>
             
-            <!-- NAVIGATION LINKS -->
-            <div class="nav-links">
-                <a href="<%=request.getContextPath() %>/jsp/CombinedServiceWise&HundreadPerFailure.jsp" class="nav-link active">
-                    <i class="fas fa-gauge-high"></i> Dashboard
+            <!-- SHORTCUT LINKS -->
+            <div class="shortcut-links">
+                <a href="<%=request.getContextPath() %>/jsp/ServiceWiseFailure.jsp" class="shortcut-link sw" target="_blank" title="View ServiceWise Failures">
+                    <i class="fas fa-chart-line"></i> ServiceWise
                 </a>
-                <a href="<%=request.getContextPath() %>/jsp/DisplayServiceWiseFailure.jsp" class="nav-link">
-                    <i class="fas fa-list"></i> ServiceWise
-                    <span class="badge-nav danger"><%= swClosed %></span>
-                </a>
-                <a href="<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp" class="nav-link">
+                <span class="shortcut-divider"></span>
+                <a href="<%=request.getContextPath() %>/jsp/100PercentFailure.jsp" class="shortcut-link hundred" target="_blank" title="View 100% Failures">
                     <i class="fas fa-percent"></i> 100% Failure
-                    <span class="badge-nav danger"><%= hundredClosed %></span>
                 </a>
             </div>
             
+            <button class="btn-glass btn-primary-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayServiceWiseFailure.jsp','_blank')">
+                <i class="fas fa-list"></i> SW
+            </button>
             <button class="btn-glass btn-ghost-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayTodayServiceWiseFailure.jsp','_blank')">
                 <i class="fas fa-check-circle"></i> <span class="badge-count-glass"><%= swClosed %></span>
+            </button>
+            <button class="btn-glass btn-primary-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp','_blank')">
+                <i class="fas fa-percent"></i> 100%
             </button>
             <button class="btn-glass btn-ghost-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayTodayHundredPercentFailure.jsp','_blank')">
                 <i class="fas fa-check-circle"></i> <span class="badge-count-glass"><%= hundredClosed %></span>
@@ -830,6 +843,7 @@
                 <span>● <span class="hl">LEGEND:</span> <span style="color:#e74c3c;">● TD</span> <span style="color:#f39c12;">● BD</span> <span style="color:#9b59b6;">● Mixed</span> <span style="color:#2ecc71;">● Healthy</span></span>
                 <span>● <span class="hl">REFRESH:</span> Every 5 minutes</span>
                 <span>● <span class="hl">CLICK:</span> Any tile for detailed alert</span>
+                <span>● <span class="hl">SHORTCUT:</span> ServiceWise · 100% Failure</span>
             </div>
         </div>
     </div>
@@ -891,7 +905,7 @@
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
-                        String sub = "OK";
+                        String sub = "HEALTHY";
                         String bar = "15%";
                         String tip = "✅ Healthy";
                         String tipClass = "tip-healthy";
@@ -955,7 +969,7 @@
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
-                        String sub = "OK";
+                        String sub = "HEALTHY";
                         String bar = "15%";
                         String tip = "✅ Healthy";
                         String tipClass = "tip-healthy";
@@ -1023,7 +1037,7 @@
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
-                        String sub = "OK";
+                        String sub = "HEALTHY";
                         String bar = "15%";
                         String tip = "✅ Healthy";
                         String tipClass = "tip-healthy";
@@ -1122,7 +1136,7 @@
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
-                        String sub = "OK";
+                        String sub = "HEALTHY";
                         String bar = "15%";
                         String tip = "✅ Healthy";
                         String tipClass = "tip-healthy";
@@ -1258,7 +1272,7 @@
                     }
                     for(int k = hIdx; k < maxTiles; k++) {
                         out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                        out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
+                        out.print("<span class='val'>✓</span><span class='sub-text'>HEALTHY</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                     }
                 %>
@@ -1302,7 +1316,7 @@
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
-                        String sub = "OK";
+                        String sub = "HEALTHY";
                         String bar = "15%";
                         String tip = "✅ Healthy";
                         String tipClass = "tip-healthy";
@@ -1436,7 +1450,7 @@
                     }
                     for(int k = h3Idx; k < maxTiles; k++) {
                         out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
-                        out.print("<span class='val'>✓</span><span class='sub-text'>OK</span>");
+                        out.print("<span class='val'>✓</span><span class='sub-text'>HEALTHY</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                     }
                 %>
