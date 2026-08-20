@@ -211,6 +211,53 @@
         font-variant-numeric: tabular-nums;
     }
     
+    /* NAV LINKS - NEW */
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .nav-link {
+        padding: 4px 14px;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 9px;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-family: 'Inter', sans-serif;
+        border: 1px solid rgba(255,255,255,0.04);
+        background: rgba(255,255,255,0.01);
+        color: #8aaac0;
+    }
+    .nav-link:hover {
+        background: rgba(79,156,247,0.06);
+        border-color: rgba(79,156,247,0.08);
+        color: #4f9cf7;
+        transform: translateY(-1px);
+    }
+    .nav-link.active {
+        background: rgba(79,156,247,0.08);
+        border-color: rgba(79,156,247,0.12);
+        color: #4f9cf7;
+    }
+    .nav-link .badge-nav {
+        font-size: 8px;
+        background: rgba(79,156,247,0.06);
+        padding: 0 5px;
+        border-radius: 4px;
+        color: #4f9cf7;
+    }
+    .nav-link .badge-nav.danger {
+        background: rgba(231,76,60,0.1);
+        color: #e74c3c;
+    }
+    
     .btn-glass {
         padding: 3px 12px;
         border-radius: 40px;
@@ -750,14 +797,24 @@
         <div class="top-actions">
             <div class="live-badge"><span class="dot"></span> LIVE</div>
             <span class="timer-glass" id="ten-countdown">5:00</span>
-            <button class="btn-glass btn-primary-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayServiceWiseFailure.jsp','_blank')">
-                <i class="fas fa-list"></i> SW
-            </button>
+            
+            <!-- NAVIGATION LINKS -->
+            <div class="nav-links">
+                <a href="<%=request.getContextPath() %>/jsp/CombinedServiceWise&HundreadPerFailure.jsp" class="nav-link active">
+                    <i class="fas fa-gauge-high"></i> Dashboard
+                </a>
+                <a href="<%=request.getContextPath() %>/jsp/DisplayServiceWiseFailure.jsp" class="nav-link">
+                    <i class="fas fa-list"></i> ServiceWise
+                    <span class="badge-nav danger"><%= swClosed %></span>
+                </a>
+                <a href="<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp" class="nav-link">
+                    <i class="fas fa-percent"></i> 100% Failure
+                    <span class="badge-nav danger"><%= hundredClosed %></span>
+                </a>
+            </div>
+            
             <button class="btn-glass btn-ghost-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayTodayServiceWiseFailure.jsp','_blank')">
                 <i class="fas fa-check-circle"></i> <span class="badge-count-glass"><%= swClosed %></span>
-            </button>
-            <button class="btn-glass btn-primary-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayHundredPercentFailure.jsp','_blank')">
-                <i class="fas fa-percent"></i> 100%
             </button>
             <button class="btn-glass btn-ghost-glass" onclick="window.open('<%=request.getContextPath() %>/jsp/DisplayTodayHundredPercentFailure.jsp','_blank')">
                 <i class="fas fa-check-circle"></i> <span class="badge-count-glass"><%= hundredClosed %></span>
@@ -894,7 +951,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(swSiPer.size(), 36);
+                    int maxTiles = Math.max(swSiPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -962,7 +1019,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(swThirdPer.size(), 36);
+                    int maxTiles = Math.max(swThirdPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1061,7 +1118,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(swCombPer.size(), 36);
+                    int maxTiles = Math.max(swCombPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1164,7 +1221,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 36);
+                    int maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 36);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1241,7 +1298,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(hSiTdPer.size(), 36);
+                    int maxTiles = Math.max(hSiTdPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1342,7 +1399,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 36);
+                    int maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 36);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
