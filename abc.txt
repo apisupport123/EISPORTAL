@@ -301,11 +301,11 @@
     }
     .timestamp-display i { margin-right: 4px; }
     
-    /* MAIN GRID - 5 CARDS (SI COMMENTED) */
+    /* MAIN GRID - 3 CARDS (SI COMMENTED) */
     .grid-main {
         flex: 1;
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 4px;
         min-height: 0;
     }
@@ -647,15 +647,15 @@
     
     /* RESPONSIVE */
     @media (max-width: 1400px) { 
-        .grid-main { grid-template-columns: repeat(4, 1fr); } 
+        .grid-main { grid-template-columns: repeat(3, 1fr); } 
         .tile-grid { grid-template-columns: repeat(4, 1fr); }
     }
     @media (max-width: 1100px) { 
-        .grid-main { grid-template-columns: repeat(3, 1fr); } 
+        .grid-main { grid-template-columns: repeat(2, 1fr); } 
         .tile-grid { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 768px) { 
-        .grid-main { grid-template-columns: repeat(2, 1fr); } 
+        .grid-main { grid-template-columns: 1fr; } 
         .tile-grid { grid-template-columns: repeat(2, 1fr); }
         .top-bar { flex-wrap: wrap; height: auto; }
     }
@@ -723,7 +723,7 @@
         </div>
     </div>
 
-    <!-- MAIN GRID - 5 CARDS -->
+    <!-- MAIN GRID - 3 CARDS -->
     <div class="grid-main">
 
         <!-- ============================================================ -->
@@ -778,7 +778,7 @@
                             val = String.format("%.1f", pct) + "%";
                             sub = "TD";
                             bar = "80%";
-                            tip = "⚠ " + gen5Name.get(i) + " | TD: " + gen5Td.get(i);
+                             tip = "⚠ " + gen5Name.get(i) + " | TD: " + gen5Td.get(i);
                             tipClass = "tip-critical";
                             String alertMsg = "<b>Service:</b> " + gen5Name.get(i) + "<br><b>Source:</b> " + gen5Source.get(i) + "<br><b>Error:</b> " + gen5Error.get(i) + "<br><b>Hits:</b> " + gen5Hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + gen5Td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + gen5Si.get(i) + "<br><b>Time:</b> " + gen5Time.get(i);
                             String name = gen5Name.get(i).replace("'", "\\'");
