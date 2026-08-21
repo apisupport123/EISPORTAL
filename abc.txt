@@ -935,7 +935,7 @@
         <!-- ============================================================ -->
         <!-- CARD 2: ServiceWise - SI -->
         <!-- ============================================================ -->
-        <div class="card-modern">
+        <%-- <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-code"></i> SI</span>
                 <span class="badge-count" id="swSiCount">0</span>
@@ -965,7 +965,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(swSiPer.size(), 36);
+                    maxTiles = Math.max(swSiPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -994,7 +994,7 @@
                     }
                 %>
             </div>
-        </div>
+        </div> --%>
 
         <!-- ============================================================ -->
         <!-- CARD 3: ServiceWise - ThirdParty -->
@@ -1016,7 +1016,7 @@
                     List<Integer> swThirdSi = new ArrayList<>();
                     
                     try {
-                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
+                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') AND errcode NOT in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
@@ -1033,7 +1033,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(swThirdPer.size(), 36);
+                    maxTiles = Math.max(swThirdPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1132,7 +1132,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(swCombPer.size(), 36);
+                    maxTiles = Math.max(swCombPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1235,7 +1235,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 36);
+                    maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 36);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1282,7 +1282,7 @@
         <!-- ============================================================ -->
         <!-- CARD 6: 100% SI -->
         <!-- ============================================================ -->
-        <div class="card-modern">
+        <%-- <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-code"></i> 100% SI</span>
                 <span class="badge-count" id="hSiCount">0</span>
@@ -1312,7 +1312,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(hSiTdPer.size(), 36);
+                    maxTiles = Math.max(hSiTdPer.size(), 36);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1341,7 +1341,7 @@
                 %>
             </div>
         </div>
-
+ --%>
         <!-- ============================================================ -->
         <!-- CARD 7: 100% ThirdParty -->
         <!-- ============================================================ -->
@@ -1413,7 +1413,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 36);
+                    maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 36);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
