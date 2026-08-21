@@ -247,7 +247,7 @@
         color: #4f9cf7;
     }
     
-    /* SHORTCUT LINKS - NEW */
+    /* SHORTCUT LINKS */
     .shortcut-links {
         display: flex;
         align-items: center;
@@ -375,11 +375,11 @@
     }
     .timestamp-display i { margin-right: 4px; }
     
-    /* MAIN GRID - COMPACT */
+    /* MAIN GRID - 5 CARDS (2 COMMENTED) */
     .grid-main {
         flex: 1;
         display: grid;
-        grid-template-columns: repeat(7, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 4px;
         min-height: 0;
     }
@@ -436,7 +436,7 @@
         flex: 1;
         padding: 2px 4px 4px 4px;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         grid-auto-rows: 1fr;
         gap: 2px;
         min-height: 0;
@@ -773,9 +773,19 @@
     .modal-actions .btn-m-secondary:hover { background: rgba(255,255,255,0.04); }
     
     /* RESPONSIVE */
-    @media (max-width: 1400px) { .grid-main { grid-template-columns: repeat(5, 1fr); } }
-    @media (max-width: 1100px) { .grid-main { grid-template-columns: repeat(4, 1fr); } .tile-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 768px) { .grid-main { grid-template-columns: repeat(2, 1fr); } .tile-grid { grid-template-columns: repeat(2, 1fr); } .top-bar { flex-wrap: wrap; height: auto; } }
+    @media (max-width: 1400px) { 
+        .grid-main { grid-template-columns: repeat(4, 1fr); } 
+        .tile-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 1100px) { 
+        .grid-main { grid-template-columns: repeat(3, 1fr); } 
+        .tile-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) { 
+        .grid-main { grid-template-columns: repeat(2, 1fr); } 
+        .tile-grid { grid-template-columns: repeat(2, 1fr); }
+        .top-bar { flex-wrap: wrap; height: auto; }
+    }
     
     ::-webkit-scrollbar { width: 2px; }
     ::-webkit-scrollbar-thumb { background: #2a3a50; border-radius: 10px; }
@@ -861,7 +871,7 @@
         </div>
     </div>
 
-    <!-- MAIN GRID -->
+    <!-- MAIN GRID - 5 CARDS -->
     <div class="grid-main">
 
         <!-- ============================================================ -->
@@ -901,7 +911,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(swGen5Per.size(), 36);
+                    int maxTiles = Math.max(swGen5Per.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -933,8 +943,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- CARD 2: ServiceWise - SI -->
-        <!-- ============================================================ -->
+        <!-- CARD 2: ServiceWise - SI (COMMENTED - WILL SHOW IF UNCOMMENTED) -->
         <%-- <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-code"></i> SI</span>
@@ -965,7 +974,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(swSiPer.size(), 36);
+                    maxTiles = Math.max(swSiPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1016,7 +1025,7 @@
                     List<Integer> swThirdSi = new ArrayList<>();
                     
                     try {
-                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') AND errcode NOT in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
+                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
@@ -1033,7 +1042,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(swThirdPer.size(), 36);
+                    int maxTiles = Math.max(swThirdPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1132,7 +1141,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(swCombPer.size(), 36);
+                    int maxTiles = Math.max(swCombPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1235,7 +1244,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 36);
+                    int maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 35);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1280,8 +1289,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- CARD 6: 100% SI -->
-        <!-- ============================================================ -->
+        <!-- CARD 6: 100% SI (COMMENTED - WILL SHOW IF UNCOMMENTED) -->
         <%-- <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-code"></i> 100% SI</span>
@@ -1312,7 +1320,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(hSiTdPer.size(), 36);
+                    maxTiles = Math.max(hSiTdPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1340,8 +1348,8 @@
                     }
                 %>
             </div>
-        </div>
- --%>
+        </div> --%>
+
         <!-- ============================================================ -->
         <!-- CARD 7: 100% ThirdParty -->
         <!-- ============================================================ -->
@@ -1413,7 +1421,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 36);
+                    int maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 35);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1635,27 +1643,21 @@
     // COUNTS
     document.addEventListener('DOMContentLoaded', function() {
         var swGen5 = document.querySelectorAll('#sw-gen5 .tile-critical').length || 0;
-        var swSi = document.querySelectorAll('#sw-si .tile-critical').length || 0;
         var swThird = document.querySelectorAll('#sw-third .tile-critical').length || 0;
         var swComb = document.querySelectorAll('#sw-comb .tile-critical').length || 0;
         
         document.getElementById('swGen5Count').textContent = swGen5;
         document.getElementById('swGen5Count').className = 'badge-count' + (swGen5 > 0 ? ' danger' : '');
-        document.getElementById('swSiCount').textContent = swSi;
-        document.getElementById('swSiCount').className = 'badge-count' + (swSi > 0 ? ' danger' : '');
         document.getElementById('swThirdCount').textContent = swThird;
         document.getElementById('swThirdCount').className = 'badge-count' + (swThird > 0 ? ' danger' : '');
         document.getElementById('swCombCount').textContent = swComb;
         document.getElementById('swCombCount').className = 'badge-count' + (swComb > 0 ? ' danger' : '');
         
         var hGen5 = document.querySelectorAll('#h-gen5 .tile-td, #h-gen5 .tile-bd, #h-gen5 .tile-mixed').length || 0;
-        var hSi = document.querySelectorAll('#h-si .tile-td, #h-si .tile-bd, #h-si .tile-mixed').length || 0;
         var hThird = document.querySelectorAll('#h-third .tile-td, #h-third .tile-bd, #h-third .tile-mixed').length || 0;
         
         document.getElementById('hGen5Count').textContent = hGen5;
         document.getElementById('hGen5Count').className = 'badge-count' + (hGen5 > 0 ? ' danger' : '');
-        document.getElementById('hSiCount').textContent = hSi;
-        document.getElementById('hSiCount').className = 'badge-count' + (hSi > 0 ? ' danger' : '');
         document.getElementById('hThirdCount').textContent = hThird;
         document.getElementById('hThirdCount').className = 'badge-count' + (hThird > 0 ? ' danger' : '');
     });
