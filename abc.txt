@@ -301,11 +301,11 @@
     }
     .timestamp-display i { margin-right: 4px; }
     
-    /* MAIN GRID - 4 CARDS (SI COMMENTED) */
+    /* MAIN GRID - 5 CARDS (SI COMMENTED) */
     .grid-main {
         flex: 1;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
         gap: 4px;
         min-height: 0;
     }
@@ -647,15 +647,15 @@
     
     /* RESPONSIVE */
     @media (max-width: 1400px) { 
-        .grid-main { grid-template-columns: repeat(3, 1fr); } 
+        .grid-main { grid-template-columns: repeat(4, 1fr); } 
         .tile-grid { grid-template-columns: repeat(4, 1fr); }
     }
     @media (max-width: 1100px) { 
-        .grid-main { grid-template-columns: repeat(2, 1fr); } 
+        .grid-main { grid-template-columns: repeat(3, 1fr); } 
         .tile-grid { grid-template-columns: repeat(3, 1fr); }
     }
     @media (max-width: 768px) { 
-        .grid-main { grid-template-columns: 1fr; } 
+        .grid-main { grid-template-columns: repeat(2, 1fr); } 
         .tile-grid { grid-template-columns: repeat(2, 1fr); }
         .top-bar { flex-wrap: wrap; height: auto; }
     }
@@ -723,10 +723,12 @@
         </div>
     </div>
 
-    <!-- MAIN GRID - 4 CARDS -->
+    <!-- MAIN GRID - 5 CARDS -->
     <div class="grid-main">
 
+        <!-- ============================================================ -->
         <!-- CARD 1: GEN-5 -->
+        <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-server"></i> GEN-5</span>
@@ -761,7 +763,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(gen5Per.size(), 45);
+                    int maxTiles = Math.max(gen5Per.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -792,6 +794,7 @@
             </div>
         </div>
 
+        <!-- ============================================================ -->
         <!-- CARD 2: SI (COMMENTED) -->
         <%-- <div class="card-modern">
             <div class="card-header-modern">
@@ -803,7 +806,9 @@
             </div>
         </div> --%>
 
+        <!-- ============================================================ -->
         <!-- CARD 3: ThirdParty -->
+        <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-plug"></i> ThirdParty</span>
@@ -819,6 +824,8 @@
                     List<Integer> thirdTd = new ArrayList<>();
                     List<String> thirdTime = new ArrayList<>();
                     List<Integer> thirdSi = new ArrayList<>();
+                    List<String> thirdTransaction = new ArrayList<>();
+                    List<String> thirdSupUrl = new ArrayList<>();
                     
                     try {
                         String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
@@ -833,12 +840,14 @@
                                 thirdTd.add(rs.getInt("TD"));
                                 thirdTime.add(nvl(rs.getString("issue_time"), "N/A"));
                                 thirdSi.add(rs.getInt("SI_EEROR"));
+                                thirdTransaction.add(nvl(rs.getString("transaction_urn"), "N/A"));
+                                thirdSupUrl.add(nvl(rs.getString("sup_url"), "N/A"));
                             }
                         }
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(thirdPer.size(), 45);
+                    int maxTiles = Math.max(thirdPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -855,9 +864,23 @@
                             bar = "80%";
                             tip = "⚠ " + thirdName.get(i) + " | TD: " + thirdTd.get(i);
                             tipClass = "tip-critical";
-                            String alertMsg = "<b>Service:</b> " + thirdName.get(i) + "<br><b>Error:</b> " + thirdError.get(i) + "<br><b>Source:</b> " + thirdSource.get(i) + "<br><b>Hits:</b> " + thirdHits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + thirdTd.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + thirdSi.get(i) + "<br><b>Time:</b> " + thirdTime.get(i);
+                            String alertMsg = "<b>Service:</b> " + thirdName.get(i) + 
+                                             "<br><b>Source:</b> " + thirdSource.get(i) + 
+                                             "<br><b>Error:</b> " + thirdError.get(i) + 
+                                             "<br><b>Hits:</b> " + thirdHits.get(i) + 
+                                             "<br><b>TD Count:</b> <span class='highlight-td'>" + thirdTd.get(i) + "</span>" + 
+                                             "<br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span>" + 
+                                             "<br><b>SI Error:</b> " + thirdSi.get(i) + 
+                                             "<br><b>Transaction URN:</b> " + thirdTransaction.get(i) + 
+                                             "<br><b>SUP URL:</b> " + thirdSupUrl.get(i) + 
+                                             "<br><b>Time:</b> " + thirdTime.get(i);
                             String name = thirdName.get(i).replace("'", "\\'");
-                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','ServiceWise','" + thirdSource.get(i).replace("'", "\\'") + "','" + thirdError.get(i).replace("'", "\\'") + "','" + thirdHits.get(i) + "','" + thirdTd.get(i) + "','" + thirdTime.get(i).replace("'", "\\'") + "')\"";
+                            String source = thirdSource.get(i).replace("'", "\\'");
+                            String error = thirdError.get(i).replace("'", "\\'");
+                            String time = thirdTime.get(i).replace("'", "\\'");
+                            String transaction = thirdTransaction.get(i).replace("'", "\\'");
+                            String supurl = thirdSupUrl.get(i).replace("'", "\\'");
+                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','ServiceWise','" + source + "','" + error + "','" + thirdHits.get(i) + "','" + thirdTd.get(i) + "','" + time + "','" + transaction + "','" + supurl + "','" + name + "')\"";
                         }
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='" + tipClass + "' " + onclick + ">");
                         out.print("<span class='val'>" + val + "</span>");
@@ -869,7 +892,9 @@
             </div>
         </div>
 
+        <!-- ============================================================ -->
         <!-- CARD 4: Combined (I4C·IVR·CAPS) -->
+        <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
                 <span class="title"><i class="fas fa-layer-group"></i> I4C·IVR·CAPS</span>
@@ -935,7 +960,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    int maxTiles = Math.max(mixPer.size(), 45);
+                    int maxTiles = Math.max(mixPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -955,7 +980,10 @@
                             String alertMsg = "<b>Service:</b> " + mixName.get(i) + "<br><b>Category:</b> " + mixCat.get(i) + "<br><b>Error:</b> " + mixError.get(i) + "<br><b>Source:</b> " + mixSource.get(i) + "<br><b>Hits:</b> " + mixHits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + mixTd.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>Time:</b> " + mixTime.get(i);
                             String name = mixName.get(i).replace("'", "\\'");
                             String cat = mixCat.get(i).replace("'", "\\'");
-                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','" + cat + "','ServiceWise','" + mixSource.get(i).replace("'", "\\'") + "','" + mixError.get(i).replace("'", "\\'") + "','" + mixHits.get(i) + "','" + mixTd.get(i) + "','" + mixTime.get(i).replace("'", "\\'") + "')\"";
+                            String source = mixSource.get(i).replace("'", "\\'");
+                            String error = mixError.get(i).replace("'", "\\'");
+                            String time = mixTime.get(i).replace("'", "\\'");
+                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','" + cat + "','ServiceWise','" + source + "','" + error + "','" + mixHits.get(i) + "','" + mixTd.get(i) + "','" + time + "','','','')\"";
                         }
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='" + tipClass + "' " + onclick + ">");
                         out.print("<span class='val'>" + val + "</span>");
