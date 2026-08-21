@@ -778,7 +778,7 @@
                             val = String.format("%.1f", pct) + "%";
                             sub = "TD";
                             bar = "80%";
-                             tip = "⚠ " + gen5Name.get(i) + " | TD: " + gen5Td.get(i);
+                            tip = "⚠ " + gen5Name.get(i) + " | TD: " + gen5Td.get(i);
                             tipClass = "tip-critical";
                             String alertMsg = "<b>Service:</b> " + gen5Name.get(i) + "<br><b>Source:</b> " + gen5Source.get(i) + "<br><b>Error:</b> " + gen5Error.get(i) + "<br><b>Hits:</b> " + gen5Hits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + gen5Td.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + gen5Si.get(i) + "<br><b>Time:</b> " + gen5Time.get(i);
                             String name = gen5Name.get(i).replace("'", "\\'");
