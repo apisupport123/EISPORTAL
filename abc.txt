@@ -955,7 +955,7 @@
         </div> --%>
 
         <!-- ============================================================ -->
-        <!-- CARD 3: ServiceWise - ThirdParty (FIELDS ORDER FIXED) -->
+        <!-- CARD 3: ServiceWise - ThirdParty -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -1275,7 +1275,7 @@
         </div> --%>
 
         <!-- ============================================================ -->
-        <!-- CARD 7: 100% ThirdParty -->
+        <!-- CARD 7: 100% ThirdParty (FULL FIELDS ADDED) -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -1292,6 +1292,9 @@
                     List<Integer> h3TdCount = new ArrayList<>();
                     List<String> h3TdTime = new ArrayList<>();
                     List<Integer> h3TdSi = new ArrayList<>();
+                    List<String> h3TdApiName = new ArrayList<>();
+                    List<String> h3TdTransaction = new ArrayList<>();
+                    List<String> h3TdSupUrl = new ArrayList<>();
                     List<Double> h3BdPer = new ArrayList<>();
                     List<String> h3BdName = new ArrayList<>();
                     List<String> h3BdSource = new ArrayList<>();
@@ -1299,6 +1302,9 @@
                     List<Integer> h3BdHits = new ArrayList<>();
                     List<Integer> h3BdCount = new ArrayList<>();
                     List<String> h3BdTime = new ArrayList<>();
+                    List<String> h3BdApiName = new ArrayList<>();
+                    List<String> h3BdTransaction = new ArrayList<>();
+                    List<String> h3BdSupUrl = new ArrayList<>();
                     List<Double> h3MixedPer = new ArrayList<>();
                     List<String> h3MixedName = new ArrayList<>();
                     List<String> h3MixedSource = new ArrayList<>();
@@ -1307,9 +1313,12 @@
                     List<Integer> h3MixedTd = new ArrayList<>();
                     List<Integer> h3MixedBd = new ArrayList<>();
                     List<String> h3MixedTime = new ArrayList<>();
+                    List<String> h3MixedApiName = new ArrayList<>();
+                    List<String> h3MixedTransaction = new ArrayList<>();
+                    List<String> h3MixedSupUrl = new ArrayList<>();
                     
                     try {
-                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,error_code,source_id, issue_time from thirdparty_100_percentage_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from thirdparty_100_percentage_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
+                        String q = "select * from (select api_name,sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, sum(bd) as bd, round(avg(bd_per),2) as bd_per, SUM(SI_EEROR) AS SI_EEROR, round(AVG(SI_EEROR_PR), 2) AS SI_EEROR_PR, case when (sum(td_percent) <> 0 and sum(bd_per) <> 0) then round(round(avg(td_percent),2) + round(avg(bd_per),2)) else 0 end as tdbd_per,error_code,source_id, issue_time from thirdparty_100_percentage_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570','SI015')) GROUP BY api_name,sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from thirdparty_100_percentage_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD_PERCENT") == 100) {
@@ -1321,6 +1330,9 @@
                                 h3TdCount.add(rs.getInt("td"));
                                 h3TdTime.add(nvl(rs.getString("issue_time"), "N/A"));
                                 h3TdSi.add(rs.getInt("SI_EEROR"));
+                                h3TdApiName.add(nvl(rs.getString("api_name"), "N/A"));
+                                h3TdTransaction.add(nvl(rs.getString("transaction_urn"), "N/A"));
+                                h3TdSupUrl.add(nvl(rs.getString("sup_url"), "N/A"));
                             }
                             if(rs.getDouble("BD_PER") == 100) {
                                 h3BdPer.add(rs.getDouble("BD_PER"));
@@ -1330,6 +1342,9 @@
                                 h3BdHits.add(rs.getInt("total_hits"));
                                 h3BdCount.add(rs.getInt("bd"));
                                 h3BdTime.add(nvl(rs.getString("issue_time"), "N/A"));
+                                h3BdApiName.add(nvl(rs.getString("api_name"), "N/A"));
+                                h3BdTransaction.add(nvl(rs.getString("transaction_urn"), "N/A"));
+                                h3BdSupUrl.add(nvl(rs.getString("sup_url"), "N/A"));
                             }
                             if(rs.getDouble("tdbd_per") == 100) {
                                 h3MixedPer.add(rs.getDouble("tdbd_per"));
@@ -1340,6 +1355,9 @@
                                 h3MixedTd.add(rs.getInt("td"));
                                 h3MixedBd.add(rs.getInt("bd"));
                                 h3MixedTime.add(nvl(rs.getString("issue_time"), "N/A"));
+                                h3MixedApiName.add(nvl(rs.getString("api_name"), "N/A"));
+                                h3MixedTransaction.add(nvl(rs.getString("transaction_urn"), "N/A"));
+                                h3MixedSupUrl.add(nvl(rs.getString("sup_url"), "N/A"));
                             }
                         }
                         rs.close();
@@ -1347,39 +1365,90 @@
                     
                     int maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 35);
                     int h3Idx = 0;
+                    
+                    // TD
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
                         String tip = "⚠ TD 100% | " + h3TdName.get(i);
-                        String alertMsg = "<b>Service:</b> " + h3TdName.get(i) + "<br><b>Source:</b> " + h3TdSource.get(i) + "<br><b>Error:</b> " + h3TdError.get(i) + "<br><b>Hits:</b> " + h3TdHits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h3TdCount.get(i) + "</span><br><b>SI Error:</b> " + h3TdSi.get(i) + "<br><b>Time:</b> " + h3TdTime.get(i);
+                        String alertMsg = "<b>API Name:</b> " + h3TdApiName.get(i) + 
+                                         "<br><b>Service:</b> " + h3TdName.get(i) + 
+                                         "<br><b>Transaction URN:</b> " + h3TdTransaction.get(i) + 
+                                         "<br><b>SUP URL:</b> " + h3TdSupUrl.get(i) + 
+                                         "<br><b>Source:</b> " + h3TdSource.get(i) + 
+                                         "<br><b>Error:</b> " + h3TdError.get(i) + 
+                                         "<br><b>Hits:</b> " + h3TdHits.get(i) + 
+                                         "<br><b>TD Count:</b> <span class='highlight-td'>" + h3TdCount.get(i) + "</span>" + 
+                                         "<br><b>SI Error:</b> " + h3TdSi.get(i) + 
+                                         "<br><b>Time:</b> " + h3TdTime.get(i);
                         String name = h3TdName.get(i).replace("'", "\\'");
-                        String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','TD','" + h3TdSource.get(i).replace("'", "\\'") + "','" + h3TdError.get(i).replace("'", "\\'") + "','" + h3TdHits.get(i) + "','" + h3TdCount.get(i) + "','" + h3TdTime.get(i).replace("'", "\\'") + "')\"";
+                        String source = h3TdSource.get(i).replace("'", "\\'");
+                        String error = h3TdError.get(i).replace("'", "\\'");
+                        String time = h3TdTime.get(i).replace("'", "\\'");
+                        String apiName = h3TdApiName.get(i).replace("'", "\\'");
+                        String transaction = h3TdTransaction.get(i).replace("'", "\\'");
+                        String supurl = h3TdSupUrl.get(i).replace("'", "\\'");
+                        String onclick = "onclick=\"openModal100Full('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','TD','" + source + "','" + error + "','" + h3TdHits.get(i) + "','" + h3TdCount.get(i) + "','" + time + "','" + transaction + "','" + supurl + "','" + name + "','" + apiName + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-td' " + onclick + ">");
                         out.print("<span class='val'>100%</span><span class='sub-text'>TD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         h3Idx++;
                     }
+                    
+                    // BD
                     for(int i = 0; i < h3BdPer.size(); i++) {
                         String cls = "tile tile-bd pulse";
                         String tip = "⚠ BD 100% | " + h3BdName.get(i);
-                        String alertMsg = "<b>Service:</b> " + h3BdName.get(i) + "<br><b>Source:</b> " + h3BdSource.get(i) + "<br><b>Error:</b> " + h3BdError.get(i) + "<br><b>Hits:</b> " + h3BdHits.get(i) + "<br><b>BD Count:</b> <span class='highlight-bd'>" + h3BdCount.get(i) + "</span><br><b>Time:</b> " + h3BdTime.get(i);
+                        String alertMsg = "<b>API Name:</b> " + h3BdApiName.get(i) + 
+                                         "<br><b>Service:</b> " + h3BdName.get(i) + 
+                                         "<br><b>Transaction URN:</b> " + h3BdTransaction.get(i) + 
+                                         "<br><b>SUP URL:</b> " + h3BdSupUrl.get(i) + 
+                                         "<br><b>Source:</b> " + h3BdSource.get(i) + 
+                                         "<br><b>Error:</b> " + h3BdError.get(i) + 
+                                         "<br><b>Hits:</b> " + h3BdHits.get(i) + 
+                                         "<br><b>BD Count:</b> <span class='highlight-bd'>" + h3BdCount.get(i) + "</span>" + 
+                                         "<br><b>Time:</b> " + h3BdTime.get(i);
                         String name = h3BdName.get(i).replace("'", "\\'");
-                        String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','BD','" + h3BdSource.get(i).replace("'", "\\'") + "','" + h3BdError.get(i).replace("'", "\\'") + "','" + h3BdHits.get(i) + "','" + h3BdCount.get(i) + "','" + h3BdTime.get(i).replace("'", "\\'") + "')\"";
+                        String source = h3BdSource.get(i).replace("'", "\\'");
+                        String error = h3BdError.get(i).replace("'", "\\'");
+                        String time = h3BdTime.get(i).replace("'", "\\'");
+                        String apiName = h3BdApiName.get(i).replace("'", "\\'");
+                        String transaction = h3BdTransaction.get(i).replace("'", "\\'");
+                        String supurl = h3BdSupUrl.get(i).replace("'", "\\'");
+                        String onclick = "onclick=\"openModal100Full('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','BD','" + source + "','" + error + "','" + h3BdHits.get(i) + "','" + h3BdCount.get(i) + "','" + time + "','" + transaction + "','" + supurl + "','" + name + "','" + apiName + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-bd' " + onclick + ">");
                         out.print("<span class='val'>100%</span><span class='sub-text'>BD</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         h3Idx++;
                     }
+                    
+                    // MIXED
                     for(int i = 0; i < h3MixedPer.size(); i++) {
                         String cls = "tile tile-mixed pulse";
                         String tip = "⚠ Mixed 100% | " + h3MixedName.get(i);
-                        String alertMsg = "<b>Service:</b> " + h3MixedName.get(i) + "<br><b>Source:</b> " + h3MixedSource.get(i) + "<br><b>Error:</b> " + h3MixedError.get(i) + "<br><b>Hits:</b> " + h3MixedHits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + h3MixedTd.get(i) + "</span><br><b>BD Count:</b> <span class='highlight-bd'>" + h3MixedBd.get(i) + "</span><br><b>Time:</b> " + h3MixedTime.get(i);
+                        String alertMsg = "<b>API Name:</b> " + h3MixedApiName.get(i) + 
+                                         "<br><b>Service:</b> " + h3MixedName.get(i) + 
+                                         "<br><b>Transaction URN:</b> " + h3MixedTransaction.get(i) + 
+                                         "<br><b>SUP URL:</b> " + h3MixedSupUrl.get(i) + 
+                                         "<br><b>Source:</b> " + h3MixedSource.get(i) + 
+                                         "<br><b>Error:</b> " + h3MixedError.get(i) + 
+                                         "<br><b>Hits:</b> " + h3MixedHits.get(i) + 
+                                         "<br><b>TD Count:</b> <span class='highlight-td'>" + h3MixedTd.get(i) + "</span>" + 
+                                         "<br><b>BD Count:</b> <span class='highlight-bd'>" + h3MixedBd.get(i) + "</span>" + 
+                                         "<br><b>Time:</b> " + h3MixedTime.get(i);
                         String name = h3MixedName.get(i).replace("'", "\\'");
-                        String onclick = "onclick=\"openModal100('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','MIXED','" + h3MixedSource.get(i).replace("'", "\\'") + "','" + h3MixedError.get(i).replace("'", "\\'") + "','" + h3MixedHits.get(i) + "','" + h3MixedTd.get(i) + "','" + h3MixedTime.get(i).replace("'", "\\'") + "')\"";
+                        String source = h3MixedSource.get(i).replace("'", "\\'");
+                        String error = h3MixedError.get(i).replace("'", "\\'");
+                        String time = h3MixedTime.get(i).replace("'", "\\'");
+                        String apiName = h3MixedApiName.get(i).replace("'", "\\'");
+                        String transaction = h3MixedTransaction.get(i).replace("'", "\\'");
+                        String supurl = h3MixedSupUrl.get(i).replace("'", "\\'");
+                        String onclick = "onclick=\"openModal100Full('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','MIXED','" + source + "','" + error + "','" + h3MixedHits.get(i) + "','" + h3MixedTd.get(i) + "','" + time + "','" + transaction + "','" + supurl + "','" + name + "','" + apiName + "')\"";
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='tip-mixed' " + onclick + ">");
                         out.print("<span class='val'>100%</span><span class='sub-text'>MIX</span>");
                         out.print("<div class='bar'><div class='fill'></div></div></div>");
                         h3Idx++;
                     }
+                    
                     for(int k = h3Idx; k < maxTiles; k++) {
                         out.print("<div class='tile tile-hundred-healthy' data-tip='✅ Healthy' data-tip-class='tip-healthy'>");
                         out.print("<span class='val'>✓</span><span class='sub-text'>HEALTHY</span>");
@@ -1529,7 +1598,7 @@
     }
     countdownTimer('ten-countdown', 5, 0);
     
-    // MODAL - ServiceWise (with all fields in correct order)
+    // MODAL - ServiceWise
     function openModal(msg, api, cat, type, src, err, hits, td, time, transaction, supurl, originalurn, apiname) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
@@ -1551,7 +1620,29 @@
         document.getElementById('closeName').value = '';
     }
     
-    // MODAL - 100%
+    // MODAL - 100% (with full fields)
+    function openModal100Full(msg, api, cat, type, src, err, hits, td, time, transaction, supurl, originalurn, apiname) {
+        mApi = api || '';
+        mCat = cat || 'GEN-5';
+        mType = type || 'TD';
+        mSource = src || '';
+        mError = err || '';
+        mHits = hits || '';
+        mTD = td || '';
+        mTime = time || '';
+        mTransaction = transaction || '';
+        mSupUrl = supurl || '';
+        mOriginalUrn = originalurn || '';
+        mApiName = apiname || '';
+        isHundred = true;
+        document.getElementById('modalTitle').textContent = '100% Failure Alert';
+        document.getElementById('modalMsg').innerHTML = msg;
+        document.getElementById('modalContainer').style.display = 'flex';
+        document.getElementById('TextArea').value = '';
+        document.getElementById('closeName').value = '';
+    }
+    
+    // MODAL - 100% (simple for GEN-5)
     function openModal100(msg, api, cat, type, src, err, hits, td, time) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
@@ -1621,7 +1712,11 @@
                     + '&ErrorCode=' + encodeURIComponent(mError)
                     + '&closeName=' + encodeURIComponent(closer)
                     + '&ServiceCategory=' + encodeURIComponent(mCat)
-                    + '&FailureType=' + encodeURIComponent(mType);
+                    + '&FailureType=' + encodeURIComponent(mType)
+                    + '&TransactionURN=' + encodeURIComponent(mTransaction)
+                    + '&SupUrl=' + encodeURIComponent(mSupUrl)
+                    + '&OriginalUrn=' + encodeURIComponent(mOriginalUrn)
+                    + '&ApiName=' + encodeURIComponent(mApiName);
             } else {
                 url = '<%=request.getContextPath() %>/jsp/ServiceWiseFailureAction.jsp?Api_Name=' 
                     + encodeURIComponent(mApi)
