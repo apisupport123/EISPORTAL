@@ -727,7 +727,7 @@
     <div class="grid-main">
 
         <!-- ============================================================ -->
-        <!-- CARD 1: GEN-5 -->
+        <!-- CARD 1: GEN-5 (NO CHANGE) -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -807,7 +807,7 @@
         </div> --%>
 
         <!-- ============================================================ -->
-        <!-- CARD 3: ThirdParty -->
+        <!-- CARD 3: ThirdParty (FULL FIELDS ADDED) -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -824,22 +824,24 @@
                     List<Integer> thirdTd = new ArrayList<>();
                     List<String> thirdTime = new ArrayList<>();
                     List<Integer> thirdSi = new ArrayList<>();
+                    List<String> thirdApiName = new ArrayList<>();
                     List<String> thirdTransaction = new ArrayList<>();
                     List<String> thirdSupUrl = new ArrayList<>();
                     
                     try {
-                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
+                        String q = "select * from (select api_name,sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
                                 thirdPer.add(rs.getDouble("TD_PERCENT"));
                                 thirdName.add(nvl(rs.getString("original_urn"), "N/A"));
-                                thirdSource.add(nvl(rs.getString("Source_id"), "N/A"));
+                                thirdSource.add(nvl(rs.getString("source_id"), "N/A"));
                                 thirdError.add(nvl(rs.getString("error_code"), "N/A"));
                                 thirdHits.add(rs.getInt("TOTAL_HITS"));
                                 thirdTd.add(rs.getInt("TD"));
                                 thirdTime.add(nvl(rs.getString("issue_time"), "N/A"));
                                 thirdSi.add(rs.getInt("SI_EEROR"));
+                                thirdApiName.add(nvl(rs.getString("api_name"), "N/A"));
                                 thirdTransaction.add(nvl(rs.getString("transaction_urn"), "N/A"));
                                 thirdSupUrl.add(nvl(rs.getString("sup_url"), "N/A"));
                             }
@@ -847,7 +849,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(thirdPer.size(), 35);
+                    int maxTiles = Math.max(thirdPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -864,23 +866,25 @@
                             bar = "80%";
                             tip = "⚠ " + thirdName.get(i) + " | TD: " + thirdTd.get(i);
                             tipClass = "tip-critical";
-                            String alertMsg = "<b>Service:</b> " + thirdName.get(i) + 
+                            String alertMsg = "<b>API Name:</b> " + thirdApiName.get(i) + 
+                                             "<br><b>Service:</b> " + thirdName.get(i) + 
+                                             "<br><b>Transaction URN:</b> " + thirdTransaction.get(i) + 
+                                             "<br><b>SUP URL:</b> " + thirdSupUrl.get(i) + 
                                              "<br><b>Source:</b> " + thirdSource.get(i) + 
                                              "<br><b>Error:</b> " + thirdError.get(i) + 
                                              "<br><b>Hits:</b> " + thirdHits.get(i) + 
                                              "<br><b>TD Count:</b> <span class='highlight-td'>" + thirdTd.get(i) + "</span>" + 
                                              "<br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span>" + 
                                              "<br><b>SI Error:</b> " + thirdSi.get(i) + 
-                                             "<br><b>Transaction URN:</b> " + thirdTransaction.get(i) + 
-                                             "<br><b>SUP URL:</b> " + thirdSupUrl.get(i) + 
                                              "<br><b>Time:</b> " + thirdTime.get(i);
                             String name = thirdName.get(i).replace("'", "\\'");
                             String source = thirdSource.get(i).replace("'", "\\'");
                             String error = thirdError.get(i).replace("'", "\\'");
                             String time = thirdTime.get(i).replace("'", "\\'");
+                            String apiName = thirdApiName.get(i).replace("'", "\\'");
                             String transaction = thirdTransaction.get(i).replace("'", "\\'");
                             String supurl = thirdSupUrl.get(i).replace("'", "\\'");
-                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','ServiceWise','" + source + "','" + error + "','" + thirdHits.get(i) + "','" + thirdTd.get(i) + "','" + time + "','" + transaction + "','" + supurl + "','" + name + "')\"";
+                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','ServiceWise','" + source + "','" + error + "','" + thirdHits.get(i) + "','" + thirdTd.get(i) + "','" + time + "','" + transaction + "','" + supurl + "','" + name + "','" + apiName + "')\"";
                         }
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='" + tipClass + "' " + onclick + ">");
                         out.print("<span class='val'>" + val + "</span>");
@@ -893,7 +897,7 @@
         </div>
 
         <!-- ============================================================ -->
-        <!-- CARD 4: Combined (I4C·IVR·CAPS) -->
+        <!-- CARD 4: Combined (I4C·IVR·CAPS) (NO CHANGE) -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -960,7 +964,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(mixPer.size(), 35);
+                    int maxTiles = Math.max(mixPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -983,7 +987,7 @@
                             String source = mixSource.get(i).replace("'", "\\'");
                             String error = mixError.get(i).replace("'", "\\'");
                             String time = mixTime.get(i).replace("'", "\\'");
-                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','" + cat + "','ServiceWise','" + source + "','" + error + "','" + mixHits.get(i) + "','" + mixTd.get(i) + "','" + time + "','','','')\"";
+                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','" + cat + "','ServiceWise','" + source + "','" + error + "','" + mixHits.get(i) + "','" + mixTd.get(i) + "','" + time + "','','','','')\"";
                         }
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='" + tipClass + "' " + onclick + ">");
                         out.print("<span class='val'>" + val + "</span>");
@@ -1071,7 +1075,7 @@
 
 <script>
     var mApi = '', mCat = '', mType = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
-    var mTransaction = '', mSupUrl = '', mOriginalUrn = '';
+    var mTransaction = '', mSupUrl = '', mOriginalUrn = '', mApiName = '';
     var isHundred = false;
     
     // TOOLTIP
@@ -1136,7 +1140,7 @@
     countdownTimer('ten-countdown', 5, 0);
     
     // MODAL
-    function openModal(msg, api, cat, type, src, err, hits, td, time, transaction, supurl, originalurn) {
+    function openModal(msg, api, cat, type, src, err, hits, td, time, transaction, supurl, originalurn, apiname) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
         mType = type || 'ServiceWise';
@@ -1148,6 +1152,7 @@
         mTransaction = transaction || '';
         mSupUrl = supurl || '';
         mOriginalUrn = originalurn || '';
+        mApiName = apiname || '';
         isHundred = false;
         document.getElementById('modalTitle').textContent = 'Service Alert';
         document.getElementById('modalMsg').innerHTML = msg;
@@ -1196,7 +1201,8 @@
                 + '&ServiceCategory=' + encodeURIComponent(mCat)
                 + '&TransactionURN=' + encodeURIComponent(mTransaction)
                 + '&SupUrl=' + encodeURIComponent(mSupUrl)
-                + '&OriginalUrn=' + encodeURIComponent(mOriginalUrn);
+                + '&OriginalUrn=' + encodeURIComponent(mOriginalUrn)
+                + '&ApiName=' + encodeURIComponent(mApiName);
             
             closeModal();
             location.replace(url);
