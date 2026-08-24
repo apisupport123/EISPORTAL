@@ -375,7 +375,7 @@
     }
     .timestamp-display i { margin-right: 4px; }
     
-    /* MAIN GRID - 5 CARDS */
+    /* MAIN GRID - 5 CARDS (SI COMMENTED) */
     .grid-main {
         flex: 1;
         display: grid;
@@ -384,7 +384,7 @@
         min-height: 0;
     }
     
-    /* CARDS */
+    /* CARDS - COMPACT */
     .card-modern {
         background: rgba(255,255,255,0.015);
         border-radius: 10px;
@@ -431,7 +431,7 @@
         border-color: rgba(231,76,60,0.08);
     }
     
-    /* TILE GRID */
+    /* TILE GRID - COMPACT */
     .tile-grid {
         flex: 1;
         padding: 2px 4px 4px 4px;
@@ -448,7 +448,7 @@
     .tile-grid::-webkit-scrollbar-thumb { background: rgba(79,156,247,0.2); border-radius: 10px; }
     .tile-grid::-webkit-scrollbar-track { background: transparent; }
     
-    /* TILES */
+    /* TILES - COMPACT SIZE */
     .tile {
         display: flex;
         flex-direction: column;
@@ -955,7 +955,7 @@
         </div> --%>
 
         <!-- ============================================================ -->
-        <!-- CARD 3: ServiceWise - ThirdParty -->
+        <!-- CARD 3: ServiceWise - ThirdParty (FIELDS ORDER FIXED) -->
         <!-- ============================================================ -->
         <div class="card-modern">
             <div class="card-header-modern">
@@ -972,26 +972,32 @@
                     List<Integer> swThirdTd = new ArrayList<>();
                     List<String> swThirdTime = new ArrayList<>();
                     List<Integer> swThirdSi = new ArrayList<>();
+                    List<String> swThirdApiName = new ArrayList<>();
+                    List<String> swThirdTransaction = new ArrayList<>();
+                    List<String> swThirdSupUrl = new ArrayList<>();
                     
                     try {
-                        String q = "select * from (select sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
+                        String q = "select * from (select api_name,sup_url,transaction_urn,original_urn, sum(total_hits) as total_hits, sum(td) as td, round(avg(td_percent),2) as td_percent, SUM(SI_EEROR) AS SI_EEROR, error_code,source_id, issue_time from gen5_ThirdParty_servicewise_fail TEMP where trim(CONCAT(temp.sup_url,temp.SOURCE_ID)) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description) from vaild_bd_master) and insert_time >= SYSDATE - INTERVAL '10' minute and original_urn not in (select service_name from service_temporary_pause_master where service_name is not null) AND trim(temp.error_code ) not in (select DISTINCT trim(ERRCODE) FROM cbs_err_map WHERE substr(errcode,3,3) NOT in ('002','014') OR errcode in ('SI001','SI007','SI051','SI569','SI570')) GROUP BY api_name,sup_url,transaction_urn,original_urn,error_code,source_id,issue_time order by 2 desc) TEMP where issue_time = (select max(issue_time) from gen5_ThirdParty_servicewise_fail temp_in where temp_in.sup_url = temp.sup_url group by sup_url)";
                         ResultSet rs = con.createStatement().executeQuery(q);
                         while(rs.next()) {
                             if(rs.getDouble("TD") >= 50) {
                                 swThirdPer.add(rs.getDouble("TD_PERCENT"));
                                 swThirdName.add(nvl(rs.getString("original_urn"), "N/A"));
-                                swThirdSource.add(nvl(rs.getString("Source_id"), "N/A"));
+                                swThirdSource.add(nvl(rs.getString("source_id"), "N/A"));
                                 swThirdError.add(nvl(rs.getString("error_code"), "N/A"));
                                 swThirdHits.add(rs.getInt("TOTAL_HITS"));
                                 swThirdTd.add(rs.getInt("TD"));
                                 swThirdTime.add(nvl(rs.getString("issue_time"), "N/A"));
                                 swThirdSi.add(rs.getInt("SI_EEROR"));
+                                swThirdApiName.add(nvl(rs.getString("api_name"), "N/A"));
+                                swThirdTransaction.add(nvl(rs.getString("transaction_urn"), "N/A"));
+                                swThirdSupUrl.add(nvl(rs.getString("sup_url"), "N/A"));
                             }
                         }
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(swThirdPer.size(), 35);
+                    int maxTiles = Math.max(swThirdPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1008,9 +1014,25 @@
                             bar = "80%";
                             tip = "⚠ " + swThirdName.get(i) + " | TD: " + swThirdTd.get(i);
                             tipClass = "tip-critical";
-                            String alertMsg = "<b>Service:</b> " + swThirdName.get(i) + "<br><b>Error:</b> " + swThirdError.get(i) + "<br><b>Source:</b> " + swThirdSource.get(i) + "<br><b>Hits:</b> " + swThirdHits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + swThirdTd.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>SI Error:</b> " + swThirdSi.get(i) + "<br><b>Time:</b> " + swThirdTime.get(i);
+                            String alertMsg = "<b>API Name:</b> " + swThirdApiName.get(i) + 
+                                             "<br><b>Service:</b> " + swThirdName.get(i) + 
+                                             "<br><b>Transaction URN:</b> " + swThirdTransaction.get(i) + 
+                                             "<br><b>SUP URL:</b> " + swThirdSupUrl.get(i) + 
+                                             "<br><b>Source:</b> " + swThirdSource.get(i) + 
+                                             "<br><b>Error:</b> " + swThirdError.get(i) + 
+                                             "<br><b>Hits:</b> " + swThirdHits.get(i) + 
+                                             "<br><b>TD Count:</b> <span class='highlight-td'>" + swThirdTd.get(i) + "</span>" + 
+                                             "<br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span>" + 
+                                             "<br><b>SI Error:</b> " + swThirdSi.get(i) + 
+                                             "<br><b>Time:</b> " + swThirdTime.get(i);
                             String name = swThirdName.get(i).replace("'", "\\'");
-                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','ServiceWise','" + swThirdSource.get(i).replace("'", "\\'") + "','" + swThirdError.get(i).replace("'", "\\'") + "','" + swThirdHits.get(i) + "','" + swThirdTd.get(i) + "','" + swThirdTime.get(i).replace("'", "\\'") + "')\"";
+                            String source = swThirdSource.get(i).replace("'", "\\'");
+                            String error = swThirdError.get(i).replace("'", "\\'");
+                            String time = swThirdTime.get(i).replace("'", "\\'");
+                            String apiName = swThirdApiName.get(i).replace("'", "\\'");
+                            String transaction = swThirdTransaction.get(i).replace("'", "\\'");
+                            String supurl = swThirdSupUrl.get(i).replace("'", "\\'");
+                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','ThirdParty','ServiceWise','" + source + "','" + error + "','" + swThirdHits.get(i) + "','" + swThirdTd.get(i) + "','" + time + "','" + transaction + "','" + supurl + "','" + name + "','" + apiName + "')\"";
                         }
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='" + tipClass + "' " + onclick + ">");
                         out.print("<span class='val'>" + val + "</span>");
@@ -1090,7 +1112,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(swCombPer.size(), 35);
+                    int maxTiles = Math.max(swCombPer.size(), 35);
                     for(int i = 0; i < maxTiles; i++) {
                         String cls = "tile tile-healthy";
                         String val = "✓";
@@ -1110,7 +1132,10 @@
                             String alertMsg = "<b>Service:</b> " + swCombName.get(i) + "<br><b>Category:</b> " + swCombCat.get(i) + "<br><b>Error:</b> " + swCombError.get(i) + "<br><b>Source:</b> " + swCombSource.get(i) + "<br><b>Hits:</b> " + swCombHits.get(i) + "<br><b>TD Count:</b> <span class='highlight-td'>" + swCombTd.get(i) + "</span><br><b>Fail %:</b> <span class='highlight-td'>" + String.format("%.2f", pct) + "%</span><br><b>Time:</b> " + swCombTime.get(i);
                             String name = swCombName.get(i).replace("'", "\\'");
                             String cat = swCombCat.get(i).replace("'", "\\'");
-                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','" + cat + "','ServiceWise','" + swCombSource.get(i).replace("'", "\\'") + "','" + swCombError.get(i).replace("'", "\\'") + "','" + swCombHits.get(i) + "','" + swCombTd.get(i) + "','" + swCombTime.get(i).replace("'", "\\'") + "')\"";
+                            String source = swCombSource.get(i).replace("'", "\\'");
+                            String error = swCombError.get(i).replace("'", "\\'");
+                            String time = swCombTime.get(i).replace("'", "\\'");
+                            onclick = "onclick=\"openModal('" + alertMsg.replace("'", "\\'") + "','" + name + "','" + cat + "','ServiceWise','" + source + "','" + error + "','" + swCombHits.get(i) + "','" + swCombTd.get(i) + "','" + time + "','','','','')\"";
                         }
                         out.print("<div class='" + cls + "' data-tip='" + tip + "' data-tip-class='" + tipClass + "' " + onclick + ">");
                         out.print("<span class='val'>" + val + "</span>");
@@ -1193,7 +1218,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 35);
+                    int maxTiles = Math.max(hTdPer.size() + hBdPer.size() + hMixedPer.size(), 35);
                     int hIdx = 0;
                     for(int i = 0; i < hTdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1320,7 +1345,7 @@
                         rs.close();
                     } catch(Exception e) { e.printStackTrace(); }
                     
-                    maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 35);
+                    int maxTiles = Math.max(h3TdPer.size() + h3BdPer.size() + h3MixedPer.size(), 35);
                     int h3Idx = 0;
                     for(int i = 0; i < h3TdPer.size(); i++) {
                         String cls = "tile tile-td pulse";
@@ -1440,6 +1465,7 @@
 
 <script>
     var mApi = '', mCat = '', mType = '', mSource = '', mError = '', mHits = '', mTD = '', mTime = '';
+    var mTransaction = '', mSupUrl = '', mOriginalUrn = '', mApiName = '';
     var isHundred = false;
     
     // TOOLTIP
@@ -1503,8 +1529,8 @@
     }
     countdownTimer('ten-countdown', 5, 0);
     
-    // MODAL - ServiceWise
-    function openModal(msg, api, cat, type, src, err, hits, td, time) {
+    // MODAL - ServiceWise (with all fields in correct order)
+    function openModal(msg, api, cat, type, src, err, hits, td, time, transaction, supurl, originalurn, apiname) {
         mApi = api || '';
         mCat = cat || 'GEN-5';
         mType = type || 'ServiceWise';
@@ -1513,6 +1539,10 @@
         mHits = hits || '';
         mTD = td || '';
         mTime = time || '';
+        mTransaction = transaction || '';
+        mSupUrl = supurl || '';
+        mOriginalUrn = originalurn || '';
+        mApiName = apiname || '';
         isHundred = false;
         document.getElementById('modalTitle').textContent = 'Service Alert';
         document.getElementById('modalMsg').innerHTML = msg;
@@ -1531,6 +1561,10 @@
         mHits = hits || '';
         mTD = td || '';
         mTime = time || '';
+        mTransaction = '';
+        mSupUrl = '';
+        mOriginalUrn = '';
+        mApiName = '';
         isHundred = true;
         document.getElementById('modalTitle').textContent = '100% Failure Alert';
         document.getElementById('modalMsg').innerHTML = msg;
@@ -1596,7 +1630,11 @@
                     + '&pasuseTime=' + encodeURIComponent(pTime)
                     + '&ErrorCode=' + encodeURIComponent(mError)
                     + '&closeName=' + encodeURIComponent(closer)
-                    + '&ServiceCategory=' + encodeURIComponent(mCat);
+                    + '&ServiceCategory=' + encodeURIComponent(mCat)
+                    + '&TransactionURN=' + encodeURIComponent(mTransaction)
+                    + '&SupUrl=' + encodeURIComponent(mSupUrl)
+                    + '&OriginalUrn=' + encodeURIComponent(mOriginalUrn)
+                    + '&ApiName=' + encodeURIComponent(mApiName);
             }
             
             closeModal();
