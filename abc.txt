@@ -1,8 +1,3 @@
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
 java.sql.SQLSyntaxErrorException: ORA-00904: "API_NAME": invalid identifier
 
 	at oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:509)
