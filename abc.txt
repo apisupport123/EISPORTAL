@@ -5,9 +5,9 @@
 
 <%!
     // ============================================================
-    // FIXED: computeDeadline - Proper sequential freeze logic
+    // FIXED: computeDeadline - Uses the actual current time's date
     // ============================================================
-    private java.util.Date computeDeadline(String taskName, java.sql.Date reportDate) {
+    private java.util.Date computeDeadline(String taskName, java.util.Date currentDate) {
         String[] parts = taskName.split("-");
         if (parts.length != 2) return null;
         String endStr = parts[1].trim();
@@ -15,7 +15,7 @@
         try {
             java.util.Date endTime = sdf.parse(endStr);
             Calendar cal = Calendar.getInstance();
-            cal.setTime(reportDate);
+            cal.setTime(currentDate);
             
             Calendar timeCal = Calendar.getInstance();
             timeCal.setTime(endTime);
@@ -154,9 +154,6 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
     }
 }
 
-// ============================================================
-// FIXED: For test mode, always use today's date
-// ============================================================
 if (!isCustomView) {
     if (isTestMode) {
         // In test mode, always use today's date for display
@@ -177,9 +174,6 @@ if (!isCustomView) {
 
 String displayDateStr = sdfDisplay.format(displayDate);
 
-// ============================================================
-// Global Frozen - Based on edit window
-// ============================================================
 boolean globalFrozen;
 if (isCustomView) {
     if (!displayDate.equals(todaySQL)) {
@@ -197,9 +191,13 @@ if (isTestMode) {
 }
 
 // ============================================================
-// FIXED: For test mode - use displayDate for all date calculations
+// FIXED: For deadline calculation, use the date from 'now'
 // ============================================================
-java.sql.Date effectiveDate = displayDate;
+java.util.Date deadlineBaseDate = now;
+
+// ============================================================
+// FIXED: For save, use the saveDate
+// ============================================================
 java.sql.Date effectiveSaveDate = saveDate;
 
 // ===== HANDLE SAVE =====
@@ -499,7 +497,7 @@ String[] slotFreezeTimes = new String[timeSlots.size()];
 int slotIdx = 0;
 for (Map<String, Object> row : timeSlots) {
     String taskName = (String) row.get("task_name");
-    java.util.Date deadline = computeDeadline(taskName, displayDate);
+    java.util.Date deadline = computeDeadline(taskName, deadlineBaseDate);
     if (deadline != null) {
         SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
         slotFreezeTimes[slotIdx] = sdfTime.format(deadline);
@@ -1381,7 +1379,7 @@ for (Map<String, Object> row : timeSlots) {
                     <% 
                     for (Map<String, Object> row : timeSlots) { 
                         String taskName = (String) row.get("task_name");
-                        java.util.Date deadline = computeDeadline(taskName, displayDate);
+                        java.util.Date deadline = computeDeadline(taskName, deadlineBaseDate);
                         String freezeTime = "N/A";
                         if (deadline != null) {
                             SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
@@ -1462,7 +1460,7 @@ for (Map<String, Object> row : timeSlots) {
                                 // ============================================================
                                 // FIXED: Individual slot freeze check with compareTo >= 0
                                 // ============================================================
-                                java.util.Date deadline = computeDeadline(taskName, effectiveDate);
+                                java.util.Date deadline = computeDeadline(taskName, deadlineBaseDate);
                                 if (deadline != null && now.compareTo(deadline) >= 0) {
                                     slotFrozen = true;
                                 }
