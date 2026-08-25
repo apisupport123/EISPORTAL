@@ -5,17 +5,16 @@
 
 <%!
     // ============================================================
-    // FIXED: computeDeadline - Uses the actual current time's date
+    // FIXED: computeFreezeTime - Returns freeze time as Calendar
     // ============================================================
-    private java.util.Date computeDeadline(String taskName, java.util.Date currentDate) {
+    private Calendar computeFreezeTime(String taskName, Calendar baseCal) {
         String[] parts = taskName.split("-");
         if (parts.length != 2) return null;
         String endStr = parts[1].trim();
         SimpleDateFormat sdf = new SimpleDateFormat("ha", Locale.US);
         try {
             java.util.Date endTime = sdf.parse(endStr);
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(currentDate);
+            Calendar cal = (Calendar) baseCal.clone();
             
             Calendar timeCal = Calendar.getInstance();
             timeCal.setTime(endTime);
@@ -24,7 +23,6 @@
             int endMinute = timeCal.get(Calendar.MINUTE);
             
             // For ALL AM slots (12:00 AM to 7:00 AM), add +1 day
-            // Because these slots end after midnight
             boolean isAM = (endHour >= 0 && endHour < 12);
             if (isAM) {
                 cal.add(Calendar.DATE, 1);
@@ -38,11 +36,43 @@
             // Add 45 minutes for freeze time
             cal.add(Calendar.MINUTE, 45);
             
-            return cal.getTime();
+            return cal;
         } catch (ParseException e) {
             e.printStackTrace();
             return null;
         }
+    }
+    
+    // ============================================================
+    // FIXED: Check if current time is >= freeze time (time-only comparison)
+    // ============================================================
+    private boolean isSlotFrozen(Calendar currentTime, Calendar freezeTime) {
+        if (currentTime == null || freezeTime == null) return false;
+        
+        // Extract just the time components (hour and minute)
+        int currentHour = currentTime.get(Calendar.HOUR_OF_DAY);
+        int currentMinute = currentTime.get(Calendar.MINUTE);
+        int freezeHour = freezeTime.get(Calendar.HOUR_OF_DAY);
+        int freezeMinute = freezeTime.get(Calendar.MINUTE);
+        
+        // Convert to minutes for easy comparison
+        int currentMinutes = currentHour * 60 + currentMinute;
+        int freezeMinutes = freezeHour * 60 + freezeMinute;
+        
+        // For AM slots (freeze time after midnight), we need to handle date boundary
+        // If freeze time is AM (0-11) and current time is PM (12-23), it's already frozen
+        // If both are AM or both are PM, compare minutes
+        boolean currentIsAM = (currentHour >= 0 && currentHour < 12);
+        boolean freezeIsAM = (freezeHour >= 0 && freezeHour < 12);
+        
+        // If current is PM and freeze is AM, it means freeze time is in next day
+        if (!currentIsAM && freezeIsAM) {
+            // If current time is PM, freeze time (AM next day) has already passed
+            return true;
+        }
+        
+        // If both are same period (both AM or both PM), compare minutes
+        return currentMinutes >= freezeMinutes;
     }
     
     private String NVL(String str, String defaultVal) {
@@ -156,11 +186,9 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
 
 if (!isCustomView) {
     if (isTestMode) {
-        // In test mode, always use today's date for display
         displayDate = todaySQL;
         saveDate = todaySQL;
     } else {
-        // Normal mode: before 4PM show yesterday, after 4PM show today
         boolean beforeFourPM = (hour < 16);
         if (beforeFourPM) {
             displayDate = yesterdaySQL;
@@ -185,19 +213,10 @@ if (isCustomView) {
     globalFrozen = !isEditable;
 }
 
-// For test mode, explicitly set globalFrozen based on isEditable
 if (isTestMode) {
     globalFrozen = !isEditable;
 }
 
-// ============================================================
-// FIXED: For deadline calculation, use the date from 'now'
-// ============================================================
-java.util.Date deadlineBaseDate = now;
-
-// ============================================================
-// FIXED: For save, use the saveDate
-// ============================================================
 java.sql.Date effectiveSaveDate = saveDate;
 
 // ===== HANDLE SAVE =====
@@ -497,10 +516,10 @@ String[] slotFreezeTimes = new String[timeSlots.size()];
 int slotIdx = 0;
 for (Map<String, Object> row : timeSlots) {
     String taskName = (String) row.get("task_name");
-    java.util.Date deadline = computeDeadline(taskName, deadlineBaseDate);
-    if (deadline != null) {
+    Calendar freezeCal = computeFreezeTime(taskName, nowCal);
+    if (freezeCal != null) {
         SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
-        slotFreezeTimes[slotIdx] = sdfTime.format(deadline);
+        slotFreezeTimes[slotIdx] = sdfTime.format(freezeCal.getTime());
     } else {
         slotFreezeTimes[slotIdx] = "N/A";
     }
@@ -1379,11 +1398,11 @@ for (Map<String, Object> row : timeSlots) {
                     <% 
                     for (Map<String, Object> row : timeSlots) { 
                         String taskName = (String) row.get("task_name");
-                        java.util.Date deadline = computeDeadline(taskName, deadlineBaseDate);
+                        Calendar freezeCal = computeFreezeTime(taskName, nowCal);
                         String freezeTime = "N/A";
-                        if (deadline != null) {
+                        if (freezeCal != null) {
                             SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
-                            freezeTime = sdfTime.format(deadline);
+                            freezeTime = sdfTime.format(freezeCal.getTime());
                         }
                     %>
                     <span><%= taskName %> → <strong><%= freezeTime %></strong></span>
@@ -1458,10 +1477,10 @@ for (Map<String, Object> row : timeSlots) {
                                 boolean slotFrozen = false;
                                 
                                 // ============================================================
-                                // FIXED: Individual slot freeze check with compareTo >= 0
+                                // FIXED: Check slot freeze using time-only comparison
                                 // ============================================================
-                                java.util.Date deadline = computeDeadline(taskName, deadlineBaseDate);
-                                if (deadline != null && now.compareTo(deadline) >= 0) {
+                                Calendar freezeCal = computeFreezeTime(taskName, nowCal);
+                                if (freezeCal != null && isSlotFrozen(nowCal, freezeCal)) {
                                     slotFrozen = true;
                                 }
                                 
@@ -1496,9 +1515,9 @@ for (Map<String, Object> row : timeSlots) {
                                 String lastUpdated = (ts != null) ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "";
                                 
                                 String freezeTimeDisplay = "N/A";
-                                if (deadline != null) {
+                                if (freezeCal != null) {
                                     SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
-                                    freezeTimeDisplay = sdfTime.format(deadline);
+                                    freezeTimeDisplay = sdfTime.format(freezeCal.getTime());
                                 }
                         %>
                         <tr class="<%= slotFrozen ? "frozen-row" : "" %>" id="row-ts-<%= tsCounter %>">
