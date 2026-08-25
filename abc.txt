@@ -23,21 +23,9 @@
             int endHour = timeCal.get(Calendar.HOUR_OF_DAY);
             int endMinute = timeCal.get(Calendar.MINUTE);
             
-            // ============================================================
-            // FIXED: Proper sequential freeze logic for night shift
-            // ============================================================
-            // Slot 1: 10:00 PM TO 12:00 AM -> Freezes at 12:45 AM (next day)
-            // Slot 2: 12:00 AM TO 02:00 AM -> Freezes at 02:45 AM (next day)
-            // Slot 3: 02:00 AM TO 04:00 AM -> Freezes at 04:45 AM (next day)
-            // Slot 4: 04:00 AM TO 06:00 AM -> Freezes at 06:45 AM (next day)
-            // Slot 5: 06:00 AM TO 07:00 AM -> Freezes at 07:45 AM (next day)
-            
-            // For ALL slots that end after midnight (12:00 AM to 7:00 AM),
-            // we need to add +1 day because the slot started on previous day
+            // For ALL AM slots (12:00 AM to 7:00 AM), add +1 day
+            // Because these slots end after midnight
             boolean isAM = (endHour >= 0 && endHour < 12);
-            
-            // For all AM slots (including 12:00 AM, 1:00 AM, 2:00 AM, etc.)
-            // add +1 day to the freeze time
             if (isAM) {
                 cal.add(Calendar.DATE, 1);
             }
@@ -129,15 +117,12 @@ if ("true".equals(testMode) && testHour != null && testMinute != null) {
 // Edit Window: 4:00 PM to 8:00 AM (next day)
 // ============================================================
 boolean isEditable = false;
-// Edit mode is ON when:
-// 1. Time is between 4:00 PM (16:00) and midnight (23:59) OR
-// 2. Time is between midnight (00:00) and 8:00 AM (08:00)
 if (hour >= 16 || hour < 8) {
     isEditable = true;
 }
 
 // ============================================================
-// FIXED: Display Date Logic
+// Display Date Logic
 // ============================================================
 Calendar todayCal = Calendar.getInstance();
 todayCal.set(Calendar.HOUR_OF_DAY, 0);
@@ -193,7 +178,7 @@ if (!isCustomView) {
 String displayDateStr = sdfDisplay.format(displayDate);
 
 // ============================================================
-// FIXED: Global Frozen - Based on edit window
+// Global Frozen - Based on edit window
 // ============================================================
 boolean globalFrozen;
 if (isCustomView) {
@@ -212,25 +197,11 @@ if (isTestMode) {
 }
 
 // ============================================================
-// FIXED: For test mode - Use displayDate for all date calculations
+// FIXED: For test mode - use displayDate for all date calculations
 // ============================================================
-// When in test mode, we want to use the displayDate (todaySQL) for all
-// date calculations, not the actual system date
 java.sql.Date effectiveDate = displayDate;
-
-// ============================================================
-// FIXED: Compute deadline with proper date
-// ============================================================
-// We need to compute deadline using the effective date
-// For test mode, use the displayDate
-java.sql.Date deadlineDate = effectiveDate;
-
-// For save operations, use the saveDate
 java.sql.Date effectiveSaveDate = saveDate;
 
-%>
-
-<%
 // ===== HANDLE SAVE =====
 String action = request.getParameter("action");
 String message = "";
@@ -1489,32 +1460,29 @@ for (Map<String, Object> row : timeSlots) {
                                 boolean slotFrozen = false;
                                 
                                 // ============================================================
-                                // FIXED: Proper sequential freeze check
+                                // FIXED: Individual slot freeze check with compareTo >= 0
                                 // ============================================================
-                                
-                                // Check 1: Individual slot freeze (45 min after end time)
-                                // For test mode, use the effective date
                                 java.util.Date deadline = computeDeadline(taskName, effectiveDate);
-                                if (deadline != null && now.after(deadline)) {
+                                if (deadline != null && now.compareTo(deadline) >= 0) {
                                     slotFrozen = true;
                                 }
                                 
-                                // Check 2: Custom view (past date) - Always read-only
+                                // Custom view (past date) - Always read-only
                                 if (isCustomView && !displayDate.equals(todaySQL)) {
                                     slotFrozen = true;
                                 }
                                 
-                                // Check 3: Past date - Always read-only
+                                // Past date - Always read-only
                                 if (displayDate.before(todaySQL)) {
                                     slotFrozen = true;
                                 }
                                 
-                                // Check 4: Global freeze (outside edit window)
+                                // Global freeze (outside edit window)
                                 if (globalFrozen) {
                                     slotFrozen = true;
                                 }
                                 
-                                // Check 5: All slots lock at 7:45 AM
+                                // All slots lock at 7:45 AM
                                 int currentMinutes = hour * 60 + minute;
                                 if (currentMinutes >= 7 * 60 + 45) {
                                     slotFrozen = true;
