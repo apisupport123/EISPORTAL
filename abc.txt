@@ -5,74 +5,68 @@
 
 <%!
     // ============================================================
-    // FIXED: computeFreezeTime - Returns freeze time as Calendar
+    // SIMPLIFIED: Get freeze time in minutes (0-1439)
     // ============================================================
-    private Calendar computeFreezeTime(String taskName, Calendar baseCal) {
+    private int getFreezeMinutes(String taskName) {
         String[] parts = taskName.split("-");
-        if (parts.length != 2) return null;
+        if (parts.length != 2) return -1;
         String endStr = parts[1].trim();
         SimpleDateFormat sdf = new SimpleDateFormat("ha", Locale.US);
         try {
             java.util.Date endTime = sdf.parse(endStr);
-            Calendar cal = (Calendar) baseCal.clone();
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(endTime);
             
-            Calendar timeCal = Calendar.getInstance();
-            timeCal.setTime(endTime);
-            
-            int endHour = timeCal.get(Calendar.HOUR_OF_DAY);
-            int endMinute = timeCal.get(Calendar.MINUTE);
-            
-            // For ALL AM slots (12:00 AM to 7:00 AM), add +1 day
-            boolean isAM = (endHour >= 0 && endHour < 12);
-            if (isAM) {
-                cal.add(Calendar.DATE, 1);
-            }
-            
-            cal.set(Calendar.HOUR_OF_DAY, endHour);
-            cal.set(Calendar.MINUTE, endMinute);
-            cal.set(Calendar.SECOND, 0);
-            cal.set(Calendar.MILLISECOND, 0);
+            int hour = cal.get(Calendar.HOUR_OF_DAY);
+            int minute = cal.get(Calendar.MINUTE);
             
             // Add 45 minutes for freeze time
-            cal.add(Calendar.MINUTE, 45);
+            int totalMinutes = hour * 60 + minute + 45;
             
-            return cal;
+            // For AM slots (12:00 AM to 7:00 AM), freeze time is next day
+            // So add 24 hours (1440 minutes)
+            if (hour >= 0 && hour < 12) {
+                totalMinutes += 1440; // Add one full day
+            }
+            
+            return totalMinutes;
         } catch (ParseException e) {
             e.printStackTrace();
-            return null;
+            return -1;
         }
     }
     
     // ============================================================
-    // FIXED: Check if current time is >= freeze time (time-only comparison)
+    // SIMPLIFIED: Check if current time >= freeze time
     // ============================================================
-    private boolean isSlotFrozen(Calendar currentTime, Calendar freezeTime) {
-        if (currentTime == null || freezeTime == null) return false;
+    private boolean isSlotFrozen(int currentMinutes, int freezeMinutes) {
+        if (freezeMinutes < 0) return false;
         
-        // Extract just the time components (hour and minute)
-        int currentHour = currentTime.get(Calendar.HOUR_OF_DAY);
-        int currentMinute = currentTime.get(Calendar.MINUTE);
-        int freezeHour = freezeTime.get(Calendar.HOUR_OF_DAY);
-        int freezeMinute = freezeTime.get(Calendar.MINUTE);
-        
-        // Convert to minutes for easy comparison
-        int currentMinutes = currentHour * 60 + currentMinute;
-        int freezeMinutes = freezeHour * 60 + freezeMinute;
-        
-        // For AM slots (freeze time after midnight), we need to handle date boundary
-        // If freeze time is AM (0-11) and current time is PM (12-23), it's already frozen
-        // If both are AM or both are PM, compare minutes
-        boolean currentIsAM = (currentHour >= 0 && currentHour < 12);
-        boolean freezeIsAM = (freezeHour >= 0 && freezeHour < 12);
-        
-        // If current is PM and freeze is AM, it means freeze time is in next day
-        if (!currentIsAM && freezeIsAM) {
-            // If current time is PM, freeze time (AM next day) has already passed
-            return true;
+        // If freeze time is in next day (>= 1440), adjust current time
+        if (freezeMinutes >= 1440) {
+            // Freeze time is next day
+            // Current time is today, so it's always before freeze time
+            // Unless current time is after midnight (0-7 AM) and freeze is next day
+            int adjustedFreeze = freezeMinutes - 1440;
+            int currentHour = currentMinutes / 60;
+            
+            // If current time is after 4 PM (edit window), freeze time is next day
+            // So it's not frozen yet
+            if (currentHour >= 16) {
+                return false;
+            }
+            
+            // If current time is between 12 AM and 7 AM, compare with adjusted freeze
+            if (currentHour >= 0 && currentHour < 8) {
+                return currentMinutes >= adjustedFreeze;
+            }
+            
+            // For other times, not frozen
+            return false;
+        } else {
+            // Freeze time is same day
+            return currentMinutes >= freezeMinutes;
         }
-        
-        // If both are same period (both AM or both PM), compare minutes
-        return currentMinutes >= freezeMinutes;
     }
     
     private String NVL(String str, String defaultVal) {
@@ -98,6 +92,9 @@ Calendar nowCal = Calendar.getInstance();
 java.util.Date now = nowCal.getTime();
 int hour = nowCal.get(Calendar.HOUR_OF_DAY);
 int minute = nowCal.get(Calendar.MINUTE);
+
+// Current time in minutes
+int currentMinutes = hour * 60 + minute;
 
 // ============================================================
 // TEST MODE - Handle test parameters from test JSP
@@ -136,6 +133,7 @@ if ("true".equals(testMode) && testHour != null && testMinute != null) {
         nowCal = forcedCal;
         hour = forcedHour;
         minute = forcedMinute;
+        currentMinutes = hour * 60 + minute;
         isTestMode = true;
         
     } catch (Exception e) {
@@ -516,10 +514,14 @@ String[] slotFreezeTimes = new String[timeSlots.size()];
 int slotIdx = 0;
 for (Map<String, Object> row : timeSlots) {
     String taskName = (String) row.get("task_name");
-    Calendar freezeCal = computeFreezeTime(taskName, nowCal);
-    if (freezeCal != null) {
-        SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
-        slotFreezeTimes[slotIdx] = sdfTime.format(freezeCal.getTime());
+    int freezeMin = getFreezeMinutes(taskName);
+    if (freezeMin >= 0) {
+        int displayHour = (freezeMin / 60) % 24;
+        int displayMin = freezeMin % 60;
+        String ampm = (displayHour >= 12) ? "PM" : "AM";
+        int displayHour12 = displayHour % 12;
+        if (displayHour12 == 0) displayHour12 = 12;
+        slotFreezeTimes[slotIdx] = String.format("%02d:%02d %s", displayHour12, displayMin, ampm);
     } else {
         slotFreezeTimes[slotIdx] = "N/A";
     }
@@ -1398,11 +1400,15 @@ for (Map<String, Object> row : timeSlots) {
                     <% 
                     for (Map<String, Object> row : timeSlots) { 
                         String taskName = (String) row.get("task_name");
-                        Calendar freezeCal = computeFreezeTime(taskName, nowCal);
+                        int freezeMin = getFreezeMinutes(taskName);
                         String freezeTime = "N/A";
-                        if (freezeCal != null) {
-                            SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
-                            freezeTime = sdfTime.format(freezeCal.getTime());
+                        if (freezeMin >= 0) {
+                            int displayHour = (freezeMin / 60) % 24;
+                            int displayMin = freezeMin % 60;
+                            String ampm = (displayHour >= 12) ? "PM" : "AM";
+                            int displayHour12 = displayHour % 12;
+                            if (displayHour12 == 0) displayHour12 = 12;
+                            freezeTime = String.format("%02d:%02d %s", displayHour12, displayMin, ampm);
                         }
                     %>
                     <span><%= taskName %> → <strong><%= freezeTime %></strong></span>
@@ -1477,10 +1483,10 @@ for (Map<String, Object> row : timeSlots) {
                                 boolean slotFrozen = false;
                                 
                                 // ============================================================
-                                // FIXED: Check slot freeze using time-only comparison
+                                // SIMPLIFIED: Check slot freeze using minutes comparison
                                 // ============================================================
-                                Calendar freezeCal = computeFreezeTime(taskName, nowCal);
-                                if (freezeCal != null && isSlotFrozen(nowCal, freezeCal)) {
+                                int freezeMin = getFreezeMinutes(taskName);
+                                if (freezeMin >= 0 && isSlotFrozen(currentMinutes, freezeMin)) {
                                     slotFrozen = true;
                                 }
                                 
@@ -1500,7 +1506,6 @@ for (Map<String, Object> row : timeSlots) {
                                 }
                                 
                                 // All slots lock at 7:45 AM
-                                int currentMinutes = hour * 60 + minute;
                                 if (currentMinutes >= 7 * 60 + 45) {
                                     slotFrozen = true;
                                 }
@@ -1515,9 +1520,13 @@ for (Map<String, Object> row : timeSlots) {
                                 String lastUpdated = (ts != null) ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "";
                                 
                                 String freezeTimeDisplay = "N/A";
-                                if (freezeCal != null) {
-                                    SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
-                                    freezeTimeDisplay = sdfTime.format(freezeCal.getTime());
+                                if (freezeMin >= 0) {
+                                    int displayHour = (freezeMin / 60) % 24;
+                                    int displayMin = freezeMin % 60;
+                                    String ampm = (displayHour >= 12) ? "PM" : "AM";
+                                    int displayHour12 = displayHour % 12;
+                                    if (displayHour12 == 0) displayHour12 = 12;
+                                    freezeTimeDisplay = String.format("%02d:%02d %s", displayHour12, displayMin, ampm);
                                 }
                         %>
                         <tr class="<%= slotFrozen ? "frozen-row" : "" %>" id="row-ts-<%= tsCounter %>">
