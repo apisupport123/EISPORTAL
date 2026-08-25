@@ -5,7 +5,7 @@
 
 <%!
     // ============================================================
-    // computeDeadline - Proper sequential freeze logic
+    // FIXED: computeDeadline - Proper sequential freeze logic
     // ============================================================
     private java.util.Date computeDeadline(String taskName, java.sql.Date reportDate) {
         String[] parts = taskName.split("-");
@@ -23,8 +23,33 @@
             int endHour = timeCal.get(Calendar.HOUR_OF_DAY);
             int endMinute = timeCal.get(Calendar.MINUTE);
             
+            // ===== FIXED: Proper sequential freeze logic =====
+            // Slot 1: 10:00 PM TO 12:00 AM -> Freezes at 12:45 AM (next day)
+            // Slot 2: 12:00 AM TO 02:00 AM -> Freezes at 02:45 AM (same day)
+            // Slot 3: 02:00 AM TO 04:00 AM -> Freezes at 04:45 AM (same day)
+            // Slot 4: 04:00 AM TO 06:00 AM -> Freezes at 06:45 AM (same day)
+            // Slot 5: 06:00 AM TO 07:00 AM -> Freezes at 07:45 AM (same day)
+            
+            // Check if end time is midnight (12:00 AM)
             boolean isMidnight = (endHour == 0 && endMinute == 0);
             
+            // Check if end time is AM (after midnight)
+            boolean isAM = (endHour >= 0 && endHour < 12);
+            
+            // For midnight (12:00 AM) and AM times, we need to handle carefully
+            // The report date is the start date of the shift
+            // For slots that end after midnight, we need to add +1 day
+            // For slots that end before midnight, we keep same day
+            
+            // Determine if we need to add a day
+            // If end time is midnight or AM (after 12:00 AM), add +1 day
+            // Because the slot started on previous day
+            if (isMidnight || (isAM && endHour > 0)) {
+                // This slot ends after midnight, so freeze time is on next day
+                cal.add(Calendar.DATE, 1);
+            }
+            
+            // For 12:00 AM specifically, we add +1 day
             if (isMidnight) {
                 cal.add(Calendar.DATE, 1);
             }
@@ -33,6 +58,8 @@
             cal.set(Calendar.MINUTE, endMinute);
             cal.set(Calendar.SECOND, 0);
             cal.set(Calendar.MILLISECOND, 0);
+            
+            // Add 45 minutes for freeze time
             cal.add(Calendar.MINUTE, 45);
             
             return cal.getTime();
@@ -120,6 +147,12 @@ if (hour >= 16 || hour < 8) {
 
 boolean beforeFourPM = (hour < 16);
 
+// ============================================================
+// IMPORTANT: For display date logic
+// Before 4:00 PM show yesterday's date
+// After 4:00 PM show today's date
+// This is for viewing purpose only
+// ============================================================
 Calendar todayCal = Calendar.getInstance();
 todayCal.set(Calendar.HOUR_OF_DAY, 0);
 todayCal.set(Calendar.MINUTE, 0);
@@ -1430,20 +1463,34 @@ for (Map<String, Object> row : timeSlots) {
                                 
                                 boolean slotFrozen = false;
                                 
+                                // ============================================================
+                                // FIXED: Proper sequential freeze check
+                                // ============================================================
+                                // 1. Individual slot freeze check
                                 java.util.Date deadline = computeDeadline(taskName, displayDate);
                                 if (deadline != null && now.after(deadline)) {
                                     slotFrozen = true;
                                 }
                                 
+                                // 2. Custom view (past date) - Always read-only
                                 if (isCustomView && !displayDate.equals(todaySQL)) {
                                     slotFrozen = true;
                                 }
                                 
+                                // 3. Past date - Always read-only
                                 if (displayDate.before(todaySQL)) {
                                     slotFrozen = true;
                                 }
                                 
+                                // 4. Global freeze (outside edit window)
                                 if (globalFrozen) {
+                                    slotFrozen = true;
+                                }
+                                
+                                // 5. All slots lock at 7:45 AM
+                                // Check if current time is >= 7:45 AM
+                                int currentMinutes = hour * 60 + minute;
+                                if (currentMinutes >= 7 * 60 + 45) {
                                     slotFrozen = true;
                                 }
                                 
