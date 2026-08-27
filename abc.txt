@@ -42,49 +42,6 @@
         }
     }
     
-    // ============================================================
-    // FIXED: Check if slot is frozen - TIME ONLY comparison
-    // ============================================================
-    private boolean isSlotFrozen(java.util.Date currentTime, java.util.Date freezeTime) {
-        if (currentTime == null || freezeTime == null) return false;
-        
-        Calendar nowCal = Calendar.getInstance();
-        nowCal.setTime(currentTime);
-        Calendar freezeCal = Calendar.getInstance();
-        freezeCal.setTime(freezeTime);
-        
-        int nowHour = nowCal.get(Calendar.HOUR_OF_DAY);
-        int nowMinute = nowCal.get(Calendar.MINUTE);
-        int freezeHour = freezeCal.get(Calendar.HOUR_OF_DAY);
-        int freezeMinute = freezeCal.get(Calendar.MINUTE);
-        
-        int nowMinutes = nowHour * 60 + nowMinute;
-        int freezeMinutes = freezeHour * 60 + freezeMinute;
-        
-        // Check 1: All slots freeze at 7:45 AM
-        if (nowMinutes >= 7 * 60 + 45) {
-            return true;
-        }
-        
-        // Check 2: Night shift time (12 AM - 8 AM) - compare time only
-        if (nowHour >= 0 && nowHour < 8) {
-            // For AM slots, freeze time is next day
-            // But we only compare time (hour:minute)
-            // Example: 12:45 AM current, freeze time 12:45 AM -> frozen
-            // 1:00 AM current, freeze time 12:45 AM -> frozen (1:00 >= 12:45)
-            // 12:30 AM current, freeze time 12:45 AM -> not frozen yet
-            return nowMinutes >= freezeMinutes;
-        }
-        
-        // Check 3: Read-only mode (8 AM - 4 PM)
-        if (nowHour >= 8 && nowHour < 16) {
-            return true;
-        }
-        
-        // Check 4: PM time (4 PM - 11:59 PM) - editable, freeze is next day
-        return false;
-    }
-    
     private String NVL(String str, String defaultVal) {
         return (str == null || str.trim().isEmpty()) ? defaultVal : str.trim();
     }
@@ -1488,11 +1445,37 @@ for (Map<String, Object> row : timeSlots) {
                                 boolean slotFrozen = false;
                                 
                                 // ============================================================
-                                // FIXED: Use isSlotFrozen function for time-only comparison
+                                // FIXED: Direct time comparison - NO function call
                                 // ============================================================
                                 java.util.Date deadline = computeDeadline(taskName, effectiveDate);
-                                if (deadline != null && isSlotFrozen(now, deadline)) {
-                                    slotFrozen = true;
+                                if (deadline != null) {
+                                    Calendar freezeCal = Calendar.getInstance();
+                                    freezeCal.setTime(deadline);
+                                    int freezeHour = freezeCal.get(Calendar.HOUR_OF_DAY);
+                                    int freezeMinute = freezeCal.get(Calendar.MINUTE);
+                                    int freezeMinutes = freezeHour * 60 + freezeMinute;
+                                    
+                                    // Get current time in minutes
+                                    int nowHour = nowCal.get(Calendar.HOUR_OF_DAY);
+                                    int nowMinute = nowCal.get(Calendar.MINUTE);
+                                    int nowMinutes = nowHour * 60 + nowMinute;
+                                    
+                                    // Check 1: All slots freeze at 7:45 AM
+                                    if (nowMinutes >= 7 * 60 + 45) {
+                                        slotFrozen = true;
+                                    }
+                                    // Check 2: Night shift time (12 AM - 8 AM)
+                                    else if (nowHour >= 0 && nowHour < 8) {
+                                        // Compare only time
+                                        if (nowMinutes >= freezeMinutes) {
+                                            slotFrozen = true;
+                                        }
+                                    }
+                                    // Check 3: Read-only mode (8 AM - 4 PM)
+                                    else if (nowHour >= 8 && nowHour < 16) {
+                                        slotFrozen = true;
+                                    }
+                                    // Check 4: PM time (4 PM - 11:59 PM) - editable
                                 }
                                 
                                 // Custom view (past date) - Always read-only
