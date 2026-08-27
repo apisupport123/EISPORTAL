@@ -62,9 +62,9 @@ if (viewDateParam != null && !viewDateParam.isEmpty()) {
 }
 
 if (!isCustomView) {
-    // Logic: Before 9 PM show yesterday's night data, After 9 PM show today's night data
-    boolean beforeNinePM = (hour < 21);
-    if (beforeNinePM) {
+    // Logic: Before 4 PM show yesterday's night data, After 4 PM show today's night data
+    boolean beforeFourPM = (hour < 16);
+    if (beforeFourPM) {
         displayDate = yesterdaySQL;
         saveDate = yesterdaySQL;
     } else {
@@ -79,7 +79,7 @@ java.sql.Date effectiveDate = displayDate;
 java.sql.Date effectiveSaveDate = saveDate;
 
 // ============================================================
-// EDITABLE LOGIC
+// EDITABLE LOGIC - UPDATED (4 PM cutoff)
 // ============================================================
 boolean isEditable = false;
 
@@ -92,20 +92,20 @@ if (isPastDate) {
 }
 // 3. If today or future date → check time
 else {
-    // If it's today's date (night shift)
+    // If it's today's date (night shift starts at 4 PM)
     if (displayDate.equals(todaySQL)) {
-        // After 9 PM → Editable (night shift starts)
-        if (hour >= 21) {
+        // After 4 PM → Editable (night shift starts)
+        if (hour >= 16) {
             isEditable = true;
         } else {
-            // Before 9 PM → Showing yesterday's night, not editable
+            // Before 4 PM → Showing yesterday's night, not editable
             isEditable = false;
         }
     }
-    // If it's yesterday's date (being shown before 9 PM)
+    // If it's yesterday's date (being shown before 4 PM)
     else if (displayDate.equals(yesterdaySQL)) {
-        // Before 9 PM → Editable (yesterday's night data)
-        if (hour < 21) {
+        // Before 4 PM → Editable (yesterday's night data)
+        if (hour < 16) {
             isEditable = true;
         } else {
             isEditable = false;
@@ -122,7 +122,7 @@ if (isCustomView) {
     if (displayDate.before(todaySQL)) {
         isEditable = false;
     } else if (displayDate.equals(todaySQL)) {
-        isEditable = (hour >= 21);
+        isEditable = (hour >= 16);
     } else {
         isEditable = true;
     }
@@ -1273,7 +1273,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
                 <div class="icon purple"><i class="fas fa-moon"></i></div>
                 <div class="content">
                     <div class="label">Night Shift</div>
-                    <div class="value">10:00 PM → 7:00 AM</div>
+                    <div class="value">Starts at 4:00 PM</div>
                 </div>
             </div>
             <div class="info-item">
@@ -1290,8 +1290,8 @@ String footerDate = sdfFooter.format(new java.util.Date());
                     <div class="value">
                         <% if (displayDate.before(todaySQL)) { %>
                             Past Date - Read Only
-                        <% } else if (displayDate.equals(todaySQL) && hour < 21) { %>
-                            Today's night starts at 9 PM
+                        <% } else if (displayDate.equals(todaySQL) && hour < 16) { %>
+                            Today's night starts at 4:00 PM
                         <% } else { %>
                             Active Night Shift
                         <% } %>
