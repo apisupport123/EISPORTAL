@@ -1438,59 +1438,59 @@ for (Map<String, Object> row : timeSlots) {
                         if (timeSlots.isEmpty()) {
                             out.println("<tr><td colspan='9' class='text-center text-muted py-4'>No time slots defined.</td></tr>");
                         } else {
+                            // Get current time in minutes for comparison
+                            int nowHour = nowCal.get(Calendar.HOUR_OF_DAY);
+                            int nowMinute = nowCal.get(Calendar.MINUTE);
+                            int nowMinutes = nowHour * 60 + nowMinute;
+                            int allSlotsFreezeTime = 7 * 60 + 45; // 7:45 AM = 465 minutes
+                            
                             for (Map<String, Object> row : timeSlots) {
                                 tsCounter++;
                                 String taskName = (String) row.get("task_name");
                                 
+                                // ============================================================
+                                // CORRECTED FREEZE LOGIC
+                                // ============================================================
                                 boolean slotFrozen = false;
                                 
-                                // ============================================================
-                                // FIXED: Direct time comparison - NO function call
-                                // ============================================================
-                                java.util.Date deadline = computeDeadline(taskName, effectiveDate);
-                                if (deadline != null) {
-                                    Calendar freezeCal = Calendar.getInstance();
-                                    freezeCal.setTime(deadline);
-                                    int freezeHour = freezeCal.get(Calendar.HOUR_OF_DAY);
-                                    int freezeMinute = freezeCal.get(Calendar.MINUTE);
-                                    int freezeMinutes = freezeHour * 60 + freezeMinute;
+                                // 1. Past date or custom view → always read-only
+                                if (isCustomView && !displayDate.equals(todaySQL)) {
+                                    slotFrozen = true;
+                                } else if (displayDate.before(todaySQL)) {
+                                    slotFrozen = true;
+                                } else if (globalFrozen) {
+                                    slotFrozen = true;
+                                } else {
+                                    // 2. Get freeze time in minutes (already adjusted with +1 day for AM slots)
+                                    java.util.Date deadline = computeDeadline(taskName, effectiveDate);
+                                    int freezeMinutes = 0;
+                                    if (deadline != null) {
+                                        Calendar freezeCal = Calendar.getInstance();
+                                        freezeCal.setTime(deadline);
+                                        int freezeHour = freezeCal.get(Calendar.HOUR_OF_DAY);
+                                        int freezeMin = freezeCal.get(Calendar.MINUTE);
+                                        freezeMinutes = freezeHour * 60 + freezeMin;
+                                    }
                                     
-                                    // Get current time in minutes
-                                    int nowHour = nowCal.get(Calendar.HOUR_OF_DAY);
-                                    int nowMinute = nowCal.get(Calendar.MINUTE);
-                                    int nowMinutes = nowHour * 60 + nowMinute;
-                                    
-                                    // Check 1: All slots freeze at 7:45 AM
-                                    if (nowMinutes >= 7 * 60 + 45) {
+                                    // 3. ALL SLOTS FREEZE AT 7:45 AM
+                                    if (nowMinutes >= allSlotsFreezeTime) {
                                         slotFrozen = true;
                                     }
-                                    // Check 2: Night shift time (12 AM - 8 AM)
+                                    // 4. Individual slot freeze (only during night shift: 12 AM to 8 AM)
                                     else if (nowHour >= 0 && nowHour < 8) {
-                                        // Compare only time
-                                        if (nowMinutes >= freezeMinutes) {
+                                        // Since computeDeadline added +1 day for AM slots, 
+                                        // freezeMinutes will be > 1440 (next day)
+                                        // We need to compare with adjusted current time (add 1440)
+                                        int adjustedNowMinutes = nowMinutes + 1440;
+                                        if (adjustedNowMinutes >= freezeMinutes) {
                                             slotFrozen = true;
                                         }
                                     }
-                                    // Check 3: Read-only mode (8 AM - 4 PM)
+                                    // 5. Outside edit window (8 AM to 4 PM) → read-only
                                     else if (nowHour >= 8 && nowHour < 16) {
                                         slotFrozen = true;
                                     }
-                                    // Check 4: PM time (4 PM - 11:59 PM) - editable
-                                }
-                                
-                                // Custom view (past date) - Always read-only
-                                if (isCustomView && !displayDate.equals(todaySQL)) {
-                                    slotFrozen = true;
-                                }
-                                
-                                // Past date - Always read-only
-                                if (displayDate.before(todaySQL)) {
-                                    slotFrozen = true;
-                                }
-                                
-                                // Global freeze (outside edit window)
-                                if (globalFrozen) {
-                                    slotFrozen = true;
+                                    // 6. Otherwise, it's editable (4 PM to midnight)
                                 }
                                 
                                 String status1 = (String) row.get("status1");
@@ -1503,6 +1503,7 @@ for (Map<String, Object> row : timeSlots) {
                                 String lastUpdated = (ts != null) ? new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(ts) : "";
                                 
                                 String freezeTimeDisplay = "N/A";
+                                java.util.Date deadline = computeDeadline(taskName, effectiveDate);
                                 if (deadline != null) {
                                     SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm a");
                                     freezeTimeDisplay = sdfTime.format(deadline);
@@ -2115,7 +2116,8 @@ try {
 } catch (Exception e) {}
 %>
 
---------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------
 
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*, java.util.*, java.text.*, java.io.*" %>
@@ -2417,7 +2419,7 @@ if ("true".equals(testMode) && testHour != null && testMinute != null) {
 }
 
 // ============================================================
-// FIXED: Compute freeze time
+// Slot definitions
 // ============================================================
 String[][] slots = {
     {"10:00 PM TO 12:00 AM", "12:00 AM", "0", "0"},
@@ -2447,7 +2449,7 @@ for (int i = 0; i < slots.length; i++) {
 int testMinutes = testH * 60 + testM;
 
 // ============================================================
-// FIXED: Calculate slot statuses
+// CORRECTED SLOT STATUS CALCULATION
 // ============================================================
 String[] slotStatuses = new String[slots.length];
 String[] slotStatusLabels = new String[slots.length];
@@ -2457,23 +2459,23 @@ for (int i = 0; i < slots.length; i++) {
     boolean isFrozen = false;
     int freezeMin = freezeMinutes[i];
     
-    // Check 1: All slots freeze at 7:45 AM
-    if (testMinutes >= 7 * 60 + 45) {
+    // 1. ALL SLOTS FREEZE AT 7:45 AM (465 minutes)
+    if (testMinutes >= 465) {
         isFrozen = true;
     }
-    // Check 2: Individual slot freeze
+    // 2. Individual slot freeze (only during night shift: 12 AM to 8 AM)
     else if (testH >= 0 && testH < 8) {
-        // Night shift time (12 AM - 8 AM)
-        // Add 24 hours to test time to compare with next day freeze
+        // Since freezeMin includes +1440 for AM slots, we need to adjust
         int adjustedTestMinutes = testMinutes + 1440;
         if (adjustedTestMinutes >= freezeMin) {
             isFrozen = true;
         }
     }
-    // Check 3: Read-only mode (8 AM - 4 PM)
+    // 3. Outside edit window (8 AM to 4 PM) → read-only
     else if (testH >= 8 && testH < 16) {
         isFrozen = true;
     }
+    // 4. Otherwise, it's editable (4 PM to midnight)
     
     if (isFrozen) {
         slotStatuses[i] = "frozen";
@@ -2536,6 +2538,10 @@ if (testDate != null && !testDate.isEmpty()) {
         <div class="info-row">
             <span class="label"><i class="fas fa-lock"></i> Sequential Freeze</span>
             <span class="value">Each slot freezes 45 min after its end time</span>
+        </div>
+        <div class="info-row">
+            <span class="label"><i class="fas fa-clock"></i> All Slots Freeze</span>
+            <span class="value">7:45 AM</span>
         </div>
     </div>
 
@@ -2717,4 +2723,3 @@ if (testDate != null && !testDate.isEmpty()) {
 
 </body>
 </html>
-
