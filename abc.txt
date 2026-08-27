@@ -5,7 +5,7 @@
 
 <%!
     // ============================================================
-    // SIMPLIFIED: Get freeze time in minutes (0-1439)
+    // SIMPLEST FIX: Get freeze time as minutes from midnight
     // ============================================================
     private int getFreezeMinutes(String taskName) {
         String[] parts = taskName.split("-");
@@ -24,9 +24,8 @@
             int totalMinutes = hour * 60 + minute + 45;
             
             // For AM slots (12:00 AM to 7:00 AM), freeze time is next day
-            // So add 24 hours (1440 minutes)
             if (hour >= 0 && hour < 12) {
-                totalMinutes += 1440; // Add one full day
+                totalMinutes += 1440; // Add 24 hours
             }
             
             return totalMinutes;
@@ -37,31 +36,21 @@
     }
     
     // ============================================================
-    // SIMPLIFIED: Check if current time >= freeze time
+    // SIMPLEST FIX: Compare only time (ignoring date)
     // ============================================================
     private boolean isSlotFrozen(int currentMinutes, int freezeMinutes) {
         if (freezeMinutes < 0) return false;
         
-        // If freeze time is in next day (>= 1440), adjust current time
+        // If freeze time is next day (>= 1440)
         if (freezeMinutes >= 1440) {
-            // Freeze time is next day
-            // Current time is today, so it's always before freeze time
-            // Unless current time is after midnight (0-7 AM) and freeze is next day
-            int adjustedFreeze = freezeMinutes - 1440;
+            int adjustedFreeze = freezeMinutes - 1440; // 12:45 AM -> 12:45 (45 minutes)
             int currentHour = currentMinutes / 60;
             
-            // If current time is after 4 PM (edit window), freeze time is next day
-            // So it's not frozen yet
-            if (currentHour >= 16) {
-                return false;
-            }
-            
-            // If current time is between 12 AM and 7 AM, compare with adjusted freeze
+            // Current time is AM (0-7) -> compare with adjusted freeze
             if (currentHour >= 0 && currentHour < 8) {
                 return currentMinutes >= adjustedFreeze;
             }
-            
-            // For other times, not frozen
+            // Current time is PM (16-23) -> freeze is next day, not frozen yet
             return false;
         } else {
             // Freeze time is same day
@@ -92,8 +81,6 @@ Calendar nowCal = Calendar.getInstance();
 java.util.Date now = nowCal.getTime();
 int hour = nowCal.get(Calendar.HOUR_OF_DAY);
 int minute = nowCal.get(Calendar.MINUTE);
-
-// Current time in minutes
 int currentMinutes = hour * 60 + minute;
 
 // ============================================================
@@ -508,25 +495,6 @@ if ("true".equals(exportDataParam)) {
 
 SimpleDateFormat sdfFooter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 String footerDate = sdfFooter.format(new java.util.Date());
-
-// ===== Calculate freeze times for display =====
-String[] slotFreezeTimes = new String[timeSlots.size()];
-int slotIdx = 0;
-for (Map<String, Object> row : timeSlots) {
-    String taskName = (String) row.get("task_name");
-    int freezeMin = getFreezeMinutes(taskName);
-    if (freezeMin >= 0) {
-        int displayHour = (freezeMin / 60) % 24;
-        int displayMin = freezeMin % 60;
-        String ampm = (displayHour >= 12) ? "PM" : "AM";
-        int displayHour12 = displayHour % 12;
-        if (displayHour12 == 0) displayHour12 = 12;
-        slotFreezeTimes[slotIdx] = String.format("%02d:%02d %s", displayHour12, displayMin, ampm);
-    } else {
-        slotFreezeTimes[slotIdx] = "N/A";
-    }
-    slotIdx++;
-}
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -1483,7 +1451,7 @@ for (Map<String, Object> row : timeSlots) {
                                 boolean slotFrozen = false;
                                 
                                 // ============================================================
-                                // SIMPLIFIED: Check slot freeze using minutes comparison
+                                // FIXED: Check slot freeze using minutes comparison
                                 // ============================================================
                                 int freezeMin = getFreezeMinutes(taskName);
                                 if (freezeMin >= 0 && isSlotFrozen(currentMinutes, freezeMin)) {
