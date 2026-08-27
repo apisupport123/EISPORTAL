@@ -5,7 +5,7 @@
 
 <%!
     // ============================================================
-    // SIMPLEST FIX: Get freeze time as minutes from midnight
+    // SIMPLEST FIX: Get freeze time in minutes (0-1439)
     // ============================================================
     private int getFreezeMinutes(String taskName) {
         String[] parts = taskName.split("-");
@@ -36,21 +36,23 @@
     }
     
     // ============================================================
-    // SIMPLEST FIX: Compare only time (ignoring date)
+    // SIMPLEST FIX: Compare current time with freeze time
     // ============================================================
     private boolean isSlotFrozen(int currentMinutes, int freezeMinutes) {
         if (freezeMinutes < 0) return false;
         
         // If freeze time is next day (>= 1440)
         if (freezeMinutes >= 1440) {
-            int adjustedFreeze = freezeMinutes - 1440; // 12:45 AM -> 12:45 (45 minutes)
+            int adjustedFreeze = freezeMinutes - 1440; // Convert to same day time
             int currentHour = currentMinutes / 60;
             
-            // Current time is AM (0-7) -> compare with adjusted freeze
+            // If current time is between 12 AM and 8 AM (night shift time)
             if (currentHour >= 0 && currentHour < 8) {
+                // Compare with adjusted freeze time
                 return currentMinutes >= adjustedFreeze;
             }
-            // Current time is PM (16-23) -> freeze is next day, not frozen yet
+            // If current time is PM (4 PM to 11:59 PM), freeze time is next day
+            // So it should NOT be frozen yet
             return false;
         } else {
             // Freeze time is same day
@@ -495,6 +497,25 @@ if ("true".equals(exportDataParam)) {
 
 SimpleDateFormat sdfFooter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 String footerDate = sdfFooter.format(new java.util.Date());
+
+// ===== Calculate freeze times for display =====
+String[] slotFreezeTimes = new String[timeSlots.size()];
+int slotIdx = 0;
+for (Map<String, Object> row : timeSlots) {
+    String taskName = (String) row.get("task_name");
+    int freezeMin = getFreezeMinutes(taskName);
+    String freezeTime = "N/A";
+    if (freezeMin >= 0) {
+        int displayHour = (freezeMin / 60) % 24;
+        int displayMin = freezeMin % 60;
+        String ampm = (displayHour >= 12) ? "PM" : "AM";
+        int displayHour12 = displayHour % 12;
+        if (displayHour12 == 0) displayHour12 = 12;
+        freezeTime = String.format("%02d:%02d %s", displayHour12, displayMin, ampm);
+    }
+    slotFreezeTimes[slotIdx] = freezeTime;
+    slotIdx++;
+}
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -1368,8 +1389,8 @@ String footerDate = sdfFooter.format(new java.util.Date());
                     <% 
                     for (Map<String, Object> row : timeSlots) { 
                         String taskName = (String) row.get("task_name");
-                        int freezeMin = getFreezeMinutes(taskName);
                         String freezeTime = "N/A";
+                        int freezeMin = getFreezeMinutes(taskName);
                         if (freezeMin >= 0) {
                             int displayHour = (freezeMin / 60) % 24;
                             int displayMin = freezeMin % 60;
