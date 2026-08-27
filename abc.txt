@@ -1,52 +1,58 @@
-Q1.
-
-select  s.source_id,
-case when EXISTS ( select  /*+ parallel(04)*/ 1 from eisapp.api_log PARTITION(AUG_26) a where a.source_id=s.source_id
-and a.request_date_time>=sysdate - interval '10' minute) then 'Y' else 'N' ENd As flag
-from
-(select 'SA'  as source_id from dual
-union all
-select 'FS'    from dual
-union all
-select 'I4'   from dual
-union all
-select 'Y2'   from dual
-union all
-select 'KA'  from dual) s;
-
-
-Q2.
-
-select   s.source_id,
-case when EXISTS ( select  /*+ parallel(04)*/ 1 from eisapp.api_log PARTITION(AUG_26) a where a.source_id=s.source_id
-and a.request_date_time>=sysdate - interval '10' minute) then 'Y' else 'N' ENd As flag
-from
-(select 'SA'  as source_id from dual
-union all
-select 'FS'    from dual
-union all
-select 'I4'   from dual
-union all
-select 'Y2'   from dual
-union all
-select 'KA'  from dual) s;
-
-
-Q3.
-
-With source_list as (
-select 'SA'  as source_id from dual
-union all
-select 'FS'    from dual
-union all
-select 'I4'   from dual
-union all
-select 'Y2'   from dual
-union all
-select 'KA'  from dual
+WITH active_sources AS (
+    SELECT /*+ PARALLEL(4) */ DISTINCT source_id
+    FROM EISAPP.API_LOG PARTITION(AUG_26)
+    WHERE source_id IN ('SA','FS','I4','Y2','KA')
+      AND request_date_time >= SYSDATE - INTERVAL '10' MINUTE
 )
+SELECT s.source_id,
+       CASE WHEN a.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag
+FROM (
+    SELECT 'SA' source_id FROM dual UNION ALL
+    SELECT 'FS' FROM dual UNION ALL
+    SELECT 'I4' FROM dual UNION ALL
+    SELECT 'Y2' FROM dual UNION ALL
+    SELECT 'KA' FROM dual
+) s
+LEFT JOIN active_sources a ON s.source_id = a.source_id;
 
-select  s.source_id,
-case when EXISTS ( select   1 from eisapp.api_log PARTITION(AUG_26) a where a.source_id=s.source_id
-and a.request_date_time>=sysdate - interval '10' minute) then 'Y' else 'N' ENd As flag
-from source_list s;
+
+--------------------------------------------------------------------------
+
+WITH active_sources AS (
+    SELECT /*+ PARALLEL(4) */ DISTINCT source_id
+    FROM EISAPP.API_LOG PARTITION(AUG_26)
+    WHERE source_id IN ('SA','FS','I4','Y2','KA')
+      AND request_date_time >= SYSDATE - INTERVAL '10' MINUTE
+)
+SELECT s.source_id,
+       CASE WHEN a.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag
+FROM (
+    SELECT 'SA' source_id FROM dual UNION ALL
+    SELECT 'FS' FROM dual UNION ALL
+    SELECT 'I4' FROM dual UNION ALL
+    SELECT 'Y2' FROM dual UNION ALL
+    SELECT 'KA' FROM dual
+) s
+LEFT JOIN active_sources a ON s.source_id = a.source_id;
+
+
+
+------------------------------------------------------------------------
+
+WITH source_list AS (
+    SELECT 'SA' AS source_id FROM dual UNION ALL
+    SELECT 'FS' FROM dual UNION ALL
+    SELECT 'I4' FROM dual UNION ALL
+    SELECT 'Y2' FROM dual UNION ALL
+    SELECT 'KA' FROM dual
+),
+active_sources AS (
+    SELECT /*+ PARALLEL(4) */ DISTINCT source_id
+    FROM EISAPP.API_LOG PARTITION(AUG_26)
+    WHERE source_id IN ('SA','FS','I4','Y2','KA')
+      AND request_date_time >= SYSDATE - INTERVAL '10' MINUTE
+)
+SELECT sl.source_id,
+       CASE WHEN asrc.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag
+FROM source_list sl
+LEFT JOIN active_sources asrc ON sl.source_id = asrc.source_id;
