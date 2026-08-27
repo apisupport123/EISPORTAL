@@ -142,11 +142,6 @@
             background: #fffbeb;
         }
         .preset-times .btn-preset.partial .time-label { color: #d97706; }
-        .preset-times .btn-preset.active-preset {
-            border-color: #2563eb;
-            background: #dbeafe;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
-        }
 
         .info-box {
             background: #f1f5f9;
@@ -201,10 +196,6 @@
         .slot-status .slot-item.editable-slot {
             background: #f0fdf4;
             border-color: #86efac;
-        }
-        .slot-status .slot-item.partial-slot {
-            background: #fffbeb;
-            border-color: #fcd34d;
         }
 
         .quick-links {
@@ -273,12 +264,9 @@
 
 <%
 // ============================================================
-// CONNECTION FOR FETCHING DATA
+// CONNECTION
 // ============================================================
 Connection conn = null;
-PreparedStatement pstmt = null;
-ResultSet rs = null;
-
 try {
     conn = DBUtilityAuto.getReportDBConnection();
 } catch (Exception e) {
@@ -320,37 +308,46 @@ if ("true".equals(testMode) && testHour != null && testMinute != null) {
 }
 
 // ============================================================
-// FIXED: Calculate slot status based on actual freeze logic
+// FIXED: Compute freeze time using actual logic
 // ============================================================
-// Slot definitions: [task_name, freeze_time_HH, freeze_time_MM]
+// Slot definitions with their end times
 String[][] slots = {
-    {"10:00 PM TO 12:00 AM", "0", "45"},   // 12:45 AM next day
-    {"12:00 AM TO 02:00 AM", "2", "45"},   // 2:45 AM next day
-    {"02:00 AM TO 04:00 AM", "4", "45"},   // 4:45 AM next day
-    {"04:00 AM TO 06:00 AM", "6", "45"},   // 6:45 AM next day
-    {"06:00 AM TO 07:00 AM", "7", "45"}    // 7:45 AM next day
+    {"10:00 PM TO 12:00 AM", "12:00 AM", "0", "0"},
+    {"12:00 AM TO 02:00 AM", "02:00 AM", "2", "0"},
+    {"02:00 AM TO 04:00 AM", "04:00 AM", "4", "0"},
+    {"04:00 AM TO 06:00 AM", "06:00 AM", "6", "0"},
+    {"06:00 AM TO 07:00 AM", "07:00 AM", "7", "0"}
 };
+
+// Calculate freeze time for each slot (end time + 45 minutes)
+int[] freezeMinutes = new int[slots.length];
+String[] freezeDisplay = new String[slots.length];
+
+for (int i = 0; i < slots.length; i++) {
+    int endH = Integer.parseInt(slots[i][2]);
+    int endM = Integer.parseInt(slots[i][3]);
+    // Add 45 minutes
+    int totalMin = endH * 60 + endM + 45;
+    // For AM slots (12:00 AM to 7:00 AM), freeze time is next day
+    if (endH >= 0 && endH < 12) {
+        totalMin += 1440; // Add 24 hours
+    }
+    freezeMinutes[i] = totalMin;
+    
+    int displayH = (totalMin / 60) % 24;
+    int displayM = totalMin % 60;
+    freezeDisplay[i] = String.format("%02d:%02d", displayH, displayM);
+}
 
 int testMinutes = testH * 60 + testM;
 
-// FIXED: Calculate slot statuses with correct logic
+// FIXED: Calculate slot statuses
 String[] slotStatuses = new String[slots.length];
 String[] slotStatusLabels = new String[slots.length];
 String[] slotStatusClasses = new String[slots.length];
-String[] slotFreezeTimes = new String[slots.length];
 
 for (int i = 0; i < slots.length; i++) {
-    int freezeH = Integer.parseInt(slots[i][1]);
-    int freezeM = Integer.parseInt(slots[i][2]);
-    int freezeMinutes = freezeH * 60 + freezeM;
-    
-    // Freeze time is always next day for AM slots
-    // So if current time is after freeze time AND before 8 AM, it's frozen
-    // If current time is after 8 AM and before 4 PM, global freeze
-    
     boolean isFrozen = false;
-    String freezeDisplay = String.format("%02d:%02d", freezeH, freezeM);
-    slotFreezeTimes[i] = freezeDisplay;
     
     // Check 1: All slots freeze at 7:45 AM
     if (testMinutes >= 7 * 60 + 45) {
@@ -359,7 +356,9 @@ for (int i = 0; i < slots.length; i++) {
     // Check 2: Individual slot freeze
     else if (testH >= 0 && testH < 8) {
         // Night shift time (12 AM - 8 AM)
-        if (testMinutes >= freezeMinutes) {
+        // For AM slots, freeze time is next day, so we need to add 24 hours to test time
+        int adjustedTestMinutes = testMinutes + 1440; // Add 24 hours to compare with next day freeze
+        if (adjustedTestMinutes >= freezeMinutes[i]) {
             isFrozen = true;
         }
     }
@@ -447,7 +446,7 @@ if (testDate != null && !testDate.isEmpty()) {
                 <div class="slot-item <%= slotStatusClasses[i] %>">
                     <div class="slot-name"><%= slots[i][0] %></div>
                     <div style="font-size:9px;color:#64748b;margin-top:2px;">
-                        Freezes: <strong><%= slotFreezeTimes[i] %></strong>
+                        Freezes: <strong><%= freezeDisplay[i] %></strong>
                     </div>
                     <div class="slot-status-text <%= slotStatuses[i] %>">
                         <%= slotStatusLabels[i] %>
@@ -609,7 +608,6 @@ if (testDate != null && !testDate.isEmpty()) {
         document.querySelector('form').submit();
     }
     
-    // Auto-submit on dropdown change
     document.getElementById('testHour').addEventListener('change', function() {
         document.querySelector('form').submit();
     });
@@ -619,12 +617,6 @@ if (testDate != null && !testDate.isEmpty()) {
 </script>
 
 <%
-try {
-    if (rs != null) rs.close();
-} catch (Exception e) {}
-try {
-    if (pstmt != null) pstmt.close();
-} catch (Exception e) {}
 try {
     if (conn != null) conn.close();
 } catch (Exception e) {}
