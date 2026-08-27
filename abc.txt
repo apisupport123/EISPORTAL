@@ -370,209 +370,283 @@ String footerDate = sdfFooter.format(new java.util.Date());
     
     <link rel="stylesheet" href="../css/all.min.css">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --secondary: #1a237e;
+            --accent: #3b82f6;
+            --accent-glow: #60a5fa;
+            --gold: #fbbf24;
+            --gold-glow: #fcd34d;
+            --success: #10b981;
+            --danger: #ef4444;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            background: #f0f2f5;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--primary);
+            font-family: 'Inter', sans-serif;
             padding: 20px;
             min-height: 100vh;
+            background-image: 
+                radial-gradient(ellipse at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 80%, rgba(251, 191, 36, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(16, 185, 129, 0.04) 0%, transparent 70%);
         }
-        
+
         .main-container {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
         }
-        
-        /* ===== HEADER ===== */
-        .header {
-            background: linear-gradient(135deg, #1a237e, #0d47a1, #0a1628);
-            border-radius: 16px;
-            padding: 25px 35px;
+
+        /* ===== GLASS HEADER ===== */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 20px 30px;
             margin-bottom: 25px;
-            box-shadow: 0 4px 20px rgba(13, 71, 161, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            position: relative;
+            overflow: hidden;
         }
-        
+
+        .glass-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .glass-header::after {
+            content: '';
+            position: absolute;
+            bottom: -50%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.04) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
         .header-left {
             display: flex;
             align-items: center;
             gap: 18px;
+            position: relative;
+            z-index: 1;
         }
-        
-        .header-logo {
-            width: 50px;
-            height: 50px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 12px;
+
+        .logo-container {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--secondary), #0d47a1);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            color: #fdd835;
-            border: 2px solid rgba(255,255,255,0.15);
+            font-size: 26px;
+            color: var(--gold);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
         }
-        
+
+        .logo-container::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), transparent, rgba(251, 191, 36, 0.3));
+            z-index: -1;
+            filter: blur(8px);
+        }
+
         .header-title h1 {
-            color: #ffffff;
-            font-size: 24px;
-            font-weight: 700;
+            color: #fff;
+            font-size: 22px;
+            font-weight: 800;
             margin: 0;
-            letter-spacing: 0.5px;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        
-        .header-title h1 i {
-            color: #fdd835;
-            margin-right: 10px;
+
+        .header-title h1 .highlight {
+            background: linear-gradient(135deg, var(--gold), #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
-        
+
         .header-title .subtitle {
-            color: rgba(255,255,255,0.7);
-            font-size: 13px;
-            margin-top: 2px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 12px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            -webkit-text-fill-color: rgba(255, 255, 255, 0.4);
         }
-        
+
         .header-right {
             display: flex;
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
         }
-        
-        .header-date {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(8px);
+
+        .header-badge {
             padding: 8px 20px;
-            border-radius: 30px;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 500;
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-        
-        .header-date i {
-            color: #fdd835;
-            margin-right: 8px;
-        }
-        
-        .header-status {
-            padding: 6px 18px;
             border-radius: 30px;
             font-size: 12px;
             font-weight: 600;
-            background: #10b981;
-            color: #fff;
-        }
-        
-        .header-status i {
-            margin-right: 6px;
-        }
-        
-        .header-actions {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
             display: flex;
+            align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
         }
-        
-        .btn-custom {
-            padding: 8px 20px;
+
+        .header-badge i {
+            font-size: 10px;
+        }
+
+        .header-date-badge {
+            padding: 8px 18px;
             border-radius: 30px;
-            border: none;
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-date-badge i {
+            color: var(--gold);
+        }
+
+        .btn-glass {
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
             transition: all 0.3s ease;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
         }
-        
-        .btn-custom:hover {
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
-        
-        .btn-save {
-            background: #10b981;
+
+        .btn-glass-primary {
+            background: linear-gradient(135deg, var(--secondary), #0d47a1);
             color: #fff;
+            border: none;
+            box-shadow: 0 4px 20px rgba(26, 35, 126, 0.3);
         }
-        
-        .btn-save:hover {
-            background: #059669;
+
+        .btn-glass-primary:hover {
+            background: linear-gradient(135deg, #1a237e, #1565c0);
             color: #fff;
+            box-shadow: 0 8px 30px rgba(26, 35, 126, 0.4);
         }
-        
-        .btn-export {
-            background: #2563eb;
+
+        .btn-glass-success {
+            background: linear-gradient(135deg, #059669, #10b981);
             color: #fff;
+            border: none;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
         }
-        
-        .btn-export:hover {
-            background: #1d4ed8;
+
+        .btn-glass-success:hover {
+            background: linear-gradient(135deg, #047857, #059669);
             color: #fff;
+            box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4);
         }
-        
-        .btn-manage {
-            background: #f59e0b;
+
+        .btn-glass-gold {
+            background: linear-gradient(135deg, #d97706, #f59e0b);
             color: #1a1a2e;
+            border: none;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3);
         }
-        
-        .btn-manage:hover {
-            background: #d97706;
+
+        .btn-glass-gold:hover {
+            background: linear-gradient(135deg, #b45309, #d97706);
             color: #1a1a2e;
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
         }
-        
-        .btn-info-custom {
-            background: rgba(255,255,255,0.15);
-            color: #fff;
-        }
-        
-        .btn-info-custom:hover {
-            background: rgba(255,255,255,0.25);
-            color: #fff;
-        }
-        
-        /* ===== SEARCH BAR ===== */
-        .search-bar {
-            background: #fff;
-            border-radius: 12px;
+
+        /* ===== GLASS SEARCH ===== */
+        .glass-search {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
             padding: 12px 24px;
             margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
-            border: 1px solid #e2e8f0;
         }
-        
+
         .search-group {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #f8fafc;
+            background: rgba(255, 255, 255, 0.04);
             padding: 4px 4px 4px 16px;
             border-radius: 50px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.06);
             transition: all 0.3s;
         }
-        
+
         .search-group:focus-within {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.05);
         }
-        
+
         .search-group input[type="date"] {
             border: none;
             background: transparent;
@@ -580,260 +654,278 @@ String footerDate = sdfFooter.format(new java.util.Date());
             font-size: 13px;
             outline: none;
             width: 150px;
-            color: #0f172a;
+            color: rgba(255, 255, 255, 0.8);
             font-weight: 500;
+            font-family: 'Inter', sans-serif;
         }
-        
+
         .search-group input[type="date"]::-webkit-calendar-picker-indicator {
             opacity: 0.5;
             cursor: pointer;
+            filter: invert(1);
         }
-        
+
+        .search-group input[type="date"]::-webkit-datetime-edit {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
         .search-group .btn {
             border-radius: 50px;
             padding: 5px 18px;
             font-size: 12px;
             font-weight: 600;
-        }
-        
-        .btn-today {
-            background: #e2e8f0;
-            color: #0f172a;
             border: none;
+        }
+
+        .btn-glass-sm {
+            padding: 6px 16px;
             border-radius: 50px;
-            padding: 5px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            font-weight: 500;
             font-size: 12px;
-            font-weight: 600;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             cursor: pointer;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.6);
         }
-        
-        .btn-today:hover {
-            background: #cbd5e1;
+
+        .btn-glass-sm:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.8);
         }
-        
+
         /* ===== INFO PANEL ===== */
-        .info-panel {
-            background: #fff;
-            border-radius: 12px;
+        .glass-info {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
             margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            border: 1px solid #e2e8f0;
             overflow: hidden;
         }
-        
-        .info-panel-header {
-            background: #f8fafc;
+
+        .glass-info-header {
             padding: 12px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
             user-select: none;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         }
-        
-        .info-panel-header h3 {
-            font-size: 14px;
+
+        .glass-info-header h3 {
+            font-size: 13px;
             font-weight: 600;
-            color: #0f172a;
+            color: rgba(255, 255, 255, 0.6);
             margin: 0;
+            letter-spacing: 0.5px;
         }
-        
-        .info-panel-header h3 i {
-            color: #2563eb;
+
+        .glass-info-header h3 i {
+            color: var(--accent);
             margin-right: 8px;
         }
-        
-        .info-panel-header .toggle-icon {
-            color: #64748b;
-            font-size: 16px;
+
+        .glass-info-header .toggle-icon {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 14px;
             transition: all 0.3s;
         }
-        
-        .info-panel-header .toggle-icon.collapsed {
+
+        .glass-info-header .toggle-icon.collapsed {
             transform: rotate(-90deg);
         }
-        
-        .info-panel-body {
+
+        .glass-info-body {
             padding: 16px 24px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 10px;
         }
-        
-        .info-panel-body.hidden {
+
+        .glass-info-body.hidden {
             display: none;
         }
-        
-        .info-item {
+
+        .info-item-glass {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 14px;
-            background: #f8fafc;
-            border-radius: 8px;
-            border-left: 3px solid #2563eb;
+            gap: 12px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
-        
-        .info-item .icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+
+        .info-item-glass .icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 14px;
             flex-shrink: 0;
         }
-        
-        .info-item .icon.blue { background: #dbeafe; color: #2563eb; }
-        .info-item .icon.green { background: #d1fae5; color: #10b981; }
-        .info-item .icon.gold { background: #fef3c7; color: #f59e0b; }
-        .info-item .icon.purple { background: #ede9fe; color: #7c3aed; }
-        
-        .info-item .content .label {
+
+        .info-item-glass .icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--accent); }
+        .info-item-glass .icon.green { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .info-item-glass .icon.gold { background: rgba(251, 191, 36, 0.15); color: var(--gold); }
+        .info-item-glass .icon.purple { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+
+        .info-item-glass .content .label {
             font-size: 9px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #94a3b8;
+            color: rgba(255, 255, 255, 0.3);
         }
-        
-        .info-item .content .value {
+
+        .info-item-glass .content .value {
             font-size: 12px;
-            font-weight: 600;
-            color: #0f172a;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.8);
         }
-        
+
         /* ===== LEGEND ===== */
-        .legend-bar {
-            background: #fff;
-            border-radius: 12px;
+        .glass-legend {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
             padding: 10px 20px;
             margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            border: 1px solid #e2e8f0;
             display: flex;
             flex-wrap: wrap;
             align-items: center;
             gap: 10px;
         }
-        
-        .legend-title {
-            font-weight: 700;
-            font-size: 11px;
-            color: #64748b;
+
+        .glass-legend .legend-title {
+            font-weight: 600;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.3);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-right: 6px;
         }
-        
-        .legend-item {
+
+        .glass-legend .legend-item {
             display: flex;
             align-items: center;
             gap: 4px;
             font-size: 10px;
             font-weight: 500;
-            color: #475569;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 2px 10px 2px 6px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
-        
-        .legend-item .color-box {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            border: 1px solid #e2e8f0;
+
+        .glass-legend .legend-item .color-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
         }
-        
-        .legend-item .color-box.done { background: #d1fae5; border-color: #10b981; }
-        .legend-item .color-box.pending { background: #fef3c7; border-color: #f59e0b; }
-        .legend-item .color-box.inprogress { background: #dbeafe; border-color: #2563eb; }
-        .legend-item .color-box.handover { background: #fce7f3; border-color: #db2777; }
-        .legend-item .color-box.failed { background: #fee2e2; border-color: #ef4444; }
-        .legend-item .color-box.review { background: #ede9fe; border-color: #7c3aed; }
-        .legend-item .color-box.na { background: #f1f5f9; border-color: #94a3b8; }
-        
+
+        .glass-legend .legend-item .color-box.done { background: #10b981; }
+        .glass-legend .legend-item .color-box.pending { background: #f59e0b; }
+        .glass-legend .legend-item .color-box.inprogress { background: #3b82f6; }
+        .glass-legend .legend-item .color-box.handover { background: #ec4899; }
+        .glass-legend .legend-item .color-box.failed { background: #ef4444; }
+        .glass-legend .legend-item .color-box.review { background: #8b5cf6; }
+        .glass-legend .legend-item .color-box.na { background: #64748b; }
+
         /* ===== ALERT ===== */
-        .alert-custom {
-            border-radius: 12px;
+        .alert-glass {
+            border-radius: 16px;
             padding: 12px 20px;
             margin-bottom: 16px;
             font-weight: 500;
-            display: none;
             font-size: 13px;
             border: 1px solid transparent;
+            backdrop-filter: blur(20px);
+            display: none;
         }
-        
-        .alert-custom.alert-success {
-            background: #d1fae5;
-            color: #065f46;
-            border-color: #a7f3d0;
+
+        .alert-glass.alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.15);
             display: block;
         }
-        
-        .alert-custom.alert-danger {
-            background: #fee2e2;
-            color: #991b1b;
-            border-color: #fecaca;
+
+        .alert-glass.alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.15);
             display: block;
         }
-        
-        .alert-custom.alert-warning {
-            background: #fef3c7;
-            color: #92400e;
-            border-color: #fde68a;
+
+        .alert-glass.alert-warning {
+            background: rgba(251, 191, 36, 0.1);
+            color: #fbbf24;
+            border-color: rgba(251, 191, 36, 0.15);
             display: block;
         }
-        
+
         /* ===== SECTION CARDS ===== */
-        .section-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
             margin-bottom: 20px;
             overflow: hidden;
-            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
         }
-        
-        .section-card .card-header {
-            background: #f8fafc;
-            padding: 12px 24px;
-            border-bottom: 1px solid #e2e8f0;
+
+        .glass-card:hover {
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .glass-card .card-header {
+            padding: 14px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 8px;
         }
-        
-        .section-card .card-header h5 {
+
+        .glass-card .card-header h5 {
             font-weight: 700;
-            color: #0f172a;
+            color: rgba(255, 255, 255, 0.8);
             margin: 0;
-            font-size: 15px;
+            font-size: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
-        .section-card .card-header h5 i {
-            color: #2563eb;
+
+        .glass-card .card-header h5 i {
+            color: var(--accent);
         }
-        
-        .section-card .card-header .badge-count {
-            background: #2563eb;
-            color: #fff;
+
+        .glass-card .card-header .badge-count {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--accent);
             padding: 2px 14px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.1);
         }
-        
-        .section-card .card-body {
+
+        .glass-card .card-body {
             padding: 12px 18px 18px 18px;
             overflow-x: auto;
         }
-        
+
         /* ===== TABLE ===== */
         .table-checklist {
             font-size: 12px;
@@ -842,138 +934,159 @@ String footerDate = sdfFooter.format(new java.util.Date());
             border-collapse: separate;
             border-spacing: 0 4px;
         }
-        
+
         .table-checklist thead th {
-            background: #1a237e;
-            color: #fff;
+            background: rgba(26, 35, 126, 0.3);
+            color: rgba(255, 255, 255, 0.6);
             font-weight: 600;
             padding: 10px 8px;
             border: none;
             text-align: center;
-            font-size: 10px;
+            font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             white-space: nowrap;
             position: sticky;
             top: 0;
             z-index: 5;
+            backdrop-filter: blur(10px);
         }
-        
+
         .table-checklist thead th:first-child { border-radius: 8px 0 0 8px; }
         .table-checklist thead th:last-child { border-radius: 0 8px 8px 0; }
-        
+
         .table-checklist tbody tr {
-            background: #fff;
+            background: rgba(255, 255, 255, 0.02);
             border-radius: 8px;
             transition: all 0.2s;
         }
-        
+
         .table-checklist tbody tr:hover td {
-            background: #f8fafc;
+            background: rgba(255, 255, 255, 0.04);
         }
-        
+
         .table-checklist tbody td {
             padding: 8px 6px;
             vertical-align: middle;
-            background: #fff;
-            border-bottom: 1px solid #f1f5f9;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
         }
-        
+
         .table-checklist tbody tr:last-child td { border-bottom: none; }
-        
+
         .table-checklist .task-name {
             font-weight: 600;
-            color: #0f172a;
+            color: rgba(255, 255, 255, 0.8);
             font-size: 11px;
         }
-        
+
         .table-checklist .row-number {
             font-weight: 700;
             text-align: center;
-            background: #f1f5f9;
+            background: rgba(255, 255, 255, 0.04);
             border-radius: 4px;
             padding: 2px 8px;
             font-size: 11px;
-            color: #64748b;
+            color: rgba(255, 255, 255, 0.3);
         }
-        
+
         .table-checklist select.form-select-sm {
             font-size: 10px;
             padding: 1px 18px 1px 8px;
             border-radius: 20px;
-            border: 1.5px solid #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             min-width: 80px;
             height: 26px;
             cursor: pointer;
             font-weight: 500;
-            background-color: #fff;
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.8);
             transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
         }
-        
+
         .table-checklist select.form-select-sm:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.05);
+            outline: none;
         }
-        
+
+        .table-checklist select.form-select-sm option {
+            background: #1e293b;
+            color: #fff;
+        }
+
         .table-checklist select.form-select-sm.status-done {
-            background-color: #d1fae5;
-            border-color: #10b981;
-            color: #065f46;
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: #34d399;
         }
-        
+
         .table-checklist select.form-select-sm.status-pending {
-            background-color: #fef3c7;
-            border-color: #f59e0b;
-            color: #92400e;
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
         }
-        
+
         .table-checklist select.form-select-sm.status-na {
-            background-color: #f1f5f9;
-            border-color: #94a3b8;
-            color: #475569;
+            background: rgba(100, 116, 139, 0.15);
+            border-color: rgba(100, 116, 139, 0.2);
+            color: #94a3b8;
         }
-        
+
         .table-checklist textarea.form-control-sm {
             font-size: 10px;
             padding: 3px 6px;
-            border-radius: 6px;
-            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
             resize: vertical;
             min-height: 24px;
             width: 100%;
             min-width: 80px;
-            background: #fafbfc;
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(255, 255, 255, 0.7);
             transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
         }
-        
+
         .table-checklist textarea.form-control-sm:focus {
-            background: #fff;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.05);
+            outline: none;
         }
-        
+
+        .table-checklist textarea.form-control-sm::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
         .last-updated {
             font-size: 9px;
-            color: #94a3b8;
+            color: rgba(255, 255, 255, 0.2);
             white-space: nowrap;
         }
-        
+
         .done-by-required {
             color: #ef4444;
             font-size: 10px;
             font-weight: 600;
             margin-left: 4px;
         }
-        
-        .row-highlight {
-            background-color: #fef3c7 !important;
+
+        .row-highlight td {
+            background: rgba(251, 191, 36, 0.05) !important;
         }
-        
+
         .text-danger {
             color: #ef4444 !important;
         }
-        
+
+        .text-muted-glass {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
         /* ===== SPINNER ===== */
         .spinner-overlay {
             display: none;
@@ -982,65 +1095,94 @@ String footerDate = sdfFooter.format(new java.util.Date());
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(15,23,42,0.6);
-            backdrop-filter: blur(8px);
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
             z-index: 9999;
             justify-content: center;
             align-items: center;
         }
-        
+
         .spinner-overlay .spinner-box {
-            background: #fff;
-            padding: 35px 50px;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            padding: 40px 50px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
             text-align: center;
             min-width: 200px;
         }
-        
+
         .spinner-overlay .spinner-box .spinner-border {
             width: 50px;
             height: 50px;
-            color: #2563eb;
+            color: var(--accent);
         }
-        
+
         .spinner-overlay .spinner-box p {
             margin-top: 14px;
-            font-weight: 600;
-            color: #475569;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 14px;
+            font-family: 'Inter', sans-serif;
         }
-        
+
         /* ===== FOOTER ===== */
-        .footer-bar {
+        .glass-footer {
             text-align: center;
             padding: 14px;
-            font-size: 12px;
-            color: #94a3b8;
-            border-top: 1px solid #e2e8f0;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.15);
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
             margin-top: 10px;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
-        
+
+        .glass-footer strong {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             body { padding: 10px; }
-            .header { padding: 16px 20px; flex-direction: column; align-items: stretch; }
+            .glass-header { padding: 16px 20px; flex-direction: column; align-items: stretch; }
             .header-right { justify-content: space-between; }
-            .header-title h1 { font-size: 18px; }
-            .search-bar { flex-direction: column; align-items: stretch; padding: 14px; }
+            .header-title h1 { font-size: 17px; }
+            .glass-search { flex-direction: column; align-items: stretch; padding: 14px; }
             .search-group { width: 100%; }
             .search-group input[type="date"] { width: 100%; }
-            .info-panel-body { grid-template-columns: 1fr; padding: 14px; }
+            .glass-info-body { grid-template-columns: 1fr; padding: 14px; }
             .table-checklist { min-width: 900px; font-size: 10px; }
-            .legend-bar { gap: 6px; }
+            .glass-legend { gap: 6px; }
         }
-        
+
         @media (max-width: 480px) {
-            .header-title h1 { font-size: 16px; }
-            .header-actions .btn-custom { padding: 5px 12px; font-size: 11px; }
+            .header-title h1 { font-size: 14px; }
+            .logo-container { width: 40px; height: 40px; font-size: 20px; }
+            .btn-glass { padding: 5px 12px; font-size: 10px; }
+            .header-badge, .header-date-badge { font-size: 10px; padding: 4px 12px; }
+        }
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
     </style>
 </head>
@@ -1057,83 +1199,81 @@ String footerDate = sdfFooter.format(new java.util.Date());
 <div class="main-container">
 
     <!-- ===== HEADER ===== -->
-    <div class="header">
+    <div class="glass-header">
         <div class="header-left">
-            <div class="header-logo">
+            <div class="logo-container">
                 <i class="fas fa-headset"></i>
             </div>
             <div class="header-title">
-                <h1><i class="fas fa-moon"></i> EIS SUPPORT NIGHT SHIFT CHECKLIST</h1>
-                <div class="subtitle">Real-time Task Tracking & Management</div>
+                <h1>EIS <span class="highlight">Support</span> • Night Shift</h1>
+                <div class="subtitle">Real-time Task Management Dashboard</div>
             </div>
         </div>
         <div class="header-right">
-            <span class="header-date">
+            <span class="header-date-badge">
                 <i class="fas fa-calendar-alt"></i> <%= displayDateStr %>
             </span>
-            <span class="header-status">
-                <i class="fas fa-edit"></i> Editable
+            <span class="header-badge">
+                <i class="fas fa-circle" style="font-size: 6px;"></i> Editable
             </span>
-            <div class="header-actions">
-                <button class="btn-custom btn-info-custom" onclick="toggleInfoPanel()">
-                    <i class="fas fa-info-circle"></i>
-                </button>
-                <a href="TaskManagement.jsp" class="btn-custom btn-manage">
-                    <i class="fas fa-tasks"></i> Manage
-                </a>
-                <button class="btn-custom btn-save" onclick="saveAll()">
-                    <i class="fas fa-save"></i> Save
-                </button>
-                <button class="btn-custom btn-export" onclick="exportExcel()">
-                    <i class="fas fa-file-excel"></i> Export
-                </button>
-            </div>
+            <button class="btn-glass" onclick="toggleInfoPanel()">
+                <i class="fas fa-info-circle"></i>
+            </button>
+            <a href="TaskManagement.jsp" class="btn-glass btn-glass-gold">
+                <i class="fas fa-tasks"></i> Manage
+            </a>
+            <button class="btn-glass btn-glass-success" onclick="saveAll()">
+                <i class="fas fa-save"></i> Save
+            </button>
+            <button class="btn-glass btn-glass-primary" onclick="exportExcel()">
+                <i class="fas fa-file-excel"></i> Export
+            </button>
         </div>
     </div>
 
-    <!-- ===== SEARCH BAR ===== -->
-    <div class="search-bar">
+    <!-- ===== SEARCH ===== -->
+    <div class="glass-search">
         <div class="search-group">
-            <i class="fas fa-calendar-alt text-muted"></i>
+            <i class="fas fa-calendar-alt" style="color: rgba(255,255,255,0.3);"></i>
             <input type="date" name="viewDate" value="<%= viewDateParam != null ? viewDateParam : sdfParam.format(displayDate) %>" id="viewDate">
-            <button class="btn btn-primary btn-sm" onclick="window.location.href='?' + (document.getElementById('viewDate').value ? 'viewDate=' + document.getElementById('viewDate').value : '')">
+            <button class="btn btn-primary btn-sm" onclick="window.location.href='?' + (document.getElementById('viewDate').value ? 'viewDate=' + document.getElementById('viewDate').value : '')" style="background: rgba(59,130,246,0.2); color: var(--accent); border: none; padding: 5px 16px;">
                 <i class="fas fa-eye"></i> View
             </button>
         </div>
-        <button class="btn-today" onclick="window.location.href='?'">
+        <button class="btn-glass-sm" onclick="window.location.href='?'">
             <i class="fas fa-calendar-day"></i> Today
         </button>
     </div>
 
     <!-- ===== INFO PANEL ===== -->
-    <div class="info-panel" id="infoPanel">
-        <div class="info-panel-header" onclick="toggleInfoPanel()">
-            <h3><i class="fas fa-info-circle"></i> Checklist Information</h3>
+    <div class="glass-info" id="infoPanel">
+        <div class="glass-info-header" onclick="toggleInfoPanel()">
+            <h3><i class="fas fa-info-circle"></i> Dashboard Information</h3>
             <i class="fas fa-chevron-up toggle-icon" id="infoToggleIcon"></i>
         </div>
-        <div class="info-panel-body" id="infoPanelBody">
-            <div class="info-item">
+        <div class="glass-info-body" id="infoPanelBody">
+            <div class="info-item-glass">
                 <div class="icon blue"><i class="fas fa-clock"></i></div>
                 <div class="content">
                     <div class="label">Status</div>
                     <div class="value">✏️ Fully Editable</div>
                 </div>
             </div>
-            <div class="info-item">
+            <div class="info-item-glass">
                 <div class="icon green"><i class="fas fa-star"></i></div>
                 <div class="content">
-                    <div class="label">Mandatory Field</div>
-                    <div class="value">Done By is required for all rows</div>
+                    <div class="label">Mandatory</div>
+                    <div class="value">Done By required for all</div>
                 </div>
             </div>
-            <div class="info-item">
-                <div class="icon purple"><i class="fas fa-shift"></i></div>
+            <div class="info-item-glass">
+                <div class="icon purple"><i class="fas fa-moon"></i></div>
                 <div class="content">
                     <div class="label">Night Shift</div>
-                    <div class="value">10:00 PM → 7:00 AM (Next Day)</div>
+                    <div class="value">10:00 PM → 7:00 AM</div>
                 </div>
             </div>
-            <div class="info-item">
+            <div class="info-item-glass">
                 <div class="icon gold"><i class="fas fa-save"></i></div>
                 <div class="content">
                     <div class="label">Save</div>
@@ -1145,22 +1285,22 @@ String footerDate = sdfFooter.format(new java.util.Date());
 
     <!-- ===== ALERT ===== -->
     <% if (showMessage && message != null && !message.isEmpty()) { %>
-        <div class="alert-custom <%= message.startsWith("✅") ? "alert-success" : message.startsWith("❌") ? "alert-danger" : "alert-warning" %>">
+        <div class="alert-glass <%= message.startsWith("✅") ? "alert-success" : message.startsWith("❌") ? "alert-danger" : "alert-warning" %>">
             <i class="fas <%= message.startsWith("✅") ? "fa-check-circle" : message.startsWith("❌") ? "fa-exclamation-circle" : "fa-exclamation-triangle" %> me-2"></i> <%= message %>
-            <button type="button" class="btn-close float-end" onclick="this.parentElement.style.display='none'" style="font-size:10px;background:none;border:none;font-weight:bold;color:inherit;cursor:pointer;">×</button>
+            <button type="button" class="btn-close float-end" onclick="this.parentElement.style.display='none'" style="background:none;border:none;font-weight:bold;color:inherit;cursor:pointer;font-size:18px;opacity:0.5;">×</button>
         </div>
     <% } %>
 
     <!-- ===== LEGEND ===== -->
-    <div class="legend-bar">
+    <div class="glass-legend">
         <span class="legend-title"><i class="fas fa-palette"></i> Status</span>
-        <div class="legend-item"><span class="color-box done"></span> DONE</div>
-        <div class="legend-item"><span class="color-box pending"></span> PENDING</div>
-        <div class="legend-item"><span class="color-box inprogress"></span> IN PROGRESS</div>
-        <div class="legend-item"><span class="color-box handover"></span> HANDOVER</div>
-        <div class="legend-item"><span class="color-box failed"></span> FAILED</div>
-        <div class="legend-item"><span class="color-box review"></span> REVIEW</div>
-        <div class="legend-item"><span class="color-box na"></span> NA</div>
+        <span class="legend-item"><span class="color-box done"></span> DONE</span>
+        <span class="legend-item"><span class="color-box pending"></span> PENDING</span>
+        <span class="legend-item"><span class="color-box inprogress"></span> IN PROGRESS</span>
+        <span class="legend-item"><span class="color-box handover"></span> HANDOVER</span>
+        <span class="legend-item"><span class="color-box failed"></span> FAILED</span>
+        <span class="legend-item"><span class="color-box review"></span> REVIEW</span>
+        <span class="legend-item"><span class="color-box na"></span> NA</span>
     </div>
 
     <!-- ===== FORM ===== -->
@@ -1168,7 +1308,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
         <input type="hidden" name="action" value="save">
 
         <!-- ===== TIME SLOTS ===== -->
-        <div class="section-card">
+        <div class="glass-card">
             <div class="card-header">
                 <h5><i class="fas fa-clock"></i> Time Slots <span class="done-by-required">* Done By mandatory</span></h5>
                 <span class="badge-count"><%= timeSlots.size() %> Slots</span>
@@ -1192,7 +1332,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
                         <%
                         int tsCounter = 0;
                         if (timeSlots.isEmpty()) {
-                            out.println("<tr><td colspan='9' class='text-center text-muted py-4'>No time slots defined.</td></tr>");
+                            out.println("<tr><td colspan='9' class='text-center text-muted-glass py-4'>No time slots defined.</td></tr>");
                         } else {
                             for (Map<String, Object> row : timeSlots) {
                                 tsCounter++;
@@ -1239,13 +1379,13 @@ String footerDate = sdfFooter.format(new java.util.Date());
                                     <% } %>
                                 </select>
                                 <input type="hidden" name="done_by[]" value="<%= doneBy %>" id="done_by_ts_<%= tsCounter %>">
-                                <span id="row-ts-<%= tsCounter %>-indicator" style="display:none; color:#10b981; margin-left:4px;"><i class="fas fa-check-circle"></i></span>
+                                <span id="row-ts-<%= tsCounter %>-indicator" style="display:none; color:#34d399; margin-left:4px;"><i class="fas fa-check-circle"></i></span>
                             </td>
                             <td>
-                                <textarea class="form-control form-control-sm" name="review[]" rows="1"><%= review %></textarea>
+                                <textarea class="form-control form-control-sm" name="review[]" rows="1" placeholder="Review..."><%= review %></textarea>
                             </td>
                             <td>
-                                <textarea class="form-control form-control-sm" name="remarks[]" rows="1"><%= remark %></textarea>
+                                <textarea class="form-control form-control-sm" name="remarks[]" rows="1" placeholder="Remarks..."><%= remark %></textarea>
                             </td>
                             <td class="last-updated"><i class="far fa-clock me-1"></i> <%= lastUpdated %></td>
                             <input type="hidden" name="section[]" value="<%= row.get("section") %>">
@@ -1258,7 +1398,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
         </div>
 
         <!-- ===== NIGHT REPORTS ===== -->
-        <div class="section-card">
+        <div class="glass-card">
             <div class="card-header">
                 <h5><i class="fas fa-file-alt"></i> Night Reports <span class="done-by-required">* Done By mandatory</span></h5>
                 <span class="badge-count"><%= nightReports.size() %> Reports</span>
@@ -1280,7 +1420,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
                         <%
                         int nrCounter = 0;
                         if (nightReports.isEmpty()) {
-                            out.println("<tr><td colspan='7' class='text-center text-muted py-4'>No night reports defined.</td></tr>");
+                            out.println("<tr><td colspan='7' class='text-center text-muted-glass py-4'>No night reports defined.</td></tr>");
                         } else {
                             for (Map<String, Object> row : nightReports) {
                                 nrCounter++;
@@ -1311,13 +1451,13 @@ String footerDate = sdfFooter.format(new java.util.Date());
                                     <% } %>
                                 </select>
                                 <input type="hidden" name="done_by[]" value="<%= doneBy %>" id="done_by_nr_<%= nrCounter %>">
-                                <span id="row-nr-<%= nrCounter %>-indicator" style="display:none; color:#10b981; margin-left:4px;"><i class="fas fa-check-circle"></i></span>
+                                <span id="row-nr-<%= nrCounter %>-indicator" style="display:none; color:#34d399; margin-left:4px;"><i class="fas fa-check-circle"></i></span>
                             </td>
                             <td>
-                                <textarea class="form-control form-control-sm" name="review[]" rows="1"><%= review %></textarea>
+                                <textarea class="form-control form-control-sm" name="review[]" rows="1" placeholder="Review..."><%= review %></textarea>
                             </td>
                             <td>
-                                <textarea class="form-control form-control-sm" name="remarks[]" rows="1"><%= remark %></textarea>
+                                <textarea class="form-control form-control-sm" name="remarks[]" rows="1" placeholder="Remarks..."><%= remark %></textarea>
                             </td>
                             <td class="last-updated"><i class="far fa-clock me-1"></i> <%= lastUpdated %></td>
                             <input type="hidden" name="section[]" value="<%= row.get("section") %>">
@@ -1332,11 +1472,11 @@ String footerDate = sdfFooter.format(new java.util.Date());
     </form>
 
     <!-- ===== FOOTER ===== -->
-    <div class="footer-bar">
-        <i class="fas fa-headset me-1"></i> EIS Support &bull;
+    <div class="glass-footer">
+        <i class="fas fa-headset me-1"></i> <strong>EIS Support</strong> &bull;
         <span><%= displayDateStr %></span> &bull;
         <span id="lastSaved">Last Saved: <%= new SimpleDateFormat("HH:mm:ss").format(now) %></span>
-        <span class="ms-2 text-success"><i class="fas fa-edit"></i> Editable</span>
+        <span class="ms-2" style="color: rgba(16, 185, 129, 0.4);"><i class="fas fa-circle" style="font-size: 6px;"></i> Live</span>
     </div>
 </div>
 
@@ -1394,13 +1534,13 @@ String footerDate = sdfFooter.format(new java.util.Date());
         if (selectElem.value && selectElem.value.trim() !== '') {
             tr.classList.add('row-highlight');
             if (indicator) indicator.style.display = 'inline';
-            selectElem.style.border = '1.5px solid #10b981';
-            selectElem.style.backgroundColor = '#f0fdf4';
+            selectElem.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+            selectElem.style.backgroundColor = 'rgba(16, 185, 129, 0.08)';
         } else {
             tr.classList.remove('row-highlight');
             if (indicator) indicator.style.display = 'none';
-            selectElem.style.border = '2px solid #ef4444';
-            selectElem.style.backgroundColor = '#fef2f2';
+            selectElem.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+            selectElem.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
         }
     }
 
@@ -1423,8 +1563,8 @@ String footerDate = sdfFooter.format(new java.util.Date());
             var selects = document.querySelectorAll('select.done-by-select');
             for (var j = 0; j < selects.length; j++) {
                 if (!selects[j].value || selects[j].value.trim() === '') {
-                    selects[j].style.border = '3px solid #ef4444';
-                    selects[j].style.backgroundColor = '#fef2f2';
+                    selects[j].style.border = '2px solid rgba(239, 68, 68, 0.5)';
+                    selects[j].style.backgroundColor = 'rgba(239, 68, 68, 0.08)';
                     if (!firstEmptySelect) firstEmptySelect = selects[j];
                 }
             }
@@ -1505,8 +1645,8 @@ String footerDate = sdfFooter.format(new java.util.Date());
         html += '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
         html += '<style>';
         html += 'body { font-family: "Segoe UI", Arial, sans-serif; padding: 20px; background: #f8f9fc; }';
-        html += '.main-title { font-size: 20px; font-weight: 700; color: #1a237e; text-align: center; padding: 15px; background: linear-gradient(135deg, #e8edf4, #d5dce6); border-radius: 8px; margin-bottom: 15px; border: 2px solid #1a237e; }';
-        html += '.main-title span { color: #0d47a1; }';
+        html += '.main-title { font-size: 22px; font-weight: 800; color: #1a237e; text-align: center; padding: 18px; background: linear-gradient(135deg, #e8edf4, #d5dce6); border-radius: 10px; margin-bottom: 15px; border: 2px solid #1a237e; }';
+        html += '.main-title .gold { color: #d97706; }';
         html += '.main-title .sub { font-size: 12px; font-weight: 400; color: #64748b; display: block; margin-top: 4px; }';
         html += '.date-header { font-size: 14px; font-weight: bold; color: #1a237e; margin-bottom: 15px; padding: 10px 16px; background: #e8edf4; border-left: 4px solid #1a237e; border-radius: 4px; }';
         html += 'table { border-collapse: collapse; width: 100%; margin-bottom: 20px; font-family: "Segoe UI", Arial, sans-serif; }';
@@ -1515,21 +1655,21 @@ String footerDate = sdfFooter.format(new java.util.Date());
         html += 'tr:nth-child(even) { background: #f8f9fc; }';
         html += 'tr:nth-child(odd) { background: #ffffff; }';
         html += '.task-name { font-weight: 600; color: #0B1A30; text-align: left; padding-left: 12px; }';
-        html += '.status-done { background: #d4edda; color: #155724; font-weight: bold; padding: 2px 10px; border-radius: 4px; display: inline-block; }';
-        html += '.status-pending { background: #fff3cd; color: #856404; font-weight: bold; padding: 2px 10px; border-radius: 4px; display: inline-block; }';
-        html += '.status-na { background: #e2e3e5; color: #383d41; font-weight: bold; padding: 2px 10px; border-radius: 4px; display: inline-block; }';
-        html += '.status-inprogress { background: #cce5ff; color: #004085; font-weight: bold; padding: 2px 10px; border-radius: 4px; display: inline-block; }';
-        html += '.status-handover { background: #f5c6cb; color: #721c24; font-weight: bold; padding: 2px 10px; border-radius: 4px; display: inline-block; }';
-        html += '.status-failed { background: #f8d7da; color: #721c24; font-weight: bold; padding: 2px 10px; border-radius: 4px; display: inline-block; }';
-        html += '.status-review { background: #d6d8db; color: #383d41; font-weight: bold; padding: 2px 10px; border-radius: 4px; display: inline-block; }';
+        html += '.status-done { background: #d4edda; color: #155724; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-pending { background: #fff3cd; color: #856404; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-na { background: #e2e3e5; color: #383d41; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-inprogress { background: #cce5ff; color: #004085; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-handover { background: #f5c6cb; color: #721c24; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-failed { background: #f8d7da; color: #721c24; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+        html += '.status-review { background: #d6d8db; color: #383d41; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
         html += '.done-by { font-weight: 600; color: #0B1A30; }';
         html += '.section-title { font-size: 16px; font-weight: bold; color: #1a237e; padding: 10px 12px; border-bottom: 2px solid #1a237e; margin-top: 15px; margin-bottom: 12px; background: #e8edf4; border-radius: 4px 4px 0 0; }';
-        html += '.footer { margin-top: 20px; padding: 10px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 10px; }';
+        html += '.footer { margin-top: 20px; padding: 12px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 10px; }';
         html += '.footer .company { font-weight: 600; color: #1a237e; }';
         html += '</style></head><body>';
         
-        html += '<div class="main-title">🎧 EIS SUPPORT NIGHT SHIFT CHECKLIST <span>| ' + displayDate + '</span>';
-        html += '<span class="sub">EIS Support - Night Shift Task Management</span></div>';
+        html += '<div class="main-title">🎧 EIS <span class="gold">Support</span> • Night Shift Checklist';
+        html += '<span class="sub">' + displayDate + ' | Real-time Task Management</span></div>';
         var currentDate = new Date().toLocaleString();
         html += '<div class="date-header">📅 Date: ' + displayDate + ' | ⏰ Generated: ' + currentDate + '</div>';
         
@@ -1625,11 +1765,11 @@ String footerDate = sdfFooter.format(new java.util.Date());
                 var tr = $('#row-' + rowId);
                 tr.addClass('row-highlight');
                 $('#row-' + rowId + '-indicator').show();
-                $(this).css('border', '1.5px solid #10b981');
-                $(this).css('background-color', '#f0fdf4');
+                $(this).css('border', '1px solid rgba(16, 185, 129, 0.3)');
+                $(this).css('background-color', 'rgba(16, 185, 129, 0.08)');
             } else {
-                $(this).css('border', '2px solid #ef4444');
-                $(this).css('background-color', '#fef2f2');
+                $(this).css('border', '1px solid rgba(239, 68, 68, 0.3)');
+                $(this).css('background-color', 'rgba(239, 68, 68, 0.05)');
             }
         });
         
@@ -1640,7 +1780,7 @@ String footerDate = sdfFooter.format(new java.util.Date());
             else if (val === 'NA') $(this).addClass('status-na');
         });
 
-        console.log('✅ EIS Support Night Shift Checklist loaded successfully');
+        console.log('🎧 EIS Support Night Shift Checklist loaded successfully');
         console.log('📌 Shortcut: Ctrl+S to save');
         console.log('📌 Toggle Info: Ctrl+I');
     });
