@@ -264,7 +264,7 @@
 
 <%
 // ============================================================
-// TEST MODE LOGIC - FIXED
+// TEST MODE LOGIC
 // ============================================================
 String testMode = request.getParameter("testMode");
 String testHour = request.getParameter("testHour");
@@ -298,9 +298,8 @@ if ("true".equals(testMode) && testHour != null && testMinute != null) {
 }
 
 // ============================================================
-// FIXED: Compute freeze time using actual logic
+// FIXED: Compute freeze time
 // ============================================================
-// Slot definitions with their end times
 String[][] slots = {
     {"10:00 PM TO 12:00 AM", "12:00 AM", "0", "0"},
     {"12:00 AM TO 02:00 AM", "02:00 AM", "2", "0"},
@@ -309,18 +308,15 @@ String[][] slots = {
     {"06:00 AM TO 07:00 AM", "07:00 AM", "7", "0"}
 };
 
-// Calculate freeze time for each slot (end time + 45 minutes)
 int[] freezeMinutes = new int[slots.length];
 String[] freezeDisplay = new String[slots.length];
 
 for (int i = 0; i < slots.length; i++) {
     int endH = Integer.parseInt(slots[i][2]);
     int endM = Integer.parseInt(slots[i][3]);
-    // Add 45 minutes
     int totalMin = endH * 60 + endM + 45;
-    // For AM slots (12:00 AM to 7:00 AM), freeze time is next day
     if (endH >= 0 && endH < 12) {
-        totalMin += 1440; // Add 24 hours
+        totalMin += 1440;
     }
     freezeMinutes[i] = totalMin;
     
@@ -331,13 +327,16 @@ for (int i = 0; i < slots.length; i++) {
 
 int testMinutes = testH * 60 + testM;
 
+// ============================================================
 // FIXED: Calculate slot statuses
+// ============================================================
 String[] slotStatuses = new String[slots.length];
 String[] slotStatusLabels = new String[slots.length];
 String[] slotStatusClasses = new String[slots.length];
 
 for (int i = 0; i < slots.length; i++) {
     boolean isFrozen = false;
+    int freezeMin = freezeMinutes[i];
     
     // Check 1: All slots freeze at 7:45 AM
     if (testMinutes >= 7 * 60 + 45) {
@@ -346,9 +345,9 @@ for (int i = 0; i < slots.length; i++) {
     // Check 2: Individual slot freeze
     else if (testH >= 0 && testH < 8) {
         // Night shift time (12 AM - 8 AM)
-        // For AM slots, freeze time is next day, so we need to add 24 hours to test time
-        int adjustedTestMinutes = testMinutes + 1440; // Add 24 hours to compare with next day freeze
-        if (adjustedTestMinutes >= freezeMinutes[i]) {
+        // Add 24 hours to test time to compare with next day freeze
+        int adjustedTestMinutes = testMinutes + 1440;
+        if (adjustedTestMinutes >= freezeMin) {
             isFrozen = true;
         }
     }
@@ -384,14 +383,12 @@ if (testDate != null && !testDate.isEmpty()) {
 
 <div class="test-container">
 
-    <!-- ===== HEADER ===== -->
     <div class="test-header">
         <h1><i class="fas fa-flask"></i> Night Shift Test Mode</h1>
         <div class="subtitle">Simulate different times to test the checklist freeze logic</div>
         <span class="badge-test"><i class="fas fa-exclamation-triangle"></i> FOR TESTING ONLY</span>
     </div>
 
-    <!-- ===== CURRENT TEST STATUS ===== -->
     <div class="info-box">
         <div class="info-row">
             <span class="label"><i class="fas fa-clock"></i> Test Time</span>
@@ -423,7 +420,6 @@ if (testDate != null && !testDate.isEmpty()) {
         </div>
     </div>
 
-    <!-- ===== SLOT STATUS ===== -->
     <div style="margin-top:15px;">
         <div style="font-weight:600;font-size:14px;color:#0f172a;margin-bottom:10px;">
             <i class="fas fa-clock"></i> Slot Status at <strong><%= testTimeDisplay %></strong>
@@ -446,7 +442,6 @@ if (testDate != null && !testDate.isEmpty()) {
         </div>
     </div>
 
-    <!-- ===== TEST FORM ===== -->
     <div class="test-form">
         <form method="get" action="">
             <input type="hidden" name="testMode" value="true">
@@ -491,7 +486,6 @@ if (testDate != null && !testDate.isEmpty()) {
             </div>
         </form>
 
-        <!-- ===== PRESET TIMES ===== -->
         <div style="margin-top:20px;">
             <div style="font-weight:600;font-size:13px;color:#0f172a;margin-bottom:8px;">
                 <i class="fas fa-bolt"></i> Quick Presets
@@ -551,7 +545,6 @@ if (testDate != null && !testDate.isEmpty()) {
         </div>
     </div>
 
-    <!-- ===== OPEN PORTAL ===== -->
     <div style="text-align:center;margin-top:20px;">
         <a href="<%= redirectUrl %>" target="_blank" class="btn btn-primary" 
            style="border-radius:12px;padding:14px 40px;font-weight:700;font-size:16px;background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;box-shadow:0 4px 15px rgba(37,99,235,0.3);">
@@ -562,7 +555,6 @@ if (testDate != null && !testDate.isEmpty()) {
         </div>
     </div>
 
-    <!-- ===== QUICK LINKS ===== -->
     <div class="quick-links">
         <a href="<%= baseUrl %>?testMode=true&testHour=0&testMinute=45" target="_blank" class="btn btn-outline-danger btn-sm">12:45 AM</a>
         <a href="<%= baseUrl %>?testMode=true&testHour=2&testMinute=45" target="_blank" class="btn btn-outline-danger btn-sm">02:45 AM</a>
@@ -573,7 +565,6 @@ if (testDate != null && !testDate.isEmpty()) {
         <a href="<%= baseUrl %>?testMode=true&testHour=23&testMinute=30" target="_blank" class="btn btn-outline-success btn-sm">11:30 PM</a>
     </div>
 
-    <!-- ===== LEGEND ===== -->
     <div style="margin-top:15px;padding:12px 16px;background:#f8fafc;border-radius:10px;display:flex;flex-wrap:wrap;gap:12px;justify-content:center;border:1px solid #e2e8f0;">
         <span style="font-weight:600;font-size:11px;color:#64748b;">📌 LEGEND:</span>
         <span><span class="legend-tag editable">✏️ Editable</span></span>
@@ -582,7 +573,6 @@ if (testDate != null && !testDate.isEmpty()) {
         <span><span class="badge bg-danger" style="font-size:10px;">🧪 Test Mode</span></span>
     </div>
 
-    <!-- ===== FOOTER ===== -->
     <div class="footer-text">
         <i class="fas fa-flask"></i> Test Mode | 
         Select a time and click <strong>"Apply"</strong> to simulate | 
