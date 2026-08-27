@@ -66,8 +66,10 @@
             return true;
         }
         
-        // Check 2: Night shift time (12 AM - 8 AM) - compare with freeze time
+        // Check 2: Night shift time (12 AM - 8 AM)
         if (nowHour >= 0 && nowHour < 8) {
+            // Freeze time is next day for AM slots
+            // Compare directly - if current time >= freeze time, it's frozen
             return nowMinutes >= freezeMinutes;
         }
         
