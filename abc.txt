@@ -43,7 +43,7 @@
     }
     
     // ============================================================
-    // FIXED: Check if slot is frozen based on time only
+    // FIXED: Check if slot is frozen - TIME ONLY comparison
     // ============================================================
     private boolean isSlotFrozen(java.util.Date currentTime, java.util.Date freezeTime) {
         if (currentTime == null || freezeTime == null) return false;
@@ -66,10 +66,10 @@
             return true;
         }
         
-        // Check 2: Night shift time (12 AM - 8 AM)
+        // Check 2: Night shift time (12 AM - 8 AM) - compare time only
         if (nowHour >= 0 && nowHour < 8) {
             // For AM slots, freeze time is next day
-            // Compare directly - if current time >= freeze time, it's frozen
+            // But we only compare time (hour:minute)
             // Example: 12:45 AM current, freeze time 12:45 AM -> frozen
             // 1:00 AM current, freeze time 12:45 AM -> frozen (1:00 >= 12:45)
             // 12:30 AM current, freeze time 12:45 AM -> not frozen yet
