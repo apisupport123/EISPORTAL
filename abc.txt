@@ -2,9 +2,6 @@
 <%@ page import="java.sql.*, java.util.*, java.text.*" %>
 <%@page import="com.jdbc.DBUtilityAuto"%>
 <%
-// ============================================
-// DYNAMIC PARTITION - CURRENT MONTH
-// ============================================
 String getPartition() {
     Calendar cal = Calendar.getInstance();
     String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
@@ -17,6 +14,8 @@ String action = request.getParameter("action");
 if ("fetchSourceStatus".equals(action)) {
     response.setContentType("application/json");
     Connection conn = null;
+    Statement stmt = null;
+    ResultSet rs = null;
     StringBuilder json = new StringBuilder();
     
     try {
@@ -58,8 +57,9 @@ if ("fetchSourceStatus".equals(action)) {
             "LEFT JOIN FOUND_SOURCES f ON f.source_id = s.source_id " +
             "ORDER BY s.source_id";
         
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(query);
+        stmt = conn.createStatement();
+        stmt.setQueryTimeout(30);
+        rs = stmt.executeQuery(query);
         
         json.append("[");
         boolean first = true;
@@ -72,17 +72,14 @@ if ("fetchSourceStatus".equals(action)) {
             first = false;
         }
         json.append("]");
-        
         out.print(json.toString());
-        rs.close();
-        stmt.close();
-        conn.close();
         
     } catch(Exception e) {
         out.print("[]");
-        e.printStackTrace();
     } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
+        try { if (rs != null) rs.close(); } catch(Exception e) {}
+        try { if (stmt != null) stmt.close(); } catch(Exception e) {}
+        try { if (conn != null) conn.close(); } catch(Exception e) {}
     }
     return;
 }
@@ -99,21 +96,23 @@ if ("fetchSourceStatus".equals(action)) {
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #0a0e1a;
-            --surface: #111827;
-            --card: #1a2332;
-            --border: #2a3a52;
+            --bg: #05080f;
+            --surface: #0c1220;
+            --card: #162035;
+            --border: #1f2d45;
             --text: #e8edf5;
-            --text2: #94a3b8;
-            --text3: #4a6080;
-            --green: #22c55e;
-            --red: #ef4444;
-            --blue: #3b82f6;
-            --purple: #8b5cf6;
-            --pink: #ec4899;
-            --cyan: #06b6d4;
-            --orange: #f59e0b;
-            --yellow: #eab308;
+            --text2: #8899bb;
+            --text3: #3d5070;
+            --green: #2ecc71;
+            --green-dark: #1a8a4a;
+            --red: #e74c3c;
+            --red-dark: #922b21;
+            --blue: #3498db;
+            --purple: #9b59b6;
+            --pink: #e91e63;
+            --cyan: #1abc9c;
+            --orange: #f39c12;
+            --yellow: #f1c40f;
         }
 
         body {
@@ -130,10 +129,10 @@ if ("fetchSourceStatus".equals(action)) {
 
         .dashboard {
             height: 100vh;
-            padding: 14px 18px 18px 18px;
+            padding: 12px 16px 16px 16px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
         }
 
         /* ===== HEADER ===== */
@@ -141,7 +140,7 @@ if ("fetchSourceStatus".equals(action)) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 20px;
+            padding: 10px 18px;
             background: var(--surface);
             border-radius: 12px;
             border: 1px solid var(--border);
@@ -153,111 +152,107 @@ if ("fetchSourceStatus".equals(action)) {
             gap: 12px;
         }
         .header-icon {
-            width: 40px; height: 40px;
+            width: 38px; height: 38px;
             background: linear-gradient(135deg, var(--blue), var(--purple));
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 16px;
             color: #fff;
         }
         .header h1 {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             font-weight: 800;
             background: linear-gradient(135deg, #fff, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .header .sub {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--text3);
         }
         .header-right {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .live-badge {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(34,197,94,0.12);
-            padding: 4px 12px;
-            border-radius: 16px;
-            border: 1px solid rgba(34,197,94,0.2);
-            font-size: 0.65rem;
+            gap: 5px;
+            background: rgba(46,204,113,0.12);
+            padding: 4px 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(46,204,113,0.2);
+            font-size: 0.6rem;
             color: var(--green);
         }
         .live-dot {
-            width: 7px; height: 7px;
+            width: 6px; height: 6px;
             border-radius: 50%;
             background: var(--green);
             animation: blink 1.5s infinite;
         }
         @keyframes blink {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
         }
         .timer-badge {
             background: var(--card);
-            padding: 4px 12px;
-            border-radius: 16px;
+            padding: 4px 10px;
+            border-radius: 14px;
             border: 1px solid var(--border);
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text2);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-weight: 600;
             font-family: 'JetBrains Mono', monospace;
         }
-        .timer-badge i { color: var(--orange); }
+        .timer-badge i { color: var(--orange); margin-right: 3px; }
         .partition-badge {
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             color: var(--text3);
             background: var(--card);
-            padding: 2px 10px;
-            border-radius: 10px;
+            padding: 2px 8px;
+            border-radius: 8px;
             border: 1px solid var(--border);
             font-family: 'JetBrains Mono', monospace;
         }
 
-        /* ===== STATS ROW ===== */
+        /* ===== STATS ===== */
         .stats-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px;
             flex-shrink: 0;
         }
         .stat-card {
             background: var(--surface);
             border-radius: 10px;
-            padding: 12px 16px;
+            padding: 10px 14px;
             border: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .stat-icon {
-            width: 36px; height: 36px;
+            width: 32px; height: 32px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 13px;
         }
-        .stat-icon.green { background: rgba(34,197,94,0.12); color: var(--green); }
-        .stat-icon.red { background: rgba(239,68,68,0.12); color: var(--red); }
-        .stat-icon.blue { background: rgba(59,130,246,0.12); color: var(--blue); }
-        .stat-icon.orange { background: rgba(245,158,11,0.12); color: var(--orange); }
+        .stat-icon.green { background: rgba(46,204,113,0.15); color: var(--green); }
+        .stat-icon.red { background: rgba(231,76,60,0.15); color: var(--red); }
+        .stat-icon.blue { background: rgba(52,152,219,0.15); color: var(--blue); }
+        .stat-icon.orange { background: rgba(243,156,18,0.15); color: var(--orange); }
         .stat-info h3 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 800;
             line-height: 1.2;
         }
         .stat-info p {
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             color: var(--text3);
             font-weight: 600;
             text-transform: uppercase;
@@ -268,12 +263,12 @@ if ("fetchSourceStatus".equals(action)) {
         .main {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 12px;
+            grid-template-columns: 1fr 280px;
+            gap: 10px;
             min-height: 0;
         }
 
-        /* ===== SOURCES ===== */
+        /* ===== SOURCES PANEL ===== */
         .sources-panel {
             background: var(--surface);
             border-radius: 12px;
@@ -283,7 +278,7 @@ if ("fetchSourceStatus".equals(action)) {
             overflow: hidden;
         }
         .panel-head {
-            padding: 10px 16px;
+            padding: 8px 14px;
             background: var(--card);
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -292,7 +287,7 @@ if ("fetchSourceStatus".equals(action)) {
             flex-shrink: 0;
         }
         .panel-head h2 {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -302,27 +297,27 @@ if ("fetchSourceStatus".equals(action)) {
         .panel-head .cnt {
             background: var(--bg);
             padding: 1px 8px;
-            border-radius: 12px;
-            font-size: 0.6rem;
+            border-radius: 10px;
+            font-size: 0.55rem;
             color: var(--text2);
             font-weight: 600;
         }
         .legend {
             display: flex;
             gap: 10px;
-            font-size: 0.55rem;
+            font-size: 0.5rem;
             color: var(--text3);
         }
         .legend .g { color: var(--green); }
         .legend .r { color: var(--red); }
 
-        /* ===== SOURCES GRID - FULL SCREEN ===== */
+        /* ===== SOURCES GRID - FULL SCREEN BIG CARDS ===== */
         .sources-grid {
             flex: 1;
             overflow-y: auto;
-            padding: 12px 14px;
+            padding: 10px 12px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 10px;
             align-content: start;
         }
@@ -330,114 +325,131 @@ if ("fetchSourceStatus".equals(action)) {
         /* ===== SOURCE CARD - UNIQUE DESIGN ===== */
         .source-card {
             background: var(--card);
-            border-radius: 10px;
-            padding: 16px 14px;
+            border-radius: 12px;
+            padding: 18px 14px;
             border: 2px solid var(--border);
             text-align: center;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             cursor: default;
+            min-height: 120px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100px;
         }
-        .source-card::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 12px;
-            opacity: 0;
-            transition: 0.3s;
+        .source-card:hover {
+            transform: translateY(-4px) scale(1.02);
         }
+        
+        /* Active State */
         .source-card.active {
             border-color: var(--green);
-            background: linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.02));
+            background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(46,204,113,0.02));
+            box-shadow: 0 8px 32px rgba(46,204,113,0.08);
         }
-        .source-card.active::before {
-            opacity: 1;
-            background: linear-gradient(135deg, var(--green), transparent);
-            inset: -2px;
-            border-radius: 12px;
-            z-index: -1;
-            filter: blur(20px);
-        }
-        .source-card.inactive {
-            border-color: rgba(239,68,68,0.15);
-            opacity: 0.4;
-        }
-        .source-card .ring {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 800;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 6px;
-            position: relative;
-        }
-        .source-card.active .ring {
-            background: rgba(34,197,94,0.1);
-            border: 2px solid var(--green);
-            box-shadow: 0 0 30px rgba(34,197,94,0.15);
-        }
-        .source-card.active .ring::after {
+        .source-card.active::after {
             content: '';
             position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            border: 2px solid transparent;
-            border-top-color: var(--green);
-            animation: spinRing 3s linear infinite;
+            inset: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--green), var(--cyan));
+            z-index: -1;
+            opacity: 0.15;
+            filter: blur(15px);
         }
-        @keyframes spinRing {
-            to { transform: rotate(360deg); }
+        .source-card.active .source-id {
+            color: var(--green);
+            text-shadow: 0 0 30px rgba(46,204,113,0.2);
         }
-        .source-card.inactive .ring {
-            background: rgba(239,68,68,0.05);
-            border: 2px solid var(--text3);
+        .source-card.active .source-status {
+            color: var(--green);
         }
-        .source-card .ring .id {
-            font-size: 18px;
-            font-weight: 800;
+        
+        /* Inactive State */
+        .source-card.inactive {
+            border-color: rgba(231,76,60,0.15);
+            opacity: 0.4;
         }
-        .source-card.active .ring .id { color: var(--green); }
-        .source-card.inactive .ring .id { color: var(--text3); }
-        .source-card .status-label {
-            font-size: 0.5rem;
+        .source-card.inactive .source-id {
+            color: var(--text3);
+        }
+        .source-card.inactive .source-status {
+            color: var(--red);
+        }
+
+        /* Source ID - Big & Bold */
+        .source-id {
+            font-size: 2.2rem;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            line-height: 1;
+            margin-bottom: 4px;
+            transition: 0.3s;
+        }
+        
+        /* Status Label */
+        .source-status {
+            font-size: 0.6rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-top: 2px;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            transition: 0.3s;
         }
-        .source-card.active .status-label { color: var(--green); }
-        .source-card.inactive .status-label { color: var(--red); }
-        .source-card .hit-count {
-            font-size: 0.55rem;
+
+        /* Hit Counter */
+        .source-hits {
+            font-size: 0.65rem;
             color: var(--text3);
-            margin-top: 4px;
             font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            padding: 2px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: inline-block;
         }
-        .source-card .status-dot {
+        .source-card.active .source-hits {
+            border-color: rgba(46,204,113,0.2);
+            color: var(--text2);
+        }
+
+        /* Status Dot */
+        .status-dot {
             position: absolute;
-            top: 8px;
-            right: 10px;
-            width: 7px;
-            height: 7px;
+            top: 10px;
+            right: 12px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
+            transition: 0.3s;
         }
         .source-card.active .status-dot {
             background: var(--green);
-            box-shadow: 0 0 12px rgba(34,197,94,0.6);
+            box-shadow: 0 0 16px rgba(46,204,113,0.6);
             animation: blink 1.5s infinite;
         }
         .source-card.inactive .status-dot {
             background: var(--red);
             opacity: 0.3;
+        }
+
+        /* Pulse Ring for Active */
+        .source-card.active .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            border: 2px solid rgba(46,204,113,0.1);
+            animation: pulseRing 2s ease-out infinite;
+        }
+        @keyframes pulseRing {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
         }
 
         /* ===== ACTIVITY ===== */
@@ -452,7 +464,7 @@ if ("fetchSourceStatus".equals(action)) {
         .activity-list {
             flex: 1;
             overflow-y: auto;
-            padding: 8px 12px;
+            padding: 6px 10px;
             display: flex;
             flex-direction: column;
             gap: 3px;
@@ -460,7 +472,7 @@ if ("fetchSourceStatus".equals(action)) {
         .activity-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             padding: 5px 8px;
             background: var(--card);
             border-radius: 5px;
@@ -477,31 +489,31 @@ if ("fetchSourceStatus".equals(action)) {
             font-size: 0.45rem;
             color: var(--text3);
             font-family: 'JetBrains Mono', monospace;
-            min-width: 40px;
+            min-width: 38px;
         }
         .activity-source {
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-family: 'JetBrains Mono', monospace;
         }
         .activity-status {
-            font-size: 0.45rem;
+            font-size: 0.4rem;
             font-weight: 700;
             text-transform: uppercase;
             margin-left: auto;
             padding: 1px 6px;
-            border-radius: 8px;
+            border-radius: 6px;
         }
-        .activity-status.on { background: rgba(34,197,94,0.12); color: var(--green); }
-        .activity-status.off { background: rgba(239,68,68,0.12); color: var(--red); }
+        .activity-status.on { background: rgba(46,204,113,0.12); color: var(--green); }
+        .activity-status.off { background: rgba(231,76,60,0.12); color: var(--red); }
         .activity-empty {
             text-align: center;
-            padding: 20px 12px;
+            padding: 16px 10px;
             color: var(--text3);
-            font-size: 0.7rem;
+            font-size: 0.65rem;
         }
         .activity-empty i {
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             opacity: 0.3;
             display: block;
             margin-bottom: 4px;
@@ -517,19 +529,19 @@ if ("fetchSourceStatus".equals(action)) {
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.6s ease;
         }
         .loading-overlay.hide {
             opacity: 0;
             pointer-events: none;
         }
-        .loader-ring {
-            width: 60px;
-            height: 60px;
+        .loader {
+            width: 70px;
+            height: 70px;
             border-radius: 50%;
             border: 3px solid var(--border);
             border-top-color: var(--blue);
-            border-right-color: var(--purple);
+            border-bottom-color: var(--purple);
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
@@ -547,7 +559,7 @@ if ("fetchSourceStatus".equals(action)) {
             50% { opacity: 0.4; }
         }
         .loader-sub {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--text3);
             margin-top: 4px;
         }
@@ -555,31 +567,32 @@ if ("fetchSourceStatus".equals(action)) {
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1100px) {
             .main { grid-template-columns: 1fr; }
-            .activity-panel { max-height: 180px; }
-            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+            .activity-panel { max-height: 160px; }
+            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
         }
         @media (max-width: 768px) {
-            .dashboard { padding: 8px 10px; gap: 8px; }
+            .dashboard { padding: 8px 10px; gap: 6px; }
             .header { flex-wrap: wrap; padding: 8px 12px; }
-            .header h1 { font-size: 1rem; }
-            .header-icon { width: 32px; height: 32px; font-size: 14px; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 6px; }
-            .stat-card { padding: 8px 12px; }
-            .stat-info h3 { font-size: 1rem; }
-            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); padding: 8px 10px; gap: 6px; }
-            .source-card { min-height: 80px; padding: 10px 8px; }
-            .source-card .ring { width: 40px; height: 40px; font-size: 14px; }
-            .source-card .ring .id { font-size: 14px; }
+            .header h1 { font-size: 0.95rem; }
+            .header-icon { width: 30px; height: 30px; font-size: 13px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 5px; }
+            .stat-card { padding: 6px 10px; }
+            .stat-info h3 { font-size: 0.9rem; }
+            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); padding: 6px 8px; gap: 6px; }
+            .source-card { min-height: 90px; padding: 12px 8px; }
+            .source-id { font-size: 1.6rem; }
             .legend { display: none; }
             .header-right { flex-wrap: wrap; gap: 4px; }
-            .partition-badge { font-size: 0.45rem; }
         }
         @media (max-width: 480px) {
-            .stats-row { grid-template-columns: 1fr 1fr; }
             .sources-grid { grid-template-columns: repeat(2, 1fr); }
-            .source-card { min-height: 70px; }
-            .source-card .ring { width: 32px; height: 32px; font-size: 11px; }
-            .source-card .ring .id { font-size: 11px; }
+            .source-card { min-height: 80px; padding: 10px 6px; }
+            .source-id { font-size: 1.3rem; }
+            .source-status { font-size: 0.5rem; }
+            .source-hits { font-size: 0.5rem; }
+            .stat-info h3 { font-size: 0.8rem; }
+            .stat-card { padding: 4px 8px; }
+            .stat-icon { width: 26px; height: 26px; font-size: 11px; }
         }
     </style>
 </head>
@@ -587,7 +600,7 @@ if ("fetchSourceStatus".equals(action)) {
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
-    <div class="loader-ring"></div>
+    <div class="loader"></div>
     <div class="loader-text">Loading Source Monitor</div>
     <div class="loader-sub">Connecting to Oracle Database...</div>
 </div>
@@ -665,7 +678,7 @@ if ("fetchSourceStatus".equals(action)) {
         <div class="activity-panel">
             <div class="panel-head">
                 <h2><i class="fas fa-bolt" style="color:var(--cyan);"></i> Live Activity</h2>
-                <span style="font-size:0.5rem;color:var(--text3);"><i class="fas fa-circle" style="color:var(--green);font-size:0.3rem;"></i> Real-time</span>
+                <span style="font-size:0.45rem;color:var(--text3);"><i class="fas fa-circle" style="color:var(--green);font-size:0.25rem;"></i> Real-time</span>
             </div>
             <div class="activity-list" id="activityList">
                 <div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>
@@ -763,7 +776,7 @@ if ("fetchSourceStatus".equals(action)) {
                         '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
                         '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
                         '<p style="font-weight:600;">Connection Error</p>' +
-                        '<p style="font-size:0.7rem;">Please refresh the page</p></div>';
+                        '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
                 }
             });
     }
@@ -781,10 +794,14 @@ if ("fetchSourceStatus".equals(action)) {
             if (isActive) active++;
             var cls = isActive ? 'active' : 'inactive';
             var status = isActive ? 'ONLINE' : 'OFFLINE';
+            var hits = isActive ? Math.floor(Math.random() * 50 + 10) : 0;
+            
             html += '<div class="source-card ' + cls + '">' +
                 '<span class="status-dot"></span>' +
-                '<div class="ring"><span class="id">' + item.source_id + '</span></div>' +
-                '<div class="status-label">' + status + '</div>' +
+                (isActive ? '<span class="pulse-ring"></span>' : '') +
+                '<div class="source-id">' + item.source_id + '</div>' +
+                '<div class="source-status">' + status + '</div>' +
+                '<span class="source-hits">' + (isActive ? '⚡ ' + hits + ' hits' : '⏸️ Idle') + '</span>' +
                 '</div>';
         }
         c.innerHTML = html;
