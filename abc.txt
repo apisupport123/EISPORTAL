@@ -1,15 +1,8 @@
 function exportWithStyledHTML(data) {
     var displayDate = data.displayDate || new Date().toISOString().split('T')[0];
     
-    // Count total columns for merging
-    var totalCols = 0;
-    if (data.timeSlots && data.timeSlots.length > 0) {
-        totalCols = 7; // TIME SLOT table has 7 columns
-    }
-    if (data.nightReports && data.nightReports.length > 0) {
-        if (totalCols < 5) totalCols = 5; // NIGHT REPORTS table has 5 columns
-    }
-    if (totalCols === 0) totalCols = 7; // Default
+    // Total columns count
+    var totalCols = 7; // Default for Time Slots (7 columns)
     
     var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
     html += '<head><meta charset="UTF-8">';
@@ -24,6 +17,7 @@ function exportWithStyledHTML(data) {
     html += 'table { border-collapse: collapse; width: 100%; margin-bottom: 20px; font-family: "Segoe UI", Arial, sans-serif; }';
     html += 'th { background: #1a237e; color: #ffffff; font-weight: bold; padding: 10px 8px; text-align: center; border: 1px solid #0d1547; font-size: 11px; text-transform: uppercase; }';
     html += 'td { padding: 8px; border: 1px solid #d0d7de; text-align: center; font-size: 11px; color: #1a2634; }';
+    html += 'td.left { text-align: left; padding-left: 12px; }';
     html += 'tr:nth-child(even) { background: #f8f9fc; }';
     html += 'tr:nth-child(odd) { background: #ffffff; }';
     html += '.task-name { font-weight: 600; color: #0B1A30; text-align: left; padding-left: 12px; }';
@@ -38,21 +32,20 @@ function exportWithStyledHTML(data) {
     html += '.section-title { font-size: 16px; font-weight: bold; color: #1a237e; padding: 10px 12px; border-bottom: 2px solid #1a237e; margin-top: 15px; margin-bottom: 12px; background: #e8edf4; border-radius: 4px 4px 0 0; }';
     html += '.footer { margin-top: 20px; padding: 12px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 10px; }';
     html += '.footer .company { font-weight: 600; color: #1a237e; }';
-    // Add mso merge styles
-    html += '.merge { mso-merge-cells: true; }';
+    html += '.no-border td { border: none; padding: 0; }';
     html += '</style></head><body>';
     
-    // ===== MAIN TITLE WITH MERGE =====
-    html += '<table><tr>';
+    // ===== MAIN TITLE - Full width =====
+    html += '<table class="no-border" style="width:100%;"><tr>';
     html += '<td colspan="' + totalCols + '" style="text-align:center; border:none; padding:0;">';
     html += '<div class="main-title">🎧 EIS <span class="gold">Support</span> • Night Shift Checklist';
     html += '<span class="sub">' + displayDate + ' | Real-time Task Management</span></div>';
     html += '</td>';
     html += '</tr></table>';
     
-    // ===== DATE HEADER WITH MERGE =====
+    // ===== DATE HEADER - Full width =====
     var currentDate = new Date().toLocaleString();
-    html += '<table><tr>';
+    html += '<table class="no-border" style="width:100%;"><tr>';
     html += '<td colspan="' + totalCols + '" style="text-align:left; border:none; padding:0;">';
     html += '<div class="date-header">📅 Date: ' + displayDate + ' | ⏰ Generated: ' + currentDate + '</div>';
     html += '</td>';
@@ -60,8 +53,9 @@ function exportWithStyledHTML(data) {
     
     // ===== TIME SLOTS =====
     if (data.timeSlots && data.timeSlots.length > 0) {
-        html += '<div class="section-title">⏰ TIME SLOTS</div>';
-        html += '<table><thead><tr>';
+        html += '<table style="width:100%;">';
+        html += '<tr><td colspan="7" style="border:none; padding:0;"><div class="section-title">⏰ TIME SLOTS</div></td></tr>';
+        html += '<thead><tr>';
         html += '<th style="width:15%;">TIME SLOT</th>';
         html += '<th style="width:18%;">UNRESPONDED MAILS</th>';
         html += '<th style="width:16%;">STRATEGIC MGMT</th>';
@@ -79,8 +73,8 @@ function exportWithStyledHTML(data) {
             html += '<td>' + getStatusBadge(row.strategic_management || '') + '</td>';
             html += '<td>' + getStatusBadge(row.helix_ticket || '') + '</td>';
             html += '<td class="done-by">' + (row.done_by || '') + '</td>';
-            html += '<td style="text-align:left;padding-left:8px;">' + (row.review || '') + '</td>';
-            html += '<td style="text-align:left;padding-left:8px;">' + (row.remarks || '') + '</td>';
+            html += '<td class="left">' + (row.review || '') + '</td>';
+            html += '<td class="left">' + (row.remarks || '') + '</td>';
             html += '</tr>';
         }
         html += '</tbody></table>';
@@ -88,8 +82,9 @@ function exportWithStyledHTML(data) {
     
     // ===== NIGHT REPORTS =====
     if (data.nightReports && data.nightReports.length > 0) {
-        html += '<div class="section-title">📋 NIGHT REPORTS</div>';
-        html += '<table><thead><tr>';
+        html += '<table style="width:100%;">';
+        html += '<tr><td colspan="5" style="border:none; padding:0;"><div class="section-title">📋 NIGHT REPORTS</div></td></tr>';
+        html += '<thead><tr>';
         html += '<th style="width:35%;">NIGHT REPORTS</th>';
         html += '<th style="width:18%;">STATUS</th>';
         html += '<th style="width:15%;">DONE BY</th>';
@@ -103,16 +98,16 @@ function exportWithStyledHTML(data) {
             html += '<td class="task-name">' + (row.night_report || '') + '</td>';
             html += '<td>' + getStatusBadge(row.status || '') + '</td>';
             html += '<td class="done-by">' + (row.done_by || '') + '</td>';
-            html += '<td style="text-align:left;padding-left:8px;">' + (row.review || '') + '</td>';
-            html += '<td style="text-align:left;padding-left:8px;">' + (row.remarks || '') + '</td>';
+            html += '<td class="left">' + (row.review || '') + '</td>';
+            html += '<td class="left">' + (row.remarks || '') + '</td>';
             html += '</tr>';
         }
         html += '</tbody></table>';
     }
     
-    // ===== FOOTER =====
+    // ===== FOOTER - Full width =====
     var footerDate = '<%= footerDate %>';
-    html += '<table><tr>';
+    html += '<table class="no-border" style="width:100%;"><tr>';
     html += '<td colspan="' + totalCols + '" style="text-align:center; border:none; padding:0;">';
     html += '<div class="footer">';
     html += '<div><span class="company">EIS Support</span> | Night Shift Checklist</div>';
@@ -131,6 +126,5 @@ function exportWithStyledHTML(data) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
-    
     alert('✅ Excel exported successfully!');
 }
