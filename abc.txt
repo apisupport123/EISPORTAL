@@ -1,857 +1,446 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*, java.util.*, java.text.*" %>
-<%@page import="com.jdbc.DBUtilityAuto"%>
-<%
-String getPartition() {
-    Calendar cal = Calendar.getInstance();
-    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
-    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
-    return month + "_" + year;
-}
+package com.jdbc;
 
-String action = request.getParameter("action");
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.sql.SQLException;
 
-if ("fetchSourceStatus".equals(action)) {
-    response.setContentType("application/json");
-    Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
-    StringBuilder json = new StringBuilder();
+public class DBUtilityAuto {
+    // ✅ REMOVED static connection - THIS WAS THE MAIN PROBLEM!
+    // private static Connection connection = null; // DELETED
     
-    try {
-        conn = DBUtilityAuto.getReportDBConnection();
-        String partition = getPartition();
-        
-        String query = 
-            "WITH FOUND_SOURCES AS ( " +
-            "   SELECT /*+ parallel(04) */ a.source_id " +
-            "   FROM eisapp.api_log PARTITION(" + partition + ") a " +
-            "   WHERE a.source_id IN ('AK','CA','CC','CK','CR','FA','FS','I4','IN','KA','MB','NB','ON','RL','SA','SK','SQ','UP','WB','Y2') " +
-            "   AND a.request_date_time >= SYSDATE - INTERVAL '10' MINUTE " +
-            "   GROUP BY a.source_id " +
-            ") " +
-            "SELECT s.source_id, " +
-            "CASE WHEN f.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag " +
-            "FROM ( " +
-            "   SELECT 'SA' AS source_id FROM DUAL UNION ALL " +
-            "   SELECT 'FS' FROM DUAL UNION ALL " +
-            "   SELECT 'I4' FROM DUAL UNION ALL " +
-            "   SELECT 'Y2' FROM DUAL UNION ALL " +
-            "   SELECT 'KA' FROM DUAL UNION ALL " +
-            "   SELECT 'FA' FROM DUAL UNION ALL " +
-            "   SELECT 'WB' FROM DUAL UNION ALL " +
-            "   SELECT 'ON' FROM DUAL UNION ALL " +
-            "   SELECT 'CC' FROM DUAL UNION ALL " +
-            "   SELECT 'CK' FROM DUAL UNION ALL " +
-            "   SELECT 'CR' FROM DUAL UNION ALL " +
-            "   SELECT 'SQ' FROM DUAL UNION ALL " +
-            "   SELECT 'RL' FROM DUAL UNION ALL " +
-            "   SELECT 'UP' FROM DUAL UNION ALL " +
-            "   SELECT 'CA' FROM DUAL UNION ALL " +
-            "   SELECT 'AK' FROM DUAL UNION ALL " +
-            "   SELECT 'NB' FROM DUAL UNION ALL " +
-            "   SELECT 'IN' FROM DUAL UNION ALL " +
-            "   SELECT 'MB' FROM DUAL UNION ALL " +
-            "   SELECT 'SK' FROM DUAL " +
-            ") s " +
-            "LEFT JOIN FOUND_SOURCES f ON f.source_id = s.source_id " +
-            "ORDER BY s.source_id";
-        
-        stmt = conn.createStatement();
-        rs = stmt.executeQuery(query);
-        
-        json.append("[");
-        boolean first = true;
-        while (rs.next()) {
-            if (!first) json.append(",");
-            json.append("{");
-            json.append("\"source_id\":\"").append(rs.getString("source_id")).append("\",");
-            json.append("\"flag\":\"").append(rs.getString("flag")).append("\"");
-            json.append("}");
-            first = false;
+    private static String flagStatus = null;
+    private static String DB_ENVLOCATION = null;
+    private static final Object lock = new Object();
+
+    // ✅ FIXED flag() method - uses local connection with proper closing
+    public static void flag() {
+        DBConfig.checkAndReload();
+       
+        synchronized (lock) {
+            Connection tempConn = null; // ✅ LOCAL variable - no more leak!
+            try {
+                Class.forName(DBConfig.getDriver());
+               
+                // PRIMARY CONNECTION ATTEMPT
+                try {
+                    tempConn = DriverManager.getConnection(
+                        "jdbc:oracle:thin:@10.191.170.109:1787/REPODB_SRV",
+                        DBConfig.getEisappsupportUsername(),
+                        DBConfig.getPrimaryPassword()
+                    );
+                    System.out.println("Connected to PRIMARY DB 1");
+                } catch(Exception E) {
+                    tempConn = DriverManager.getConnection(
+                        "jdbc:oracle:thin:@10.191.170.110:1787/REPODB_SRV",
+                        DBConfig.getEisappsupportUsername(),
+                        DBConfig.getPrimaryPassword()
+                    );
+                    System.out.println("Connected to PRIMARY DB 2");
+                }
+               
+                // GET FLAG STATUS
+                String sql = "select * from connection_master";
+                try (Statement smt = tempConn.createStatement();
+                     ResultSet rs = smt.executeQuery(sql)) {
+                    
+                    while (rs.next()) {
+                        flagStatus = rs.getString("FLAG");
+                        DB_ENVLOCATION = rs.getString("DB_LOCATION");
+                        
+                        if (flagStatus == null) flagStatus = "PR";
+                        if (DB_ENVLOCATION == null) DB_ENVLOCATION = "MI";
+                    }
+                    
+                    if (flagStatus == null || DB_ENVLOCATION == null) {
+                        flagStatus = "PR";
+                        DB_ENVLOCATION = "MI";
+                        System.out.println("No flag data found, using defaults: PR/MI");
+                    }
+                    
+                    System.out.println("Flag Status: " + flagStatus + ", Location: " + DB_ENVLOCATION);
+                }
+               
+            } catch (Exception e) {
+                System.out.println("Primary connection failed, trying DR...");
+               
+                try {
+                    // DR CONNECTION ATTEMPT
+                    Class.forName(DBConfig.getDriver());
+                    try {
+                        tempConn = DriverManager.getConnection(
+                            "jdbc:oracle:thin:@10.176.0.109:1787/sidashdb_srv",
+                            DBConfig.getEisappsupportUsername(),
+                            DBConfig.getPrimaryPassword()
+                        );
+                        System.out.println("Connected to DR DB 1");
+                    } catch(Exception Er) {
+                        tempConn = DriverManager.getConnection(
+                            "jdbc:oracle:thin:@10.176.0.110:1787/sidashdb_srv",
+                            DBConfig.getEisappsupportUsername(),
+                            DBConfig.getPrimaryPassword()
+                        );
+                        System.out.println("Connected to DR DB 2");
+                    }
+                   
+                    // GET FLAG STATUS FROM DR
+                    String sql = "select * from connection_master";
+                    try (Statement smt = tempConn.createStatement();
+                         ResultSet rs = smt.executeQuery(sql)) {
+                        
+                        while (rs.next()) {
+                            flagStatus = rs.getString("FLAG");
+                            DB_ENVLOCATION = rs.getString("DB_LOCATION");
+                            
+                            if (flagStatus == null) flagStatus = "DR";
+                            if (DB_ENVLOCATION == null) DB_ENVLOCATION = "MI";
+                        }
+                        
+                        if (flagStatus == null || DB_ENVLOCATION == null) {
+                            flagStatus = "DR";
+                            DB_ENVLOCATION = "MI";
+                            System.out.println("No flag data found in DR, using defaults: DR/MI");
+                        }
+                        
+                        System.out.println("Flag Status: " + flagStatus + ", Location: " + DB_ENVLOCATION);
+                    }
+                   
+                } catch(Exception e1) {
+                    System.out.println("All connection attempts failed");
+                    flagStatus = "PR";
+                    DB_ENVLOCATION = "MI";
+                    e1.printStackTrace();
+                }
+            } finally {
+                // ✅ CRITICAL FIX: Close the temporary connection
+                if (tempConn != null) {
+                    try {
+                        tempConn.close();
+                        System.out.println("Flag check connection closed");
+                    } catch (SQLException e) {
+                        System.err.println("Error closing flag connection: " + e.getMessage());
+                    }
+                }
+            }
         }
-        json.append("]");
-        out.print(json.toString());
-        
-    } catch(Exception e) {
-        out.print("[]");
-        e.printStackTrace();
-    } finally {
-        try { if (rs != null) rs.close(); } catch(Exception e) {}
-        try { if (stmt != null) stmt.close(); } catch(Exception e) {}
-        try { if (conn != null) conn.close(); } catch(Exception e) {}
     }
-    return;
+
+    // ✅ Added getters for flag status (if needed elsewhere)
+    public static String getFlagStatus() {
+        return flagStatus;
+    }
+
+    public static String getDBEnvLocation() {
+        return DB_ENVLOCATION;
+    }
+
+    // ✅ NO CHANGE - getIIBDBConnection remains same
+    public static Connection getIIBDBConnection() {
+        DBConfig.checkAndReload();
+        flag();
+        System.out.println("getIIBDBConnection - flagStatus: " + flagStatus + ", DB_ENVLOCATION: " + DB_ENVLOCATION);
+       
+        if (flagStatus == null || DB_ENVLOCATION == null) {
+            flagStatus = "PR";
+            DB_ENVLOCATION = "MI";
+            System.out.println("Using default values due to null flag/location");
+        }
+        
+        if(flagStatus.equals("DR") && DB_ENVLOCATION.equals("MI")) {    
+            System.out.println("In Hyderabad DR Environment");
+            return createIIBHyderabadDRConnection();
+        } else if(flagStatus.equals("PR") && DB_ENVLOCATION.equals("MI")) {
+            System.out.println("In Hyderabad PR Environment");
+            return createIIBHyderabadPRConnection();
+        } else {
+            System.out.println("In Mumbai Environment");
+           
+            if(flagStatus.equals("DR")) {
+                System.out.println("In Mumbai DR");
+                return createIIBMumbaiDRConnection();
+            } else if(flagStatus.equals("PR")) {
+                System.out.println("In Mumbai PR");
+                return createIIBMumbaiPRConnection();
+            }
+        }
+        
+        return createIIBMumbaiPRConnection();
+    }
+
+    // ✅ NO CHANGE - getSIDBConnection remains same
+    public static Connection getSIDBConnection() {
+        DBConfig.checkAndReload();
+        flag();
+        System.out.println("getSIDBConnection - flagStatus: " + flagStatus);
+       
+        if (flagStatus == null) {
+            flagStatus = "PR";
+            System.out.println("Flag status is null, using default: PR");
+        }
+        
+        try {
+            Class.forName(DBConfig.getDriver());
+           
+            if (flagStatus.equals("DR")) {
+                System.out.println("Connecting to SI DR Database");
+               
+                try {
+                    Connection conn = DriverManager.getConnection(
+                        "jdbc:oracle:thin:@eissipr-scan1.sbi.co.in:1786/sbisipr",
+                        DBConfig.getSbisisupportUsername(),
+                        DBConfig.getSiPassword()
+                    );
+                    System.out.println("SI DR Connected to URL 1");
+                    return conn;
+                } catch (SQLException e2) {
+                    try {
+                        Connection conn = DriverManager.getConnection(
+                            "jdbc:oracle:thin:@10.191.170.109:1787/sbisipr",
+                            DBConfig.getSbisisupportUsername(),
+                            DBConfig.getSiPassword()
+                        );
+                        System.out.println("SI DR Connected to URL 2");
+                        return conn;
+                    } catch(Exception e) {
+                        Connection conn = DriverManager.getConnection(
+                            "jdbc:oracle:thin:@10.191.170.110:1787/sbisipr",
+                            DBConfig.getSbisisupportUsername(),
+                            DBConfig.getSiPassword()
+                        );
+                        System.out.println("SI DR Connected to URL 3");
+                        return conn;
+                    }
+                }
+            } else if (flagStatus.equals("PR")) {
+                System.out.println("Connecting to SI PR Database");
+               
+                try {
+                    Connection conn = DriverManager.getConnection(
+                        "jdbc:oracle:thin:@eissidr-scan1.sbi.co.in:1786/sbisidr",
+                        DBConfig.getSbisisupportUsername(),
+                        DBConfig.getSiPassword()
+                    );
+                    System.out.println("SI PR Connected to URL 1");
+                    return conn;
+                } catch (SQLException e1) {
+                    try {
+                        Connection conn = DriverManager.getConnection(
+                            "jdbc:oracle:thin:@10.176.0.109:1787/sbisidr",
+                            DBConfig.getSbisisupportUsername(),
+                            DBConfig.getSiPassword()
+                        );
+                        System.out.println("SI PR Connected to URL 2");
+                        return conn;
+                    } catch(Exception e2) {
+                        Connection conn = DriverManager.getConnection(
+                            "jdbc:oracle:thin:@10.176.0.110:1787/sbisidr",
+                            DBConfig.getSbisisupportUsername(),
+                            DBConfig.getSiPassword()
+                        );
+                        System.out.println("SI PR Connected to URL 3");
+                        return conn;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("SI DB Connection Error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // ✅ NO CHANGE - getReportDBConnection remains same
+    public static Connection getReportDBConnection() {
+        DBConfig.checkAndReload();
+        flag();
+        System.out.println("getReportDBConnection - flagStatus: " + flagStatus);
+       
+        if (flagStatus == null) {
+            flagStatus = "PR";
+            System.out.println("Flag status is null, using default: PR");
+        }
+        
+        try {
+            Class.forName(DBConfig.getDriver());
+           
+            if (flagStatus.equals("DR")) {
+                System.out.println("Connecting to Report DR Database");
+                Connection conn = DriverManager.getConnection(
+                    "jdbc:oracle:thin:@eissidr-scan1.sbi.co.in:1786/sidashdb_srv",
+                    DBConfig.getEISAPPSUPPORTUsername(),
+                    DBConfig.getPrimaryPassword()
+                );
+                System.out.println("Report DR Connected");
+                return conn;
+               
+            } else if (flagStatus.equals("PR")) {
+                System.out.println("Connecting to Report PR Database");
+                Connection conn = DriverManager.getConnection(
+                    "jdbc:oracle:thin:@eissipr-scan1.sbi.co.in:1786/REPODB_SRV",
+                    DBConfig.getEISAPPSUPPORTUsername(),
+                    DBConfig.getPrimaryPassword()
+                );
+                System.out.println("Report PR Connected");
+                return conn;
+            }
+        } catch (Exception e) {
+            System.err.println("Report DB Connection Error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // ============ PRIVATE CONNECTION CREATION METHODS ============
+    // ✅ NO CHANGE - All remain exactly same
+
+    private static Connection createIIBHyderabadDRConnection() {
+        try {
+            Class.forName(DBConfig.getDriver());
+           
+            String[] urls = {
+                "jdbc:oracle:thin:@10.191.170.107:1787/hiibprdb",
+                "jdbc:oracle:thin:@10.191.170.108:1787/hiibprdb",
+                "jdbc:oracle:thin:@10.191.170.109:1787/hiibprdb",
+                "jdbc:oracle:thin:@10.191.170.110:1787/hiibprdb",
+                "jdbc:oracle:thin:@10.191.170.111:1787/hiibprdb",
+                "jdbc:oracle:thin:@10.191.170.112:1787/hiibprdb"
+            };
+           
+            for (String url : urls) {
+                try {
+                    Connection conn = DriverManager.getConnection(
+                        url,
+                        DBConfig.getEisappsupportUsername(),
+                        DBConfig.getIibPassword()
+                    );
+                    System.out.println("IIB Hyderabad DR Connected: " + url);
+                    return conn;
+                } catch (SQLException e) {
+                    System.out.println("IIB Hyderabad DR Failed: " + url + " - " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating IIB Hyderabad DR connection: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private static Connection createIIBHyderabadPRConnection() {
+        try {
+            Class.forName(DBConfig.getDriver());
+           
+            String[] urls = {
+                "jdbc:oracle:thin:@10.176.0.107:1787/HIIBPRDB_SRV",
+                "jdbc:oracle:thin:@10.176.0.108:1787/HIIBPRDB_SRV",
+                "jdbc:oracle:thin:@10.176.0.109:1787/HIIBPRDB_SRV",
+                "jdbc:oracle:thin:@10.176.0.110:1787/HIIBPRDB_SRV",
+                "jdbc:oracle:thin:@10.176.0.111:1787/HIIBPRDB_SRV"
+            };
+           
+            for (String url : urls) {
+                try {
+                    Connection conn = DriverManager.getConnection(
+                        url,
+                        DBConfig.getEisappsupportUsername(),
+                        DBConfig.getIibPassword()
+                    );
+                    System.out.println("IIB Hyderabad PR Connected: " + url);
+                    return conn;
+                } catch (SQLException e) {
+                    System.out.println("IIB Hyderabad PR Failed: " + url + " - " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating IIB Hyderabad PR connection: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private static Connection createIIBMumbaiDRConnection() {
+        try {
+            Class.forName(DBConfig.getDriver());
+           
+            String[] urls = {
+                "jdbc:oracle:thin:@10.191.170.107:1787/MIIBDRDB_SRV",
+                "jdbc:oracle:thin:@10.191.170.108:1787/MIIBDRDB_SRV",
+                "jdbc:oracle:thin:@10.191.170.109:1787/MIIBDRDB_SRV",
+                "jdbc:oracle:thin:@10.191.170.110:1787/MIIBDRDB_SRV",
+                "jdbc:oracle:thin:@10.191.170.111:1787/MIIBDRDB_SRV",
+                "jdbc:oracle:thin:@10.191.170.112:1787/MIIBDRDB_SRV"
+            };
+           
+            for (String url : urls) {
+                try {
+                    Connection conn = DriverManager.getConnection(
+                        url,
+                        DBConfig.getEisappsupportUsername(),
+                        DBConfig.getDrPassword()
+                    );
+                    System.out.println("IIB Mumbai DR Connected: " + url);
+                    return conn;
+                } catch (SQLException e) {
+                    System.out.println("IIB Mumbai DR Failed: " + url + " - " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating IIB Mumbai DR connection: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private static Connection createIIBMumbaiPRConnection() {
+        try {
+            Class.forName(DBConfig.getDriver());
+           
+            String[] urls = {
+                "jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV",
+                "jdbc:oracle:thin:@10.176.0.108:1787/MIBDRCDB_SRV",
+                "jdbc:oracle:thin:@10.176.0.109:1787/MIBDRCDB_SRV",
+                "jdbc:oracle:thin:@10.176.0.110:1787/MIBDRCDB_SRV",
+                "jdbc:oracle:thin:@10.176.0.111:1787/MIBDRCDB_SRV"
+            };
+           
+            for (String url : urls) {
+                try {
+                    Connection conn = DriverManager.getConnection(
+                        url,
+                        DBConfig.getEisappsupportUsername(),
+                        DBConfig.getDrPassword()
+                    );
+                    System.out.println("IIB Mumbai PR Connected: " + url);
+                    return conn;
+                } catch (SQLException e) {
+                    System.out.println("IIB Mumbai PR Failed: " + url + " - " + e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error creating IIB Mumbai PR connection: " + e.getMessage());
+        }
+        return null;
+    }
+
+    // ============ UTILITY METHODS ============
+    
+    // ✅ NO CHANGE
+    public static void reloadDBConfig() {
+        DBConfig.reloadConfig();
+    }
+   
+    // ✅ NO CHANGE
+    public static void showCurrentConfig() {
+        DBConfig.printCurrentConfig();
+    }
+
+    // ✅ Added utility method to safely close connections (optional)
+    public static void closeConnection(Connection conn) {
+        if (conn != null) {
+            try {
+                if (!conn.isClosed()) {
+                    conn.close();
+                    System.out.println("Connection closed successfully");
+                }
+            } catch (SQLException e) {
+                System.err.println("Error closing connection: " + e.getMessage());
+            }
+        }
+    }
 }
-%>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Source Monitor | Live Dashboard</title>
-    <link rel="stylesheet" href="../css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --bg: #05080f;
-            --surface: #0c1220;
-            --card: #162035;
-            --border: #1f2d45;
-            --text: #e8edf5;
-            --text2: #8899bb;
-            --text3: #3d5070;
-            --green: #2ecc71;
-            --red: #e74c3c;
-            --blue: #3498db;
-            --purple: #9b59b6;
-            --pink: #e91e63;
-            --cyan: #1abc9c;
-            --orange: #f39c12;
-        }
-
-        body {
-            background: var(--bg);
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: var(--surface); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-        .dashboard {
-            height: 100vh;
-            padding: 10px 14px 14px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        /* ===== HEADER ===== */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 16px;
-            background: var(--surface);
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .header-icon {
-            width: 34px; height: 34px;
-            background: linear-gradient(135deg, var(--blue), var(--purple));
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            color: #fff;
-        }
-        .header h1 {
-            font-size: 1.1rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff, var(--blue), var(--pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .header .sub {
-            font-size: 0.55rem;
-            color: var(--text3);
-        }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .live-badge {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(46,204,113,0.12);
-            padding: 3px 8px;
-            border-radius: 12px;
-            border: 1px solid rgba(46,204,113,0.2);
-            font-size: 0.55rem;
-            color: var(--green);
-        }
-        .live-dot {
-            width: 5px; height: 5px;
-            border-radius: 50%;
-            background: var(--green);
-            animation: blink 1.5s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
-        }
-        .timer-badge {
-            background: var(--card);
-            padding: 3px 8px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            font-size: 0.6rem;
-            color: var(--text2);
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .timer-badge i { color: var(--orange); margin-right: 2px; }
-        .partition-badge {
-            font-size: 0.45rem;
-            color: var(--text3);
-            background: var(--card);
-            padding: 2px 6px;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* ===== STATS ===== */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            flex-shrink: 0;
-        }
-        .stat-card {
-            background: var(--surface);
-            border-radius: 8px;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .stat-icon {
-            width: 28px; height: 28px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-        }
-        .stat-icon.green { background: rgba(46,204,113,0.15); color: var(--green); }
-        .stat-icon.red { background: rgba(231,76,60,0.15); color: var(--red); }
-        .stat-icon.blue { background: rgba(52,152,219,0.15); color: var(--blue); }
-        .stat-icon.orange { background: rgba(243,156,18,0.15); color: var(--orange); }
-        .stat-info h3 {
-            font-size: 1rem;
-            font-weight: 800;
-            line-height: 1.1;
-        }
-        .stat-info p {
-            font-size: 0.45rem;
-            color: var(--text3);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* ===== MAIN ===== */
-        .main {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 260px;
-            gap: 8px;
-            min-height: 0;
-        }
-
-        /* ===== SOURCES PANEL ===== */
-        .sources-panel {
-            background: var(--surface);
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .panel-head {
-            padding: 6px 12px;
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .panel-head h2 {
-            font-size: 0.7rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .panel-head h2 i { color: var(--blue); }
-        .panel-head .cnt {
-            background: var(--bg);
-            padding: 1px 6px;
-            border-radius: 8px;
-            font-size: 0.5rem;
-            color: var(--text2);
-            font-weight: 600;
-        }
-        .legend {
-            display: flex;
-            gap: 8px;
-            font-size: 0.45rem;
-            color: var(--text3);
-        }
-        .legend .g { color: var(--green); }
-        .legend .r { color: var(--red); }
-
-        /* ===== SOURCES GRID - FULL SCREEN FILL ===== */
-        .sources-grid {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px 10px;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            align-content: start;
-        }
-
-        /* ===== SOURCE CARD - BIG & FILL ===== */
-        .source-card {
-            background: var(--card);
-            border-radius: 10px;
-            padding: 16px 10px;
-            border: 2px solid var(--border);
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            cursor: default;
-            min-height: 110px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-        .source-card:hover {
-            transform: translateY(-3px);
-        }
-        
-        /* Active - Full Highlight */
-        .source-card.active {
-            border-color: var(--green);
-            background: linear-gradient(145deg, rgba(46,204,113,0.12), rgba(46,204,113,0.03));
-            box-shadow: 0 4px 24px rgba(46,204,113,0.1);
-            grid-column: span 1;
-        }
-        .source-card.active::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--green), var(--cyan));
-            z-index: -1;
-            opacity: 0.1;
-            filter: blur(12px);
-        }
-        .source-card.active .source-id {
-            color: var(--green);
-            text-shadow: 0 0 30px rgba(46,204,113,0.15);
-            font-size: 2.4rem;
-        }
-        .source-card.active .source-status {
-            color: var(--green);
-        }
-        .source-card.active .source-hits {
-            border-color: rgba(46,204,113,0.25);
-            color: var(--text2);
-            background: rgba(46,204,113,0.05);
-        }
-        
-        /* Inactive */
-        .source-card.inactive {
-            border-color: rgba(231,76,60,0.1);
-            opacity: 0.35;
-        }
-        .source-card.inactive .source-id {
-            color: var(--text3);
-            font-size: 1.8rem;
-        }
-        .source-card.inactive .source-status {
-            color: var(--red);
-        }
-
-        .source-id {
-            font-size: 2rem;
-            font-weight: 900;
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: 1px;
-            line-height: 1;
-            margin-bottom: 2px;
-            transition: 0.3s;
-        }
-        
-        .source-status {
-            font-size: 0.55rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 4px;
-            transition: 0.3s;
-        }
-
-        .source-hits {
-            font-size: 0.6rem;
-            color: var(--text3);
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--bg);
-            padding: 2px 10px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            display: inline-block;
-        }
-
-        .status-dot {
-            position: absolute;
-            top: 8px;
-            right: 10px;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-        .source-card.active .status-dot {
-            background: var(--green);
-            box-shadow: 0 0 14px rgba(46,204,113,0.5);
-            animation: blink 1.5s infinite;
-        }
-        .source-card.inactive .status-dot {
-            background: var(--red);
-            opacity: 0.3;
-        }
-
-        .source-card.active .pulse-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            border-radius: 10px;
-            border: 2px solid rgba(46,204,113,0.08);
-            animation: pulseRing 2s ease-out infinite;
-        }
-        @keyframes pulseRing {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1.05); opacity: 0; }
-        }
-
-        /* ===== ACTIVITY ===== */
-        .activity-panel {
-            background: var(--surface);
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .activity-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 4px 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 6px;
-            background: var(--card);
-            border-radius: 4px;
-            border-left: 2px solid var(--border);
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(-4px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .activity-item.on { border-left-color: var(--green); }
-        .activity-item.off { border-left-color: var(--red); opacity: 0.5; }
-        .activity-time {
-            font-size: 0.4rem;
-            color: var(--text3);
-            font-family: 'JetBrains Mono', monospace;
-            min-width: 34px;
-        }
-        .activity-source {
-            font-weight: 700;
-            font-size: 0.65rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .activity-status {
-            font-size: 0.35rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-left: auto;
-            padding: 1px 5px;
-            border-radius: 4px;
-        }
-        .activity-status.on { background: rgba(46,204,113,0.12); color: var(--green); }
-        .activity-status.off { background: rgba(231,76,60,0.12); color: var(--red); }
-        .activity-empty {
-            text-align: center;
-            padding: 14px 8px;
-            color: var(--text3);
-            font-size: 0.6rem;
-        }
-        .activity-empty i {
-            font-size: 1.2rem;
-            opacity: 0.3;
-            display: block;
-            margin-bottom: 3px;
-        }
-
-        /* ===== LOADING ===== */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease;
-        }
-        .loading-overlay.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .loader {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid var(--border);
-            border-top-color: var(--blue);
-            border-bottom-color: var(--purple);
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 16px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .loader-text {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--text2);
-            animation: pulseText 1.5s ease-in-out infinite;
-        }
-        @keyframes pulseText {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        .loader-sub {
-            font-size: 0.6rem;
-            color: var(--text3);
-            margin-top: 3px;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 1200px) {
-            .sources-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-        @media (max-width: 992px) {
-            .main { grid-template-columns: 1fr; }
-            .activity-panel { max-height: 140px; }
-            .sources-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-        @media (max-width: 768px) {
-            .dashboard { padding: 6px 8px; gap: 4px; }
-            .header { flex-wrap: wrap; padding: 6px 10px; }
-            .header h1 { font-size: 0.85rem; }
-            .header-icon { width: 28px; height: 28px; font-size: 12px; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 4px; }
-            .stat-card { padding: 4px 8px; }
-            .stat-info h3 { font-size: 0.8rem; }
-            .sources-grid { grid-template-columns: repeat(3, 1fr); padding: 4px 6px; gap: 4px; }
-            .source-card { min-height: 80px; padding: 10px 6px; }
-            .source-id { font-size: 1.4rem; }
-            .source-card.active .source-id { font-size: 1.6rem; }
-            .source-card.inactive .source-id { font-size: 1.2rem; }
-            .legend { display: none; }
-            .header-right { flex-wrap: wrap; gap: 3px; }
-            .partition-badge { font-size: 0.4rem; }
-        }
-        @media (max-width: 480px) {
-            .sources-grid { grid-template-columns: repeat(2, 1fr); }
-            .source-card { min-height: 70px; padding: 8px 4px; }
-            .source-id { font-size: 1.2rem; }
-            .source-card.active .source-id { font-size: 1.4rem; }
-            .source-card.inactive .source-id { font-size: 1rem; }
-            .source-status { font-size: 0.45rem; }
-            .source-hits { font-size: 0.5rem; padding: 1px 6px; }
-            .stat-info h3 { font-size: 0.7rem; }
-            .stat-card { padding: 3px 6px; }
-            .stat-icon { width: 22px; height: 22px; font-size: 9px; }
-        }
-    </style>
-</head>
-<body>
-
-<!-- LOADING -->
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="loader"></div>
-    <div class="loader-text">Loading Source Monitor</div>
-    <div class="loader-sub">Connecting to Oracle Database...</div>
-</div>
-
-<div class="dashboard">
-
-    <!-- HEADER -->
-    <div class="header">
-        <div class="header-left">
-            <div class="header-icon"><i class="fas fa-bolt"></i></div>
-            <div>
-                <h1>Source Monitor</h1>
-                <div class="sub">Real-time Source ID Activity Tracking</div>
-            </div>
-        </div>
-        <div class="header-right">
-            <span class="partition-badge" id="partitionBadge">📁 Loading...</span>
-            <div class="live-badge" id="liveBadge" style="display:none;">
-                <span class="live-dot"></span> LIVE
-            </div>
-            <div class="timer-badge" id="timerBadge" style="display:none;">
-                <i class="fas fa-clock"></i> <span id="timerDisplay">10:00</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- STATS -->
-    <div class="stats-row" id="statsRow" style="display:none;">
-        <div class="stat-card">
-            <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-            <div class="stat-info">
-                <h3 id="activeCount">0</h3>
-                <p>Active</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
-            <div class="stat-info">
-                <h3 id="inactiveCount">0</h3>
-                <p>Inactive</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon blue"><i class="fas fa-database"></i></div>
-            <div class="stat-info">
-                <h3 id="totalSources">20</h3>
-                <p>Total</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon orange"><i class="fas fa-percent"></i></div>
-            <div class="stat-info">
-                <h3 id="uptimePercent">0%</h3>
-                <p>Uptime</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN -->
-    <div class="main" id="mainGrid" style="display:none;">
-
-        <!-- SOURCES -->
-        <div class="sources-panel">
-            <div class="panel-head">
-                <h2><i class="fas fa-server"></i> Source IDs <span class="cnt" id="sourceCount">0/20</span></h2>
-                <div class="legend">
-                    <span><span class="g">●</span> Active</span>
-                    <span><span class="r">●</span> Inactive</span>
-                </div>
-            </div>
-            <div class="sources-grid" id="sourcesGrid"></div>
-        </div>
-
-        <!-- ACTIVITY -->
-        <div class="activity-panel">
-            <div class="panel-head">
-                <h2><i class="fas fa-bolt" style="color:var(--cyan);"></i> Activity</h2>
-                <span style="font-size:0.4rem;color:var(--text3);"><i class="fas fa-circle" style="color:var(--green);font-size:0.2rem;"></i> Live</span>
-            </div>
-            <div class="activity-list" id="activityList">
-                <div class="activity-empty"><i class="fas fa-inbox"></i> Waiting...</div>
-            </div>
-        </div>
-
-    </div>
-</div>
-
-<script>
-    var sourceData = {};
-    var activityLog = [];
-    var MAX_ACTIVITY = 25;
-    var timerSeconds = 600;
-    var timerInterval, refreshInterval;
-    var isFirstLoad = true;
-
-    function getPartition() {
-        var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-        var now = new Date();
-        return months[now.getMonth()] + '_' + String(now.getFullYear()).slice(-2);
-    }
-
-    function formatTime(s) {
-        var m = Math.floor(s / 60);
-        var sec = s % 60;
-        return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
-    }
-
-    function updateTimer() {
-        timerSeconds--;
-        if (timerSeconds <= 0) timerSeconds = 600;
-        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
-    }
-
-    function addActivity(source, status) {
-        var now = new Date();
-        var t = now.getHours().toString().padStart(2,'0') + ':' + 
-                now.getMinutes().toString().padStart(2,'0') + ':' + 
-                now.getSeconds().toString().padStart(2,'0');
-        activityLog.unshift({ time: t, source: source, status: status });
-        if (activityLog.length > MAX_ACTIVITY) activityLog.pop();
-        renderActivity();
-    }
-
-    function renderActivity() {
-        var c = document.getElementById('activityList');
-        if (activityLog.length === 0) {
-            c.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox"></i> Waiting...</div>';
-            return;
-        }
-        var html = '';
-        for (var i = 0; i < Math.min(activityLog.length, 18); i++) {
-            var item = activityLog[i];
-            var cls = item.status === 'Y' ? 'on' : 'off';
-            var txt = item.status === 'Y' ? 'ON' : 'OFF';
-            html += '<div class="activity-item ' + cls + '">' +
-                '<span class="activity-time">' + item.time + '</span>' +
-                '<span class="activity-source">' + item.source + '</span>' +
-                '<span class="activity-status ' + cls + '">' + txt + '</span>' +
-                '</div>';
-        }
-        c.innerHTML = html;
-    }
-
-    function hideLoading() {
-        var overlay = document.getElementById('loadingOverlay');
-        overlay.classList.add('hide');
-        document.getElementById('liveBadge').style.display = 'flex';
-        document.getElementById('timerBadge').style.display = 'flex';
-        document.getElementById('statsRow').style.display = 'grid';
-        document.getElementById('mainGrid').style.display = 'grid';
-        document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
-        timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function fetchData() {
-        fetch('?action=fetchSourceStatus')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                renderSources(data);
-                updateStats(data);
-                updateActivity(data);
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    hideLoading();
-                }
-            })
-            .catch(function(e) {
-                console.error(e);
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    hideLoading();
-                    document.getElementById('sourcesGrid').innerHTML = 
-                        '<div style="text-align:center;padding:20px;color:var(--text3);grid-column:1/-1;">' +
-                        '<i class="fas fa-exclamation-triangle" style="font-size:1.2rem;display:block;margin-bottom:4px;"></i>' +
-                        '<p style="font-weight:600;font-size:0.7rem;">Connection Error</p>' +
-                        '<p style="font-size:0.55rem;">Please refresh</p></div>';
-                }
-            });
-    }
-
-    function renderSources(data) {
-        var c = document.getElementById('sourcesGrid');
-        if (!data || data.length === 0) {
-            c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);grid-column:1/-1;"><i class="fas fa-database" style="font-size:1.2rem;display:block;margin-bottom:4px;"></i><p>No data</p></div>';
-            return;
-        }
-        var html = '', active = 0;
-        for (var i = 0; i < data.length; i++) {
-            var item = data[i];
-            var isActive = item.flag === 'Y';
-            if (isActive) active++;
-            var cls = isActive ? 'active' : 'inactive';
-            var status = isActive ? 'ONLINE' : 'OFFLINE';
-            var hits = isActive ? Math.floor(Math.random() * 50 + 10) : 0;
-            
-            html += '<div class="source-card ' + cls + '">' +
-                '<span class="status-dot"></span>' +
-                (isActive ? '<span class="pulse-ring"></span>' : '') +
-                '<div class="source-id">' + item.source_id + '</div>' +
-                '<div class="source-status">' + status + '</div>' +
-                '<span class="source-hits">' + (isActive ? '⚡ ' + hits + ' hits' : '⏸ Idle') + '</span>' +
-                '</div>';
-        }
-        c.innerHTML = html;
-        document.getElementById('sourceCount').textContent = active + '/' + data.length;
-    }
-
-    function updateStats(data) {
-        var active = 0, inactive = 0;
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].flag === 'Y') active++; else inactive++;
-        }
-        document.getElementById('activeCount').textContent = active;
-        document.getElementById('inactiveCount').textContent = inactive;
-        document.getElementById('totalSources').textContent = data.length;
-        var uptime = data.length > 0 ? Math.round((active / data.length) * 100) : 0;
-        document.getElementById('uptimePercent').textContent = uptime + '%';
-    }
-
-    function updateActivity(data) {
-        var current = {};
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].flag === 'Y') current[data[i].source_id] = true;
-        }
-        for (var s in current) {
-            if (!sourceData[s]) { addActivity(s, 'Y'); }
-            else if (sourceData[s] !== current[s]) { addActivity(s, current[s] ? 'Y' : 'N'); }
-        }
-        for (var old in sourceData) {
-            if (sourceData[old] && !current[old]) { addActivity(old, 'N'); }
-        }
-        sourceData = current;
-    }
-
-    function start() {
-        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
-        fetchData();
-        refreshInterval = setInterval(fetchData, 10000);
-    }
-
-    window.addEventListener('beforeunload', function() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        if (timerInterval) clearInterval(timerInterval);
-    });
-
-    start();
-</script>
-</body>
-</html>
