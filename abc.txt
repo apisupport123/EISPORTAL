@@ -1,1315 +1,507 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*, java.util.*, java.io.PrintWriter" %>
-<%@page import="com.jdbc.DBUtilityAuto" %>
-<%!
-public String escapeJson(String str) {
-    if (str == null) return "";
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < str.length(); i++) {
-        char c = str.charAt(i);
-        switch (c) {
-            case '"': sb.append("\\\""); break;
-            case '\\': sb.append("\\\\"); break;
-            case '/': sb.append("\\/"); break;
-            case '\b': sb.append("\\b"); break;
-            case '\f': sb.append("\\f"); break;
-            case '\n': sb.append("\\n"); break;
-            case '\r': sb.append("\\r"); break;
-            case '\t': sb.append("\\t"); break;
-            default: sb.append(c); break;
-        }
-    }
-    return sb.toString();
-}
-%>
+<%@ page import="java.sql.*, java.util.*" %>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+
 <%
 
-String action = request.getParameter("action");
-
-// Fetch Categories
-if ("fetchCategories".equals(action)) {
-    response.setContentType("application/json");
-    StringBuilder json = new StringBuilder();
-    Connection conn = null;
-    try {
-        conn = DBUtilityAuto.getReportDBConnection();
-        String sql = "SELECT category_name, category_desc FROM categories ORDER BY category_name";
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery(sql);
-        json.append("[");
-        boolean first = true;
-        while (rs.next()) {
-            if (!first) json.append(",");
-            json.append("{");
-            json.append("\"category_name\":\"").append(escapeJson(rs.getString("category_name"))).append("\",");
-            json.append("\"category_desc\":\"").append(escapeJson(rs.getString("category_desc"))).append("\",");
-            PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) FROM query_storage WHERE category_name = ?");
-            pstmt.setString(1, rs.getString("category_name"));
-            ResultSet rsCount = pstmt.executeQuery();
-            rsCount.next();
-            json.append("\"query_count\":").append(rsCount.getInt(1));
-            rsCount.close();
-            pstmt.close();
-            json.append("}");
-            first = false;
-        }
-        json.append("]");
-        out.print(json.toString());
-        rs.close();
-        stmt.close();
-    } catch(Exception e) {
-        out.print("[]");
-    } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
-    }
-    return;
-}
-
-// Create Category
-if ("createCategory".equals(action)) {
-    response.setContentType("application/json");
-    String categoryName = request.getParameter("categoryName");
-    String categoryDesc = request.getParameter("categoryDesc");
-    Connection conn = null;
-    try {
-    	conn = DBUtilityAuto.getReportDBConnection();
-        PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM categories WHERE category_name = ?");
-        checkStmt.setString(1, categoryName);
-        ResultSet rs = checkStmt.executeQuery();
-        rs.next();
-        if (rs.getInt(1) > 0) {
-            out.print("{\"success\":false,\"message\":\"Category already exists!\"}");
-            return;
-        }
-        rs.close();
-        checkStmt.close();
-        String insertSQL = "INSERT INTO categories (category_name, category_desc, created_date) VALUES (?, ?, SYSDATE)";
-        PreparedStatement pstmt = conn.prepareStatement(insertSQL);
-        pstmt.setString(1, categoryName);
-        pstmt.setString(2, categoryDesc != null ? categoryDesc : "");
-        pstmt.executeUpdate();
-        pstmt.close();
-        out.print("{\"success\":true,\"message\":\"Category created successfully!\"}");
-    } catch(Exception e) {
-        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
-    } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
-    }
-    return;
-}
-
-// Update Category
-if ("updateCategory".equals(action)) {
-    response.setContentType("application/json");
-    String oldCategoryName = request.getParameter("oldCategoryName");
-    String newCategoryName = request.getParameter("newCategoryName");
-    String categoryDesc = request.getParameter("categoryDesc");
-    Connection conn = null;
-    try {
-    	conn = DBUtilityAuto.getReportDBConnection();
-        
-        if (!oldCategoryName.equals(newCategoryName)) {
-            PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM categories WHERE category_name = ?");
-            checkStmt.setString(1, newCategoryName);
-            ResultSet rs = checkStmt.executeQuery();
-            rs.next();
-            if (rs.getInt(1) > 0) {
-                out.print("{\"success\":false,\"message\":\"Category name already exists!\"}");
-                return;
+    
+    String action = request.getParameter("action");
+    
+    // Fetch All Categories with query counts
+    if ("fetchCategories".equals(action)) {
+        response.setContentType("application/json");
+        StringBuilder json = new StringBuilder();
+        Connection conn = null;
+        try {
+        	conn = DBUtilityAuto.getReportDBConnection();
+            String sql = "SELECT category_name, category_desc FROM categories ORDER BY category_name";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            
+            json.append("[");
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) json.append(",");
+                json.append("{");
+                json.append("\"category_name\":\"").append(rs.getString("category_name").replace("\"", "\\\"")).append("\",");
+                json.append("\"category_desc\":\"").append(rs.getString("category_desc") != null ? rs.getString("category_desc").replace("\"", "\\\"") : "").append("\",");
+                
+                PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) FROM query_storage WHERE category_name = ?");
+                pstmt.setString(1, rs.getString("category_name"));
+                ResultSet rsCount = pstmt.executeQuery();
+                rsCount.next();
+                json.append("\"query_count\":").append(rsCount.getInt(1));
+                rsCount.close();
+                pstmt.close();
+                json.append("}");
+                first = false;
             }
+            json.append("]");
+            out.print(json.toString());
             rs.close();
-            checkStmt.close();
+            stmt.close();
+        } catch(Exception e) {
+            out.print("[]");
+            e.printStackTrace();
+        } finally {
+            if (conn != null) try { conn.close(); } catch(Exception e) {}
+        }
+        return;
+    }
+    
+    // Get Queries by Category
+    if ("getQueries".equals(action)) {
+        response.setContentType("application/json");
+        String category = request.getParameter("category");
+        StringBuilder json = new StringBuilder();
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+        	conn = DBUtilityAuto.getReportDBConnection();
+            String sql = "SELECT query_id, query_title, query_description, sql_text, TO_CHAR(created_date, 'YYYY-MM-DD HH24:MI') as created_date " +
+                       "FROM query_storage WHERE category_name = ? ORDER BY created_date DESC";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, category);
+            rs = pstmt.executeQuery();
             
-            PreparedStatement updateCat = conn.prepareStatement("UPDATE categories SET category_name = ?, category_desc = ? WHERE category_name = ?");
-            updateCat.setString(1, newCategoryName);
-            updateCat.setString(2, categoryDesc);
-            updateCat.setString(3, oldCategoryName);
-            updateCat.executeUpdate();
-            updateCat.close();
+            json.append("[");
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) json.append(",");
+                json.append("{");
+                json.append("\"query_id\":").append(rs.getInt("query_id")).append(",");
+                json.append("\"query_title\":\"").append(rs.getString("query_title").replace("\"", "\\\"")).append("\",");
+                json.append("\"query_description\":\"").append(rs.getString("query_description") != null ? rs.getString("query_description").replace("\"", "\\\"") : "").append("\",");
+                String sqlText = rs.getString("sql_text");
+                sqlText = sqlText.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
+                json.append("\"sql_text\":\"").append(sqlText).append("\",");
+                json.append("\"created_date\":\"").append(rs.getString("created_date") != null ? rs.getString("created_date") : "").append("\"");
+                json.append("}");
+                first = false;
+            }
+            json.append("]");
+            out.print(json.toString());
+            rs.close();
+            pstmt.close();
+        } catch(Exception e) {
+            out.print("[]");
+            e.printStackTrace();
+        } finally {
+            if (conn != null) try { conn.close(); } catch(Exception e) {}
+        }
+        return;
+    }
+    
+    // Fetch All Queries (for search functionality)
+    if ("fetchAllQueries".equals(action)) {
+        response.setContentType("application/json");
+        StringBuilder json = new StringBuilder();
+        Connection conn = null;
+        try {
+        	conn = DBUtilityAuto.getReportDBConnection();
+            String sql = "SELECT q.query_id, q.query_title, q.query_description, q.sql_text, q.category_name, TO_CHAR(q.created_date, 'YYYY-MM-DD HH24:MI') as created_date " +
+                       "FROM query_storage q ORDER BY q.created_date DESC";
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
             
-            PreparedStatement updateQueries = conn.prepareStatement("UPDATE query_storage SET category_name = ? WHERE category_name = ?");
-            updateQueries.setString(1, newCategoryName);
-            updateQueries.setString(2, oldCategoryName);
-            updateQueries.executeUpdate();
-            updateQueries.close();
-        } else {
-            PreparedStatement updateCat = conn.prepareStatement("UPDATE categories SET category_desc = ? WHERE category_name = ?");
-            updateCat.setString(1, categoryDesc);
-            updateCat.setString(2, oldCategoryName);
-            updateCat.executeUpdate();
-            updateCat.close();
+            json.append("[");
+            boolean first = true;
+            while (rs.next()) {
+                if (!first) json.append(",");
+                json.append("{");
+                json.append("\"query_id\":").append(rs.getInt("query_id")).append(",");
+                json.append("\"query_title\":\"").append(rs.getString("query_title").replace("\"", "\\\"")).append("\",");
+                json.append("\"query_description\":\"").append(rs.getString("query_description") != null ? rs.getString("query_description").replace("\"", "\\\"") : "").append("\",");
+                String sqlText = rs.getString("sql_text");
+                sqlText = sqlText.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r");
+                json.append("\"sql_text\":\"").append(sqlText).append("\",");
+                json.append("\"category_name\":\"").append(rs.getString("category_name").replace("\"", "\\\"")).append("\",");
+                json.append("\"created_date\":\"").append(rs.getString("created_date") != null ? rs.getString("created_date") : "").append("\"");
+                json.append("}");
+                first = false;
+            }
+            json.append("]");
+            out.print(json.toString());
+            rs.close();
+            stmt.close();
+        } catch(Exception e) {
+            out.print("[]");
+            e.printStackTrace();
+        } finally {
+            if (conn != null) try { conn.close(); } catch(Exception e) {}
         }
-        out.print("{\"success\":true,\"message\":\"Category updated successfully!\"}");
-    } catch(Exception e) {
-        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
-    } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
+        return;
     }
-    return;
-}
-
-// Get Queries by Category
-if ("getQueries".equals(action)) {
-    response.setContentType("application/json");
-    String category = request.getParameter("category");
-    StringBuilder json = new StringBuilder();
-    Connection conn = null;
-    try {
-    	conn = DBUtilityAuto.getReportDBConnection();
-        String sql = "SELECT query_id, query_title, query_description, sql_text, TO_CHAR(created_date, 'YYYY-MM-DD HH24:MI') as created_date FROM query_storage WHERE category_name = ? ORDER BY created_date DESC";
-        PreparedStatement pstmt = conn.prepareStatement(sql);
-        pstmt.setString(1, category);
-        ResultSet rs = pstmt.executeQuery();
-        json.append("[");
-        boolean first = true;
-        while (rs.next()) {
-            if (!first) json.append(",");
-            json.append("{");
-            json.append("\"query_id\":").append(rs.getInt("query_id")).append(",");
-            json.append("\"query_title\":\"").append(escapeJson(rs.getString("query_title"))).append("\",");
-            json.append("\"query_description\":\"").append(escapeJson(rs.getString("query_description"))).append("\",");
-            String sqlText = rs.getString("sql_text");
-            json.append("\"sql_text\":\"").append(escapeJson(sqlText)).append("\",");
-            json.append("\"created_date\":\"").append(escapeJson(rs.getString("created_date"))).append("\"");
-            json.append("}");
-            first = false;
-        }
-        json.append("]");
-        out.print(json.toString());
-        rs.close();
-        pstmt.close();
-    } catch(Exception e) {
-        out.print("[]");
-    } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
-    }
-    return;
-}
-
-// Add Query
-if ("addQuery".equals(action)) {
-    response.setContentType("application/json");
-    String categoryName = request.getParameter("categoryName");
-    String queryTitle = request.getParameter("queryTitle");
-    String queryDesc = request.getParameter("queryDesc");
-    String sqlText = request.getParameter("sqlText");
-    Connection conn = null;
-    try {
-    	conn = DBUtilityAuto.getReportDBConnection();
-        int nextId = 1;
-        Statement stmt = conn.createStatement();
-        ResultSet rsId = stmt.executeQuery("SELECT NVL(MAX(query_id), 0) + 1 FROM query_storage");
-        if (rsId.next()) {
-            nextId = rsId.getInt(1);
-        }
-        rsId.close();
-        String categoryDesc = "";
-        PreparedStatement getDesc = conn.prepareStatement("SELECT category_desc FROM categories WHERE category_name = ?");
-        getDesc.setString(1, categoryName);
-        ResultSet rsDesc = getDesc.executeQuery();
-        if (rsDesc.next()) {
-            categoryDesc = rsDesc.getString("category_desc");
-        }
-        rsDesc.close();
-        getDesc.close();
-        String insertSQL = "INSERT INTO query_storage (query_id, category_name, category_desc, query_title, query_description, sql_text, created_date) VALUES (?, ?, ?, ?, ?, ?, SYSDATE)";
-        PreparedStatement pstmt = conn.prepareStatement(insertSQL);
-        pstmt.setInt(1, nextId);
-        pstmt.setString(2, categoryName);
-        pstmt.setString(3, categoryDesc);
-        pstmt.setString(4, queryTitle);
-        pstmt.setString(5, queryDesc != null ? queryDesc : "");
-        pstmt.setString(6, sqlText);
-        pstmt.executeUpdate();
-        pstmt.close();
-        stmt.close();
-        out.print("{\"success\":true,\"message\":\"Query added successfully!\"}");
-    } catch(Exception e) {
-        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
-    } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
-    }
-    return;
-}
-
-// Update Query
-if ("updateQuery".equals(action)) {
-    response.setContentType("application/json");
-    String queryId = request.getParameter("queryId");
-    String queryTitle = request.getParameter("queryTitle");
-    String queryDesc = request.getParameter("queryDesc");
-    String sqlText = request.getParameter("sqlText");
-    Connection conn = null;
-    try {
-    	conn = DBUtilityAuto.getReportDBConnection();
-        PreparedStatement pstmt = conn.prepareStatement("UPDATE query_storage SET query_title = ?, query_description = ?, sql_text = ? WHERE query_id = ?");
-        pstmt.setString(1, queryTitle);
-        pstmt.setString(2, queryDesc != null ? queryDesc : "");
-        pstmt.setString(3, sqlText);
-        pstmt.setInt(4, Integer.parseInt(queryId));
-        pstmt.executeUpdate();
-        pstmt.close();
-        out.print("{\"success\":true,\"message\":\"Query updated successfully!\"}");
-    } catch(Exception e) {
-        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
-    } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
-    }
-    return;
-}
-
-// Delete Query
-if ("deleteQuery".equals(action)) {
-    response.setContentType("application/json");
-    String queryId = request.getParameter("queryId");
-    Connection conn = null;
-    try {
-    	conn = DBUtilityAuto.getReportDBConnection();
-        PreparedStatement pstmt = conn.prepareStatement("DELETE FROM query_storage WHERE query_id = ?");
-        pstmt.setString(1, queryId);
-        pstmt.executeUpdate();
-        pstmt.close();
-        out.print("{\"success\":true,\"message\":\"Query deleted successfully!\"}");
-    } catch(Exception e) {
-        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
-    } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
-    }
-    return;
-}
-
-// Delete Category
-if ("deleteCategory".equals(action)) {
-    response.setContentType("application/json");
-    String categoryName = request.getParameter("categoryName");
-    Connection conn = null;
-    try {
-    	conn = DBUtilityAuto.getReportDBConnection();
-        PreparedStatement deleteQueries = conn.prepareStatement("DELETE FROM query_storage WHERE category_name = ?");
-        deleteQueries.setString(1, categoryName);
-        deleteQueries.executeUpdate();
-        deleteQueries.close();
-        PreparedStatement deleteCat = conn.prepareStatement("DELETE FROM categories WHERE category_name = ?");
-        deleteCat.setString(1, categoryName);
-        deleteCat.executeUpdate();
-        deleteCat.close();
-        out.print("{\"success\":true,\"message\":\"Category deleted successfully!\"}");
-    } catch(Exception e) {
-        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
-    } finally {
-        if (conn != null) try { conn.close(); } catch(Exception e) {}
-    }
-    return;
-}
 %>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>QueryForge Admin | ADMIN DASHBOARD</title>
-<link rel="stylesheet" href="../css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-
-:root {
-    --bg: #060b15;
-    --surface: #0d1524;
-    --card: #131e33;
-    --border: #1a2a42;
-    --hover: #1f3350;
-    --text: #eaf0f8;
-    --text2: #8ba0c0;
-    --text3: #4a6080;
-    --blue: #4d8cff;
-    --pink: #f472b6;
-    --purple: #8b5cf6;
-    --cyan: #22d3ee;
-    --green: #34d399;
-    --red: #f87171;
-    --orange: #fbbf24;
-}
-
-body {
-    background: var(--bg);
-    font-family: 'Inter', sans-serif;
-    color: var(--text);
-    height: 100vh;
-    overflow: hidden;
-}
-
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--surface); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: var(--blue); }
-
-.app {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    padding: 16px 20px 20px 20px;
-    gap: 16px;
-    background: 
-        radial-gradient(ellipse at 20% 0%, rgba(77,140,255,0.06) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 100%, rgba(139,92,246,0.06) 0%, transparent 60%),
-        var(--bg);
-}
-
-/* HEADER - Larger */
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 24px;
-    background: var(--surface);
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    flex-shrink: 0;
-}
-.header-l {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-.header-icon {
-    width: 48px; height: 48px;
-    background: linear-gradient(135deg, var(--blue), var(--purple));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 22px;
-    color: #fff;
-}
-.header h1 {
-    font-size: 1.6rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #fff, var(--blue), var(--pink));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.header .sub {
-    font-size: 0.75rem;
-    color: var(--text3);
-    letter-spacing: 0.5px;
-}
-.header-r {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-.header-badge {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--card);
-    padding: 6px 16px;
-    border-radius: 24px;
-    font-size: 0.85rem;
-    color: var(--text2);
-    border: 1px solid var(--border);
-}
-.dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-    animation: pulse 2s infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-.avatar {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--blue), var(--pink));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 15px;
-    border: 2px solid var(--border);
-}
-
-/* MAIN */
-.main {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 1fr 400px;
-    gap: 16px;
-    min-height: 0;
-}
-
-/* PANEL */
-.panel {
-    background: var(--surface);
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-.panel-head {
-    padding: 16px 20px;
-    background: var(--card);
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-}
-.panel-head h2 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.panel-head h2 i { color: var(--blue); }
-.panel-stats {
-    display: flex;
-    gap: 16px;
-    font-size: 0.85rem;
-    color: var(--text3);
-}
-.panel-stats strong { color: var(--text); font-size: 1rem; }
-
-/* TABS - Larger */
-.tabs {
-    padding: 12px 18px;
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    flex-shrink: 0;
-}
-.tabs-inner {
-    display: inline-flex;
-    gap: 8px;
-}
-.tab {
-    background: transparent;
-    border: 1px solid var(--border);
-    padding: 8px 20px;
-    border-radius: 24px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--text3);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: 0.2s;
-    white-space: nowrap;
-}
-.tab:hover { background: var(--card); color: var(--text2); }
-.tab.active {
-    background: linear-gradient(135deg, var(--blue), var(--purple));
-    border-color: transparent;
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(77,140,255,0.3);
-}
-.tab .cnt {
-    background: rgba(255,255,255,0.1);
-    padding: 0 8px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-}
-.tab.active .cnt { background: rgba(255,255,255,0.2); }
-.tab .act {
-    display: inline-flex;
-    gap: 4px;
-    margin-left: 4px;
-}
-.tab .act i {
-    font-size: 0.65rem;
-    opacity: 0.4;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.tab .act i:hover { opacity: 1; }
-.tab .act .e:hover { color: var(--blue); }
-.tab .act .d:hover { color: var(--red); }
-
-/* QUERIES */
-.queries {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-/* QUERY CARD - Much Larger */
-.q {
-    background: var(--card);
-    border-radius: 14px;
-    padding: 18px 20px;
-    border: 1px solid var(--border);
-    transition: 0.2s;
-}
-.q:hover { border-color: var(--blue); box-shadow: 0 4px 25px rgba(77,140,255,0.08); }
-.q-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-}
-.q-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.q-title i { color: var(--cyan); font-size: 0.95rem; }
-.q-title .id {
-    font-weight: 500;
-    font-size: 0.7rem;
-    color: var(--text3);
-    background: var(--bg);
-    padding: 1px 10px;
-    border-radius: 10px;
-}
-.q-desc {
-    font-size: 0.9rem;
-    color: var(--text2);
-    margin: 5px 0 10px 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.5;
-}
-.q-sql {
-    position: relative;
-    background: var(--bg);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
-}
-.q-sql pre {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    color: var(--text2);
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: 100px;
-    overflow-y: auto;
-    line-height: 1.6;
-}
-.q-sql .cpy {
-    position: absolute;
-    top: 8px; right: 8px;
-    background: var(--card);
-    border: none;
-    padding: 4px 14px;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    color: var(--text3);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: 0.2s;
-    font-weight: 500;
-}
-.q-sql .cpy:hover { background: var(--blue); color: #fff; }
-.q-sql .cpy.done { background: var(--green); color: #fff; }
-.q-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-.q-meta {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 0.75rem;
-    color: var(--text3);
-}
-.q-btns {
-    display: flex;
-    gap: 6px;
-}
-.q-btns button {
-    background: var(--bg);
-    border: none;
-    padding: 5px 16px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    color: var(--text3);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: 0.2s;
-    font-weight: 500;
-}
-.q-btns button:hover { background: var(--hover); color: var(--text); }
-.q-btns .e:hover { color: var(--blue); }
-.q-btns .d:hover { color: var(--red); }
-
-.empty {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text3);
-}
-.empty i { font-size: 3rem; margin-bottom: 12px; opacity: 0.3; }
-.empty h3 { color: var(--text2); font-size: 1.1rem; margin-bottom: 4px; }
-.empty p { font-size: 0.9rem; }
-
-/* SIDEBAR - Larger */
-.sidebar {
-    background: var(--surface);
-    border-radius: 16px;
-    border: 1px solid var(--border);
-    padding: 22px 24px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-}
-.sidebar h3 {
-    font-size: 1.15rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.sidebar h3 i { color: var(--blue); }
-.sidebar .sub {
-    font-size: 0.8rem;
-    color: var(--text3);
-    margin-bottom: 18px;
-}
-
-.grp {
-    margin-bottom: 14px;
-}
-.grp label {
-    display: block;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text3);
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.grp input, .grp textarea, .grp select {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
-    color: var(--text);
-    transition: 0.2s;
-}
-.grp input:focus, .grp textarea:focus, .grp select:focus {
-    outline: none;
-    border-color: var(--blue);
-    box-shadow: 0 0 0 4px rgba(77,140,255,0.08);
-}
-.grp textarea {
-    font-family: 'JetBrains Mono', monospace;
-    resize: vertical;
-    min-height: 80px;
-    font-size: 0.8rem;
-    line-height: 1.6;
-}
-.grp select option { background: var(--surface); }
-
-.btn {
-    background: linear-gradient(135deg, var(--blue), var(--purple));
-    border: none;
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    font-weight: 700;
-    color: #fff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: 0.2s;
-    font-size: 0.95rem;
-}
-.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(77,140,255,0.35); }
-.btn2 {
-    background: var(--card);
-    border: 1px solid var(--border);
-    padding: 8px 18px;
-    border-radius: 10px;
-    font-weight: 600;
-    color: var(--text3);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.85rem;
-    transition: 0.2s;
-}
-.btn2:hover { background: var(--hover); color: var(--text); }
-hr {
-    border: none;
-    border-top: 1px solid var(--border);
-    margin: 16px 0;
-}
-
-.msg {
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    display: none;
-    margin-bottom: 14px;
-}
-.msg.show { display: flex; align-items: center; gap: 8px; }
-.msg.ok { background: rgba(52,211,153,0.12); border: 1px solid var(--green); color: var(--green); }
-.msg.err { background: rgba(248,113,113,0.12); border: 1px solid var(--red); color: var(--red); }
-
-/* MODALS - Larger */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.88);
-    backdrop-filter: blur(6px);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-.modal.active { display: flex; }
-.modal-box {
-    background: var(--surface);
-    border-radius: 20px;
-    width: 92%;
-    max-width: 560px;
-    padding: 28px 32px;
-    border: 1px solid var(--border);
-    animation: slideUp 0.25s ease;
-}
-@keyframes slideUp {
-    from { transform: scale(0.95) translateY(15px); opacity: 0; }
-    to { transform: scale(1) translateY(0); opacity: 1; }
-}
-.modal-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 18px;
-}
-.modal-head h3 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.modal-head h3 i { color: var(--blue); }
-.modal-close {
-    background: none;
-    border: none;
-    color: var(--text3);
-    font-size: 1.6rem;
-    cursor: pointer;
-    padding: 0 6px;
-    border-radius: 6px;
-}
-.modal-close:hover { background: var(--card); color: var(--text); }
-.modal-foot {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    margin-top: 18px;
-}
-.modal .grp textarea { min-height: 60px; }
-
-@media (max-width: 1000px) {
-    .main { grid-template-columns: 1fr; }
-    .sidebar { max-height: 400px; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>QueryForge | User Dashboard</title>
+    <link href="../css/querystorage.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #05070a; font-family: 'Inter', sans-serif; color: #eef2ff; min-height: 100vh; }
+        .dashboard { max-width: 1600px; margin: 0 auto; padding: 20px 24px; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; margin-bottom: 24px; border-bottom: 1px solid rgba(255,255,255,0.06); flex-wrap: wrap; gap: 16px; }
+        .logo-area h1 { font-size: 1.7rem; font-weight: 700; background: linear-gradient(130deg, #ffffff 0%, #60a5fa 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo-area p { font-size: 0.7rem; color: #7e8aa8; margin-top: 4px; }
+        .user-badge { background: #0f1119; padding: 8px 18px; border-radius: 100px; display: flex; align-items: center; gap: 10px; border: 1px solid #282d3e; }
+        .user-badge i { color: #10b981; }
+        .search-section { background: #0b0d12; border-radius: 20px; padding: 20px 24px; margin-bottom: 28px; border: 1px solid #20232e; }
+        .search-box { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .search-input-wrapper { flex: 1; position: relative; }
+        .search-input-wrapper i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #5f6a8a; font-size: 1rem; }
+        .search-input { width: 100%; background: #06080f; border: 1px solid #2b2f42; border-radius: 14px; padding: 14px 16px 14px 44px; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: #f0f3ff; }
+        .search-input:focus { outline: none; border-color: #3b82f6; }
+        .search-btn { background: #2563eb; border: none; padding: 14px 28px; border-radius: 14px; font-weight: 600; color: white; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .search-btn:hover { background: #1d4ed8; }
+        .clear-btn { background: #1e2538; border: none; padding: 14px 28px; border-radius: 14px; font-weight: 500; color: #b9c7ff; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; }
+        .clear-btn:hover { background: #2d374e; color: white; }
+        .stats-info { margin-top: 16px; padding-top: 16px; border-top: 1px solid #20232e; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: #8b92a8; }
+        .categories-section { margin-bottom: 32px; }
+        .section-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; }
+        .categories-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 32px; }
+        .category-card { background: #0b0d12; border-radius: 20px; padding: 18px; border: 1px solid #20232e; cursor: pointer; transition: all 0.2s; }
+        .category-card:hover { border-color: #3b82f6; transform: translateY(-2px); background: #0e111b; }
+        .category-card.active { border-color: #3b82f6; background: #0e111b; box-shadow: 0 4px 12px rgba(59,130,246,0.2); }
+        .category-name { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .category-name i { color: #3b82f6; }
+        .category-desc { font-size: 0.75rem; color: #9da3bf; margin-bottom: 12px; line-height: 1.4; }
+        .category-stats { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: #5f6a8a; }
+        .query-count { background: #131722; padding: 4px 10px; border-radius: 20px; }
+        .queries-section { background: #0b0d12; border-radius: 24px; border: 1px solid #20232e; overflow: hidden; }
+        .queries-header { padding: 20px 24px; background: #080a10; border-bottom: 1px solid #20232e; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .queries-header h3 { font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .current-category-badge { background: #2563eb20; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; color: #60a5fa; }
+        .queries-container { padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; max-height: 500px; overflow-y: auto; }
+        .query-card { background: #0c0f17; border-radius: 20px; padding: 18px; border: 1px solid #222636; transition: 0.15s; }
+        .query-card:hover { border-color: #3b425c; background: #0e111b; }
+        .query-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+        .query-title { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .query-title i { color: #3b82f6; }
+        .category-tag { background: #1e2538; padding: 4px 12px; border-radius: 20px; font-size: 0.65rem; color: #b9c7ff; }
+        .copy-btn { background: #1e2538; border: none; padding: 6px 14px; border-radius: 40px; font-size: 0.7rem; color: #b9c7ff; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .copy-btn:hover { background: #2d374e; color: white; }
+        .copy-btn.copied { background: #10b981; color: white; }
+        .query-desc { color: #9da3bf; font-size: 0.8rem; margin-bottom: 14px; line-height: 1.45; }
+        .query-code { background: #010101; padding: 14px; border-radius: 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word; color: #cbddf5; border: 1px solid #2a2f42; line-height: 1.5; }
+        .query-meta { display: flex; justify-content: flex-end; margin-top: 12px; gap: 12px; font-size: 0.6rem; color: #5f6a8a; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #6a7392; }
+        .empty-state i { font-size: 3rem; margin-bottom: 12px; opacity: 0.5; }
+        .loading { text-align: center; padding: 40px; }
+        .loading i { font-size: 2rem; color: #3b82f6; }
+        .queries-container::-webkit-scrollbar { width: 5px; }
+        .queries-container::-webkit-scrollbar-track { background: #11141e; border-radius: 10px; }
+        .queries-container::-webkit-scrollbar-thumb { background: #2f354c; border-radius: 10px; }
+        @media (max-width: 768px) {
+            .dashboard { padding: 16px; }
+            .search-box { flex-direction: column; }
+            .search-btn, .clear-btn { width: 100%; justify-content: center; }
+            .categories-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-
-<div class="app">
-
-<!-- HEADER -->
-<div class="header">
-    <div class="header-l">
-        <div class="header-icon"><i class="fas fa-bolt"></i></div>
-        <div>
-            <h1>QueryForge Admin</h1>
-            <div class="sub">Enterprise SQL Vault · Oracle Backend</div>
+<div class="dashboard">
+    <div class="top-bar">
+        <div class="logo-area">
+            <h1><i class="fas fa-database" style="color:#3b82f6;"></i> QueryForge | User Dashboard</h1>
+            <p>Browse and search SQL queries from our knowledge base</p>
+        </div>
+        <div class="user-badge">
+            <i class="fas fa-user"></i> User
+            <i class="fas fa-database"></i>
         </div>
     </div>
-    <div class="header-r">
-        <div class="header-badge">
-            <span class="dot"></span>
-            <span id="globalStats">0 · 0</span>
+
+    <div class="search-section">
+        <div class="search-box">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by query title, description, SQL content, or category...">
+            </div>
+            <button id="searchBtn" class="search-btn">
+                <i class="fas fa-search"></i> Search
+            </button>
+            <button id="clearSearchBtn" class="clear-btn">
+                <i class="fas fa-times"></i> Clear
+            </button>
         </div>
-        <div class="avatar">SA</div>
+        <div class="stats-info">
+            <span id="resultStats">Loading categories...</span>
+            <span><i class="fas fa-database"></i> Connected to Oracle Database</span>
+        </div>
     </div>
-</div>
 
-<!-- MAIN -->
-<div class="main">
+    <div class="categories-section">
+        <div class="section-title">
+            <i class="fas fa-folder-tree"></i>
+            <span>Categories</span>
+        </div>
+        <div class="categories-grid" id="categoriesGrid">
+            <div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading categories...</div>
+        </div>
+    </div>
 
-    <!-- LEFT -->
-    <div class="panel">
-        <div class="panel-head">
-            <h2><i class="fas fa-database"></i> Query Storage</h2>
-            <div class="panel-stats">
-                <span><i class="fas fa-folder"></i> <strong id="catCount">0</strong></span>
-                <span><i class="fas fa-file-code"></i> <strong id="qCount">0</strong></span>
+    <div class="queries-section">
+        <div class="queries-header">
+            <h3>
+                <i class="fas fa-terminal"></i>
+                <span>SQL Queries</span>
+            </h3>
+            <div class="current-category-badge" id="currentCategoryBadge">
+                Select a category to view queries
             </div>
         </div>
-        <div class="tabs">
-            <div class="tabs-inner" id="tabsContainer">
-                <span style="color:var(--text3);font-size:0.85rem;">Loading...</span>
+        <div class="queries-container" id="queriesContainer">
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <p>Select a category from above to view queries</p>
             </div>
-        </div>
-        <div class="queries" id="queriesContainer">
-            <div class="empty">
-                <i class="fas fa-code"></i>
-                <h3>No Queries</h3>
-                <p>Select a category or create one.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="sidebar">
-        <h3><i class="fas fa-tools"></i> Admin Workspace</h3>
-        <div class="sub">Manage categories & SQL assets</div>
-
-        <div id="msgDiv" class="msg"></div>
-
-        <div class="grp">
-            <label><i class="fas fa-folder-plus"></i> New Category</label>
-            <input type="text" id="newCatName" placeholder="Category name...">
-            <input type="text" id="newCatDesc" placeholder="Description" style="margin-top:6px;">
-        </div>
-        <button class="btn" id="createCatBtn"><i class="fas fa-plus"></i> Create Category</button>
-
-        <hr>
-
-        <div class="grp">
-            <label><i class="fas fa-tag"></i> Category</label>
-            <select id="catSelect"><option value="">-- Select --</option></select>
-        </div>
-        <div class="grp">
-            <label><i class="fas fa-heading"></i> Title</label>
-            <input type="text" id="qTitle" placeholder="e.g., Weekly Active Users">
-        </div>
-        <div class="grp">
-            <label><i class="fas fa-align-left"></i> Description</label>
-            <textarea id="qDesc" placeholder="What does this query do?" rows="2"></textarea>
-        </div>
-        <div class="grp">
-            <label><i class="fas fa-code"></i> SQL Query</label>
-            <textarea id="qSql" placeholder="SELECT * FROM table WHERE condition;" rows="4"></textarea>
-        </div>
-        <button class="btn" id="addQueryBtn"><i class="fas fa-save"></i> Add Query</button>
-
-        <div style="margin-top:10px;font-size:0.65rem;text-align:center;color:var(--text3);">
-            <i class="fas fa-shield-alt"></i> Connected to Oracle
-        </div>
-    </div>
-
-</div>
-</div>
-
-<!-- EDIT CATEGORY MODAL -->
-<div id="editCatModal" class="modal">
-    <div class="modal-box">
-        <div class="modal-head">
-            <h3><i class="fas fa-folder-edit"></i> Edit Category</h3>
-            <button class="modal-close" onclick="closeEditCat()">&times;</button>
-        </div>
-        <input type="hidden" id="editCatOld">
-        <div class="grp">
-            <label>Category Name</label>
-            <input type="text" id="editCatName">
-        </div>
-        <div class="grp">
-            <label>Description</label>
-            <input type="text" id="editCatDesc">
-        </div>
-        <div class="modal-foot">
-            <button class="btn2" onclick="closeEditCat()">Cancel</button>
-            <button class="btn" onclick="saveEditCat()" style="width:auto;padding:8px 28px;">Save</button>
-        </div>
-    </div>
-</div>
-
-<!-- EDIT QUERY MODAL -->
-<div id="editQueryModal" class="modal">
-    <div class="modal-box">
-        <div class="modal-head">
-            <h3><i class="fas fa-edit"></i> Edit Query</h3>
-            <button class="modal-close" onclick="closeEditQuery()">&times;</button>
-        </div>
-        <input type="hidden" id="editQId">
-        <div class="grp">
-            <label>Title</label>
-            <input type="text" id="editQTitle">
-        </div>
-        <div class="grp">
-            <label>Description</label>
-            <textarea id="editQDesc" rows="2"></textarea>
-        </div>
-        <div class="grp">
-            <label>SQL Query</label>
-            <textarea id="editQSql" rows="5"></textarea>
-        </div>
-        <div class="modal-foot">
-            <button class="btn2" onclick="closeEditQuery()">Cancel</button>
-            <button class="btn" onclick="saveEditQuery()" style="width:auto;padding:8px 28px;">Update</button>
         </div>
     </div>
 </div>
 
 <script>
-var currentCategory = '';
-var queryData = {};
+    var currentCategory = '';
+    var isSearchMode = false;
 
-function msg(text, type) {
-    var d = document.getElementById('msgDiv');
-    d.innerHTML = '<i class="fas fa-' + (type === 'ok' ? 'check-circle' : 'exclamation-circle') + '"></i> ' + text;
-    d.className = 'msg ' + type + ' show';
-    clearTimeout(d._t);
-    d._t = setTimeout(function() { d.classList.remove('show'); }, 3000);
-}
-
-function esc(str) {
-    if (!str) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
-function updateStats(cats) {
-    var total = 0;
-    if (cats) { for (var i = 0; i < cats.length; i++) total += cats[i].query_count || 0; }
-    document.getElementById('catCount').textContent = cats ? cats.length : 0;
-    document.getElementById('qCount').textContent = total;
-    document.getElementById('globalStats').textContent = (cats ? cats.length : 0) + ' · ' + total;
-}
-
-function loadCats() {
-    fetch('?action=fetchCategories')
-    .then(function(r) { return r.json(); })
-    .then(function(cats) {
-        var container = document.getElementById('tabsContainer');
-        var select = document.getElementById('catSelect');
-        updateStats(cats);
-
-        if (!cats || cats.length === 0) {
-            container.innerHTML = '<span style="color:var(--text3);font-size:0.85rem;">No categories</span>';
-            select.innerHTML = '<option value="">-- No Categories --</option>';
-            document.getElementById('queriesContainer').innerHTML =
-                '<div class="empty"><i class="fas fa-folder-open"></i><h3>No Categories</h3><p>Create your first category.</p></div>';
-            return;
-        }
-
-        var tabs = '';
-        var opts = '<option value="">-- Select --</option>';
-
-        for (var i = 0; i < cats.length; i++) {
-            var c = cats[i];
-            var active = (i === 0 && !currentCategory) ? 'active' : (currentCategory === c.category_name ? 'active' : '');
-            var name = c.category_name.replace(/'/g, "\\'");
-            var desc = esc(c.category_desc || '').replace(/'/g, "\\'");
-
-            tabs += '<button class="tab ' + active + '" data-cat="' + name + '" onclick="selectCat(\'' + name + '\')">' +
-                '<i class="fas fa-folder"></i> ' + esc(c.category_name) +
-                '<span class="cnt">' + c.query_count + '</span>' +
-                '<span class="act">' +
-                '<i class="fas fa-edit e" onclick="event.stopPropagation();openEditCat(\'' + name + '\',\'' + desc + '\')"></i>' +
-                '<i class="fas fa-trash d" onclick="event.stopPropagation();delCat(\'' + name + '\')"></i>' +
-                '</span>' +
-                '</button>';
-
-            opts += '<option value="' + name + '">' + esc(c.category_name) + ' (' + c.query_count + ')</option>';
-        }
-
-        container.innerHTML = tabs;
-        select.innerHTML = opts;
-
-        if (cats.length > 0 && !currentCategory) {
-            selectCat(cats[0].category_name);
-        } else if (currentCategory) {
-            selectCat(currentCategory);
-        }
-    })
-    .catch(function(e) { console.error(e); msg('Error loading categories', 'err'); });
-}
-
-function selectCat(name) {
-    currentCategory = name;
-
-    var tabs = document.querySelectorAll('.tab');
-    for (var i = 0; i < tabs.length; i++) {
-        if (tabs[i].getAttribute('data-cat') === name) {
-            tabs[i].classList.add('active');
-        } else {
-            tabs[i].classList.remove('active');
-        }
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
 
-    fetch('?action=getQueries&category=' + encodeURIComponent(name))
-    .then(function(r) { return r.json(); })
-    .then(function(qs) {
-        var container = document.getElementById('queriesContainer');
-        if (!qs || qs.length === 0) {
-            container.innerHTML =
-                '<div class="empty"><i class="fas fa-code"></i><h3>No Queries</h3><p>Add a query to "' + esc(name) + '".</p></div>';
+    function fetchCategories() {
+        fetch('?action=fetchCategories')
+            .then(function(response) { return response.json(); })
+            .then(function(categories) {
+                renderCategories(categories);
+                updateStats(categories);
+                if (categories.length > 0 && !currentCategory) {
+                    selectCategory(categories[0].category_name);
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                document.getElementById('categoriesGrid').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error loading categories</p></div>';
+            });
+    }
+
+    function renderCategories(categories) {
+        var container = document.getElementById('categoriesGrid');
+        
+        if (categories.length === 0) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No categories available</p></div>';
             return;
         }
 
         var html = '';
-        for (var i = 0; i < qs.length; i++) {
-            var q = qs[i];
-            var sql = q.sql_text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            var sqlEscaped = esc(q.sql_text);
-            var title = esc(q.query_title || 'Untitled');
-            var desc = esc(q.query_description || '');
-            var qid = q.query_id;
-
-            html += '<div class="q" data-id="' + qid + '" data-sql="' + sql + '">' +
-                '<div class="q-top">' +
-                '<div class="q-title">' +
-                '<i class="fas fa-terminal"></i> ' + title +
-                '<span class="id">#' + qid + '</span>' +
+        for (var i = 0; i < categories.length; i++) {
+            var cat = categories[i];
+            var activeClass = (currentCategory === cat.category_name && !isSearchMode) ? 'active' : '';
+            var escapedName = cat.category_name.replace(/'/g, "\\'");
+            html += '<div class="category-card ' + activeClass + '" onclick="selectCategory(\'' + escapedName + '\')">' +
+                '<div class="category-name">' +
+                '<i class="fas fa-folder"></i> ' + escapeHtml(cat.category_name) +
                 '</div>' +
-                '</div>' +
-                '<div class="q-desc">' + desc + '</div>' +
-                '<div class="q-sql">' +
-                '<pre>' + sqlEscaped + '</pre>' +
-                '<button class="cpy" onclick="copySql(this, ' + qid + ')"><i class="fas fa-copy"></i> Copy</button>' +
-                '</div>' +
-                '<div class="q-bottom">' +
-                '<div class="q-meta"><span><i class="far fa-calendar"></i> ' + (q.created_date || 'Unknown') + '</span></div>' +
-                '<div class="q-btns">' +
-                '<button class="e" onclick="openEditQ(' + qid + ')"><i class="fas fa-edit"></i> Edit</button>' +
-                '<button class="d" onclick="delQ(' + qid + ')"><i class="fas fa-trash"></i> Delete</button>' +
-                '</div>' +
+                '<div class="category-desc">' + escapeHtml(cat.category_desc || 'No description') + '</div>' +
+                '<div class="category-stats">' +
+                '<span class="query-count"><i class="fas fa-code"></i> ' + cat.query_count + ' queries</span>' +
+                '<i class="fas fa-chevron-right" style="font-size: 0.7rem; opacity: 0.5;"></i>' +
                 '</div>' +
                 '</div>';
         }
         container.innerHTML = html;
+    }
 
-        for (var j = 0; j < qs.length; j++) {
-            queryData[qs[j].query_id] = qs[j];
+    function selectCategory(categoryName) {
+        if (isSearchMode) {
+            clearSearch();
         }
-    })
-    .catch(function(e) { console.error(e); msg('Error loading queries', 'err'); });
-}
+        
+        currentCategory = categoryName;
+        document.getElementById('currentCategoryBadge').innerHTML = '<i class="fas fa-folder"></i> ' + escapeHtml(categoryName);
+        
+        var cards = document.querySelectorAll('.category-card');
+        for (var i = 0; i < cards.length; i++) {
+            cards[i].classList.remove('active');
+        }
+        
+        loadQueries(categoryName);
+    }
 
-function copySql(btn, id) {
-    var q = queryData[id];
-    if (!q) { msg('Query not found', 'err'); return; }
-    navigator.clipboard.writeText(q.sql_text).then(function() {
-        var orig = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        btn.classList.add('done');
-        setTimeout(function() {
-            btn.innerHTML = orig;
-            btn.classList.remove('done');
-        }, 1500);
-    }).catch(function() { alert('Failed to copy'); });
-}
+    function loadQueries(categoryName) {
+        var container = document.getElementById('queriesContainer');
+        container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-pulse"></i> Loading queries...</div>';
+        
+        fetch('?action=getQueries&category=' + encodeURIComponent(categoryName))
+            .then(function(response) { return response.json(); })
+            .then(function(queries) {
+                displayQueries(queries, categoryName);
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                container.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error loading queries</p></div>';
+            });
+    }
 
-function createCat() {
-    var name = document.getElementById('newCatName').value.trim();
-    var desc = document.getElementById('newCatDesc').value.trim();
-    if (!name) { msg('Please enter a category name', 'err'); return; }
+    function displayQueries(queries, categoryName) {
+        var container = document.getElementById('queriesContainer');
+        
+        if (queries.length === 0) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-code"></i><p>No queries found in "' + escapeHtml(categoryName) + '"</p></div>';
+            return;
+        }
 
-    var fd = new FormData();
-    fd.append('action', 'createCategory');
-    fd.append('categoryName', name);
-    fd.append('categoryDesc', desc);
+        var html = '';
+        for (var i = 0; i < queries.length; i++) {
+            var q = queries[i];
+            var escapedSql = escapeHtml(q.sql_text).replace(/'/g, "\\'");
+            html += '<div class="query-card">' +
+                '<div class="query-header">' +
+                '<div class="query-title">' +
+                '<i class="fas fa-terminal"></i> ' + escapeHtml(q.query_title) +
+                '<span class="category-tag"><i class="fas fa-folder"></i> ' + escapeHtml(categoryName) + '</span>' +
+                '</div>' +
+                '<button class="copy-btn" onclick="copySQL(this, \'' + escapedSql + '\')">' +
+                '<i class="fas fa-copy"></i> Copy SQL' +
+                '</button>' +
+                '</div>' +
+                '<div class="query-desc">' + escapeHtml(q.query_description || 'No description') + '</div>' +
+                '<div class="query-code"><pre style="margin:0; white-space:pre-wrap;">' + escapeHtml(q.sql_text) + '</pre></div>' +
+                '<div class="query-meta">' +
+                '<span><i class="far fa-calendar"></i> Added: ' + (q.created_date || 'Unknown date') + '</span>' +
+                '</div>' +
+                '</div>';
+        }
+        container.innerHTML = html;
+    }
 
-    fetch('', { method: 'POST', body: fd })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-        if (res.success) {
-            msg(res.message, 'ok');
-            document.getElementById('newCatName').value = '';
-            document.getElementById('newCatDesc').value = '';
-            loadCats();
+    function searchQueries() {
+        var searchTerm = document.getElementById('searchInput').value.trim().toLowerCase();
+        
+        if (!searchTerm) {
+            alert('Please enter a search term');
+            return;
+        }
+        
+        isSearchMode = true;
+        currentCategory = '';
+        document.getElementById('currentCategoryBadge').innerHTML = '<i class="fas fa-search"></i> Search Results';
+        
+        var cards = document.querySelectorAll('.category-card');
+        for (var i = 0; i < cards.length; i++) {
+            cards[i].classList.remove('active');
+        }
+        
+        fetch('?action=fetchAllQueries')
+            .then(function(response) { return response.json(); })
+            .then(function(queries) {
+                var results = [];
+                for (var i = 0; i < queries.length; i++) {
+                    var q = queries[i];
+                    if (q.query_title.toLowerCase().includes(searchTerm) ||
+                        (q.query_description && q.query_description.toLowerCase().includes(searchTerm)) ||
+                        q.category_name.toLowerCase().includes(searchTerm) ||
+                        q.sql_text.toLowerCase().includes(searchTerm)) {
+                        results.push(q);
+                    }
+                }
+                displaySearchResults(results);
+                document.getElementById('resultStats').innerHTML = 'ðŸ” Found ' + results.length + ' matching queries';
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                document.getElementById('queriesContainer').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Error searching queries</p></div>';
+            });
+    }
+
+    function displaySearchResults(queries) {
+        var container = document.getElementById('queriesContainer');
+        
+        if (queries.length === 0) {
+            container.innerHTML = '<div class="empty-state"><i class="fas fa-search"></i><p>No matching queries found. Try different keywords.</p></div>';
+            return;
+        }
+        
+        var html = '';
+        for (var i = 0; i < queries.length; i++) {
+            var q = queries[i];
+            var escapedSql = escapeHtml(q.sql_text).replace(/'/g, "\\'");
+            html += '<div class="query-card">' +
+                '<div class="query-header">' +
+                '<div class="query-title">' +
+                '<i class="fas fa-terminal"></i> ' + escapeHtml(q.query_title) +
+                '<span class="category-tag"><i class="fas fa-folder"></i> ' + escapeHtml(q.category_name) + '</span>' +
+                '</div>' +
+                '<button class="copy-btn" onclick="copySQL(this, \'' + escapedSql + '\')">' +
+                '<i class="fas fa-copy"></i> Copy SQL' +
+                '</button>' +
+                '</div>' +
+                '<div class="query-desc">' + escapeHtml(q.query_description || 'No description') + '</div>' +
+                '<div class="query-code"><pre style="margin:0; white-space:pre-wrap;">' + escapeHtml(q.sql_text) + '</pre></div>' +
+                '<div class="query-meta">' +
+                '<span><i class="far fa-calendar"></i> Added: ' + (q.created_date || 'Unknown date') + '</span>' +
+                '<span><i class="fas fa-folder"></i> Category: ' + escapeHtml(q.category_name) + '</span>' +
+                '</div>' +
+                '</div>';
+        }
+        container.innerHTML = html;
+    }
+
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        isSearchMode = false;
+        currentCategory = '';
+        fetchCategories();
+        document.getElementById('currentCategoryBadge').innerHTML = 'Select a category to view queries';
+    }
+
+    function updateStats(categories) {
+        var statsSpan = document.getElementById('resultStats');
+        if (categories && categories.length > 0) {
+            var totalQueries = 0;
+            for (var i = 0; i < categories.length; i++) {
+                totalQueries += categories[i].query_count;
+            }
+            statsSpan.innerHTML = '<i class="fas fa-folder"></i> ' + categories.length + ' categories · <i class="fas fa-code"></i> ' + totalQueries + ' total queries';
         } else {
-            msg(res.message, 'err');
+            statsSpan.innerHTML = 'Loading categories...';
         }
-    })
-    .catch(function() { msg('Error creating category', 'err'); });
-}
+    }
 
-function openEditCat(name, desc) {
-    document.getElementById('editCatOld').value = name;
-    document.getElementById('editCatName').value = name;
-    document.getElementById('editCatDesc').value = desc;
-    document.getElementById('editCatModal').classList.add('active');
-}
+    function copySQL(btn, sql) {
+        navigator.clipboard.writeText(sql).then(function() {
+            var originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            btn.classList.add('copied');
+            setTimeout(function() {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('copied');
+            }, 1500);
+        }).catch(function() {
+            alert('Failed to copy. Please copy manually.');
+        });
+    }
 
-function closeEditCat() {
-    document.getElementById('editCatModal').classList.remove('active');
-}
-
-function saveEditCat() {
-    var old = document.getElementById('editCatOld').value;
-    var name = document.getElementById('editCatName').value.trim();
-    var desc = document.getElementById('editCatDesc').value.trim();
-    if (!name) { msg('Category name cannot be empty', 'err'); return; }
-
-    var fd = new FormData();
-    fd.append('action', 'updateCategory');
-    fd.append('oldCategoryName', old);
-    fd.append('newCategoryName', name);
-    fd.append('categoryDesc', desc);
-
-    fetch('', { method: 'POST', body: fd })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-        if (res.success) {
-            msg(res.message, 'ok');
-            closeEditCat();
-            if (currentCategory === old) currentCategory = name;
-            loadCats();
-        } else {
-            msg(res.message, 'err');
+    document.getElementById('searchBtn').addEventListener('click', searchQueries);
+    document.getElementById('clearSearchBtn').addEventListener('click', clearSearch);
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchQueries();
         }
-    })
-    .catch(function() { msg('Error updating category', 'err'); });
-}
-
-function delCat(name) {
-    if (!confirm('Delete category "' + name + '" and ALL its queries?')) return;
-    var fd = new FormData();
-    fd.append('action', 'deleteCategory');
-    fd.append('categoryName', name);
-
-    fetch('', { method: 'POST', body: fd })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-        if (res.success) {
-            msg(res.message, 'ok');
-            currentCategory = '';
-            loadCats();
-        } else {
-            msg(res.message, 'err');
-        }
-    })
-    .catch(function() { msg('Error deleting category', 'err'); });
-}
-
-function addQuery() {
-    var cat = document.getElementById('catSelect').value;
-    var title = document.getElementById('qTitle').value.trim();
-    var desc = document.getElementById('qDesc').value.trim();
-    var sql = document.getElementById('qSql').value.trim();
-    if (!cat) { msg('Please select a category', 'err'); return; }
-    if (!title) { msg('Please enter a query title', 'err'); return; }
-    if (!sql) { msg('Please enter SQL query', 'err'); return; }
-
-    var fd = new FormData();
-    fd.append('action', 'addQuery');
-    fd.append('categoryName', cat);
-    fd.append('queryTitle', title);
-    fd.append('queryDesc', desc);
-    fd.append('sqlText', sql);
-
-    fetch('', { method: 'POST', body: fd })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-        if (res.success) {
-            msg(res.message, 'ok');
-            document.getElementById('qTitle').value = '';
-            document.getElementById('qDesc').value = '';
-            document.getElementById('qSql').value = '';
-            loadCats();
-            if (currentCategory) selectCat(currentCategory);
-        } else {
-            msg(res.message, 'err');
-        }
-    })
-    .catch(function() { msg('Error adding query', 'err'); });
-}
-
-function openEditQ(id) {
-    var q = queryData[id];
-    if (!q) { msg('Query not found', 'err'); return; }
-    document.getElementById('editQId').value = id;
-    document.getElementById('editQTitle').value = q.query_title || '';
-    document.getElementById('editQDesc').value = q.query_description || '';
-    document.getElementById('editQSql').value = q.sql_text || '';
-    document.getElementById('editQueryModal').classList.add('active');
-}
-
-function closeEditQuery() {
-    document.getElementById('editQueryModal').classList.remove('active');
-}
-
-function saveEditQuery() {
-    var id = document.getElementById('editQId').value;
-    var title = document.getElementById('editQTitle').value.trim();
-    var desc = document.getElementById('editQDesc').value.trim();
-    var sql = document.getElementById('editQSql').value.trim();
-    if (!title) { msg('Query title cannot be empty', 'err'); return; }
-    if (!sql) { msg('SQL query cannot be empty', 'err'); return; }
-
-    var fd = new FormData();
-    fd.append('action', 'updateQuery');
-    fd.append('queryId', id);
-    fd.append('queryTitle', title);
-    fd.append('queryDesc', desc);
-    fd.append('sqlText', sql);
-
-    fetch('', { method: 'POST', body: fd })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-        if (res.success) {
-            msg(res.message, 'ok');
-            closeEditQuery();
-            loadCats();
-            if (currentCategory) selectCat(currentCategory);
-        } else {
-            msg(res.message, 'err');
-        }
-    })
-    .catch(function() { msg('Error updating query', 'err'); });
-}
-
-function delQ(id) {
-    if (!confirm('Delete this query?')) return;
-    var fd = new FormData();
-    fd.append('action', 'deleteQuery');
-    fd.append('queryId', id);
-
-    fetch('', { method: 'POST', body: fd })
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-        if (res.success) {
-            msg(res.message, 'ok');
-            loadCats();
-            if (currentCategory) selectCat(currentCategory);
-        } else {
-            msg(res.message, 'err');
-        }
-    })
-    .catch(function() { msg('Error deleting query', 'err'); });
-}
-
-document.getElementById('createCatBtn').addEventListener('click', createCat);
-document.getElementById('addQueryBtn').addEventListener('click', addQuery);
-loadCats();
+    });
+    
+    fetchCategories();
 </script>
 </body>
 </html>
