@@ -19,6 +19,7 @@ if ("fetchSourceStatus".equals(action)) {
     StringBuilder json = new StringBuilder();
     
     try {
+        // EK HI CONNECTION - BAS YAHI EK BAAR
         conn = DBUtilityAuto.getReportDBConnection();
         String partition = getPartition();
         
@@ -58,7 +59,7 @@ if ("fetchSourceStatus".equals(action)) {
             "ORDER BY s.source_id";
         
         stmt = conn.createStatement();
-        stmt.setQueryTimeout(30);
+        // NO TIMEOUT - Query fast hai
         rs = stmt.executeQuery(query);
         
         json.append("[");
@@ -76,7 +77,9 @@ if ("fetchSourceStatus".equals(action)) {
         
     } catch(Exception e) {
         out.print("[]");
+        e.printStackTrace();
     } finally {
+        // EK HI BAAR CLOSE - SAB RESOURCES CLEAN
         try { if (rs != null) rs.close(); } catch(Exception e) {}
         try { if (stmt != null) stmt.close(); } catch(Exception e) {}
         try { if (conn != null) conn.close(); } catch(Exception e) {}
@@ -342,7 +345,6 @@ if ("fetchSourceStatus".equals(action)) {
             transform: translateY(-4px) scale(1.02);
         }
         
-        /* Active State */
         .source-card.active {
             border-color: var(--green);
             background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(46,204,113,0.02));
@@ -366,7 +368,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--green);
         }
         
-        /* Inactive State */
         .source-card.inactive {
             border-color: rgba(231,76,60,0.15);
             opacity: 0.4;
@@ -378,7 +379,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--red);
         }
 
-        /* Source ID - Big & Bold */
         .source-id {
             font-size: 2.2rem;
             font-weight: 900;
@@ -389,7 +389,6 @@ if ("fetchSourceStatus".equals(action)) {
             transition: 0.3s;
         }
         
-        /* Status Label */
         .source-status {
             font-size: 0.6rem;
             font-weight: 700;
@@ -399,7 +398,6 @@ if ("fetchSourceStatus".equals(action)) {
             transition: 0.3s;
         }
 
-        /* Hit Counter */
         .source-hits {
             font-size: 0.65rem;
             color: var(--text3);
@@ -415,7 +413,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--text2);
         }
 
-        /* Status Dot */
         .status-dot {
             position: absolute;
             top: 10px;
@@ -435,7 +432,6 @@ if ("fetchSourceStatus".equals(action)) {
             opacity: 0.3;
         }
 
-        /* Pulse Ring for Active */
         .source-card.active .pulse-ring {
             position: absolute;
             top: 50%;
