@@ -1,21 +1,3 @@
-Aug 28, 2026 1:37:52 PM org.apache.coyote.http11.Http11Processor service
-INFO: Error parsing HTTP request header
- Note: further occurrences of HTTP request parsing errors will be logged at DEBUG level.
-java.lang.IllegalArgumentException: Request header is too large
-	at org.apache.coyote.http11.Http11InputBuffer.fill(Http11InputBuffer.java:778)
-	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:442)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:269)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1791)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-
-
-
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*, java.util.*, java.io.PrintWriter" %>
 <%@page import="com.jdbc.DBUtilityAuto" %>
@@ -603,7 +585,16 @@ function createCategory() {
         showMessage('Please enter a category name', 'error');
         return;
     }
-    fetch('?action=createCategory&categoryName=' + encodeURIComponent(categoryName) + '&categoryDesc=' + encodeURIComponent(categoryDesc))
+    
+    var formData = new FormData();
+    formData.append('action', 'createCategory');
+    formData.append('categoryName', categoryName);
+    formData.append('categoryDesc', categoryDesc);
+    
+    fetch('', {
+        method: 'POST',
+        body: formData
+    })
     .then(function(response) { return response.json(); })
     .then(function(result) {
         if (result.success) {
@@ -637,7 +628,17 @@ function saveCategoryEdit() {
         showMessage('Category name cannot be empty', 'error');
         return;
     }
-    fetch('?action=updateCategory&oldCategoryName=' + encodeURIComponent(oldName) + '&newCategoryName=' + encodeURIComponent(newName) + '&categoryDesc=' + encodeURIComponent(desc))
+    
+    var formData = new FormData();
+    formData.append('action', 'updateCategory');
+    formData.append('oldCategoryName', oldName);
+    formData.append('newCategoryName', newName);
+    formData.append('categoryDesc', desc);
+    
+    fetch('', {
+        method: 'POST',
+        body: formData
+    })
     .then(function(response) { return response.json(); })
     .then(function(result) {
         if (result.success) {
@@ -656,7 +657,15 @@ function saveCategoryEdit() {
 
 function deleteCategory(categoryName) {
     if (!confirm('Delete category "' + categoryName + '" and ALL its queries?')) return;
-    fetch('?action=deleteCategory&categoryName=' + encodeURIComponent(categoryName))
+    
+    var formData = new FormData();
+    formData.append('action', 'deleteCategory');
+    formData.append('categoryName', categoryName);
+    
+    fetch('', {
+        method: 'POST',
+        body: formData
+    })
     .then(function(response) { return response.json(); })
     .then(function(result) {
         if (result.success) {
@@ -678,10 +687,18 @@ function addQuery() {
     if (!categoryName) { showMessage('Please select a category', 'error'); return; }
     if (!queryTitle) { showMessage('Please enter a query title', 'error'); return; }
     if (!sqlText) { showMessage('Please enter SQL query', 'error'); return; }
-    fetch('?action=addQuery&categoryName=' + encodeURIComponent(categoryName) +
-        '&queryTitle=' + encodeURIComponent(queryTitle) +
-        '&queryDesc=' + encodeURIComponent(queryDesc) +
-        '&sqlText=' + encodeURIComponent(sqlText))
+    
+    var formData = new FormData();
+    formData.append('action', 'addQuery');
+    formData.append('categoryName', categoryName);
+    formData.append('queryTitle', queryTitle);
+    formData.append('queryDesc', queryDesc);
+    formData.append('sqlText', sqlText);
+    
+    fetch('', {
+        method: 'POST',
+        body: formData
+    })
     .then(function(response) { return response.json(); })
     .then(function(result) {
         if (result.success) {
@@ -717,10 +734,18 @@ function saveQueryEdit() {
     var sqlText = document.getElementById('editQuerySql').value.trim();
     if (!queryTitle) { showMessage('Query title cannot be empty', 'error'); return; }
     if (!sqlText) { showMessage('SQL query cannot be empty', 'error'); return; }
-    fetch('?action=updateQuery&queryId=' + encodeURIComponent(queryId) +
-        '&queryTitle=' + encodeURIComponent(queryTitle) +
-        '&queryDesc=' + encodeURIComponent(queryDesc) +
-        '&sqlText=' + encodeURIComponent(sqlText))
+    
+    var formData = new FormData();
+    formData.append('action', 'updateQuery');
+    formData.append('queryId', queryId);
+    formData.append('queryTitle', queryTitle);
+    formData.append('queryDesc', queryDesc);
+    formData.append('sqlText', sqlText);
+    
+    fetch('', {
+        method: 'POST',
+        body: formData
+    })
     .then(function(response) { return response.json(); })
     .then(function(result) {
         if (result.success) {
@@ -737,7 +762,15 @@ function saveQueryEdit() {
 
 function deleteQuery(queryId) {
     if (!confirm('Delete this query?')) return;
-    fetch('?action=deleteQuery&queryId=' + queryId)
+    
+    var formData = new FormData();
+    formData.append('action', 'deleteQuery');
+    formData.append('queryId', queryId);
+    
+    fetch('', {
+        method: 'POST',
+        body: formData
+    })
     .then(function(response) { return response.json(); })
     .then(function(result) {
         if (result.success) {
