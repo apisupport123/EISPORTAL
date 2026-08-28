@@ -308,569 +308,485 @@ if ("deleteCategory".equals(action)) {
 <meta charset="UTF-8">
 <title>QueryForge Admin | ADMIN DASHBOARD</title>
 <link rel="stylesheet" href="../css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-    --bg-primary: #0a0e17;
-    --bg-secondary: #111827;
-    --bg-card: #1a2234;
-    --bg-hover: #243049;
-    --border-color: #2a3650;
-    --text-primary: #e8edf5;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --blue: #3b82f6;
+    --bg: #060b15;
+    --surface: #0d1524;
+    --card: #131e33;
+    --border: #1a2a42;
+    --hover: #1f3350;
+    --text: #eaf0f8;
+    --text2: #8ba0c0;
+    --text3: #4a6080;
+    --blue: #4d8cff;
+    --pink: #f472b6;
     --purple: #8b5cf6;
-    --cyan: #06b6d4;
-    --green: #10b981;
-    --red: #ef4444;
-    --orange: #f59e0b;
+    --cyan: #22d3ee;
+    --green: #34d399;
+    --red: #f87171;
+    --orange: #fbbf24;
 }
 
 body {
-    background: var(--bg-primary);
+    background: var(--bg);
     font-family: 'Inter', sans-serif;
-    color: var(--text-primary);
+    color: var(--text);
     height: 100vh;
     overflow: hidden;
 }
 
-::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
-}
-::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: var(--blue);
-}
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--surface); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: var(--blue); }
 
-/* ===== LAYOUT ===== */
 .app {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    padding: 16px 20px 20px 20px;
-    gap: 16px;
+    padding: 14px 18px 18px 18px;
+    gap: 14px;
+    background: 
+        radial-gradient(ellipse at 20% 0%, rgba(77,140,255,0.06) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 100%, rgba(139,92,246,0.06) 0%, transparent 60%),
+        var(--bg);
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 20px;
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
+    padding: 10px 18px;
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
     flex-shrink: 0;
 }
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-.header-icon {
-    width: 42px;
-    height: 42px;
-    background: linear-gradient(135deg, var(--blue), var(--purple));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    color: #fff;
-}
-.header-title h1 {
-    font-size: 1.3rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, #fff 0%, var(--blue) 50%, var(--purple) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-.header-title p {
-    font-size: 0.65rem;
-    color: var(--text-secondary);
-    letter-spacing: 0.3px;
-}
-.header-right {
+.header-l {
     display: flex;
     align-items: center;
     gap: 12px;
 }
+.header-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #fff;
+}
+.header h1 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--blue), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.header .sub {
+    font-size: 0.6rem;
+    color: var(--text3);
+    letter-spacing: 0.5px;
+}
+.header-r {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 .header-badge {
     display: flex;
     align-items: center;
-    gap: 8px;
-    background: var(--bg-card);
-    padding: 6px 14px;
-    border-radius: 100px;
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
+    gap: 6px;
+    background: var(--card);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.65rem;
+    color: var(--text2);
+    border: 1px solid var(--border);
 }
-.header-badge .dot {
-    width: 7px;
-    height: 7px;
+.dot {
+    width: 6px; height: 6px;
     border-radius: 50%;
     background: var(--green);
     animation: pulse 2s infinite;
 }
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-}
-.header-avatar {
-    width: 36px;
-    height: 36px;
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.avatar {
+    width: 32px; height: 32px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--blue), var(--purple));
+    background: linear-gradient(135deg, var(--blue), var(--pink));
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 13px;
-    cursor: pointer;
-    border: 2px solid var(--border-color);
+    font-size: 12px;
+    border: 2px solid var(--border);
 }
 
-/* ===== MAIN ===== */
+/* MAIN */
 .main {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 380px;
-    gap: 16px;
+    grid-template-columns: 1fr 360px;
+    gap: 14px;
     min-height: 0;
 }
 
-/* ===== LEFT PANEL ===== */
+/* PANEL */
 .panel {
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
-.panel-top {
-    padding: 14px 18px;
-    background: var(--bg-card);
-    border-bottom: 1px solid var(--border-color);
+.panel-head {
+    padding: 12px 16px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-shrink: 0;
 }
-.panel-top h2 {
-    font-size: 0.95rem;
+.panel-head h2 {
+    font-size: 0.85rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
 }
-.panel-top h2 i {
-    color: var(--blue);
-}
+.panel-head h2 i { color: var(--blue); }
 .panel-stats {
     display: flex;
-    gap: 14px;
-    font-size: 0.7rem;
-    color: var(--text-secondary);
+    gap: 12px;
+    font-size: 0.65rem;
+    color: var(--text3);
 }
-.panel-stats span {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-.panel-stats strong {
-    color: var(--text-primary);
-}
+.panel-stats strong { color: var(--text); }
 
-/* ===== TABS ===== */
+/* TABS */
 .tabs {
-    padding: 10px 16px;
-    background: var(--bg-primary);
-    border-bottom: 1px solid var(--border-color);
+    padding: 8px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
     overflow-x: auto;
     flex-shrink: 0;
 }
 .tabs-inner {
     display: inline-flex;
-    gap: 6px;
+    gap: 5px;
 }
 .tab {
     background: transparent;
-    border: 1px solid var(--border-color);
-    padding: 6px 16px;
-    border-radius: 100px;
+    border: 1px solid var(--border);
+    padding: 5px 14px;
+    border-radius: 20px;
     font-family: 'Inter', sans-serif;
     font-weight: 500;
-    font-size: 0.75rem;
-    color: var(--text-secondary);
+    font-size: 0.7rem;
+    color: var(--text3);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
+    gap: 5px;
+    transition: 0.2s;
     white-space: nowrap;
 }
-.tab:hover {
-    background: var(--bg-card);
-    color: var(--text-primary);
-}
+.tab:hover { background: var(--card); color: var(--text2); }
 .tab.active {
     background: linear-gradient(135deg, var(--blue), var(--purple));
     border-color: transparent;
     color: #fff;
-    box-shadow: 0 4px 15px rgba(59,130,246,0.25);
+    box-shadow: 0 3px 15px rgba(77,140,255,0.25);
 }
-.tab .count {
+.tab .cnt {
     background: rgba(255,255,255,0.1);
-    padding: 0 7px;
-    border-radius: 100px;
-    font-size: 0.6rem;
-}
-.tab.active .count {
-    background: rgba(255,255,255,0.2);
-}
-.tab .actions {
-    display: inline-flex;
-    gap: 3px;
-    margin-left: 3px;
-}
-.tab .actions i {
+    padding: 0 6px;
+    border-radius: 10px;
     font-size: 0.55rem;
-    opacity: 0.4;
+}
+.tab.active .cnt { background: rgba(255,255,255,0.2); }
+.tab .act {
+    display: inline-flex;
+    gap: 2px;
+    margin-left: 2px;
+}
+.tab .act i {
+    font-size: 0.5rem;
+    opacity: 0.3;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: 0.2s;
 }
-.tab .actions i:hover {
-    opacity: 1;
-}
-.tab .actions .edit:hover { color: var(--blue); }
-.tab .actions .del:hover { color: var(--red); }
+.tab .act i:hover { opacity: 1; }
+.tab .act .e:hover { color: var(--blue); }
+.tab .act .d:hover { color: var(--red); }
 
-/* ===== QUERIES ===== */
+/* QUERIES */
 .queries {
     flex: 1;
     overflow-y: auto;
-    padding: 14px 16px;
+    padding: 12px 14px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
 }
 
-/* ===== QUERY CARD ===== */
-.qcard {
-    background: var(--bg-card);
-    border-radius: 14px;
-    padding: 14px 16px;
-    border: 1px solid var(--border-color);
-    transition: all 0.2s;
+/* QUERY CARD */
+.q {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    transition: 0.2s;
 }
-.qcard:hover {
-    border-color: var(--blue);
-}
-.qcard-top {
+.q:hover { border-color: var(--blue); }
+.q-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 10px;
+    gap: 8px;
 }
-.qcard-title {
-    font-size: 0.9rem;
+.q-title {
+    font-size: 0.85rem;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
-.qcard-title i {
-    color: var(--cyan);
-    font-size: 0.8rem;
-}
-.qcard-title .id {
+.q-title i { color: var(--cyan); font-size: 0.7rem; }
+.q-title .id {
     font-weight: 400;
-    font-size: 0.6rem;
-    color: var(--text-muted);
-    background: var(--bg-primary);
-    padding: 0 8px;
-    border-radius: 100px;
+    font-size: 0.55rem;
+    color: var(--text3);
+    background: var(--bg);
+    padding: 0 6px;
+    border-radius: 8px;
 }
-.qcard-desc {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin: 4px 0 8px 0;
+.q-desc {
+    font-size: 0.7rem;
+    color: var(--text2);
+    margin: 3px 0 6px 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
-.qcard-sql {
+.q-sql {
     position: relative;
-    background: var(--bg-primary);
-    border-radius: 10px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
 }
-.qcard-sql pre {
-    font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 0.65rem;
-    color: var(--text-secondary);
+.q-sql pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--text2);
     margin: 0;
     white-space: pre-wrap;
     word-break: break-all;
-    max-height: 70px;
+    max-height: 60px;
     overflow-y: auto;
 }
-.qcard-sql .copy {
+.q-sql .cpy {
     position: absolute;
-    top: 6px;
-    right: 6px;
-    background: var(--bg-card);
+    top: 4px; right: 4px;
+    background: var(--card);
     border: none;
-    padding: 3px 10px;
-    border-radius: 6px;
-    font-size: 0.6rem;
-    color: var(--text-secondary);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.55rem;
+    color: var(--text3);
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 4px;
-    transition: all 0.2s;
+    gap: 3px;
+    transition: 0.2s;
 }
-.qcard-sql .copy:hover {
-    background: var(--blue);
-    color: #fff;
-}
-.qcard-sql .copy.done {
-    background: var(--green);
-    color: #fff;
-}
-.qcard-bottom {
+.q-sql .cpy:hover { background: var(--blue); color: #fff; }
+.q-sql .cpy.done { background: var(--green); color: #fff; }
+.q-bottom {
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 6px;
-}
-.qcard-meta {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.6rem;
-    color: var(--text-muted);
-}
-.qcard-meta i {
-    margin-right: 2px;
-}
-.qcard-btns {
-    display: flex;
     gap: 4px;
 }
-.qcard-btns button {
-    background: var(--bg-primary);
+.q-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.55rem;
+    color: var(--text3);
+}
+.q-btns {
+    display: flex;
+    gap: 3px;
+}
+.q-btns button {
+    background: var(--bg);
     border: none;
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 0.65rem;
-    color: var(--text-secondary);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.6rem;
+    color: var(--text3);
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 4px;
-    transition: all 0.2s;
+    gap: 3px;
+    transition: 0.2s;
 }
-.qcard-btns button:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
-.qcard-btns .edit:hover { color: var(--blue); }
-.qcard-btns .del:hover { color: var(--red); }
+.q-btns button:hover { background: var(--hover); color: var(--text); }
+.q-btns .e:hover { color: var(--blue); }
+.q-btns .d:hover { color: var(--red); }
 
 .empty {
     text-align: center;
-    padding: 50px 20px;
-    color: var(--text-muted);
+    padding: 40px 16px;
+    color: var(--text3);
 }
-.empty i {
-    font-size: 2.5rem;
-    margin-bottom: 12px;
-    opacity: 0.3;
-}
-.empty h3 {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    margin-bottom: 4px;
-}
-.empty p {
-    font-size: 0.8rem;
-}
+.empty i { font-size: 2rem; margin-bottom: 8px; opacity: 0.3; }
+.empty h3 { color: var(--text2); font-size: 0.9rem; margin-bottom: 3px; }
+.empty p { font-size: 0.75rem; }
 
-/* ===== RIGHT PANEL ===== */
+/* SIDEBAR */
 .sidebar {
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
-    padding: 20px;
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 18px;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
 }
 .sidebar h3 {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
+.sidebar h3 i { color: var(--blue); }
 .sidebar .sub {
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-    margin-bottom: 16px;
+    font-size: 0.65rem;
+    color: var(--text3);
+    margin-bottom: 14px;
 }
 
 .grp {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 .grp label {
     display: block;
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 3px;
+    color: var(--text3);
+    margin-bottom: 2px;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.3px;
 }
-.grp input,
-.grp textarea,
-.grp select {
+.grp input, .grp textarea, .grp select {
     width: 100%;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 10px;
     font-family: 'Inter', sans-serif;
-    font-size: 0.8rem;
-    color: var(--text-primary);
-    transition: all 0.2s;
+    font-size: 0.75rem;
+    color: var(--text);
+    transition: 0.2s;
 }
-.grp input:focus,
-.grp textarea:focus,
-.grp select:focus {
+.grp input:focus, .grp textarea:focus, .grp select:focus {
     outline: none;
     border-color: var(--blue);
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+    box-shadow: 0 0 0 3px rgba(77,140,255,0.08);
 }
 .grp textarea {
     font-family: 'JetBrains Mono', monospace;
     resize: vertical;
-    min-height: 70px;
-    font-size: 0.7rem;
+    min-height: 60px;
+    font-size: 0.65rem;
 }
-.grp select option {
-    background: var(--bg-secondary);
-}
+.grp select option { background: var(--surface); }
 
-.btn-primary {
+.btn {
     background: linear-gradient(135deg, var(--blue), var(--purple));
     border: none;
     width: 100%;
-    padding: 10px;
-    border-radius: 10px;
+    padding: 8px;
+    border-radius: 8px;
     font-weight: 600;
     color: #fff;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: all 0.2s;
-    font-size: 0.85rem;
+    gap: 6px;
+    transition: 0.2s;
+    font-size: 0.8rem;
 }
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 25px rgba(59,130,246,0.3);
-}
-.btn-secondary {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    padding: 6px 16px;
-    border-radius: 10px;
+.btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(77,140,255,0.3); }
+.btn2 {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 5px 14px;
+    border-radius: 8px;
     font-weight: 500;
-    color: var(--text-secondary);
+    color: var(--text3);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    transition: all 0.2s;
+    gap: 5px;
+    font-size: 0.7rem;
+    transition: 0.2s;
 }
-.btn-secondary:hover {
-    background: var(--bg-hover);
-    color: var(--text-primary);
-}
+.btn2:hover { background: var(--hover); color: var(--text); }
 hr {
     border: none;
-    border-top: 1px solid var(--border-color);
-    margin: 14px 0;
+    border-top: 1px solid var(--border);
+    margin: 12px 0;
 }
 
 .msg {
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 0.75rem;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.7rem;
     display: none;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
-.msg.show {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.msg.ok {
-    background: rgba(16,185,129,0.12);
-    border: 1px solid var(--green);
-    color: var(--green);
-}
-.msg.err {
-    background: rgba(239,68,68,0.12);
-    border: 1px solid var(--red);
-    color: var(--red);
-}
+.msg.show { display: flex; align-items: center; gap: 5px; }
+.msg.ok { background: rgba(52,211,153,0.1); border: 1px solid var(--green); color: var(--green); }
+.msg.err { background: rgba(248,113,113,0.1); border: 1px solid var(--red); color: var(--red); }
 
-/* ===== MODALS ===== */
+/* MODALS */
 .modal {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(4px);
     z-index: 1000;
     justify-content: center;
     align-items: center;
 }
-.modal.active {
-    display: flex;
-}
+.modal.active { display: flex; }
 .modal-box {
-    background: var(--bg-secondary);
-    border-radius: 20px;
-    width: 90%;
-    max-width: 520px;
-    padding: 24px 28px;
-    border: 1px solid var(--border-color);
-    animation: slideIn 0.25s ease;
+    background: var(--surface);
+    border-radius: 16px;
+    width: 92%;
+    max-width: 500px;
+    padding: 20px 24px;
+    border: 1px solid var(--border);
+    animation: slideUp 0.25s ease;
 }
-@keyframes slideIn {
+@keyframes slideUp {
     from { transform: scale(0.95) translateY(10px); opacity: 0; }
     to { transform: scale(1) translateY(0); opacity: 1; }
 }
@@ -878,50 +794,37 @@ hr {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 .modal-head h3 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
 }
-.modal-head h3 i {
-    color: var(--blue);
-}
+.modal-head h3 i { color: var(--blue); }
 .modal-close {
     background: none;
     border: none;
-    color: var(--text-muted);
-    font-size: 1.4rem;
+    color: var(--text3);
+    font-size: 1.3rem;
     cursor: pointer;
-    padding: 0 6px;
-    border-radius: 6px;
-    transition: all 0.2s;
+    padding: 0 4px;
+    border-radius: 4px;
 }
-.modal-close:hover {
-    background: var(--bg-card);
-    color: var(--text-primary);
-}
+.modal-close:hover { background: var(--card); color: var(--text); }
 .modal-foot {
     display: flex;
     justify-content: flex-end;
-    gap: 8px;
-    margin-top: 16px;
+    gap: 6px;
+    margin-top: 14px;
 }
-.modal .grp textarea {
-    min-height: 50px;
-}
+.modal .grp textarea { min-height: 50px; }
 
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1000px) {
-    .main {
-        grid-template-columns: 1fr;
-    }
-    .sidebar {
-        max-height: 380px;
-    }
+@media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .sidebar { max-height: 350px; }
 }
 </style>
 </head>
@@ -929,92 +832,90 @@ hr {
 
 <div class="app">
 
-    <!-- HEADER -->
-    <header class="header">
-        <div class="header-left">
-            <div class="header-icon"><i class="fas fa-bolt"></i></div>
-            <div class="header-title">
-                <h1>QueryForge Admin</h1>
-                <p>Enterprise SQL Vault · Oracle Backend</p>
-            </div>
+<!-- HEADER -->
+<div class="header">
+    <div class="header-l">
+        <div class="header-icon"><i class="fas fa-bolt"></i></div>
+        <div>
+            <h1>QueryForge Admin</h1>
+            <div class="sub">Enterprise SQL Vault · Oracle Backend</div>
         </div>
-        <div class="header-right">
-            <div class="header-badge">
-                <span class="dot"></span>
-                <span id="globalStats">0 Categories · 0 Queries</span>
-            </div>
-            <div class="header-avatar">SA</div>
-        </div>
-    </header>
-
-    <!-- MAIN -->
-    <div class="main">
-
-        <!-- LEFT -->
-        <div class="panel">
-            <div class="panel-top">
-                <h2><i class="fas fa-database"></i> Query Storage</h2>
-                <div class="panel-stats">
-                    <span><i class="fas fa-folder"></i> <strong id="catCount">0</strong></span>
-                    <span><i class="fas fa-file-code"></i> <strong id="qCount">0</strong></span>
-                </div>
-            </div>
-            <div class="tabs">
-                <div class="tabs-inner" id="tabsContainer">
-                    <span style="color:var(--text-muted);font-size:0.75rem;">Loading...</span>
-                </div>
-            </div>
-            <div class="queries" id="queriesContainer">
-                <div class="empty">
-                    <i class="fas fa-code"></i>
-                    <h3>No Queries</h3>
-                    <p>Select a category or create one to start.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT -->
-        <div class="sidebar">
-            <h3><i class="fas fa-tools" style="color:var(--blue);"></i> Admin Workspace</h3>
-            <p class="sub">Manage categories & SQL assets</p>
-
-            <div id="msgDiv" class="msg"></div>
-
-            <div class="grp">
-                <label><i class="fas fa-folder-plus"></i> New Category</label>
-                <input type="text" id="newCatName" placeholder="Category name...">
-                <input type="text" id="newCatDesc" placeholder="Description (optional)" style="margin-top:5px;">
-            </div>
-            <button id="createCatBtn" class="btn-primary"><i class="fas fa-plus"></i> Create Category</button>
-
-            <hr>
-
-            <div class="grp">
-                <label><i class="fas fa-tag"></i> Category</label>
-                <select id="catSelect">
-                    <option value="">-- Select --</option>
-                </select>
-            </div>
-            <div class="grp">
-                <label><i class="fas fa-heading"></i> Query Title</label>
-                <input type="text" id="qTitle" placeholder="e.g., Weekly Active Users">
-            </div>
-            <div class="grp">
-                <label><i class="fas fa-align-left"></i> Description</label>
-                <textarea id="qDesc" placeholder="What does this query do?" rows="2"></textarea>
-            </div>
-            <div class="grp">
-                <label><i class="fas fa-code"></i> SQL Query</label>
-                <textarea id="qSql" placeholder="SELECT * FROM table WHERE condition;" rows="4"></textarea>
-            </div>
-            <button id="addQueryBtn" class="btn-primary"><i class="fas fa-save"></i> Add Query</button>
-
-            <div style="margin-top:10px;font-size:0.55rem;text-align:center;color:var(--text-muted);">
-                <i class="fas fa-shield-alt"></i> Connected to Oracle
-            </div>
-        </div>
-
     </div>
+    <div class="header-r">
+        <div class="header-badge">
+            <span class="dot"></span>
+            <span id="globalStats">0 · 0</span>
+        </div>
+        <div class="avatar">SA</div>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <!-- LEFT -->
+    <div class="panel">
+        <div class="panel-head">
+            <h2><i class="fas fa-database"></i> Query Storage</h2>
+            <div class="panel-stats">
+                <span><i class="fas fa-folder"></i> <strong id="catCount">0</strong></span>
+                <span><i class="fas fa-file-code"></i> <strong id="qCount">0</strong></span>
+            </div>
+        </div>
+        <div class="tabs">
+            <div class="tabs-inner" id="tabsContainer">
+                <span style="color:var(--text3);font-size:0.7rem;">Loading...</span>
+            </div>
+        </div>
+        <div class="queries" id="queriesContainer">
+            <div class="empty">
+                <i class="fas fa-code"></i>
+                <h3>No Queries</h3>
+                <p>Select a category or create one.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="sidebar">
+        <h3><i class="fas fa-tools"></i> Admin Workspace</h3>
+        <div class="sub">Manage categories & SQL assets</div>
+
+        <div id="msgDiv" class="msg"></div>
+
+        <div class="grp">
+            <label><i class="fas fa-folder-plus"></i> New Category</label>
+            <input type="text" id="newCatName" placeholder="Category name...">
+            <input type="text" id="newCatDesc" placeholder="Description" style="margin-top:4px;">
+        </div>
+        <button class="btn" id="createCatBtn"><i class="fas fa-plus"></i> Create Category</button>
+
+        <hr>
+
+        <div class="grp">
+            <label><i class="fas fa-tag"></i> Category</label>
+            <select id="catSelect"><option value="">-- Select --</option></select>
+        </div>
+        <div class="grp">
+            <label><i class="fas fa-heading"></i> Title</label>
+            <input type="text" id="qTitle" placeholder="e.g., Weekly Active Users">
+        </div>
+        <div class="grp">
+            <label><i class="fas fa-align-left"></i> Description</label>
+            <textarea id="qDesc" placeholder="What does this query do?" rows="2"></textarea>
+        </div>
+        <div class="grp">
+            <label><i class="fas fa-code"></i> SQL Query</label>
+            <textarea id="qSql" placeholder="SELECT * FROM table WHERE condition;" rows="4"></textarea>
+        </div>
+        <button class="btn" id="addQueryBtn"><i class="fas fa-save"></i> Add Query</button>
+
+        <div style="margin-top:8px;font-size:0.5rem;text-align:center;color:var(--text3);">
+            <i class="fas fa-shield-alt"></i> Connected to Oracle
+        </div>
+    </div>
+
+</div>
 </div>
 
 <!-- EDIT CATEGORY MODAL -->
@@ -1034,8 +935,8 @@ hr {
             <input type="text" id="editCatDesc">
         </div>
         <div class="modal-foot">
-            <button class="btn-secondary" onclick="closeEditCat()">Cancel</button>
-            <button class="btn-primary" onclick="saveEditCat()" style="width:auto;padding:6px 24px;">Save</button>
+            <button class="btn2" onclick="closeEditCat()">Cancel</button>
+            <button class="btn" onclick="saveEditCat()" style="width:auto;padding:5px 20px;">Save</button>
         </div>
     </div>
 </div>
@@ -1049,7 +950,7 @@ hr {
         </div>
         <input type="hidden" id="editQId">
         <div class="grp">
-            <label>Query Title</label>
+            <label>Title</label>
             <input type="text" id="editQTitle">
         </div>
         <div class="grp">
@@ -1061,14 +962,15 @@ hr {
             <textarea id="editQSql" rows="5"></textarea>
         </div>
         <div class="modal-foot">
-            <button class="btn-secondary" onclick="closeEditQuery()">Cancel</button>
-            <button class="btn-primary" onclick="saveEditQuery()" style="width:auto;padding:6px 24px;">Update</button>
+            <button class="btn2" onclick="closeEditQuery()">Cancel</button>
+            <button class="btn" onclick="saveEditQuery()" style="width:auto;padding:5px 20px;">Update</button>
         </div>
     </div>
 </div>
 
 <script>
 var currentCategory = '';
+var queryData = {};
 
 function msg(text, type) {
     var d = document.getElementById('msgDiv');
@@ -1085,19 +987,15 @@ function esc(str) {
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+        .replace(/'/g, '&#39;');
 }
 
 function updateStats(cats) {
     var total = 0;
-    if (cats) {
-        for (var i = 0; i < cats.length; i++) {
-            total += cats[i].query_count || 0;
-        }
-    }
+    if (cats) { for (var i = 0; i < cats.length; i++) total += cats[i].query_count || 0; }
     document.getElementById('catCount').textContent = cats ? cats.length : 0;
     document.getElementById('qCount').textContent = total;
-    document.getElementById('globalStats').textContent = (cats ? cats.length : 0) + ' Categories · ' + total + ' Queries';
+    document.getElementById('globalStats').textContent = (cats ? cats.length : 0) + ' · ' + total;
 }
 
 function loadCats() {
@@ -1109,7 +1007,7 @@ function loadCats() {
         updateStats(cats);
 
         if (!cats || cats.length === 0) {
-            container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">No categories</span>';
+            container.innerHTML = '<span style="color:var(--text3);font-size:0.7rem;">No categories</span>';
             select.innerHTML = '<option value="">-- No Categories --</option>';
             document.getElementById('queriesContainer').innerHTML =
                 '<div class="empty"><i class="fas fa-folder-open"></i><h3>No Categories</h3><p>Create your first category.</p></div>';
@@ -1117,7 +1015,7 @@ function loadCats() {
         }
 
         var tabs = '';
-        var opts = '<option value="">-- Select Category --</option>';
+        var opts = '<option value="">-- Select --</option>';
 
         for (var i = 0; i < cats.length; i++) {
             var c = cats[i];
@@ -1127,10 +1025,10 @@ function loadCats() {
 
             tabs += '<button class="tab ' + active + '" data-cat="' + name + '" onclick="selectCat(\'' + name + '\')">' +
                 '<i class="fas fa-folder"></i> ' + esc(c.category_name) +
-                '<span class="count">' + c.query_count + '</span>' +
-                '<span class="actions">' +
-                '<i class="fas fa-edit edit" onclick="event.stopPropagation();openEditCat(\'' + name + '\',\'' + desc + '\')"></i>' +
-                '<i class="fas fa-trash del" onclick="event.stopPropagation();delCat(\'' + name + '\')"></i>' +
+                '<span class="cnt">' + c.query_count + '</span>' +
+                '<span class="act">' +
+                '<i class="fas fa-edit e" onclick="event.stopPropagation();openEditCat(\'' + name + '\',\'' + desc + '\')"></i>' +
+                '<i class="fas fa-trash d" onclick="event.stopPropagation();delCat(\'' + name + '\')"></i>' +
                 '</span>' +
                 '</button>';
 
@@ -1146,10 +1044,7 @@ function loadCats() {
             selectCat(currentCategory);
         }
     })
-    .catch(function(e) {
-        console.error(e);
-        msg('Error loading categories', 'err');
-    });
+    .catch(function(e) { console.error(e); msg('Error loading categories', 'err'); });
 }
 
 function selectCat(name) {
@@ -1178,38 +1073,54 @@ function selectCat(name) {
         for (var i = 0; i < qs.length; i++) {
             var q = qs[i];
             var sql = q.sql_text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-            var title = esc(q.query_title || 'Untitled').replace(/'/g, "\\'");
-            var desc = esc(q.query_description || '').replace(/'/g, "\\'");
+            var sqlEscaped = esc(q.sql_text);
+            var title = esc(q.query_title || 'Untitled');
+            var desc = esc(q.query_description || '');
+            var qid = q.query_id;
 
-            html += '<div class="qcard">' +
-                '<div class="qcard-top">' +
-                '<div class="qcard-title">' +
-                '<i class="fas fa-terminal"></i> ' + esc(q.query_title || 'Untitled') +
-                '<span class="id">#' + q.query_id + '</span>' +
+            html += '<div class="q" data-id="' + qid + '" data-sql="' + sql + '">' +
+                '<div class="q-top">' +
+                '<div class="q-title">' +
+                '<i class="fas fa-terminal"></i> ' + title +
+                '<span class="id">#' + qid + '</span>' +
                 '</div>' +
                 '</div>' +
-                '<div class="qcard-desc">' + esc(q.query_description || 'No description') + '</div>' +
-                '<div class="qcard-sql">' +
-                '<pre>' + esc(q.sql_text) + '</pre>' +
-                '<button class="copy" onclick="copySql(this, \'' + sql + '\')"><i class="fas fa-copy"></i> Copy</button>' +
+                '<div class="q-desc">' + desc + '</div>' +
+                '<div class="q-sql">' +
+                '<pre>' + sqlEscaped + '</pre>' +
+                '<button class="cpy" onclick="copySql(this, ' + qid + ')"><i class="fas fa-copy"></i> Copy</button>' +
                 '</div>' +
-                '<div class="qcard-bottom">' +
-                '<div class="qcard-meta">' +
-                '<span><i class="far fa-calendar"></i> ' + (q.created_date || 'Unknown') + '</span>' +
-                '</div>' +
-                '<div class="qcard-btns">' +
-                '<button class="edit" onclick="openEditQ(' + q.query_id + ',\'' + title + '\',\'' + desc + '\',\'' + sql + '\')"><i class="fas fa-edit"></i> Edit</button>' +
-                '<button class="del" onclick="delQ(' + q.query_id + ')"><i class="fas fa-trash"></i> Delete</button>' +
+                '<div class="q-bottom">' +
+                '<div class="q-meta"><span><i class="far fa-calendar"></i> ' + (q.created_date || 'Unknown') + '</span></div>' +
+                '<div class="q-btns">' +
+                '<button class="e" onclick="openEditQ(' + qid + ')"><i class="fas fa-edit"></i> Edit</button>' +
+                '<button class="d" onclick="delQ(' + qid + ')"><i class="fas fa-trash"></i> Delete</button>' +
                 '</div>' +
                 '</div>' +
                 '</div>';
         }
         container.innerHTML = html;
+
+        // Store query data for later use
+        for (var j = 0; j < qs.length; j++) {
+            queryData[qs[j].query_id] = qs[j];
+        }
     })
-    .catch(function(e) {
-        console.error(e);
-        msg('Error loading queries', 'err');
-    });
+    .catch(function(e) { console.error(e); msg('Error loading queries', 'err'); });
+}
+
+function copySql(btn, id) {
+    var q = queryData[id];
+    if (!q) { msg('Query not found', 'err'); return; }
+    navigator.clipboard.writeText(q.sql_text).then(function() {
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.classList.add('done');
+        setTimeout(function() {
+            btn.innerHTML = orig;
+            btn.classList.remove('done');
+        }, 1500);
+    }).catch(function() { alert('Failed to copy'); });
 }
 
 function createCat() {
@@ -1328,11 +1239,13 @@ function addQuery() {
     .catch(function() { msg('Error adding query', 'err'); });
 }
 
-function openEditQ(id, title, desc, sql) {
+function openEditQ(id) {
+    var q = queryData[id];
+    if (!q) { msg('Query not found', 'err'); return; }
     document.getElementById('editQId').value = id;
-    document.getElementById('editQTitle').value = title;
-    document.getElementById('editQDesc').value = desc;
-    document.getElementById('editQSql').value = sql;
+    document.getElementById('editQTitle').value = q.query_title || '';
+    document.getElementById('editQDesc').value = q.query_description || '';
+    document.getElementById('editQSql').value = q.sql_text || '';
     document.getElementById('editQueryModal').classList.add('active');
 }
 
@@ -1390,23 +1303,8 @@ function delQ(id) {
     .catch(function() { msg('Error deleting query', 'err'); });
 }
 
-function copySql(btn, sql) {
-    navigator.clipboard.writeText(sql).then(function() {
-        var orig = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        btn.classList.add('done');
-        setTimeout(function() {
-            btn.innerHTML = orig;
-            btn.classList.remove('done');
-        }, 1500);
-    }).catch(function() { alert('Failed to copy'); });
-}
-
-// Event listeners
 document.getElementById('createCatBtn').addEventListener('click', createCat);
 document.getElementById('addQueryBtn').addEventListener('click', addQuery);
-
-// Load
 loadCats();
 </script>
 </body>
