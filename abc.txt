@@ -1,414 +1,350 @@
-package com.jdbc;
+package com.cron;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.sql.SQLException;
+import java.sql.Statement;
 
-public class DBUtilityAuto {
-    private static Connection connection = null;
-    private static String flagStatus = null;
-    private static String DB_ENVLOCATION = null;
-    private static final Object lock = new Object();
+import com.jdbc.DBUtilityAuto;
 
-    public static void flag() {
-        DBConfig.checkAndReload();
-       
-        synchronized (lock) {
-            try {
-                Class.forName(DBConfig.getDriver());
-               
-                // PRIMARY CONNECTION ATTEMPT
-                try {
-                    connection = DriverManager.getConnection(
-                        "jdbc:oracle:thin:@10.191.170.109:1787/REPODB_SRV",
-                        DBConfig.getEisappsupportUsername(),
-                        DBConfig.getPrimaryPassword()  // From properties file
-                    );
-                    System.out.println("Connected to PRIMARY DB 1");
-                } catch(Exception E) {
-                    connection = DriverManager.getConnection(
-                        "jdbc:oracle:thin:@10.191.170.110:1787/REPODB_SRV",
-                        DBConfig.getEisappsupportUsername(),
-                        DBConfig.getPrimaryPassword()  // From properties file
-                    );
-                    System.out.println("Connected to PRIMARY DB 2");
-                }
-               
-                // GET FLAG STATUS
-                String sql = "select * from connection_master";
-                try (Statement smt = connection.createStatement();
-                     ResultSet rs = smt.executeQuery(sql)) {
-                    
-                    while (rs.next()) {
-                        flagStatus = rs.getString("FLAG");
-                        DB_ENVLOCATION = rs.getString("DB_LOCATION");
-                        
-                        if (flagStatus == null) flagStatus = "PR";
-                        if (DB_ENVLOCATION == null) DB_ENVLOCATION = "MI";
-                    }
-                    
-                    if (flagStatus == null || DB_ENVLOCATION == null) {
-                        flagStatus = "PR";
-                        DB_ENVLOCATION = "MI";
-                        System.out.println("No flag data found, using defaults: PR/MI");
-                    }
-                    
-                    System.out.println("Flag Status: " + flagStatus + ", Location: " + DB_ENVLOCATION);
-                }
-               
-            } catch (Exception e) {
-                System.out.println("Primary connection failed, trying DR...");
-               
-                try {
-                    // DR CONNECTION ATTEMPT
-                    Class.forName(DBConfig.getDriver());
-                    try {
-                        connection = DriverManager.getConnection(
-                            "jdbc:oracle:thin:@10.176.0.109:1787/sidashdb_srv",
-                            DBConfig.getEisappsupportUsername(),
-                            DBConfig.getPrimaryPassword()  // From properties file
-                        );
-                        System.out.println("Connected to DR DB 1");
-                    } catch(Exception Er) {
-                        connection = DriverManager.getConnection(
-                            "jdbc:oracle:thin:@10.176.0.110:1787/sidashdb_srv",
-                            DBConfig.getEisappsupportUsername(),
-                            DBConfig.getPrimaryPassword()  // From properties file
-                        );
-                        System.out.println("Connected to DR DB 2");
-                    }
-                   
-                    // GET FLAG STATUS FROM DR
-                    String sql = "select * from connection_master";
-                    try (Statement smt = connection.createStatement();
-                         ResultSet rs = smt.executeQuery(sql)) {
-                        
-                        while (rs.next()) {
-                            flagStatus = rs.getString("FLAG");
-                            DB_ENVLOCATION = rs.getString("DB_LOCATION");
-                            
-                            if (flagStatus == null) flagStatus = "DR";
-                            if (DB_ENVLOCATION == null) DB_ENVLOCATION = "MI";
-                        }
-                        
-                        if (flagStatus == null || DB_ENVLOCATION == null) {
-                            flagStatus = "DR";
-                            DB_ENVLOCATION = "MI";
-                            System.out.println("No flag data found in DR, using defaults: DR/MI");
-                        }
-                        
-                        System.out.println("Flag Status: " + flagStatus + ", Location: " + DB_ENVLOCATION);
-                    }
-                   
-                } catch(Exception e1) {
-                    System.out.println("All connection attempts failed");
-                    flagStatus = "PR";
-                    DB_ENVLOCATION = "MI";
-                    e1.printStackTrace();
-                }
-            }
-        }
-    }
+public class HundredPercentCronServices {
 
-    public static Connection getIIBDBConnection() {
-        DBConfig.checkAndReload();
-       
-        flag();
-        System.out.println("getIIBDBConnection - flagStatus: " + flagStatus + ", DB_ENVLOCATION: " + DB_ENVLOCATION);
-       
-        if (flagStatus == null || DB_ENVLOCATION == null) {
-            flagStatus = "PR";
-            DB_ENVLOCATION = "MI";
-            System.out.println("Using default values due to null flag/location");
-        }
-        
-        if(flagStatus.equals("DR") && DB_ENVLOCATION.equals("MI")) {    
-            System.out.println("In Hyderabad DR Environment");
-            return createIIBHyderabadDRConnection();
-        } else if(flagStatus.equals("PR") && DB_ENVLOCATION.equals("MI")) {
-            System.out.println("In Hyderabad PR Environment");
-            return createIIBHyderabadPRConnection();
-        } else {
-            System.out.println("In Mumbai Environment");
-           
-            if(flagStatus.equals("DR")) {
-                System.out.println("In Mumbai DR");
-                return createIIBMumbaiDRConnection();
-            } else if(flagStatus.equals("PR")) {
-                System.out.println("In Mumbai PR");
-                return createIIBMumbaiPRConnection();
-            }
-        }
-        
-        return createIIBMumbaiPRConnection();
-    }
+	private static Connection connection = null;
+	static String flagStatus;
+	static String DB_ENVLOCATION;
 
-    private static Connection createIIBHyderabadDRConnection() {
-        try {
-            Class.forName(DBConfig.getDriver());
-           
-            String[] urls = {
-                "jdbc:oracle:thin:@10.191.170.107:1787/hiibprdb",
-                "jdbc:oracle:thin:@10.191.170.108:1787/hiibprdb",
-                "jdbc:oracle:thin:@10.191.170.109:1787/hiibprdb",
-                "jdbc:oracle:thin:@10.191.170.110:1787/hiibprdb",
-                "jdbc:oracle:thin:@10.191.170.111:1787/hiibprdb",
-                "jdbc:oracle:thin:@10.191.170.112:1787/hiibprdb"
-            };
-           
-            for (String url : urls) {
-                try {
-                    Connection conn = DriverManager.getConnection(
-                        url,
-                        DBConfig.getEisappsupportUsername(),
-                        DBConfig.getIibPassword()  // From properties file
-                    );
-                    System.out.println("IIB Hyderabad DR Connected: " + url);
-                    return conn;
-                } catch (SQLException e) {
-                    System.out.println("IIB Hyderabad DR Failed: " + url + " - " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error creating IIB Hyderabad DR connection: " + e.getMessage());
-        }
-        return null;
-    }
+	public static void flag() {
+		try {
+			connection = DBUtilityAuto.getReportDBConnection();
+          //connection = DriverManager.getConnection("jdbc:oracle:thin:@10.191.170.109:1787/REPODB_SRV","eisappsupport", "Password_2");
+			String sql = "select * from connection_master";
+			Statement smt = connection.createStatement();
+			ResultSet rs = smt.executeQuery(sql);
+			while (rs.next()) {
+				flagStatus = rs.getString("FLAG");
+				DB_ENVLOCATION = rs.getString("DB_LOCATION");
+			}
+			System.out.println("PR");
+		} catch (Exception e) {
+			try {
+				connection = DBUtilityAuto.getReportDBConnection();
+              //connection = DriverManager.getConnection("jdbc:oracle:thin:@10.191.170.109:1787/sidashdb_srv","eisappsupport", "Password_2");
+				String sql = "select * from connection_master";
+				Statement smt = connection.createStatement();
+				ResultSet rs = smt.executeQuery(sql);
+				while (rs.next()) {
+					flagStatus = rs.getString("FLAG");
+					DB_ENVLOCATION = rs.getString("LABEL");
+				}
+				System.out.println("DR");
+			} catch (Exception e1) {
+				System.out.print("Hi");
+				e1.printStackTrace();
+			}
+			e.printStackTrace();
+		}
 
-    private static Connection createIIBHyderabadPRConnection() {
-        try {
-            Class.forName(DBConfig.getDriver());
-           
-            String[] urls = {
-                "jdbc:oracle:thin:@10.176.0.107:1787/HIIBPRDB_SRV",
-                "jdbc:oracle:thin:@10.176.0.108:1787/HIIBPRDB_SRV",
-                "jdbc:oracle:thin:@10.176.0.109:1787/HIIBPRDB_SRV",
-                "jdbc:oracle:thin:@10.176.0.110:1787/HIIBPRDB_SRV",
-                "jdbc:oracle:thin:@10.176.0.111:1787/HIIBPRDB_SRV"
-            };
-           
-            for (String url : urls) {
-                try {
-                    Connection conn = DriverManager.getConnection(
-                        url,
-                        DBConfig.getEisappsupportUsername(),
-                        DBConfig.getIibPassword()  // From properties file
-                    );
-                    System.out.println("IIB Hyderabad PR Connected: " + url);
-                    return conn;
-                } catch (SQLException e) {
-                    System.out.println("IIB Hyderabad PR Failed: " + url + " - " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error creating IIB Hyderabad PR connection: " + e.getMessage());
-        }
-        return null;
-    }
+	}
 
-    private static Connection createIIBMumbaiDRConnection() {
-        try {
-            Class.forName(DBConfig.getDriver());
-           
-            String[] urls = {
-                "jdbc:oracle:thin:@10.191.170.107:1787/MIIBDRDB_SRV",
-                "jdbc:oracle:thin:@10.191.170.108:1787/MIIBDRDB_SRV",
-                "jdbc:oracle:thin:@10.191.170.109:1787/MIIBDRDB_SRV",
-                "jdbc:oracle:thin:@10.191.170.110:1787/MIIBDRDB_SRV",
-                "jdbc:oracle:thin:@10.191.170.111:1787/MIIBDRDB_SRV",
-                "jdbc:oracle:thin:@10.191.170.112:1787/MIIBDRDB_SRV"
-            };
-           
-            for (String url : urls) {
-                try {
-                    Connection conn = DriverManager.getConnection(
-                        url,
-                        DBConfig.getEisappsupportUsername(),
-                        DBConfig.getDrPassword()  // From properties file
-                    );
-                    System.out.println("IIB Mumbai DR Connected: " + url);
-                    return conn;
-                } catch (SQLException e) {
-                    System.out.println("IIB Mumbai DR Failed: " + url + " - " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error creating IIB Mumbai DR connection: " + e.getMessage());
-        }
-        return null;
-    }
+	public static void main(String args[]) {
+		HundredPercentCronServices l_obj = new HundredPercentCronServices();
+		try {
+			System.out.println("Cron Job Start Time:-" + new java.util.Date());
 
-    private static Connection createIIBMumbaiPRConnection() {
-        try {
-            Class.forName(DBConfig.getDriver());
-           
-            String[] urls = {
-                "jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV",
-                "jdbc:oracle:thin:@10.176.0.108:1787/MIBDRCDB_SRV",
-                "jdbc:oracle:thin:@10.176.0.109:1787/MIBDRCDB_SRV",
-                "jdbc:oracle:thin:@10.176.0.110:1787/MIBDRCDB_SRV",
-                "jdbc:oracle:thin:@10.176.0.111:1787/MIBDRCDB_SRV"
-                
-					/*
-					 * "jdbc:oracle:thin:@10.191.170.107:1787/MIIBPRDB_SRV",
-					 * "jdbc:oracle:thin:@10.191.170.108:1787/MIIBPRDB_SRV",
-					 * "jdbc:oracle:thin:@10.191.170.109:1787/MIIBPRDB_SRV",
-					 * "jdbc:oracle:thin:@10.191.170.110:1787/MIIBPRDB_SRV",
-					 * "jdbc:oracle:thin:@10.191.170.111:1787/MIIBPRDB_SRV",
-					 * "jdbc:oracle:thin:@10.191.170.112:1787/MIIBPRDB_SRV"
-					 */
-            };
-           
-            for (String url : urls) {
-                try {
-                    Connection conn = DriverManager.getConnection(
-                        url,
-                        DBConfig.getEisappsupportUsername(),
-                        DBConfig.getDrPassword()  // From properties file
-                    );
-                    System.out.println("IIB Mumbai PR Connected: " + url);
-                    return conn;
-                } catch (SQLException e) {
-                    System.out.println("IIB Mumbai PR Failed: " + url + " - " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Error creating IIB Mumbai PR connection: " + e.getMessage());
-        }
-        return null;
-    }
+			l_obj.insertGEN5100PercentFailure();
+			l_obj.insertSI100PercentFailure();
+			l_obj.insertThirdParty100PercentFailure();
 
-    public static Connection getSIDBConnection() {
-        DBConfig.checkAndReload();
-       
-        flag();
-        System.out.println("getSIDBConnection - flagStatus: " + flagStatus);
-       
-        if (flagStatus == null) {
-            flagStatus = "PR";
-            System.out.println("Flag status is null, using default: PR");
-        }
-        
-        try {
-            Class.forName(DBConfig.getDriver());
-           
-            if (flagStatus.equals("DR")) {
-                System.out.println("Connecting to SI DR Database");
-               
-                try {
-                    Connection conn = DriverManager.getConnection(
-                        "jdbc:oracle:thin:@eissipr-scan1.sbi.co.in:1786/sbisipr",
-                        DBConfig.getSbisisupportUsername(),
-                        DBConfig.getSiPassword()  // From properties file
-                    );
-                    System.out.println("SI DR Connected to URL 1");
-                    return conn;
-                } catch (SQLException e2) {
-                	try {
-                    Connection conn = DriverManager.getConnection(
-                        "jdbc:oracle:thin:@10.191.170.109:1787/sbisipr",
-                        DBConfig.getSbisisupportUsername(),
-                        DBConfig.getSiPassword()  // From properties file
-                    );
-                    System.out.println("SI DR Connected to URL 2");
-                    return conn;
-                }catch(Exception e) {
-                	Connection conn = DriverManager.getConnection(
-                            "jdbc:oracle:thin:@10.191.170.110:1787/sbisipr",
-                            DBConfig.getSbisisupportUsername(),
-                            DBConfig.getSiPassword()  // From properties file
-                        );
-                        System.out.println("SI DR Connected to URL 2");
-                        return conn;
-                }
-                }
+			System.out.println("Cron job End Time:-" + new java.util.Date());
 
-            } else if (flagStatus.equals("PR")) {
-                System.out.println("Connecting to SI PR Database");
-               
-                try {
-                   
-                	Connection conn = DriverManager.getConnection(
-                            "jdbc:oracle:thin:@eissidr-scan1.sbi.co.in:1786/sbisidr",
-                            DBConfig.getSbisisupportUsername(),
-                            DBConfig.getSiPassword()
-                    );
-                    System.out.println("SI PR Connected to URL 1");
-                    return conn;
-                } catch (SQLException e1) {
-                	try {
-                    Connection conn = DriverManager.getConnection(
-                        "jdbc:oracle:thin:@10.176.0.109:1787/sbisidr",
-                        DBConfig.getSbisisupportUsername(),
-                        DBConfig.getSiPassword()  // From properties file
-                    );
-                    System.out.println("SI PR Connected to URL 2");
-                    return conn;
-                }catch(Exception e2) {
-                	 Connection conn = DriverManager.getConnection(
-                             "jdbc:oracle:thin:@10.176.0.110:1787/sbisidr",
-                             DBConfig.getSbisisupportUsername(),
-                             DBConfig.getSiPassword()  // From properties file
-                         );
-                         System.out.println("SI PR Connected to URL 2");
-                         return conn;
-                }
-            }
-            }
-        } catch (Exception e) {
-            System.err.println("SI DB Connection Error: " + e.getMessage());
-        }
-        return null;
-    }
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
-    public static Connection getReportDBConnection() {
-        DBConfig.checkAndReload();
-       
-        flag();
-        System.out.println("getReportDBConnection - flagStatus: " + flagStatus);
-       
-        if (flagStatus == null) {
-            flagStatus = "PR";
-            System.out.println("Flag status is null, using default: PR");
-        }
-        
-        try {
-            Class.forName(DBConfig.getDriver());
-           
-            if (flagStatus.equals("DR")) {
-                System.out.println("Connecting to Report DR Database");
-                Connection conn = DriverManager.getConnection(
-                    //"jdbc:oracle:thin:@10.176.0.109:1787/sidashdb_srv",
-                    "jdbc:oracle:thin:@eissidr-scan1.sbi.co.in:1786/sidashdb_srv",
-                    DBConfig.getEISAPPSUPPORTUsername(),
-                    DBConfig.getPrimaryPassword()  // From properties file
-                );
-                System.out.println("Report DR Connected");
-                return conn;
-               
-            } else if (flagStatus.equals("PR")) {
-                System.out.println("Connecting to Report PR Database");
-                Connection conn = DriverManager.getConnection(
-                    "jdbc:oracle:thin:@eissipr-scan1.sbi.co.in:1786/REPODB_SRV",
-                    DBConfig.getEISAPPSUPPORTUsername(),
-                    DBConfig.getPrimaryPassword()  // From properties file
-                );
-                System.out.println("Report PR Connected");
-                return conn;
-            }
-        } catch (Exception e) {
-            System.err.println("Report DB Connection Error: " + e.getMessage());
-        }
-        return null;
-    }
 
-    public static void reloadDBConfig() {
-        DBConfig.reloadConfig();
-    }
-   
-    public static void showCurrentConfig() {
-        DBConfig.printCurrentConfig();
-    }
+	private void insertGEN5100PercentFailure() throws SQLException {
+		Connection l_objdbcon = null;
+		Statement l_objstatement = null;
+		Connection l_objreportdbcon = null;
+		ResultSet l_objdrresultset = null;
+		PreparedStatement preparedStatement = null;
+		String l_query = null;
+		try {
+			flag();
+			if (flagStatus.equals("DR") && DB_ENVLOCATION.equals("MI")) {
+
+					l_objdbcon = DBUtilityAuto.getReportDBConnection(); // DB Connection for DR Database
+					l_objreportdbcon = DBUtilityAuto.getReportDBConnection(); // DB Connection for ReportDB Database
+
+
+				String SQL_INSERT = "INSERT into gen5_100_percentage_fail(API_NAME,SOURCE_ID,ERROR_CODE,TOTAL_HITS,TD,TD_PERCENT,BD,BD_PER,INSERT_TIME,ISSUE_TIME,SI_EEROR,SI_EEROR_PR) values(?,?,?,?,?,?,?,?,?,?,?,?)";
+
+				preparedStatement = l_objreportdbcon.prepareStatement(SQL_INSERT);
+
+				l_query = "select api_name,LISTAGG(DISTINCT SOURCE_ID,',') as source_id,LISTAGG(DISTINCT error_code,',')as error_code,COUNT(1) TOTAL_HITS,\r\n"
+						+ "SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI051','SI111'))and error_code<>'00014' THEN 1 ELSE 0 END)  AS  TD,\r\n"
+						+ "ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI051','SI111'))and error_code<>'00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2)  AS TD_PERCENT, \r\n"
+						+ "SUM(CASE WHEN substr(error_code,1,2) ='SI'  then 1 else 0 end) AS SI_EEROR,\r\n"
+						+ "ROUND((SUM(CASE WHEN substr(error_code,1,2) ='SI'  then 1 else 0 end)*100)/COUNT(1),2) AS SI_EEROR_PR,\r\n"
+						+ " SUM(CASE WHEN ((nvl( substr(error_code,3,3),'A') not in ('002','014')\r\n"
+						+ "and error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111')and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null AND  substr(error_code,1,2) <> 'SI'))) THEN 1 ELSE 0 END) AS BD,\r\n"
+						+ "ROUND((SUM(CASE WHEN ((nvl( substr(error_code,3,3),'A') not in ('002','014')and error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111')and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null AND  substr(error_code,1,2) <> 'SI'))) THEN 1 ELSE 0 END)*100)/count(1),2) BD_PER,\r\n"
+						+ "min(request_date_time) as ISSUE_Time,\r\n" + "SYSDATE AS INSERT_TIME\r\n"
+						+ "from eisapp.api_LOG@HIDB_LINK\r\n" + "where\r\n"
+						+ "trim(CONCAT(API_NAME,SOURCE_ID)||error_description) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description)  from vaild_bd_master)\r\n"
+						+ "and request_date_time>=SYSDATE - INTERVAL '180' MINUTE\r\n" + "GROUP BY api_name\r\n"
+						+ "HAVING (ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI051','SI111'))\r\n"
+						+ "and error_code<>'00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2) + ROUND((SUM(CASE WHEN ((nvl( substr(error_code,3,3),'A') not in ('002','014')\r\n"
+						+ "and error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111') and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null))) THEN 1 ELSE 0 END)*100)/count(1),2)) =100";
+				System.out.println("qu:" + l_query);
+			} else {
+
+					l_objdbcon = DBUtilityAuto.getReportDBConnection(); // DB Connection for DR Database
+					l_objreportdbcon = DBUtilityAuto.getReportDBConnection(); // DB Connection for ReportDB Database
+
+
+				String SQL_INSERT = "INSERT into gen5_100_percentage_fail(API_NAME,SOURCE_ID,ERROR_CODE,TOTAL_HITS,TD,TD_PERCENT,BD,BD_PER,INSERT_TIME,ISSUE_TIME,SI_EEROR,SI_EEROR_PR) values(?,?,?,?,?,?,?,?,?,?,?,?)";
+
+				preparedStatement = l_objreportdbcon.prepareStatement(SQL_INSERT);
+				l_query = "select api_name,LISTAGG(DISTINCT SOURCE_ID,',') as source_id,LISTAGG(DISTINCT error_code,',')as error_code,COUNT(1) TOTAL_HITS,\r\n"
+						+ "SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI051','SI111'))and error_code<>'00014' THEN 1 ELSE 0 END)  AS  TD,\r\n"
+						+ "ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI051','SI111'))and error_code<>'00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2)  AS TD_PERCENT, \r\n"
+						+ "SUM(CASE WHEN substr(error_code,1,2) ='SI'  then 1 else 0 end) AS SI_EEROR,\r\n"
+						+ "ROUND((SUM(CASE WHEN substr(error_code,1,2) ='SI'  then 1 else 0 end)*100)/COUNT(1),2) AS SI_EEROR_PR,\r\n"
+						+ " SUM(CASE WHEN ((nvl( substr(error_code,3,3),'A') not in ('002','014')\r\n"
+						+ "and error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111')and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null AND  substr(error_code,1,2) <> 'SI'))) THEN 1 ELSE 0 END) AS BD,\r\n"
+						+ "ROUND((SUM(CASE WHEN ((nvl( substr(error_code,3,3),'A') not in ('002','014')and error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111')and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null AND  substr(error_code,1,2) <> 'SI'))) THEN 1 ELSE 0 END)*100)/count(1),2) BD_PER,\r\n"
+						+ "min(request_date_time) as ISSUE_Time,\r\n" + "SYSDATE AS INSERT_TIME\r\n"
+						+ "from eisapp.api_LOG@MIDB_LINK\r\n" + "where\r\n"
+						+ "trim(CONCAT(API_NAME,SOURCE_ID)||error_description) not in(select trim(CONCAT(API_NAME,SOURCE_ID)||error_description)  from vaild_bd_master)\r\n"
+						+ "and request_date_time>=SYSDATE - INTERVAL '180' MINUTE\r\n" + "GROUP BY api_name\r\n"
+						+ "HAVING (ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI051','SI111'))\r\n"
+						+ "and error_code<>'00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2) + ROUND((SUM(CASE WHEN ((nvl( substr(error_code,3,3),'A') not in ('002','014')\r\n"
+						+ "and error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111') and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null))) THEN 1 ELSE 0 END)*100)/count(1),2)) =100";
+			}
+
+
+				l_objstatement = l_objdbcon.createStatement();
+
+			System.out.println("gen5 " + l_query);
+			l_objdrresultset = l_objstatement.executeQuery(l_query);
+			if (l_objdrresultset != null) {
+				while (l_objdrresultset.next()) {
+
+					preparedStatement.setObject(1, l_objdrresultset.getString("API_NAME"));
+					preparedStatement.setObject(2, l_objdrresultset.getString("SOURCE_ID"));
+					preparedStatement.setObject(3, l_objdrresultset.getString("ERROR_CODE"));
+					preparedStatement.setObject(4, l_objdrresultset.getString("TOTAL_HITS"));
+					preparedStatement.setObject(5, l_objdrresultset.getString("TD"));
+					preparedStatement.setObject(6, l_objdrresultset.getString("TD_PERCENT"));
+					preparedStatement.setObject(7, l_objdrresultset.getString("BD"));
+					preparedStatement.setObject(8, l_objdrresultset.getString("BD_PER"));
+					preparedStatement.setObject(9, l_objdrresultset.getTimestamp("INSERT_TIME"));
+					preparedStatement.setObject(10, l_objdrresultset.getTimestamp("ISSUE_TIME"));
+					preparedStatement.setObject(11, l_objdrresultset.getString("SI_EEROR"));
+					preparedStatement.setObject(12, l_objdrresultset.getString("SI_EEROR_PR"));
+
+					preparedStatement.addBatch();
+
+				}
+			}
+
+			preparedStatement.executeBatch();
+			System.out.println("Gen5 100% failure data added successfully.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Gen5 100% failure data in Report DB");
+		} finally {
+			if (l_objdrresultset != null) {
+				l_objdrresultset.close();
+			}
+			if (l_objstatement != null) {
+				l_objstatement.close();
+			}
+			if (preparedStatement != null) {
+				preparedStatement.close();
+			}
+			if (l_objdbcon != null) {
+				l_objdbcon.close();
+			}
+			if (l_objdbcon != null) {
+				l_objdbcon.close();
+			}
+			if (l_objreportdbcon != null) {
+				l_objreportdbcon.close();
+			}
+		}
+
+	}
+
+	private void insertSI100PercentFailure() throws SQLException {
+		Connection l_objdbcon = null;
+		Statement l_objdrstatement = null;
+		Connection l_objreportdbcon = null;
+		ResultSet l_objdrresultset = null;
+		PreparedStatement preparedStatement = null;
+		try {
+
+				l_objdbcon = DBUtilityAuto.getReportDBConnection(); // DB Connection for DR Database
+				l_objreportdbcon = DBUtilityAuto.getReportDBConnection(); // DB Connection for ReportDB Database
+
+
+			String SQL_INSERT = "INSERT into si_100_percent_fail(function_name,TOTAL_HITS,TD,TD_PERCENT,ISSUE_TIME,INSERT_TIME,ERROR_CODE) values(?,?,?,?,?,?,?)";
+
+			preparedStatement = l_objreportdbcon.prepareStatement(SQL_INSERT);
+
+			String l_query = "SELECT function_name as API_NAME, COUNT(1) AS total_hits,\r\n"
+					+ "SUM(CASE WHEN ((error_code IS NULL) OR (error_code in( '00','200'))) THEN 1 ELSE 0 END) AS success,\r\n"
+					+ "SUM(CASE WHEN error_code NOT IN('00','200') AND error_code IS NOT NULL and substr(ERROR_CODE,1,2)='SI' AND   trim(error_code) not in (select  DISTINCT ERRCODE  from cbs_err_map) THEN 1 ELSE 0 END)AS TD,\r\n"
+					+ "round(SUM((CASE WHEN error_code NOT IN('00','200') AND error_code IS NOT NULL and substr(ERROR_CODE,1,2)='SI' AND   trim(error_code) not in (select  DISTINCT ERRCODE  from cbs_err_map) THEN 1 ELSE 0 END) * 100) / COUNT(1), 2) AS TD_PER,\r\n"
+					+ "min(req_time) as ISSUE_Time,\r\n" + "SYSDATE AS INSERT_TIME,\r\n"
+					+ "LISTAGG(DISTINCT error_code,',')as ERROR_CODE\r\n" + "FROM sbisi.si_trans_db@sidb_link\r\n"
+					+ "WHERE\r\n" + "trim(CONCAT(FUNCTION_NAME,error_code )) not in\r\n" + "(\r\n"
+					+ "select  trim(CONCAT(api_name,error_code )) from vaild_bd_master\r\n" + ")\r\n"
+					+ "and function_name not in ('POSEMICheckOffer')\r\n"
+					+ "and req_time >= sysdate - INTERVAL '180' MINUTE\r\n" + "GROUP BY function_name\r\n"
+					+ "HAVING round(SUM((CASE WHEN error_code NOT IN('00','200') AND error_code IS NOT NULL and substr(ERROR_CODE,1,2)='SI' AND   trim(error_code) not in (select  DISTINCT ERRCODE  from cbs_err_map) THEN 1 ELSE 0 END) * 100) / COUNT(1), 2)=100";
+			System.out.println("SI " + l_query);
+
+				l_objdrstatement = l_objdbcon.createStatement();
+
+			l_objdrresultset = l_objdrstatement.executeQuery(l_query);
+			if (l_objdrresultset != null) {
+				while (l_objdrresultset.next()) {
+
+					preparedStatement.setObject(1, l_objdrresultset.getString("API_NAME"));
+					preparedStatement.setObject(2, l_objdrresultset.getString("TOTAL_HITS"));
+					preparedStatement.setObject(3, l_objdrresultset.getString("TD"));
+					preparedStatement.setObject(4, l_objdrresultset.getString("TD_PER"));
+					preparedStatement.setObject(5, l_objdrresultset.getTimestamp("ISSUE_Time"));
+					preparedStatement.setObject(6, l_objdrresultset.getTimestamp("INSERT_TIME"));
+					preparedStatement.setObject(7, l_objdrresultset.getString("ERROR_CODE"));
+
+					preparedStatement.addBatch();
+
+				}
+			}
+
+			preparedStatement.executeBatch();
+			System.out.println("SI 100% failure data added successfully.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Failed to add data in Report DB");
+		} finally {
+			if (l_objdrresultset != null) {
+				l_objdrresultset.close();
+			}
+			if (l_objdrstatement != null) {
+				l_objdrstatement.close();
+			}
+			if (preparedStatement != null) {
+				preparedStatement.close();
+			}
+			if (l_objdbcon != null) {
+				l_objdbcon.close();
+			}
+			if (l_objdbcon != null) {
+				l_objdbcon.close();
+			}
+			if (l_objreportdbcon != null) {
+				l_objreportdbcon.close();
+			}
+		}
+
+	}
+
+	private void insertThirdParty100PercentFailure() throws SQLException {
+		Connection l_objdbcon = null;
+		Statement l_objdrstatement = null;
+		Connection l_objreportdbcon = null;
+		ResultSet l_objdrresultset = null;
+		PreparedStatement preparedStatement = null;
+		try {
+
+				l_objdbcon = DBUtilityAuto.getIIBDBConnection(); // DB Connection for DR Database
+				l_objreportdbcon = DBUtilityAuto.getReportDBConnection(); // DB Connection for ReportDB Database
+			
+
+			String SQL_INSERT = "INSERT into thirdparty_100_percentage_fail(SUP_URL,TRANSACTION_URN,ORIGINAL_URN,TOTAL_HITS,TD,TD_PERCENT,BD,BD_PER,INSERT_TIME,ISSUE_TIME,error_code,SOURCE_ID,SI_EEROR,SI_EEROR_PR) values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
+			preparedStatement = l_objreportdbcon.prepareStatement(SQL_INSERT);
+
+			String l_query = "select LISTAGG(DISTINCT SOURCE_ID,',') as source_id,LISTAGG(DISTINCT error_code,',')as error_code,sup_url,transaction_urn,original_urn, COUNT(1) TOTAL_HITS,\r\n"
+					+ "SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI111','SI005')) and error_code<>'00014' THEN 1 ELSE 0 END) AS  TD,\r\n"
+					+ "ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI111','SI005')) and error_code<>'00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2)  AS TD_PERCENT, \r\n"
+					+ "SUM(CASE WHEN substr(error_code,1,2) ='SI'  then 1 else 0 end) AS SI_EEROR,\r\n"
+					+ "ROUND((SUM(CASE WHEN substr(error_code,1,2) ='SI'  then 1 else 0 end)*100)/COUNT(1),2) AS SI_EEROR_PR,\r\n"
+					+ "SUM(CASE  WHEN ((nvl( substr(error_code,3,3),'A') not in  ('002','014') and  error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111','SI005') and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null)))  THEN 1 ELSE 0 END) AS BD,\r\n"
+					+ "ROUND((SUM(CASE  WHEN ((nvl( substr(error_code,3,3),'A') not in  ('002','014') and  error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111','SI005')AND  substr(error_code,1,2) <> 'SI'\r\n"
+					+ "and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null AND  substr(error_code,1,2) <> 'SI')))  THEN 1 ELSE 0 END)*100)/count(1),2) BD_PER,\r\n"
+					+ "SYSDATE AS INSERT_TIME,\r\n" + "min(request_date_time) as ISSUE_Time\r\n"
+					+ "from eisapp.api_LOG\r\n"
+					+ "where URL='http://eispri.sbi.co.in:3017/thirdParty/wrapper/services/misc'\r\n"
+					+ "and sup_url is NOT null\r\n" + "and transaction_urn is NOT null\r\n"
+					+ "and original_urn is NOT null\r\n"
+					+ "and request_date_time >= sysdate - interval '180' minute\r\n"
+					+ "GROUP BY api_name,sup_url,transaction_urn,original_urn\r\n"
+					+ "HAVING (ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI111','SI005'))\r\n"
+					+ "and error_code<>'00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2) + ROUND((SUM(CASE  WHEN ((nvl( substr(error_code,3,3),'A') not in  ('002','014') and  error_code not in('SI001','SI007','SI017','SI569','SI570','SI051','SI111','SI005')\r\n"
+					+ "and (RESPONSE_STATUS not in ('0','SUCCESS') and error_code is not null)))  THEN 1 ELSE 0 END)*100)/count(1),2)) =100";
+
+
+				l_objdrstatement = l_objdbcon.createStatement();
+	
+			System.out.println("thirdparty " + l_query);
+			l_objdrresultset = l_objdrstatement.executeQuery(l_query);
+			if (l_objdrresultset != null) {
+				while (l_objdrresultset.next()) {
+
+					preparedStatement.setObject(1, l_objdrresultset.getString("sup_url"));
+					preparedStatement.setObject(2, l_objdrresultset.getString("transaction_urn"));
+					preparedStatement.setObject(3, l_objdrresultset.getString("original_urn"));
+					preparedStatement.setObject(4, l_objdrresultset.getString("TOTAL_HITS"));
+					preparedStatement.setObject(5, l_objdrresultset.getString("TD"));
+					preparedStatement.setObject(6, l_objdrresultset.getString("TD_PERCENT"));
+					preparedStatement.setObject(7, l_objdrresultset.getString("BD"));
+					preparedStatement.setObject(8, l_objdrresultset.getString("BD_PER"));
+					preparedStatement.setObject(9, l_objdrresultset.getTimestamp("INSERT_TIME"));
+					preparedStatement.setObject(10, l_objdrresultset.getTimestamp("ISSUE_Time"));
+					preparedStatement.setObject(11, l_objdrresultset.getString("ERROR_CODE"));
+					preparedStatement.setObject(12, l_objdrresultset.getString("SOURCE_ID"));
+					preparedStatement.setObject(13, l_objdrresultset.getString("SI_EEROR"));
+					preparedStatement.setObject(14, l_objdrresultset.getString("SI_EEROR_PR"));
+
+					preparedStatement.addBatch();
+
+				}
+			}
+
+			preparedStatement.executeBatch();
+			System.out.println("Third Party 100% failure data added successfully.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("Failed to add data in Report DB");
+		} finally {
+			if (l_objdrresultset != null) {
+				l_objdrresultset.close();
+			}
+			if (l_objdrstatement != null) {
+				l_objdrstatement.close();
+			}
+			if (preparedStatement != null) {
+				preparedStatement.close();
+			}
+			if (l_objdbcon != null) {
+				l_objdbcon.close();
+			}
+			if (l_objdbcon != null) {
+				l_objdbcon.close();
+			}
+			if (l_objreportdbcon != null) {
+				l_objreportdbcon.close();
+			}
+		}
+
+	}
+
 }
