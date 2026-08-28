@@ -1,1 +1,1413 @@
-Uncaught SyntaxError: Invalid or unexpected token (at Centralized query storage Admin.jsp:1:100)
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, java.util.*, java.io.PrintWriter" %>
+<%@page import="com.jdbc.DBUtilityAuto" %>
+<%!
+public String escapeJson(String str) {
+    if (str == null) return "";
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < str.length(); i++) {
+        char c = str.charAt(i);
+        switch (c) {
+            case '"': sb.append("\\\""); break;
+            case '\\': sb.append("\\\\"); break;
+            case '/': sb.append("\\/"); break;
+            case '\b': sb.append("\\b"); break;
+            case '\f': sb.append("\\f"); break;
+            case '\n': sb.append("\\n"); break;
+            case '\r': sb.append("\\r"); break;
+            case '\t': sb.append("\\t"); break;
+            default: sb.append(c); break;
+        }
+    }
+    return sb.toString();
+}
+%>
+<%
+
+String action = request.getParameter("action");
+
+// Fetch Categories
+if ("fetchCategories".equals(action)) {
+    response.setContentType("application/json");
+    StringBuilder json = new StringBuilder();
+    Connection conn = null;
+    try {
+        conn = DBUtilityAuto.getReportDBConnection();
+        String sql = "SELECT category_name, category_desc FROM categories ORDER BY category_name";
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+        json.append("[");
+        boolean first = true;
+        while (rs.next()) {
+            if (!first) json.append(",");
+            json.append("{");
+            json.append("\"category_name\":\"").append(escapeJson(rs.getString("category_name"))).append("\",");
+            json.append("\"category_desc\":\"").append(escapeJson(rs.getString("category_desc"))).append("\",");
+            PreparedStatement pstmt = conn.prepareStatement("SELECT COUNT(*) FROM query_storage WHERE category_name = ?");
+            pstmt.setString(1, rs.getString("category_name"));
+            ResultSet rsCount = pstmt.executeQuery();
+            rsCount.next();
+            json.append("\"query_count\":").append(rsCount.getInt(1));
+            rsCount.close();
+            pstmt.close();
+            json.append("}");
+            first = false;
+        }
+        json.append("]");
+        out.print(json.toString());
+        rs.close();
+        stmt.close();
+    } catch(Exception e) {
+        out.print("[]");
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+
+// Create Category
+if ("createCategory".equals(action)) {
+    response.setContentType("application/json");
+    String categoryName = request.getParameter("categoryName");
+    String categoryDesc = request.getParameter("categoryDesc");
+    Connection conn = null;
+    try {
+    	conn = DBUtilityAuto.getReportDBConnection();
+        PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM categories WHERE category_name = ?");
+        checkStmt.setString(1, categoryName);
+        ResultSet rs = checkStmt.executeQuery();
+        rs.next();
+        if (rs.getInt(1) > 0) {
+            out.print("{\"success\":false,\"message\":\"Category already exists!\"}");
+            return;
+        }
+        rs.close();
+        checkStmt.close();
+        String insertSQL = "INSERT INTO categories (category_name, category_desc, created_date) VALUES (?, ?, SYSDATE)";
+        PreparedStatement pstmt = conn.prepareStatement(insertSQL);
+        pstmt.setString(1, categoryName);
+        pstmt.setString(2, categoryDesc != null ? categoryDesc : "");
+        pstmt.executeUpdate();
+        pstmt.close();
+        out.print("{\"success\":true,\"message\":\"Category created successfully!\"}");
+    } catch(Exception e) {
+        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+
+// Update Category
+if ("updateCategory".equals(action)) {
+    response.setContentType("application/json");
+    String oldCategoryName = request.getParameter("oldCategoryName");
+    String newCategoryName = request.getParameter("newCategoryName");
+    String categoryDesc = request.getParameter("categoryDesc");
+    Connection conn = null;
+    try {
+    	conn = DBUtilityAuto.getReportDBConnection();
+        
+        if (!oldCategoryName.equals(newCategoryName)) {
+            PreparedStatement checkStmt = conn.prepareStatement("SELECT COUNT(*) FROM categories WHERE category_name = ?");
+            checkStmt.setString(1, newCategoryName);
+            ResultSet rs = checkStmt.executeQuery();
+            rs.next();
+            if (rs.getInt(1) > 0) {
+                out.print("{\"success\":false,\"message\":\"Category name already exists!\"}");
+                return;
+            }
+            rs.close();
+            checkStmt.close();
+            
+            PreparedStatement updateCat = conn.prepareStatement("UPDATE categories SET category_name = ?, category_desc = ? WHERE category_name = ?");
+            updateCat.setString(1, newCategoryName);
+            updateCat.setString(2, categoryDesc);
+            updateCat.setString(3, oldCategoryName);
+            updateCat.executeUpdate();
+            updateCat.close();
+            
+            PreparedStatement updateQueries = conn.prepareStatement("UPDATE query_storage SET category_name = ? WHERE category_name = ?");
+            updateQueries.setString(1, newCategoryName);
+            updateQueries.setString(2, oldCategoryName);
+            updateQueries.executeUpdate();
+            updateQueries.close();
+        } else {
+            PreparedStatement updateCat = conn.prepareStatement("UPDATE categories SET category_desc = ? WHERE category_name = ?");
+            updateCat.setString(1, categoryDesc);
+            updateCat.setString(2, oldCategoryName);
+            updateCat.executeUpdate();
+            updateCat.close();
+        }
+        out.print("{\"success\":true,\"message\":\"Category updated successfully!\"}");
+    } catch(Exception e) {
+        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+
+// Get Queries by Category
+if ("getQueries".equals(action)) {
+    response.setContentType("application/json");
+    String category = request.getParameter("category");
+    StringBuilder json = new StringBuilder();
+    Connection conn = null;
+    try {
+    	conn = DBUtilityAuto.getReportDBConnection();
+        String sql = "SELECT query_id, query_title, query_description, sql_text, TO_CHAR(created_date, 'YYYY-MM-DD HH24:MI') as created_date FROM query_storage WHERE category_name = ? ORDER BY created_date DESC";
+        PreparedStatement pstmt = conn.prepareStatement(sql);
+        pstmt.setString(1, category);
+        ResultSet rs = pstmt.executeQuery();
+        json.append("[");
+        boolean first = true;
+        while (rs.next()) {
+            if (!first) json.append(",");
+            json.append("{");
+            json.append("\"query_id\":").append(rs.getInt("query_id")).append(",");
+            json.append("\"query_title\":\"").append(escapeJson(rs.getString("query_title"))).append("\",");
+            json.append("\"query_description\":\"").append(escapeJson(rs.getString("query_description"))).append("\",");
+            String sqlText = rs.getString("sql_text");
+            json.append("\"sql_text\":\"").append(escapeJson(sqlText)).append("\",");
+            json.append("\"created_date\":\"").append(escapeJson(rs.getString("created_date"))).append("\"");
+            json.append("}");
+            first = false;
+        }
+        json.append("]");
+        out.print(json.toString());
+        rs.close();
+        pstmt.close();
+    } catch(Exception e) {
+        out.print("[]");
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+
+// Add Query
+if ("addQuery".equals(action)) {
+    response.setContentType("application/json");
+    String categoryName = request.getParameter("categoryName");
+    String queryTitle = request.getParameter("queryTitle");
+    String queryDesc = request.getParameter("queryDesc");
+    String sqlText = request.getParameter("sqlText");
+    Connection conn = null;
+    try {
+    	conn = DBUtilityAuto.getReportDBConnection();
+        int nextId = 1;
+        Statement stmt = conn.createStatement();
+        ResultSet rsId = stmt.executeQuery("SELECT NVL(MAX(query_id), 0) + 1 FROM query_storage");
+        if (rsId.next()) {
+            nextId = rsId.getInt(1);
+        }
+        rsId.close();
+        String categoryDesc = "";
+        PreparedStatement getDesc = conn.prepareStatement("SELECT category_desc FROM categories WHERE category_name = ?");
+        getDesc.setString(1, categoryName);
+        ResultSet rsDesc = getDesc.executeQuery();
+        if (rsDesc.next()) {
+            categoryDesc = rsDesc.getString("category_desc");
+        }
+        rsDesc.close();
+        getDesc.close();
+        String insertSQL = "INSERT INTO query_storage (query_id, category_name, category_desc, query_title, query_description, sql_text, created_date) VALUES (?, ?, ?, ?, ?, ?, SYSDATE)";
+        PreparedStatement pstmt = conn.prepareStatement(insertSQL);
+        pstmt.setInt(1, nextId);
+        pstmt.setString(2, categoryName);
+        pstmt.setString(3, categoryDesc);
+        pstmt.setString(4, queryTitle);
+        pstmt.setString(5, queryDesc != null ? queryDesc : "");
+        pstmt.setString(6, sqlText);
+        pstmt.executeUpdate();
+        pstmt.close();
+        stmt.close();
+        out.print("{\"success\":true,\"message\":\"Query added successfully!\"}");
+    } catch(Exception e) {
+        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+
+// Update Query
+if ("updateQuery".equals(action)) {
+    response.setContentType("application/json");
+    String queryId = request.getParameter("queryId");
+    String queryTitle = request.getParameter("queryTitle");
+    String queryDesc = request.getParameter("queryDesc");
+    String sqlText = request.getParameter("sqlText");
+    Connection conn = null;
+    try {
+    	conn = DBUtilityAuto.getReportDBConnection();
+        PreparedStatement pstmt = conn.prepareStatement("UPDATE query_storage SET query_title = ?, query_description = ?, sql_text = ? WHERE query_id = ?");
+        pstmt.setString(1, queryTitle);
+        pstmt.setString(2, queryDesc != null ? queryDesc : "");
+        pstmt.setString(3, sqlText);
+        pstmt.setInt(4, Integer.parseInt(queryId));
+        pstmt.executeUpdate();
+        pstmt.close();
+        out.print("{\"success\":true,\"message\":\"Query updated successfully!\"}");
+    } catch(Exception e) {
+        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+
+// Delete Query
+if ("deleteQuery".equals(action)) {
+    response.setContentType("application/json");
+    String queryId = request.getParameter("queryId");
+    Connection conn = null;
+    try {
+    	conn = DBUtilityAuto.getReportDBConnection();
+        PreparedStatement pstmt = conn.prepareStatement("DELETE FROM query_storage WHERE query_id = ?");
+        pstmt.setString(1, queryId);
+        pstmt.executeUpdate();
+        pstmt.close();
+        out.print("{\"success\":true,\"message\":\"Query deleted successfully!\"}");
+    } catch(Exception e) {
+        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+
+// Delete Category
+if ("deleteCategory".equals(action)) {
+    response.setContentType("application/json");
+    String categoryName = request.getParameter("categoryName");
+    Connection conn = null;
+    try {
+    	conn = DBUtilityAuto.getReportDBConnection();
+        PreparedStatement deleteQueries = conn.prepareStatement("DELETE FROM query_storage WHERE category_name = ?");
+        deleteQueries.setString(1, categoryName);
+        deleteQueries.executeUpdate();
+        deleteQueries.close();
+        PreparedStatement deleteCat = conn.prepareStatement("DELETE FROM categories WHERE category_name = ?");
+        deleteCat.setString(1, categoryName);
+        deleteCat.executeUpdate();
+        deleteCat.close();
+        out.print("{\"success\":true,\"message\":\"Category deleted successfully!\"}");
+    } catch(Exception e) {
+        out.print("{\"success\":false,\"message\":\"Error: " + escapeJson(e.getMessage()) + "\"}");
+    } finally {
+        if (conn != null) try { conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>QueryForge Admin | ADMIN DASHBOARD</title>
+<link rel="stylesheet" href="../css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-primary: #0a0e17;
+    --bg-secondary: #111827;
+    --bg-card: #1a2234;
+    --bg-hover: #243049;
+    --border-color: #2a3650;
+    --text-primary: #e8edf5;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --cyan: #06b6d4;
+    --green: #10b981;
+    --red: #ef4444;
+    --orange: #f59e0b;
+}
+
+body {
+    background: var(--bg-primary);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+}
+
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--blue);
+}
+
+/* ===== LAYOUT ===== */
+.app {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px 20px 20px;
+    gap: 16px;
+}
+
+/* ===== HEADER ===== */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+.header-icon {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+}
+.header-title h1 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #fff 0%, var(--blue) 50%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.header-title p {
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+}
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.header-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+.header-badge .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+.header-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+}
+
+/* ===== MAIN ===== */
+.main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 16px;
+    min-height: 0;
+}
+
+/* ===== LEFT PANEL ===== */
+.panel {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+.panel-top {
+    padding: 14px 18px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+.panel-top h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.panel-top h2 i {
+    color: var(--blue);
+}
+.panel-stats {
+    display: flex;
+    gap: 14px;
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+}
+.panel-stats span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.panel-stats strong {
+    color: var(--text-primary);
+}
+
+/* ===== TABS ===== */
+.tabs {
+    padding: 10px 16px;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+    overflow-x: auto;
+    flex-shrink: 0;
+}
+.tabs-inner {
+    display: inline-flex;
+    gap: 6px;
+}
+.tab {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 6px 16px;
+    border-radius: 100px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.tab:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+.tab.active {
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(59,130,246,0.25);
+}
+.tab .count {
+    background: rgba(255,255,255,0.1);
+    padding: 0 7px;
+    border-radius: 100px;
+    font-size: 0.6rem;
+}
+.tab.active .count {
+    background: rgba(255,255,255,0.2);
+}
+.tab .actions {
+    display: inline-flex;
+    gap: 3px;
+    margin-left: 3px;
+}
+.tab .actions i {
+    font-size: 0.55rem;
+    opacity: 0.4;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.tab .actions i:hover {
+    opacity: 1;
+}
+.tab .actions .edit:hover { color: var(--blue); }
+.tab .actions .del:hover { color: var(--red); }
+
+/* ===== QUERIES ===== */
+.queries {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ===== QUERY CARD ===== */
+.qcard {
+    background: var(--bg-card);
+    border-radius: 14px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+.qcard:hover {
+    border-color: var(--blue);
+}
+.qcard-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+.qcard-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.qcard-title i {
+    color: var(--cyan);
+    font-size: 0.8rem;
+}
+.qcard-title .id {
+    font-weight: 400;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    background: var(--bg-primary);
+    padding: 0 8px;
+    border-radius: 100px;
+}
+.qcard-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 4px 0 8px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.qcard-sql {
+    position: relative;
+    background: var(--bg-primary);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+}
+.qcard-sql pre {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 70px;
+    overflow-y: auto;
+}
+.qcard-sql .copy {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: var(--bg-card);
+    border: none;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.6rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+.qcard-sql .copy:hover {
+    background: var(--blue);
+    color: #fff;
+}
+.qcard-sql .copy.done {
+    background: var(--green);
+    color: #fff;
+}
+.qcard-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.qcard-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.6rem;
+    color: var(--text-muted);
+}
+.qcard-meta i {
+    margin-right: 2px;
+}
+.qcard-btns {
+    display: flex;
+    gap: 4px;
+}
+.qcard-btns button {
+    background: var(--bg-primary);
+    border: none;
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-size: 0.65rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+.qcard-btns button:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+.qcard-btns .edit:hover { color: var(--blue); }
+.qcard-btns .del:hover { color: var(--red); }
+
+.empty {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-muted);
+}
+.empty i {
+    font-size: 2.5rem;
+    margin-bottom: 12px;
+    opacity: 0.3;
+}
+.empty h3 {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+}
+.empty p {
+    font-size: 0.8rem;
+}
+
+/* ===== RIGHT PANEL ===== */
+.sidebar {
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+.sidebar h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+.sidebar .sub {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+}
+
+.grp {
+    margin-bottom: 12px;
+}
+.grp label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.grp input,
+.grp textarea,
+.grp select {
+    width: 100%;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+.grp input:focus,
+.grp textarea:focus,
+.grp select:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+}
+.grp textarea {
+    font-family: 'JetBrains Mono', monospace;
+    resize: vertical;
+    min-height: 70px;
+    font-size: 0.7rem;
+}
+.grp select option {
+    background: var(--bg-secondary);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border: none;
+    width: 100%;
+    padding: 10px;
+    border-radius: 10px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+}
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 25px rgba(59,130,246,0.3);
+}
+.btn-secondary {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 6px 16px;
+    border-radius: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+}
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: 14px 0;
+}
+
+.msg {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    display: none;
+    margin-bottom: 12px;
+}
+.msg.show {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.msg.ok {
+    background: rgba(16,185,129,0.12);
+    border: 1px solid var(--green);
+    color: var(--green);
+}
+.msg.err {
+    background: rgba(239,68,68,0.12);
+    border: 1px solid var(--red);
+    color: var(--red);
+}
+
+/* ===== MODALS ===== */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(6px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+.modal.active {
+    display: flex;
+}
+.modal-box {
+    background: var(--bg-secondary);
+    border-radius: 20px;
+    width: 90%;
+    max-width: 520px;
+    padding: 24px 28px;
+    border: 1px solid var(--border-color);
+    animation: slideIn 0.25s ease;
+}
+@keyframes slideIn {
+    from { transform: scale(0.95) translateY(10px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+}
+.modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+.modal-head h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.modal-head h3 i {
+    color: var(--blue);
+}
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0 6px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+.modal-close:hover {
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+.modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+.modal .grp textarea {
+    min-height: 50px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1000px) {
+    .main {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        max-height: 380px;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="header-icon"><i class="fas fa-bolt"></i></div>
+            <div class="header-title">
+                <h1>QueryForge Admin</h1>
+                <p>Enterprise SQL Vault · Oracle Backend</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="header-badge">
+                <span class="dot"></span>
+                <span id="globalStats">0 Categories · 0 Queries</span>
+            </div>
+            <div class="header-avatar">SA</div>
+        </div>
+    </header>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- LEFT -->
+        <div class="panel">
+            <div class="panel-top">
+                <h2><i class="fas fa-database"></i> Query Storage</h2>
+                <div class="panel-stats">
+                    <span><i class="fas fa-folder"></i> <strong id="catCount">0</strong></span>
+                    <span><i class="fas fa-file-code"></i> <strong id="qCount">0</strong></span>
+                </div>
+            </div>
+            <div class="tabs">
+                <div class="tabs-inner" id="tabsContainer">
+                    <span style="color:var(--text-muted);font-size:0.75rem;">Loading...</span>
+                </div>
+            </div>
+            <div class="queries" id="queriesContainer">
+                <div class="empty">
+                    <i class="fas fa-code"></i>
+                    <h3>No Queries</h3>
+                    <p>Select a category or create one to start.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="sidebar">
+            <h3><i class="fas fa-tools" style="color:var(--blue);"></i> Admin Workspace</h3>
+            <p class="sub">Manage categories & SQL assets</p>
+
+            <div id="msgDiv" class="msg"></div>
+
+            <div class="grp">
+                <label><i class="fas fa-folder-plus"></i> New Category</label>
+                <input type="text" id="newCatName" placeholder="Category name...">
+                <input type="text" id="newCatDesc" placeholder="Description (optional)" style="margin-top:5px;">
+            </div>
+            <button id="createCatBtn" class="btn-primary"><i class="fas fa-plus"></i> Create Category</button>
+
+            <hr>
+
+            <div class="grp">
+                <label><i class="fas fa-tag"></i> Category</label>
+                <select id="catSelect">
+                    <option value="">-- Select --</option>
+                </select>
+            </div>
+            <div class="grp">
+                <label><i class="fas fa-heading"></i> Query Title</label>
+                <input type="text" id="qTitle" placeholder="e.g., Weekly Active Users">
+            </div>
+            <div class="grp">
+                <label><i class="fas fa-align-left"></i> Description</label>
+                <textarea id="qDesc" placeholder="What does this query do?" rows="2"></textarea>
+            </div>
+            <div class="grp">
+                <label><i class="fas fa-code"></i> SQL Query</label>
+                <textarea id="qSql" placeholder="SELECT * FROM table WHERE condition;" rows="4"></textarea>
+            </div>
+            <button id="addQueryBtn" class="btn-primary"><i class="fas fa-save"></i> Add Query</button>
+
+            <div style="margin-top:10px;font-size:0.55rem;text-align:center;color:var(--text-muted);">
+                <i class="fas fa-shield-alt"></i> Connected to Oracle
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- EDIT CATEGORY MODAL -->
+<div id="editCatModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3><i class="fas fa-folder-edit"></i> Edit Category</h3>
+            <button class="modal-close" onclick="closeEditCat()">&times;</button>
+        </div>
+        <input type="hidden" id="editCatOld">
+        <div class="grp">
+            <label>Category Name</label>
+            <input type="text" id="editCatName">
+        </div>
+        <div class="grp">
+            <label>Description</label>
+            <input type="text" id="editCatDesc">
+        </div>
+        <div class="modal-foot">
+            <button class="btn-secondary" onclick="closeEditCat()">Cancel</button>
+            <button class="btn-primary" onclick="saveEditCat()" style="width:auto;padding:6px 24px;">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- EDIT QUERY MODAL -->
+<div id="editQueryModal" class="modal">
+    <div class="modal-box">
+        <div class="modal-head">
+            <h3><i class="fas fa-edit"></i> Edit Query</h3>
+            <button class="modal-close" onclick="closeEditQuery()">&times;</button>
+        </div>
+        <input type="hidden" id="editQId">
+        <div class="grp">
+            <label>Query Title</label>
+            <input type="text" id="editQTitle">
+        </div>
+        <div class="grp">
+            <label>Description</label>
+            <textarea id="editQDesc" rows="2"></textarea>
+        </div>
+        <div class="grp">
+            <label>SQL Query</label>
+            <textarea id="editQSql" rows="5"></textarea>
+        </div>
+        <div class="modal-foot">
+            <button class="btn-secondary" onclick="closeEditQuery()">Cancel</button>
+            <button class="btn-primary" onclick="saveEditQuery()" style="width:auto;padding:6px 24px;">Update</button>
+        </div>
+    </div>
+</div>
+
+<script>
+var currentCategory = '';
+
+function msg(text, type) {
+    var d = document.getElementById('msgDiv');
+    d.innerHTML = '<i class="fas fa-' + (type === 'ok' ? 'check-circle' : 'exclamation-circle') + '"></i> ' + text;
+    d.className = 'msg ' + type + ' show';
+    clearTimeout(d._t);
+    d._t = setTimeout(function() { d.classList.remove('show'); }, 3000);
+}
+
+function esc(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function updateStats(cats) {
+    var total = 0;
+    if (cats) {
+        for (var i = 0; i < cats.length; i++) {
+            total += cats[i].query_count || 0;
+        }
+    }
+    document.getElementById('catCount').textContent = cats ? cats.length : 0;
+    document.getElementById('qCount').textContent = total;
+    document.getElementById('globalStats').textContent = (cats ? cats.length : 0) + ' Categories · ' + total + ' Queries';
+}
+
+function loadCats() {
+    fetch('?action=fetchCategories')
+    .then(function(r) { return r.json(); })
+    .then(function(cats) {
+        var container = document.getElementById('tabsContainer');
+        var select = document.getElementById('catSelect');
+        updateStats(cats);
+
+        if (!cats || cats.length === 0) {
+            container.innerHTML = '<span style="color:var(--text-muted);font-size:0.75rem;">No categories</span>';
+            select.innerHTML = '<option value="">-- No Categories --</option>';
+            document.getElementById('queriesContainer').innerHTML =
+                '<div class="empty"><i class="fas fa-folder-open"></i><h3>No Categories</h3><p>Create your first category.</p></div>';
+            return;
+        }
+
+        var tabs = '';
+        var opts = '<option value="">-- Select Category --</option>';
+
+        for (var i = 0; i < cats.length; i++) {
+            var c = cats[i];
+            var active = (i === 0 && !currentCategory) ? 'active' : (currentCategory === c.category_name ? 'active' : '');
+            var name = c.category_name.replace(/'/g, "\\'");
+            var desc = esc(c.category_desc || '').replace(/'/g, "\\'");
+
+            tabs += '<button class="tab ' + active + '" data-cat="' + name + '" onclick="selectCat(\'' + name + '\')">' +
+                '<i class="fas fa-folder"></i> ' + esc(c.category_name) +
+                '<span class="count">' + c.query_count + '</span>' +
+                '<span class="actions">' +
+                '<i class="fas fa-edit edit" onclick="event.stopPropagation();openEditCat(\'' + name + '\',\'' + desc + '\')"></i>' +
+                '<i class="fas fa-trash del" onclick="event.stopPropagation();delCat(\'' + name + '\')"></i>' +
+                '</span>' +
+                '</button>';
+
+            opts += '<option value="' + name + '">' + esc(c.category_name) + ' (' + c.query_count + ')</option>';
+        }
+
+        container.innerHTML = tabs;
+        select.innerHTML = opts;
+
+        if (cats.length > 0 && !currentCategory) {
+            selectCat(cats[0].category_name);
+        } else if (currentCategory) {
+            selectCat(currentCategory);
+        }
+    })
+    .catch(function(e) {
+        console.error(e);
+        msg('Error loading categories', 'err');
+    });
+}
+
+function selectCat(name) {
+    currentCategory = name;
+
+    var tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabs.length; i++) {
+        if (tabs[i].getAttribute('data-cat') === name) {
+            tabs[i].classList.add('active');
+        } else {
+            tabs[i].classList.remove('active');
+        }
+    }
+
+    fetch('?action=getQueries&category=' + encodeURIComponent(name))
+    .then(function(r) { return r.json(); })
+    .then(function(qs) {
+        var container = document.getElementById('queriesContainer');
+        if (!qs || qs.length === 0) {
+            container.innerHTML =
+                '<div class="empty"><i class="fas fa-code"></i><h3>No Queries</h3><p>Add a query to "' + esc(name) + '".</p></div>';
+            return;
+        }
+
+        var html = '';
+        for (var i = 0; i < qs.length; i++) {
+            var q = qs[i];
+            var sql = q.sql_text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            var title = esc(q.query_title || 'Untitled').replace(/'/g, "\\'");
+            var desc = esc(q.query_description || '').replace(/'/g, "\\'");
+
+            html += '<div class="qcard">' +
+                '<div class="qcard-top">' +
+                '<div class="qcard-title">' +
+                '<i class="fas fa-terminal"></i> ' + esc(q.query_title || 'Untitled') +
+                '<span class="id">#' + q.query_id + '</span>' +
+                '</div>' +
+                '</div>' +
+                '<div class="qcard-desc">' + esc(q.query_description || 'No description') + '</div>' +
+                '<div class="qcard-sql">' +
+                '<pre>' + esc(q.sql_text) + '</pre>' +
+                '<button class="copy" onclick="copySql(this, \'' + sql + '\')"><i class="fas fa-copy"></i> Copy</button>' +
+                '</div>' +
+                '<div class="qcard-bottom">' +
+                '<div class="qcard-meta">' +
+                '<span><i class="far fa-calendar"></i> ' + (q.created_date || 'Unknown') + '</span>' +
+                '</div>' +
+                '<div class="qcard-btns">' +
+                '<button class="edit" onclick="openEditQ(' + q.query_id + ',\'' + title + '\',\'' + desc + '\',\'' + sql + '\')"><i class="fas fa-edit"></i> Edit</button>' +
+                '<button class="del" onclick="delQ(' + q.query_id + ')"><i class="fas fa-trash"></i> Delete</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+        }
+        container.innerHTML = html;
+    })
+    .catch(function(e) {
+        console.error(e);
+        msg('Error loading queries', 'err');
+    });
+}
+
+function createCat() {
+    var name = document.getElementById('newCatName').value.trim();
+    var desc = document.getElementById('newCatDesc').value.trim();
+    if (!name) { msg('Please enter a category name', 'err'); return; }
+
+    var fd = new FormData();
+    fd.append('action', 'createCategory');
+    fd.append('categoryName', name);
+    fd.append('categoryDesc', desc);
+
+    fetch('', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            msg(res.message, 'ok');
+            document.getElementById('newCatName').value = '';
+            document.getElementById('newCatDesc').value = '';
+            loadCats();
+        } else {
+            msg(res.message, 'err');
+        }
+    })
+    .catch(function() { msg('Error creating category', 'err'); });
+}
+
+function openEditCat(name, desc) {
+    document.getElementById('editCatOld').value = name;
+    document.getElementById('editCatName').value = name;
+    document.getElementById('editCatDesc').value = desc;
+    document.getElementById('editCatModal').classList.add('active');
+}
+
+function closeEditCat() {
+    document.getElementById('editCatModal').classList.remove('active');
+}
+
+function saveEditCat() {
+    var old = document.getElementById('editCatOld').value;
+    var name = document.getElementById('editCatName').value.trim();
+    var desc = document.getElementById('editCatDesc').value.trim();
+    if (!name) { msg('Category name cannot be empty', 'err'); return; }
+
+    var fd = new FormData();
+    fd.append('action', 'updateCategory');
+    fd.append('oldCategoryName', old);
+    fd.append('newCategoryName', name);
+    fd.append('categoryDesc', desc);
+
+    fetch('', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            msg(res.message, 'ok');
+            closeEditCat();
+            if (currentCategory === old) currentCategory = name;
+            loadCats();
+        } else {
+            msg(res.message, 'err');
+        }
+    })
+    .catch(function() { msg('Error updating category', 'err'); });
+}
+
+function delCat(name) {
+    if (!confirm('Delete category "' + name + '" and ALL its queries?')) return;
+    var fd = new FormData();
+    fd.append('action', 'deleteCategory');
+    fd.append('categoryName', name);
+
+    fetch('', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            msg(res.message, 'ok');
+            currentCategory = '';
+            loadCats();
+        } else {
+            msg(res.message, 'err');
+        }
+    })
+    .catch(function() { msg('Error deleting category', 'err'); });
+}
+
+function addQuery() {
+    var cat = document.getElementById('catSelect').value;
+    var title = document.getElementById('qTitle').value.trim();
+    var desc = document.getElementById('qDesc').value.trim();
+    var sql = document.getElementById('qSql').value.trim();
+    if (!cat) { msg('Please select a category', 'err'); return; }
+    if (!title) { msg('Please enter a query title', 'err'); return; }
+    if (!sql) { msg('Please enter SQL query', 'err'); return; }
+
+    var fd = new FormData();
+    fd.append('action', 'addQuery');
+    fd.append('categoryName', cat);
+    fd.append('queryTitle', title);
+    fd.append('queryDesc', desc);
+    fd.append('sqlText', sql);
+
+    fetch('', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            msg(res.message, 'ok');
+            document.getElementById('qTitle').value = '';
+            document.getElementById('qDesc').value = '';
+            document.getElementById('qSql').value = '';
+            loadCats();
+            if (currentCategory) selectCat(currentCategory);
+        } else {
+            msg(res.message, 'err');
+        }
+    })
+    .catch(function() { msg('Error adding query', 'err'); });
+}
+
+function openEditQ(id, title, desc, sql) {
+    document.getElementById('editQId').value = id;
+    document.getElementById('editQTitle').value = title;
+    document.getElementById('editQDesc').value = desc;
+    document.getElementById('editQSql').value = sql;
+    document.getElementById('editQueryModal').classList.add('active');
+}
+
+function closeEditQuery() {
+    document.getElementById('editQueryModal').classList.remove('active');
+}
+
+function saveEditQuery() {
+    var id = document.getElementById('editQId').value;
+    var title = document.getElementById('editQTitle').value.trim();
+    var desc = document.getElementById('editQDesc').value.trim();
+    var sql = document.getElementById('editQSql').value.trim();
+    if (!title) { msg('Query title cannot be empty', 'err'); return; }
+    if (!sql) { msg('SQL query cannot be empty', 'err'); return; }
+
+    var fd = new FormData();
+    fd.append('action', 'updateQuery');
+    fd.append('queryId', id);
+    fd.append('queryTitle', title);
+    fd.append('queryDesc', desc);
+    fd.append('sqlText', sql);
+
+    fetch('', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            msg(res.message, 'ok');
+            closeEditQuery();
+            loadCats();
+            if (currentCategory) selectCat(currentCategory);
+        } else {
+            msg(res.message, 'err');
+        }
+    })
+    .catch(function() { msg('Error updating query', 'err'); });
+}
+
+function delQ(id) {
+    if (!confirm('Delete this query?')) return;
+    var fd = new FormData();
+    fd.append('action', 'deleteQuery');
+    fd.append('queryId', id);
+
+    fetch('', { method: 'POST', body: fd })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        if (res.success) {
+            msg(res.message, 'ok');
+            loadCats();
+            if (currentCategory) selectCat(currentCategory);
+        } else {
+            msg(res.message, 'err');
+        }
+    })
+    .catch(function() { msg('Error deleting query', 'err'); });
+}
+
+function copySql(btn, sql) {
+    navigator.clipboard.writeText(sql).then(function() {
+        var orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+        btn.classList.add('done');
+        setTimeout(function() {
+            btn.innerHTML = orig;
+            btn.classList.remove('done');
+        }, 1500);
+    }).catch(function() { alert('Failed to copy'); });
+}
+
+// Event listeners
+document.getElementById('createCatBtn').addEventListener('click', createCat);
+document.getElementById('addQueryBtn').addEventListener('click', addQuery);
+
+// Load
+loadCats();
+</script>
+</body>
+</html>
