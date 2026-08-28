@@ -19,7 +19,6 @@ if ("fetchSourceStatus".equals(action)) {
     StringBuilder json = new StringBuilder();
     
     try {
-        // EK HI CONNECTION - BAS YAHI EK BAAR
         conn = DBUtilityAuto.getReportDBConnection();
         String partition = getPartition();
         
@@ -59,7 +58,6 @@ if ("fetchSourceStatus".equals(action)) {
             "ORDER BY s.source_id";
         
         stmt = conn.createStatement();
-        // NO TIMEOUT - Query fast hai
         rs = stmt.executeQuery(query);
         
         json.append("[");
@@ -79,7 +77,6 @@ if ("fetchSourceStatus".equals(action)) {
         out.print("[]");
         e.printStackTrace();
     } finally {
-        // EK HI BAAR CLOSE - SAB RESOURCES CLEAN
         try { if (rs != null) rs.close(); } catch(Exception e) {}
         try { if (stmt != null) stmt.close(); } catch(Exception e) {}
         try { if (conn != null) conn.close(); } catch(Exception e) {}
@@ -107,15 +104,12 @@ if ("fetchSourceStatus".equals(action)) {
             --text2: #8899bb;
             --text3: #3d5070;
             --green: #2ecc71;
-            --green-dark: #1a8a4a;
             --red: #e74c3c;
-            --red-dark: #922b21;
             --blue: #3498db;
             --purple: #9b59b6;
             --pink: #e91e63;
             --cyan: #1abc9c;
             --orange: #f39c12;
-            --yellow: #f1c40f;
         }
 
         body {
@@ -132,10 +126,10 @@ if ("fetchSourceStatus".equals(action)) {
 
         .dashboard {
             height: 100vh;
-            padding: 12px 16px 16px 16px;
+            padding: 10px 14px 14px 14px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
 
         /* ===== HEADER ===== */
@@ -143,56 +137,56 @@ if ("fetchSourceStatus".equals(action)) {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 18px;
+            padding: 8px 16px;
             background: var(--surface);
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid var(--border);
             flex-shrink: 0;
         }
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         .header-icon {
-            width: 38px; height: 38px;
+            width: 34px; height: 34px;
             background: linear-gradient(135deg, var(--blue), var(--purple));
-            border-radius: 10px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             color: #fff;
         }
         .header h1 {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 800;
             background: linear-gradient(135deg, #fff, var(--blue), var(--pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         .header .sub {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: var(--text3);
         }
         .header-right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
         .live-badge {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             background: rgba(46,204,113,0.12);
-            padding: 4px 10px;
-            border-radius: 14px;
+            padding: 3px 8px;
+            border-radius: 12px;
             border: 1px solid rgba(46,204,113,0.2);
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: var(--green);
         }
         .live-dot {
-            width: 6px; height: 6px;
+            width: 5px; height: 5px;
             border-radius: 50%;
             background: var(--green);
             animation: blink 1.5s infinite;
@@ -203,20 +197,20 @@ if ("fetchSourceStatus".equals(action)) {
         }
         .timer-badge {
             background: var(--card);
-            padding: 4px 10px;
-            border-radius: 14px;
+            padding: 3px 8px;
+            border-radius: 12px;
             border: 1px solid var(--border);
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--text2);
             font-family: 'JetBrains Mono', monospace;
         }
-        .timer-badge i { color: var(--orange); margin-right: 3px; }
+        .timer-badge i { color: var(--orange); margin-right: 2px; }
         .partition-badge {
-            font-size: 0.5rem;
+            font-size: 0.45rem;
             color: var(--text3);
             background: var(--card);
-            padding: 2px 8px;
-            border-radius: 8px;
+            padding: 2px 6px;
+            border-radius: 6px;
             border: 1px solid var(--border);
             font-family: 'JetBrains Mono', monospace;
         }
@@ -225,37 +219,37 @@ if ("fetchSourceStatus".equals(action)) {
         .stats-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
         }
         .stat-card {
             background: var(--surface);
-            border-radius: 10px;
-            padding: 10px 14px;
+            border-radius: 8px;
+            padding: 8px 12px;
             border: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .stat-icon {
-            width: 32px; height: 32px;
-            border-radius: 8px;
+            width: 28px; height: 28px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 13px;
+            font-size: 11px;
         }
         .stat-icon.green { background: rgba(46,204,113,0.15); color: var(--green); }
         .stat-icon.red { background: rgba(231,76,60,0.15); color: var(--red); }
         .stat-icon.blue { background: rgba(52,152,219,0.15); color: var(--blue); }
         .stat-icon.orange { background: rgba(243,156,18,0.15); color: var(--orange); }
         .stat-info h3 {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 800;
-            line-height: 1.2;
+            line-height: 1.1;
         }
         .stat-info p {
-            font-size: 0.5rem;
+            font-size: 0.45rem;
             color: var(--text3);
             font-weight: 600;
             text-transform: uppercase;
@@ -266,22 +260,22 @@ if ("fetchSourceStatus".equals(action)) {
         .main {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr 280px;
-            gap: 10px;
+            grid-template-columns: 1fr 260px;
+            gap: 8px;
             min-height: 0;
         }
 
         /* ===== SOURCES PANEL ===== */
         .sources-panel {
             background: var(--surface);
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
         .panel-head {
-            padding: 8px 14px;
+            padding: 6px 12px;
             background: var(--card);
             border-bottom: 1px solid var(--border);
             display: flex;
@@ -290,141 +284,148 @@ if ("fetchSourceStatus".equals(action)) {
             flex-shrink: 0;
         }
         .panel-head h2 {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         .panel-head h2 i { color: var(--blue); }
         .panel-head .cnt {
             background: var(--bg);
-            padding: 1px 8px;
-            border-radius: 10px;
-            font-size: 0.55rem;
+            padding: 1px 6px;
+            border-radius: 8px;
+            font-size: 0.5rem;
             color: var(--text2);
             font-weight: 600;
         }
         .legend {
             display: flex;
-            gap: 10px;
-            font-size: 0.5rem;
+            gap: 8px;
+            font-size: 0.45rem;
             color: var(--text3);
         }
         .legend .g { color: var(--green); }
         .legend .r { color: var(--red); }
 
-        /* ===== SOURCES GRID - FULL SCREEN BIG CARDS ===== */
+        /* ===== SOURCES GRID - FULL SCREEN FILL ===== */
         .sources-grid {
             flex: 1;
             overflow-y: auto;
-            padding: 10px 12px;
+            padding: 8px 10px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
             align-content: start;
         }
 
-        /* ===== SOURCE CARD - UNIQUE DESIGN ===== */
+        /* ===== SOURCE CARD - BIG & FILL ===== */
         .source-card {
             background: var(--card);
-            border-radius: 12px;
-            padding: 18px 14px;
+            border-radius: 10px;
+            padding: 16px 10px;
             border: 2px solid var(--border);
             text-align: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             cursor: default;
-            min-height: 120px;
+            min-height: 110px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            width: 100%;
         }
         .source-card:hover {
-            transform: translateY(-4px) scale(1.02);
+            transform: translateY(-3px);
         }
         
+        /* Active - Full Highlight */
         .source-card.active {
             border-color: var(--green);
-            background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(46,204,113,0.02));
-            box-shadow: 0 8px 32px rgba(46,204,113,0.08);
+            background: linear-gradient(145deg, rgba(46,204,113,0.12), rgba(46,204,113,0.03));
+            box-shadow: 0 4px 24px rgba(46,204,113,0.1);
+            grid-column: span 1;
         }
         .source-card.active::after {
             content: '';
             position: absolute;
             inset: -2px;
-            border-radius: 14px;
+            border-radius: 12px;
             background: linear-gradient(135deg, var(--green), var(--cyan));
             z-index: -1;
-            opacity: 0.15;
-            filter: blur(15px);
+            opacity: 0.1;
+            filter: blur(12px);
         }
         .source-card.active .source-id {
             color: var(--green);
-            text-shadow: 0 0 30px rgba(46,204,113,0.2);
+            text-shadow: 0 0 30px rgba(46,204,113,0.15);
+            font-size: 2.4rem;
         }
         .source-card.active .source-status {
             color: var(--green);
         }
+        .source-card.active .source-hits {
+            border-color: rgba(46,204,113,0.25);
+            color: var(--text2);
+            background: rgba(46,204,113,0.05);
+        }
         
+        /* Inactive */
         .source-card.inactive {
-            border-color: rgba(231,76,60,0.15);
-            opacity: 0.4;
+            border-color: rgba(231,76,60,0.1);
+            opacity: 0.35;
         }
         .source-card.inactive .source-id {
             color: var(--text3);
+            font-size: 1.8rem;
         }
         .source-card.inactive .source-status {
             color: var(--red);
         }
 
         .source-id {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 900;
             font-family: 'JetBrains Mono', monospace;
             letter-spacing: 1px;
             line-height: 1;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             transition: 0.3s;
         }
         
         .source-status {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 6px;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
             transition: 0.3s;
         }
 
         .source-hits {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--text3);
             font-family: 'JetBrains Mono', monospace;
             background: var(--bg);
-            padding: 2px 12px;
-            border-radius: 20px;
+            padding: 2px 10px;
+            border-radius: 16px;
             border: 1px solid var(--border);
             display: inline-block;
-        }
-        .source-card.active .source-hits {
-            border-color: rgba(46,204,113,0.2);
-            color: var(--text2);
         }
 
         .status-dot {
             position: absolute;
-            top: 10px;
-            right: 12px;
-            width: 8px;
-            height: 8px;
+            top: 8px;
+            right: 10px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             transition: 0.3s;
         }
         .source-card.active .status-dot {
             background: var(--green);
-            box-shadow: 0 0 16px rgba(46,204,113,0.6);
+            box-shadow: 0 0 14px rgba(46,204,113,0.5);
             animation: blink 1.5s infinite;
         }
         .source-card.inactive .status-dot {
@@ -439,19 +440,19 @@ if ("fetchSourceStatus".equals(action)) {
             transform: translate(-50%, -50%);
             width: 100%;
             height: 100%;
-            border-radius: 12px;
-            border: 2px solid rgba(46,204,113,0.1);
+            border-radius: 10px;
+            border: 2px solid rgba(46,204,113,0.08);
             animation: pulseRing 2s ease-out infinite;
         }
         @keyframes pulseRing {
             0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1.05); opacity: 0; }
         }
 
         /* ===== ACTIVITY ===== */
         .activity-panel {
             background: var(--surface);
-            border-radius: 12px;
+            border-radius: 10px;
             border: 1px solid var(--border);
             display: flex;
             flex-direction: column;
@@ -460,59 +461,59 @@ if ("fetchSourceStatus".equals(action)) {
         .activity-list {
             flex: 1;
             overflow-y: auto;
-            padding: 6px 10px;
+            padding: 4px 8px;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 2px;
         }
         .activity-item {
             display: flex;
             align-items: center;
-            gap: 5px;
-            padding: 5px 8px;
+            gap: 4px;
+            padding: 4px 6px;
             background: var(--card);
-            border-radius: 5px;
+            border-radius: 4px;
             border-left: 2px solid var(--border);
             animation: slideIn 0.3s ease;
         }
         @keyframes slideIn {
-            from { transform: translateX(-5px); opacity: 0; }
+            from { transform: translateX(-4px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
         .activity-item.on { border-left-color: var(--green); }
         .activity-item.off { border-left-color: var(--red); opacity: 0.5; }
         .activity-time {
-            font-size: 0.45rem;
+            font-size: 0.4rem;
             color: var(--text3);
             font-family: 'JetBrains Mono', monospace;
-            min-width: 38px;
+            min-width: 34px;
         }
         .activity-source {
             font-weight: 700;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-family: 'JetBrains Mono', monospace;
         }
         .activity-status {
-            font-size: 0.4rem;
+            font-size: 0.35rem;
             font-weight: 700;
             text-transform: uppercase;
             margin-left: auto;
-            padding: 1px 6px;
-            border-radius: 6px;
+            padding: 1px 5px;
+            border-radius: 4px;
         }
         .activity-status.on { background: rgba(46,204,113,0.12); color: var(--green); }
         .activity-status.off { background: rgba(231,76,60,0.12); color: var(--red); }
         .activity-empty {
             text-align: center;
-            padding: 16px 10px;
+            padding: 14px 8px;
             color: var(--text3);
-            font-size: 0.65rem;
+            font-size: 0.6rem;
         }
         .activity-empty i {
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             opacity: 0.3;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
 
         /* ===== LOADING ===== */
@@ -532,20 +533,20 @@ if ("fetchSourceStatus".equals(action)) {
             pointer-events: none;
         }
         .loader {
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             border: 3px solid var(--border);
             border-top-color: var(--blue);
             border-bottom-color: var(--purple);
             animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         .loader-text {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: var(--text2);
             animation: pulseText 1.5s ease-in-out infinite;
@@ -555,40 +556,48 @@ if ("fetchSourceStatus".equals(action)) {
             50% { opacity: 0.4; }
         }
         .loader-sub {
-            font-size: 0.65rem;
+            font-size: 0.6rem;
             color: var(--text3);
-            margin-top: 4px;
+            margin-top: 3px;
         }
 
         /* ===== RESPONSIVE ===== */
-        @media (max-width: 1100px) {
+        @media (max-width: 1200px) {
+            .sources-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 992px) {
             .main { grid-template-columns: 1fr; }
-            .activity-panel { max-height: 160px; }
-            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+            .activity-panel { max-height: 140px; }
+            .sources-grid { grid-template-columns: repeat(4, 1fr); }
         }
         @media (max-width: 768px) {
-            .dashboard { padding: 8px 10px; gap: 6px; }
-            .header { flex-wrap: wrap; padding: 8px 12px; }
-            .header h1 { font-size: 0.95rem; }
-            .header-icon { width: 30px; height: 30px; font-size: 13px; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 5px; }
-            .stat-card { padding: 6px 10px; }
-            .stat-info h3 { font-size: 0.9rem; }
-            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); padding: 6px 8px; gap: 6px; }
-            .source-card { min-height: 90px; padding: 12px 8px; }
-            .source-id { font-size: 1.6rem; }
+            .dashboard { padding: 6px 8px; gap: 4px; }
+            .header { flex-wrap: wrap; padding: 6px 10px; }
+            .header h1 { font-size: 0.85rem; }
+            .header-icon { width: 28px; height: 28px; font-size: 12px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+            .stat-card { padding: 4px 8px; }
+            .stat-info h3 { font-size: 0.8rem; }
+            .sources-grid { grid-template-columns: repeat(3, 1fr); padding: 4px 6px; gap: 4px; }
+            .source-card { min-height: 80px; padding: 10px 6px; }
+            .source-id { font-size: 1.4rem; }
+            .source-card.active .source-id { font-size: 1.6rem; }
+            .source-card.inactive .source-id { font-size: 1.2rem; }
             .legend { display: none; }
-            .header-right { flex-wrap: wrap; gap: 4px; }
+            .header-right { flex-wrap: wrap; gap: 3px; }
+            .partition-badge { font-size: 0.4rem; }
         }
         @media (max-width: 480px) {
             .sources-grid { grid-template-columns: repeat(2, 1fr); }
-            .source-card { min-height: 80px; padding: 10px 6px; }
-            .source-id { font-size: 1.3rem; }
-            .source-status { font-size: 0.5rem; }
-            .source-hits { font-size: 0.5rem; }
-            .stat-info h3 { font-size: 0.8rem; }
-            .stat-card { padding: 4px 8px; }
-            .stat-icon { width: 26px; height: 26px; font-size: 11px; }
+            .source-card { min-height: 70px; padding: 8px 4px; }
+            .source-id { font-size: 1.2rem; }
+            .source-card.active .source-id { font-size: 1.4rem; }
+            .source-card.inactive .source-id { font-size: 1rem; }
+            .source-status { font-size: 0.45rem; }
+            .source-hits { font-size: 0.5rem; padding: 1px 6px; }
+            .stat-info h3 { font-size: 0.7rem; }
+            .stat-card { padding: 3px 6px; }
+            .stat-icon { width: 22px; height: 22px; font-size: 9px; }
         }
     </style>
 </head>
@@ -629,28 +638,28 @@ if ("fetchSourceStatus".equals(action)) {
             <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
             <div class="stat-info">
                 <h3 id="activeCount">0</h3>
-                <p>Active Sources</p>
+                <p>Active</p>
             </div>
         </div>
         <div class="stat-card">
             <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
             <div class="stat-info">
                 <h3 id="inactiveCount">0</h3>
-                <p>Inactive Sources</p>
+                <p>Inactive</p>
             </div>
         </div>
         <div class="stat-card">
             <div class="stat-icon blue"><i class="fas fa-database"></i></div>
             <div class="stat-info">
                 <h3 id="totalSources">20</h3>
-                <p>Total Sources</p>
+                <p>Total</p>
             </div>
         </div>
         <div class="stat-card">
             <div class="stat-icon orange"><i class="fas fa-percent"></i></div>
             <div class="stat-info">
                 <h3 id="uptimePercent">0%</h3>
-                <p>Uptime Rate</p>
+                <p>Uptime</p>
             </div>
         </div>
     </div>
@@ -673,11 +682,11 @@ if ("fetchSourceStatus".equals(action)) {
         <!-- ACTIVITY -->
         <div class="activity-panel">
             <div class="panel-head">
-                <h2><i class="fas fa-bolt" style="color:var(--cyan);"></i> Live Activity</h2>
-                <span style="font-size:0.45rem;color:var(--text3);"><i class="fas fa-circle" style="color:var(--green);font-size:0.25rem;"></i> Real-time</span>
+                <h2><i class="fas fa-bolt" style="color:var(--cyan);"></i> Activity</h2>
+                <span style="font-size:0.4rem;color:var(--text3);"><i class="fas fa-circle" style="color:var(--green);font-size:0.2rem;"></i> Live</span>
             </div>
             <div class="activity-list" id="activityList">
-                <div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>
+                <div class="activity-empty"><i class="fas fa-inbox"></i> Waiting...</div>
             </div>
         </div>
 
@@ -687,7 +696,7 @@ if ("fetchSourceStatus".equals(action)) {
 <script>
     var sourceData = {};
     var activityLog = [];
-    var MAX_ACTIVITY = 30;
+    var MAX_ACTIVITY = 25;
     var timerSeconds = 600;
     var timerInterval, refreshInterval;
     var isFirstLoad = true;
@@ -723,11 +732,11 @@ if ("fetchSourceStatus".equals(action)) {
     function renderActivity() {
         var c = document.getElementById('activityList');
         if (activityLog.length === 0) {
-            c.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>';
+            c.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox"></i> Waiting...</div>';
             return;
         }
         var html = '';
-        for (var i = 0; i < Math.min(activityLog.length, 20); i++) {
+        for (var i = 0; i < Math.min(activityLog.length, 18); i++) {
             var item = activityLog[i];
             var cls = item.status === 'Y' ? 'on' : 'off';
             var txt = item.status === 'Y' ? 'ON' : 'OFF';
@@ -769,10 +778,10 @@ if ("fetchSourceStatus".equals(action)) {
                     isFirstLoad = false;
                     hideLoading();
                     document.getElementById('sourcesGrid').innerHTML = 
-                        '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
-                        '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
-                        '<p style="font-weight:600;">Connection Error</p>' +
-                        '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
+                        '<div style="text-align:center;padding:20px;color:var(--text3);grid-column:1/-1;">' +
+                        '<i class="fas fa-exclamation-triangle" style="font-size:1.2rem;display:block;margin-bottom:4px;"></i>' +
+                        '<p style="font-weight:600;font-size:0.7rem;">Connection Error</p>' +
+                        '<p style="font-size:0.55rem;">Please refresh</p></div>';
                 }
             });
     }
@@ -780,7 +789,7 @@ if ("fetchSourceStatus".equals(action)) {
     function renderSources(data) {
         var c = document.getElementById('sourcesGrid');
         if (!data || data.length === 0) {
-            c.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;"><i class="fas fa-database" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i><p>No data available</p></div>';
+            c.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);grid-column:1/-1;"><i class="fas fa-database" style="font-size:1.2rem;display:block;margin-bottom:4px;"></i><p>No data</p></div>';
             return;
         }
         var html = '', active = 0;
@@ -797,7 +806,7 @@ if ("fetchSourceStatus".equals(action)) {
                 (isActive ? '<span class="pulse-ring"></span>' : '') +
                 '<div class="source-id">' + item.source_id + '</div>' +
                 '<div class="source-status">' + status + '</div>' +
-                '<span class="source-hits">' + (isActive ? '⚡ ' + hits + ' hits' : '⏸️ Idle') + '</span>' +
+                '<span class="source-hits">' + (isActive ? '⚡ ' + hits + ' hits' : '⏸ Idle') + '</span>' +
                 '</div>';
         }
         c.innerHTML = html;
