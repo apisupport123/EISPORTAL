@@ -1,58 +1,136 @@
-WITH active_sources AS (
-    SELECT /*+ PARALLEL(4) */ DISTINCT source_id
-    FROM EISAPP.API_LOG PARTITION(AUG_26)
-    WHERE source_id IN ('SA','FS','I4','Y2','KA')
-      AND request_date_time >= SYSDATE - INTERVAL '10' MINUTE
-)
-SELECT s.source_id,
-       CASE WHEN a.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag
-FROM (
-    SELECT 'SA' source_id FROM dual UNION ALL
-    SELECT 'FS' FROM dual UNION ALL
-    SELECT 'I4' FROM dual UNION ALL
-    SELECT 'Y2' FROM dual UNION ALL
-    SELECT 'KA' FROM dual
-) s
-LEFT JOIN active_sources a ON s.source_id = a.source_id;
-
-
---------------------------------------------------------------------------
-
-WITH active_sources AS (
-    SELECT /*+ PARALLEL(4) */ DISTINCT source_id
-    FROM EISAPP.API_LOG PARTITION(AUG_26)
-    WHERE source_id IN ('SA','FS','I4','Y2','KA')
-      AND request_date_time >= SYSDATE - INTERVAL '10' MINUTE
-)
-SELECT s.source_id,
-       CASE WHEN a.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag
-FROM (
-    SELECT 'SA' source_id FROM dual UNION ALL
-    SELECT 'FS' FROM dual UNION ALL
-    SELECT 'I4' FROM dual UNION ALL
-    SELECT 'Y2' FROM dual UNION ALL
-    SELECT 'KA' FROM dual
-) s
-LEFT JOIN active_sources a ON s.source_id = a.source_id;
-
-
-
-------------------------------------------------------------------------
-
-WITH source_list AS (
-    SELECT 'SA' AS source_id FROM dual UNION ALL
-    SELECT 'FS' FROM dual UNION ALL
-    SELECT 'I4' FROM dual UNION ALL
-    SELECT 'Y2' FROM dual UNION ALL
-    SELECT 'KA' FROM dual
-),
-active_sources AS (
-    SELECT /*+ PARALLEL(4) */ DISTINCT source_id
-    FROM EISAPP.API_LOG PARTITION(AUG_26)
-    WHERE source_id IN ('SA','FS','I4','Y2','KA')
-      AND request_date_time >= SYSDATE - INTERVAL '10' MINUTE
-)
-SELECT sl.source_id,
-       CASE WHEN asrc.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag
-FROM source_list sl
-LEFT JOIN active_sources asrc ON sl.source_id = asrc.source_id;
+function exportWithStyledHTML(data) {
+    var displayDate = data.displayDate || new Date().toISOString().split('T')[0];
+    
+    // Count total columns for merging
+    var totalCols = 0;
+    if (data.timeSlots && data.timeSlots.length > 0) {
+        totalCols = 7; // TIME SLOT table has 7 columns
+    }
+    if (data.nightReports && data.nightReports.length > 0) {
+        if (totalCols < 5) totalCols = 5; // NIGHT REPORTS table has 5 columns
+    }
+    if (totalCols === 0) totalCols = 7; // Default
+    
+    var html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+    html += '<head><meta charset="UTF-8">';
+    html += '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Night Checklist</x:Name>';
+    html += '<x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->';
+    html += '<style>';
+    html += 'body { font-family: "Segoe UI", Arial, sans-serif; padding: 20px; background: #f8f9fc; }';
+    html += '.main-title { font-size: 22px; font-weight: 800; color: #1a237e; text-align: center; padding: 18px; background: linear-gradient(135deg, #e8edf4, #d5dce6); border-radius: 10px; margin-bottom: 15px; border: 2px solid #1a237e; }';
+    html += '.main-title .gold { color: #d97706; }';
+    html += '.main-title .sub { font-size: 12px; font-weight: 400; color: #64748b; display: block; margin-top: 4px; }';
+    html += '.date-header { font-size: 14px; font-weight: bold; color: #1a237e; margin-bottom: 15px; padding: 10px 16px; background: #e8edf4; border-left: 4px solid #1a237e; border-radius: 4px; }';
+    html += 'table { border-collapse: collapse; width: 100%; margin-bottom: 20px; font-family: "Segoe UI", Arial, sans-serif; }';
+    html += 'th { background: #1a237e; color: #ffffff; font-weight: bold; padding: 10px 8px; text-align: center; border: 1px solid #0d1547; font-size: 11px; text-transform: uppercase; }';
+    html += 'td { padding: 8px; border: 1px solid #d0d7de; text-align: center; font-size: 11px; color: #1a2634; }';
+    html += 'tr:nth-child(even) { background: #f8f9fc; }';
+    html += 'tr:nth-child(odd) { background: #ffffff; }';
+    html += '.task-name { font-weight: 600; color: #0B1A30; text-align: left; padding-left: 12px; }';
+    html += '.status-done { background: #d4edda; color: #155724; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+    html += '.status-pending { background: #fff3cd; color: #856404; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+    html += '.status-na { background: #e2e3e5; color: #383d41; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+    html += '.status-inprogress { background: #cce5ff; color: #004085; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+    html += '.status-handover { background: #f5c6cb; color: #721c24; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+    html += '.status-failed { background: #f8d7da; color: #721c24; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+    html += '.status-review { background: #d6d8db; color: #383d41; font-weight: bold; padding: 2px 12px; border-radius: 4px; display: inline-block; }';
+    html += '.done-by { font-weight: 600; color: #0B1A30; }';
+    html += '.section-title { font-size: 16px; font-weight: bold; color: #1a237e; padding: 10px 12px; border-bottom: 2px solid #1a237e; margin-top: 15px; margin-bottom: 12px; background: #e8edf4; border-radius: 4px 4px 0 0; }';
+    html += '.footer { margin-top: 20px; padding: 12px; border-top: 2px solid #e0e0e0; text-align: center; color: #666; font-size: 10px; }';
+    html += '.footer .company { font-weight: 600; color: #1a237e; }';
+    // Add mso merge styles
+    html += '.merge { mso-merge-cells: true; }';
+    html += '</style></head><body>';
+    
+    // ===== MAIN TITLE WITH MERGE =====
+    html += '<table><tr>';
+    html += '<td colspan="' + totalCols + '" style="text-align:center; border:none; padding:0;">';
+    html += '<div class="main-title">🎧 EIS <span class="gold">Support</span> • Night Shift Checklist';
+    html += '<span class="sub">' + displayDate + ' | Real-time Task Management</span></div>';
+    html += '</td>';
+    html += '</tr></table>';
+    
+    // ===== DATE HEADER WITH MERGE =====
+    var currentDate = new Date().toLocaleString();
+    html += '<table><tr>';
+    html += '<td colspan="' + totalCols + '" style="text-align:left; border:none; padding:0;">';
+    html += '<div class="date-header">📅 Date: ' + displayDate + ' | ⏰ Generated: ' + currentDate + '</div>';
+    html += '</td>';
+    html += '</tr></table>';
+    
+    // ===== TIME SLOTS =====
+    if (data.timeSlots && data.timeSlots.length > 0) {
+        html += '<div class="section-title">⏰ TIME SLOTS</div>';
+        html += '<table><thead><tr>';
+        html += '<th style="width:15%;">TIME SLOT</th>';
+        html += '<th style="width:18%;">UNRESPONDED MAILS</th>';
+        html += '<th style="width:16%;">STRATEGIC MGMT</th>';
+        html += '<th style="width:14%;">HELIX TICKET</th>';
+        html += '<th style="width:14%;">DONE BY</th>';
+        html += '<th style="width:11%;">REVIEW</th>';
+        html += '<th style="width:12%;">REMARKS</th>';
+        html += '</tr></thead><tbody>';
+        
+        for (var i = 0; i < data.timeSlots.length; i++) {
+            var row = data.timeSlots[i];
+            html += '<tr>';
+            html += '<td class="task-name">' + (row.time_slot || '') + '</td>';
+            html += '<td>' + getStatusBadge(row.unresponded_mails || '') + '</td>';
+            html += '<td>' + getStatusBadge(row.strategic_management || '') + '</td>';
+            html += '<td>' + getStatusBadge(row.helix_ticket || '') + '</td>';
+            html += '<td class="done-by">' + (row.done_by || '') + '</td>';
+            html += '<td style="text-align:left;padding-left:8px;">' + (row.review || '') + '</td>';
+            html += '<td style="text-align:left;padding-left:8px;">' + (row.remarks || '') + '</td>';
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+    }
+    
+    // ===== NIGHT REPORTS =====
+    if (data.nightReports && data.nightReports.length > 0) {
+        html += '<div class="section-title">📋 NIGHT REPORTS</div>';
+        html += '<table><thead><tr>';
+        html += '<th style="width:35%;">NIGHT REPORTS</th>';
+        html += '<th style="width:18%;">STATUS</th>';
+        html += '<th style="width:15%;">DONE BY</th>';
+        html += '<th style="width:16%;">REVIEW</th>';
+        html += '<th style="width:16%;">REMARKS</th>';
+        html += '</tr></thead><tbody>';
+        
+        for (var i = 0; i < data.nightReports.length; i++) {
+            var row = data.nightReports[i];
+            html += '<tr>';
+            html += '<td class="task-name">' + (row.night_report || '') + '</td>';
+            html += '<td>' + getStatusBadge(row.status || '') + '</td>';
+            html += '<td class="done-by">' + (row.done_by || '') + '</td>';
+            html += '<td style="text-align:left;padding-left:8px;">' + (row.review || '') + '</td>';
+            html += '<td style="text-align:left;padding-left:8px;">' + (row.remarks || '') + '</td>';
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+    }
+    
+    // ===== FOOTER =====
+    var footerDate = '<%= footerDate %>';
+    html += '<table><tr>';
+    html += '<td colspan="' + totalCols + '" style="text-align:center; border:none; padding:0;">';
+    html += '<div class="footer">';
+    html += '<div><span class="company">EIS Support</span> | Night Shift Checklist</div>';
+    html += '<div style="margin-top:4px;">Generated: ' + footerDate + '</div>';
+    html += '</div>';
+    html += '</td>';
+    html += '</tr></table>';
+    
+    html += '</body></html>';
+    
+    var blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+    var link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'EIS_Support_Night_Checklist_' + displayDate + '.xls';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    
+    alert('✅ Excel exported successfully!');
+}
