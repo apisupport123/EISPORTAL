@@ -1,108 +1,126 @@
-[DBConfig] Config file found: D:\AppConfig\db.properties
-[DBConfig] Config loaded successfully from: D:\AppConfig\db.properties
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getIIBDBConnection - flagStatus: PR, DB_ENVLOCATION: HI
-In Mumbai Environment
-In Mumbai PR
-IIB Mumbai PR Connected: jdbc:oracle:thin:@10.176.0.107:1787/MIBDRCDB_SRV
-
-
-
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*, java.util.*, java.text.*" %>
+<%@ page import="java.sql.*, java.util.*, java.text.*, java.util.concurrent.*" %>
 <%@page import="com.jdbc.DBUtilityAuto"%>
+
 <%!
 // ============================================
-// DYNAMIC PARTITION - CURRENT MONTH
+// BACKGROUND TASK - SINGLE CONNECTION
 // ============================================
-String getPartition() {
-    Calendar cal = Calendar.getInstance();
-    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
-    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
-    return month + "_" + year;
-}
-%>
-<%
-String action = request.getParameter("action");
-
-if ("fetchSourceStatus".equals(action)) {
-    response.setContentType("application/json");
-    Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
-    StringBuilder json = new StringBuilder();
+private static class SourceStatusCache {
+    private static volatile Map<String, String> statusMap = new ConcurrentHashMap<>();
+    private static volatile boolean isProcessing = false;
+    private static volatile String lastError = null;
+    private static volatile long lastUpdateTime = 0;
+    private static volatile int progress = 0;
+    private static volatile String statusMessage = "Initializing...";
+    private static volatile ScheduledExecutorService scheduler = null;
+    private static volatile Future<?> currentTask = null;
+    private static final Object lock = new Object();
     
-    try {
-        conn = DBUtilityAuto.getIIBDBConnection();
-        String partition = getPartition();
+    // Start background scheduler
+    public static void startScheduler() {
+        synchronized(lock) {
+            if (scheduler != null && !scheduler.isShutdown()) {
+                return;
+            }
+            scheduler = Executors.newScheduledThreadPool(1);
+            // Run every 10 minutes
+            currentTask = scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    refreshData();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }, 0, 10, TimeUnit.MINUTES);
+        }
+    }
+    
+    public static void stopScheduler() {
+        synchronized(lock) {
+            if (scheduler != null) {
+                scheduler.shutdown();
+                scheduler = null;
+            }
+        }
+    }
+    
+    // Refresh data - SINGLE CONNECTION
+    private static void refreshData() {
+        if (isProcessing) return;
+        isProcessing = true;
+        progress = 0;
+        statusMessage = "Connecting to database...";
         
-        String query = 
-            "WITH FOUND_SOURCES AS ( " +
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            long startTime = System.currentTimeMillis();
+            System.out.println("⏳ Heavy query started at: " + new Date());
+            progress = 10;
+            statusMessage = "Database connected, preparing query...";
+            
+            // 🔥 EK BAAR CONNECTION LO
+            conn = DBUtilityAuto.getIIBDBConnection();
+            progress = 20;
+            statusMessage = "Query prepared, executing... (may take 10 minutes)";
+            
+            String partition = getCurrentPartition();
+            String query = buildQuery(partition);
+            
+            stmt = conn.createStatement();
+            stmt.setQueryTimeout(1200); // 20 min timeout
+            progress = 30;
+            statusMessage = "Query running... " + partition + " partition";
+            
+            // 🐢 YAHAN 10 MIN LAGENGE
+            rs = stmt.executeQuery(query);
+            progress = 80;
+            statusMessage = "Query completed, processing results...";
+            
+            Map<String, String> newMap = new HashMap<>();
+            while (rs.next()) {
+                newMap.put(rs.getString("source_id"), rs.getString("flag"));
+            }
+            
+            // ✅ UPDATE CACHE - EK BAAR MEIN
+            statusMap = newMap;
+            lastUpdateTime = System.currentTimeMillis();
+            progress = 100;
+            statusMessage = "Data updated successfully";
+            lastError = null;
+            
+            long endTime = System.currentTimeMillis();
+            System.out.println("✅ Query completed in: " + (endTime - startTime)/1000 + " seconds");
+            System.out.println("📊 Found " + statusMap.size() + " source statuses");
+            
+        } catch(Exception e) {
+            e.printStackTrace();
+            lastError = "Error: " + e.getMessage();
+            statusMessage = "Error occurred: " + e.getMessage();
+            progress = 0;
+        } finally {
+            // 🔥 EK BAAR CONNECTION CLOSE
+            try { if (rs != null) rs.close(); } catch(Exception e) {}
+            try { if (stmt != null) stmt.close(); } catch(Exception e) {}
+            try { if (conn != null) { 
+                conn.close(); 
+                System.out.println("🔒 Connection closed after heavy query");
+            }} catch(Exception e) {}
+            isProcessing = false;
+        }
+    }
+    
+    private static String getCurrentPartition() {
+        Calendar cal = Calendar.getInstance();
+        String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
+        String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
+        return month + "_" + year;
+    }
+    
+    private static String buildQuery(String partition) {
+        return "WITH FOUND_SOURCES AS ( " +
             "   SELECT /*+ parallel(04) */ a.source_id " +
             "   FROM eisapp.api_log PARTITION(" + partition + ") a " +
             "   WHERE a.source_id IN ('AK','CA','CC','CK','CR','FA','FS','I4','IN','KA','MB','NB','ON','RL','SA','SK','SQ','UP','WB','Y2') " +
@@ -135,34 +153,85 @@ if ("fetchSourceStatus".equals(action)) {
             ") s " +
             "LEFT JOIN FOUND_SOURCES f ON f.source_id = s.source_id " +
             "ORDER BY s.source_id";
-        
-        stmt = conn.createStatement();
-        stmt.setQueryTimeout(1200);
-        rs = stmt.executeQuery(query);
-        
-        json.append("[");
-        boolean first = true;
-        while (rs.next()) {
-            if (!first) json.append(",");
-            json.append("{");
-            json.append("\"source_id\":\"").append(rs.getString("source_id")).append("\",");
-            json.append("\"flag\":\"").append(rs.getString("flag")).append("\"");
-            json.append("}");
-            first = false;
-        }
-        json.append("]");
-        out.print(json.toString());
-        
-    } catch(Exception e) {
-        out.print("[]");
-    } finally {
-        try { if (rs != null) rs.close(); } catch(Exception e) {}
-        try { if (stmt != null) stmt.close(); } catch(Exception e) {}
-        try { if (conn != null) conn.close(); } catch(Exception e) {}
     }
+    
+    // Public getters for JSP
+    public static Map<String, String> getStatusMap() { return statusMap; }
+    public static boolean isProcessing() { return isProcessing; }
+    public static String getLastError() { return lastError; }
+    public static long getLastUpdateTime() { return lastUpdateTime; }
+    public static int getProgress() { return progress; }
+    public static String getStatusMessage() { return statusMessage; }
+    
+    // Manual refresh trigger
+    public static void triggerRefresh() {
+        if (!isProcessing) {
+            new Thread(() -> refreshData()).start();
+        }
+    }
+}
+
+// JSP Declaration for partition
+String getPartition() {
+    Calendar cal = Calendar.getInstance();
+    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
+    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
+    return month + "_" + year;
+}
+
+// Initialize scheduler when JSP loads
+static {
+    SourceStatusCache.startScheduler();
+}
+%>
+
+<%
+// ============================================
+// ACTION HANDLING
+// ============================================
+String action = request.getParameter("action");
+
+// Return cached data - NO DB CONNECTION
+if ("fetchSourceStatus".equals(action)) {
+    response.setContentType("application/json");
+    Map<String, String> statusMap = SourceStatusCache.getStatusMap();
+    
+    // Static list of all sources
+    String[] allSources = {"SA","FS","I4","Y2","KA","FA","WB","ON","CC","CK","CR","SQ","RL","UP","CA","AK","NB","IN","MB","SK"};
+    
+    StringBuilder json = new StringBuilder();
+    json.append("[");
+    for (int i = 0; i < allSources.length; i++) {
+        if (i > 0) json.append(",");
+        String source = allSources[i];
+        String flag = statusMap.getOrDefault(source, "N");
+        json.append("{\"source_id\":\"").append(source).append("\",\"flag\":\"").append(flag).append("\"}");
+    }
+    json.append("]");
+    out.print(json.toString());
+    return;
+}
+
+// Get status info - for progress bar
+if ("getStatus".equals(action)) {
+    response.setContentType("application/json");
+    out.print("{\"processing\":" + SourceStatusCache.isProcessing() + 
+             ",\"progress\":" + SourceStatusCache.getProgress() + 
+             ",\"message\":\"" + SourceStatusCache.getStatusMessage() + "\"" +
+             ",\"error\":\"" + (SourceStatusCache.getLastError() != null ? SourceStatusCache.getLastError() : "") + "\"" +
+             ",\"lastUpdate\":\"" + (SourceStatusCache.getLastUpdateTime() > 0 ? new Date(SourceStatusCache.getLastUpdateTime()) : "") + "\"}");
+    return;
+}
+
+// Manual refresh
+if ("refresh".equals(action)) {
+    SourceStatusCache.triggerRefresh();
+    response.setContentType("text/plain");
+    out.print("Refresh triggered");
     return;
 }
 %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -255,6 +324,7 @@ if ("fetchSourceStatus".equals(action)) {
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
         .live-badge {
             display: flex;
@@ -295,6 +365,63 @@ if ("fetchSourceStatus".equals(action)) {
             border-radius: 8px;
             border: 1px solid var(--border);
             font-family: 'JetBrains Mono', monospace;
+        }
+        .refresh-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text2);
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .refresh-btn:hover {
+            border-color: var(--blue);
+            color: var(--text);
+        }
+        .refresh-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-container {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: var(--text2);
+        }
+        .progress-info .status-msg {
+            color: var(--text);
+            font-weight: 600;
+        }
+        .progress-info .error-msg {
+            color: var(--red);
         }
 
         /* ===== STATS ===== */
@@ -390,7 +517,7 @@ if ("fetchSourceStatus".equals(action)) {
         .legend .g { color: var(--green); }
         .legend .r { color: var(--red); }
 
-        /* ===== SOURCES GRID - FULL SCREEN BIG CARDS ===== */
+        /* ===== SOURCES GRID ===== */
         .sources-grid {
             flex: 1;
             overflow-y: auto;
@@ -401,7 +528,7 @@ if ("fetchSourceStatus".equals(action)) {
             align-content: start;
         }
 
-        /* ===== SOURCE CARD - UNIQUE DESIGN ===== */
+        /* ===== SOURCE CARD ===== */
         .source-card {
             background: var(--card);
             border-radius: 12px;
@@ -421,7 +548,6 @@ if ("fetchSourceStatus".equals(action)) {
             transform: translateY(-4px) scale(1.02);
         }
         
-        /* Active State */
         .source-card.active {
             border-color: var(--green);
             background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(46,204,113,0.02));
@@ -445,7 +571,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--green);
         }
         
-        /* Inactive State */
         .source-card.inactive {
             border-color: rgba(231,76,60,0.15);
             opacity: 0.4;
@@ -457,7 +582,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--red);
         }
 
-        /* Source ID - Big & Bold */
         .source-id {
             font-size: 2.2rem;
             font-weight: 900;
@@ -468,7 +592,6 @@ if ("fetchSourceStatus".equals(action)) {
             transition: 0.3s;
         }
         
-        /* Status Label */
         .source-status {
             font-size: 0.6rem;
             font-weight: 700;
@@ -478,7 +601,6 @@ if ("fetchSourceStatus".equals(action)) {
             transition: 0.3s;
         }
 
-        /* Hit Counter */
         .source-hits {
             font-size: 0.65rem;
             color: var(--text3);
@@ -494,7 +616,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--text2);
         }
 
-        /* Status Dot */
         .status-dot {
             position: absolute;
             top: 10px;
@@ -514,7 +635,6 @@ if ("fetchSourceStatus".equals(action)) {
             opacity: 0.3;
         }
 
-        /* Pulse Ring for Active */
         .source-card.active .pulse-ring {
             position: absolute;
             top: 50%;
@@ -598,51 +718,6 @@ if ("fetchSourceStatus".equals(action)) {
             margin-bottom: 4px;
         }
 
-        /* ===== LOADING ===== */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease;
-        }
-        .loading-overlay.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .loader {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            border: 3px solid var(--border);
-            border-top-color: var(--blue);
-            border-bottom-color: var(--purple);
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .loader-text {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text2);
-            animation: pulseText 1.5s ease-in-out infinite;
-        }
-        @keyframes pulseText {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        .loader-sub {
-            font-size: 0.65rem;
-            color: var(--text3);
-            margin-top: 4px;
-        }
-
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1100px) {
             .main { grid-template-columns: 1fr; }
@@ -677,13 +752,6 @@ if ("fetchSourceStatus".equals(action)) {
 </head>
 <body>
 
-<!-- LOADING -->
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="loader"></div>
-    <div class="loader-text">Loading Source Monitor</div>
-    <div class="loader-sub">Connecting to Oracle Database...</div>
-</div>
-
 <div class="dashboard">
 
     <!-- HEADER -->
@@ -697,17 +765,35 @@ if ("fetchSourceStatus".equals(action)) {
         </div>
         <div class="header-right">
             <span class="partition-badge" id="partitionBadge">📁 Loading...</span>
-            <div class="live-badge" id="liveBadge" style="display:none;">
+            <div class="live-badge">
                 <span class="live-dot"></span> LIVE
             </div>
-            <div class="timer-badge" id="timerBadge" style="display:none;">
-                <i class="fas fa-clock"></i> <span id="timerDisplay">10:00</span>
+            <div class="timer-badge">
+                <i class="fas fa-clock"></i> <span id="updateTime">Updating...</span>
             </div>
+            <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-info">
+            <span class="status-msg" id="statusMsg">Initializing...</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-info" style="margin-top:2px;">
+            <span class="error-msg" id="errorMsg"></span>
+            <span id="lastUpdateMsg"></span>
         </div>
     </div>
 
     <!-- STATS -->
-    <div class="stats-row" id="statsRow" style="display:none;">
+    <div class="stats-row" id="statsRow">
         <div class="stat-card">
             <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
             <div class="stat-info">
@@ -739,7 +825,7 @@ if ("fetchSourceStatus".equals(action)) {
     </div>
 
     <!-- MAIN -->
-    <div class="main" id="mainGrid" style="display:none;">
+    <div class="main" id="mainGrid">
 
         <!-- SOURCES -->
         <div class="sources-panel">
@@ -750,7 +836,12 @@ if ("fetchSourceStatus".equals(action)) {
                     <span><span class="r">●</span> Inactive</span>
                 </div>
             </div>
-            <div class="sources-grid" id="sourcesGrid"></div>
+            <div class="sources-grid" id="sourcesGrid">
+                <div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">
+                    <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>
+                    <p>Loading source data...</p>
+                </div>
+            </div>
         </div>
 
         <!-- ACTIVITY -->
@@ -771,26 +862,13 @@ if ("fetchSourceStatus".equals(action)) {
     var sourceData = {};
     var activityLog = [];
     var MAX_ACTIVITY = 30;
-    var timerSeconds = 600;
-    var timerInterval, refreshInterval;
+    var statusInterval, dataInterval;
     var isFirstLoad = true;
 
     function getPartition() {
         var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
         var now = new Date();
         return months[now.getMonth()] + '_' + String(now.getFullYear()).slice(-2);
-    }
-
-    function formatTime(s) {
-        var m = Math.floor(s / 60);
-        var sec = s % 60;
-        return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
-    }
-
-    function updateTimer() {
-        timerSeconds--;
-        if (timerSeconds <= 0) timerSeconds = 600;
-        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
     }
 
     function addActivity(source, status) {
@@ -823,43 +901,6 @@ if ("fetchSourceStatus".equals(action)) {
         c.innerHTML = html;
     }
 
-    function hideLoading() {
-        var overlay = document.getElementById('loadingOverlay');
-        overlay.classList.add('hide');
-        document.getElementById('liveBadge').style.display = 'flex';
-        document.getElementById('timerBadge').style.display = 'flex';
-        document.getElementById('statsRow').style.display = 'grid';
-        document.getElementById('mainGrid').style.display = 'grid';
-        document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
-        timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function fetchData() {
-        fetch('?action=fetchSourceStatus')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                renderSources(data);
-                updateStats(data);
-                updateActivity(data);
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    hideLoading();
-                }
-            })
-            .catch(function(e) {
-                console.error(e);
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    hideLoading();
-                    document.getElementById('sourcesGrid').innerHTML = 
-                        '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
-                        '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
-                        '<p style="font-weight:600;">Connection Error</p>' +
-                        '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
-                }
-            });
-    }
-
     function renderSources(data) {
         var c = document.getElementById('sourcesGrid');
         if (!data || data.length === 0) {
@@ -873,18 +914,18 @@ if ("fetchSourceStatus".equals(action)) {
             if (isActive) active++;
             var cls = isActive ? 'active' : 'inactive';
             var status = isActive ? 'ONLINE' : 'OFFLINE';
-            var hits = isActive ? Math.floor(Math.random() * 50 + 10) : 0;
             
             html += '<div class="source-card ' + cls + '">' +
                 '<span class="status-dot"></span>' +
                 (isActive ? '<span class="pulse-ring"></span>' : '') +
                 '<div class="source-id">' + item.source_id + '</div>' +
                 '<div class="source-status">' + status + '</div>' +
-                '<span class="source-hits">' + (isActive ? '⚡ ' + hits + ' hits' : '⏸️ Idle') + '</span>' +
+                '<span class="source-hits">' + (isActive ? '⚡ ACTIVE' : '⏸️ Idle') + '</span>' +
                 '</div>';
         }
         c.innerHTML = html;
         document.getElementById('sourceCount').textContent = active + '/' + data.length;
+        return active;
     }
 
     function updateStats(data) {
@@ -914,18 +955,112 @@ if ("fetchSourceStatus".equals(action)) {
         sourceData = current;
     }
 
-    function start() {
-        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+    function fetchData() {
+        fetch('?action=fetchSourceStatus')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var active = renderSources(data);
+                updateStats(data);
+                updateActivity(data);
+                document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
+                document.getElementById('liveBadge').style.display = 'flex';
+                
+                if (isFirstLoad) {
+                    isFirstLoad = false;
+                }
+            })
+            .catch(function(e) {
+                console.error(e);
+                if (isFirstLoad) {
+                    document.getElementById('sourcesGrid').innerHTML = 
+                        '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
+                        '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
+                        '<p style="font-weight:600;">Connection Error</p>' +
+                        '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
+                }
+            });
+    }
+
+    function checkStatus() {
+        fetch('?action=getStatus')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var container = document.getElementById('progressContainer');
+                var fill = document.getElementById('progressFill');
+                var msg = document.getElementById('statusMsg');
+                var percent = document.getElementById('progressPercent');
+                var error = document.getElementById('errorMsg');
+                var lastUpdate = document.getElementById('lastUpdateMsg');
+                
+                if (data.processing) {
+                    container.style.display = 'block';
+                    fill.style.width = data.progress + '%';
+                    msg.textContent = data.message;
+                    percent.textContent = data.progress + '%';
+                    error.textContent = '';
+                    document.getElementById('refreshBtn').disabled = true;
+                    document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running';
+                } else {
+                    if (data.error) {
+                        container.style.display = 'block';
+                        error.textContent = '❌ ' + data.error;
+                        document.getElementById('refreshBtn').disabled = false;
+                        document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                    } else if (data.lastUpdate) {
+                        container.style.display = 'block';
+                        fill.style.width = '100%';
+                        msg.textContent = '✅ Data loaded successfully';
+                        percent.textContent = '100%';
+                        lastUpdate.textContent = 'Last update: ' + data.lastUpdate;
+                        document.getElementById('refreshBtn').disabled = false;
+                        document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                        
+                        // Auto hide after 5 seconds
+                        setTimeout(function() {
+                            container.style.display = 'none';
+                        }, 5000);
+                    }
+                }
+            })
+            .catch(function(e) {});
+    }
+
+    function manualRefresh() {
+        var btn = document.getElementById('refreshBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Triggering...';
+        
+        fetch('?action=refresh')
+            .then(function() {
+                document.getElementById('progressContainer').style.display = 'block';
+                document.getElementById('statusMsg').textContent = '🔄 Refresh triggered, waiting for data...';
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('progressPercent').textContent = '0%';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running';
+            })
+            .catch(function(e) {});
+    }
+
+    function init() {
+        // Partition
+        document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
+        
+        // Initial data load
         fetchData();
-        refreshInterval = setInterval(fetchData, 10000);
+        
+        // Check status every 5 seconds
+        statusInterval = setInterval(checkStatus, 5000);
+        
+        // Refresh data every 30 seconds (cached data)
+        dataInterval = setInterval(fetchData, 30000);
     }
 
     window.addEventListener('beforeunload', function() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        if (timerInterval) clearInterval(timerInterval);
+        if (statusInterval) clearInterval(statusInterval);
+        if (dataInterval) clearInterval(dataInterval);
     });
 
-    start();
+    init();
 </script>
 </body>
 </html>
