@@ -1,3 +1,5 @@
+Type mismatch: cannot convert from AutoCloseableConnection to Connection
+
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*, java.util.*, java.text.*" %>
 <%@page import="com.jdbc.DBUtilityAuto"%>
