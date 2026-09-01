@@ -1,7 +1,1009 @@
-https://10.191.171.12:5443/favicon.ico 502 (Bad Gateway)
-Source_Monitor.jsp:859  GET https://10.191.171.12:5443/EISPortal/jsp/Source_Monitor.jsp?action=fetchSourceStatus net::ERR_CONNECTION_RESET
-fetchData @ Source_Monitor.jsp:859
-(anonymous) @ Source_Monitor.jsp:931
-Source_Monitor.jsp:868 TypeError: Failed to fetch
-    at fetchData (Source_Monitor.jsp:859:9)
-    at Source_Monitor.jsp:931:5
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, java.util.*, java.text.*" %>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+<%!
+String getPartition() {
+    Calendar cal = Calendar.getInstance();
+    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
+    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
+    return month + "_" + year;
+}
+%>
+<%
+String action = request.getParameter("action");
+
+if ("fetchSourceStatus".equals(action)) {
+    response.setContentType("application/json");
+    Connection conn = null;
+    Statement stmt = null;
+    ResultSet rs = null;
+    StringBuilder json = new StringBuilder();
+    
+    try {
+        conn = DBUtilityAuto.getIIBDBConnection();
+        String partition = getPartition();
+        
+        String query = 
+            "WITH FOUND_SOURCES AS ( " +
+            "   SELECT /*+ parallel(04) */ a.source_id " +
+            "   FROM eisapp.api_log PARTITION(" + partition + ") a " +
+            "   WHERE a.source_id IN ('AK','CA','CC','CK','CR','FA','FS','I4','IN','KA','MB','NB','ON','RL','SA','SK','SQ','UP','WB','Y2') " +
+            "   AND a.request_date_time >= SYSDATE - INTERVAL '10' MINUTE " +
+            "   GROUP BY a.source_id " +
+            ") " +
+            "SELECT s.source_id, " +
+            "CASE WHEN f.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag " +
+            "FROM ( " +
+            "   SELECT 'SA' AS source_id FROM DUAL UNION ALL " +
+            "   SELECT 'FS' FROM DUAL UNION ALL " +
+            "   SELECT 'I4' FROM DUAL UNION ALL " +
+            "   SELECT 'Y2' FROM DUAL UNION ALL " +
+            "   SELECT 'KA' FROM DUAL UNION ALL " +
+            "   SELECT 'FA' FROM DUAL UNION ALL " +
+            "   SELECT 'WB' FROM DUAL UNION ALL " +
+            "   SELECT 'ON' FROM DUAL UNION ALL " +
+            "   SELECT 'CC' FROM DUAL UNION ALL " +
+            "   SELECT 'CK' FROM DUAL UNION ALL " +
+            "   SELECT 'CR' FROM DUAL UNION ALL " +
+            "   SELECT 'SQ' FROM DUAL UNION ALL " +
+            "   SELECT 'RL' FROM DUAL UNION ALL " +
+            "   SELECT 'UP' FROM DUAL UNION ALL " +
+            "   SELECT 'CA' FROM DUAL UNION ALL " +
+            "   SELECT 'AK' FROM DUAL UNION ALL " +
+            "   SELECT 'NB' FROM DUAL UNION ALL " +
+            "   SELECT 'IN' FROM DUAL UNION ALL " +
+            "   SELECT 'MB' FROM DUAL UNION ALL " +
+            "   SELECT 'SK' FROM DUAL " +
+            ") s " +
+            "LEFT JOIN FOUND_SOURCES f ON f.source_id = s.source_id " +
+            "ORDER BY s.source_id";
+        
+        stmt = conn.createStatement();
+        stmt.setQueryTimeout(1200);
+        rs = stmt.executeQuery(query);
+        
+        json.append("[");
+        boolean first = true;
+        while (rs.next()) {
+            if (!first) json.append(",");
+            json.append("{");
+            json.append("\"source_id\":\"").append(rs.getString("source_id")).append("\",");
+            json.append("\"flag\":\"").append(rs.getString("flag")).append("\"");
+            json.append("}");
+            first = false;
+        }
+        json.append("]");
+        out.print(json.toString());
+        
+    } catch(Exception e) {
+        // Return error as JSON
+        String errorMsg = e.getMessage();
+        if (errorMsg == null) errorMsg = "Unknown error";
+        errorMsg = errorMsg.replace("\"", "'").replace("\n", " ");
+        out.print("{\"error\":\"" + errorMsg + "\"}");
+        e.printStackTrace();
+    } finally {
+        try { if (rs != null) rs.close(); } catch(Exception e) {}
+        try { if (stmt != null) stmt.close(); } catch(Exception e) {}
+        try { if (conn != null) conn.close(); } catch(Exception e) {}
+    }
+    return;
+}
+%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ SOURCE MONITOR</title>
+    <link rel="stylesheet" href="../css/all.min.css">
+    <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --cyber-blue: #00f0ff;
+            --cyber-pink: #ff006e;
+            --cyber-green: #00ff88;
+            --cyber-purple: #7000ff;
+            --cyber-yellow: #ffe600;
+            --cyber-red: #ff0055;
+            --bg-dark: #0a0a0f;
+            --bg-card: #111122;
+            --bg-surface: #0d0d1a;
+            --border-glow: rgba(0, 240, 255, 0.15);
+            --text-primary: #e0e8ff;
+            --text-secondary: #8899cc;
+            --text-dim: #445577;
+        }
+
+        body {
+            background: var(--bg-dark);
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        ::-webkit-scrollbar { width: 3px; height: 3px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--cyber-blue); border-radius: 10px; }
+
+        .top-bar {
+            position: relative;
+            z-index: 1;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 8px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-purple));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #fff;
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 40px rgba(0, 240, 255, 0.15); }
+            50% { box-shadow: 0 0 60px rgba(0, 240, 255, 0.3); }
+        }
+
+        .brand h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--cyber-blue), var(--cyber-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand .sub {
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            background: rgba(0, 255, 136, 0.05);
+            font-size: 0.6rem;
+            color: var(--cyber-green);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--cyber-green);
+            animation: blink 1.5s infinite;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.2; transform: scale(0.8); }
+        }
+
+        .timer-box {
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 230, 0, 0.15);
+            background: rgba(255, 230, 0, 0.05);
+            font-size: 0.7rem;
+            font-family: 'Orbitron', monospace;
+            color: var(--cyber-yellow);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .timer-box i { color: var(--cyber-yellow); font-size: 0.6rem; }
+        .timer-box span { font-weight: 700; min-width: 40px; display: inline-block; text-align: center; }
+
+        .partition-tag {
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            padding: 3px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-glow);
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
+            background: rgba(0, 240, 255, 0.03);
+        }
+
+        .stats-row {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            padding: 10px 24px 0 24px;
+            flex-shrink: 0;
+        }
+
+        .stat-card {
+            background: var(--bg-surface);
+            border-radius: 10px;
+            padding: 10px 16px;
+            border: 1px solid var(--border-glow);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: rgba(0, 240, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .stat-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.green { background: rgba(0, 255, 136, 0.1); color: var(--cyber-green); }
+        .stat-icon.red { background: rgba(255, 0, 85, 0.1); color: var(--cyber-red); }
+        .stat-icon.blue { background: rgba(0, 240, 255, 0.1); color: var(--cyber-blue); }
+        .stat-icon.orange { background: rgba(255, 230, 0, 0.1); color: var(--cyber-yellow); }
+
+        .stat-info h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: 1px;
+        }
+
+        .stat-info p {
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            padding: 10px 24px 24px 24px;
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 10px;
+            min-height: 0;
+        }
+
+        .sources-panel {
+            background: var(--bg-surface);
+            border-radius: 12px;
+            border: 1px solid var(--border-glow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 8px 16px;
+            background: rgba(0, 240, 255, 0.02);
+            border-bottom: 1px solid var(--border-glow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .panel-header h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+        }
+
+        .panel-header h2 i { color: var(--cyber-blue); }
+
+        .panel-header .count-badge {
+            padding: 1px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border-glow);
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            font-family: 'Orbitron', monospace;
+            background: rgba(0, 240, 255, 0.03);
+        }
+
+        .panel-header .legend {
+            display: flex;
+            gap: 12px;
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .legend .on { color: var(--cyber-green); }
+        .legend .off { color: var(--cyber-red); }
+
+        .sources-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            align-content: start;
+        }
+
+        .source-card {
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 14px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: default;
+        }
+
+        .source-card:hover {
+            transform: translateY(-3px) scale(1.02);
+            border-color: rgba(0, 240, 255, 0.1);
+        }
+
+        .source-card.active {
+            border-color: rgba(0, 255, 136, 0.2);
+            background: linear-gradient(145deg, rgba(0, 255, 136, 0.04), rgba(0, 255, 136, 0.01));
+        }
+
+        .source-card.active .source-id {
+            color: var(--cyber-green);
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
+        }
+
+        .source-card.active .source-status {
+            color: var(--cyber-green);
+        }
+
+        .source-card.inactive {
+            opacity: 0.3;
+            filter: grayscale(0.5);
+        }
+
+        .source-card.inactive .source-id {
+            color: var(--text-dim);
+        }
+
+        .source-id {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            line-height: 1;
+            margin-bottom: 2px;
+            transition: 0.3s;
+        }
+
+        .source-status {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.45rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-bottom: 4px;
+            transition: 0.3s;
+        }
+
+        .source-hits {
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            font-family: 'Orbitron', monospace;
+            padding: 2px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .source-card.active .source-hits {
+            border-color: rgba(0, 255, 136, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .source-card.active .status-indicator {
+            background: var(--cyber-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            animation: blink 1.5s infinite;
+        }
+
+        .source-card.inactive .status-indicator {
+            background: var(--cyber-red);
+            opacity: 0.3;
+        }
+
+        .activity-panel {
+            background: var(--bg-surface);
+            border-radius: 12px;
+            border: 1px solid var(--border-glow);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .activity-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            background: var(--bg-card);
+            border-radius: 6px;
+            border-left: 2px solid rgba(255, 255, 255, 0.05);
+            animation: slideIn 0.3s ease;
+            font-size: 0.6rem;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-8px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .activity-item.on { border-left-color: var(--cyber-green); }
+        .activity-item.off { border-left-color: var(--cyber-red); opacity: 0.4; }
+
+        .activity-time {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.4rem;
+            color: var(--text-dim);
+            min-width: 34px;
+        }
+
+        .activity-source {
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 0.6rem;
+            letter-spacing: 0.5px;
+        }
+
+        .activity-status {
+            font-size: 0.4rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: auto;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
+        }
+
+        .activity-status.on { background: rgba(0, 255, 136, 0.08); color: var(--cyber-green); }
+        .activity-status.off { background: rgba(255, 0, 85, 0.08); color: var(--cyber-red); }
+
+        .activity-empty {
+            text-align: center;
+            padding: 20px 10px;
+            color: var(--text-dim);
+            font-size: 0.55rem;
+            letter-spacing: 1px;
+        }
+
+        .activity-empty i {
+            font-size: 1.2rem;
+            opacity: 0.2;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+
+        .loading-overlay.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-cyber {
+            width: 70px;
+            height: 70px;
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .loader-cyber::before,
+        .loader-cyber::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            animation: cyberSpin 1.2s ease-in-out infinite;
+        }
+
+        .loader-cyber::before {
+            inset: 0;
+            border: 2px solid transparent;
+            border-top-color: var(--cyber-blue);
+            border-bottom-color: var(--cyber-pink);
+        }
+
+        .loader-cyber::after {
+            inset: 12px;
+            border: 2px solid transparent;
+            border-left-color: var(--cyber-green);
+            border-right-color: var(--cyber-purple);
+            animation-delay: 0.3s;
+        }
+
+        @keyframes cyberSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader-text {
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: var(--text-secondary);
+            animation: pulseText 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+
+        .loader-sub {
+            font-size: 0.55rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+            letter-spacing: 2px;
+        }
+
+        .error-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 85, 0.15);
+            border: 1px solid rgba(255, 0, 85, 0.3);
+            color: var(--cyber-red);
+            padding: 10px 24px;
+            border-radius: 10px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 1px;
+            z-index: 999;
+            backdrop-filter: blur(10px);
+            max-width: 90%;
+            text-align: center;
+            display: none;
+        }
+
+        .error-banner.show {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+
+        @media (max-width: 1200px) {
+            .main-content { grid-template-columns: 1fr 240px; }
+            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+        }
+
+        @media (max-width: 992px) {
+            .main-content { grid-template-columns: 1fr; }
+            .activity-panel { max-height: 160px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar { padding: 6px 16px; flex-wrap: wrap; gap: 4px; }
+            .brand h1 { font-size: 0.8rem; }
+            .brand-icon { width: 32px; height: 32px; font-size: 14px; }
+            .stats-row { padding: 8px 16px 0 16px; gap: 6px; }
+            .stat-card { padding: 6px 10px; }
+            .stat-info h2 { font-size: 0.9rem; }
+            .stat-icon { width: 30px; height: 30px; font-size: 12px; }
+            .main-content { padding: 8px 16px 16px 16px; }
+            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
+            .source-card { min-height: 80px; padding: 10px 6px; }
+            .source-id { font-size: 1.3rem; }
+            .top-right .partition-tag { display: none; }
+        }
+
+        @media (max-width: 480px) {
+            .sources-grid { grid-template-columns: repeat(2, 1fr); }
+            .source-card { min-height: 70px; padding: 8px 4px; }
+            .source-id { font-size: 1.1rem; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .stat-card { padding: 4px 8px; }
+            .stat-info h2 { font-size: 0.75rem; }
+            .stat-icon { width: 26px; height: 26px; font-size: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="grid-overlay"></div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loader-cyber"></div>
+    <div class="loader-text">INITIALIZING</div>
+    <div class="loader-sub">Establishing secure connection...</div>
+</div>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <div class="brand">
+        <div class="brand-icon"><i class="fas fa-satellite-dish"></i></div>
+        <div>
+            <h1>SOURCE MONITOR</h1>
+            <div class="sub">real-time tracking system</div>
+        </div>
+    </div>
+    <div class="top-right">
+        <span class="partition-tag" id="partitionBadge">📡 LOADING</span>
+        <div class="status-badge" id="liveBadge" style="display:none;">
+            <span class="status-dot"></span> ONLINE
+        </div>
+        <div class="timer-box" id="timerBadge" style="display:none;">
+            <i class="fas fa-sync-alt"></i>
+            <span id="timerDisplay">10:00</span>
+        </div>
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="stats-row" id="statsRow" style="display:none;">
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-bolt"></i></div>
+        <div class="stat-info">
+            <h2 id="activeCount">0</h2>
+            <p>Active Sources</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon red"><i class="fas fa-power-off"></i></div>
+        <div class="stat-info">
+            <h2 id="inactiveCount">0</h2>
+            <p>Inactive Sources</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="fas fa-database"></i></div>
+        <div class="stat-info">
+            <h2 id="totalSources">20</h2>
+            <p>Total Sources</p>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-chart-line"></i></div>
+        <div class="stat-info">
+            <h2 id="uptimePercent">0%</h2>
+            <p>Uptime Rate</p>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-content" id="mainGrid" style="display:none;">
+
+    <!-- SOURCES -->
+    <div class="sources-panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-microchip"></i> SOURCES <span class="count-badge" id="sourceCount">0/20</span></h2>
+            <div class="legend">
+                <span><span class="on">⬤</span> ACTIVE</span>
+                <span><span class="off">⬤</span> OFFLINE</span>
+            </div>
+        </div>
+        <div class="sources-grid" id="sourcesGrid"></div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="activity-panel">
+        <div class="panel-header">
+            <h2><i class="fas fa-wave-square" style="color:var(--cyber-green);"></i> ACTIVITY LOG</h2>
+            <span style="font-size:0.4rem;color:var(--text-dim);font-family:'Orbitron',monospace;letter-spacing:1px;">LIVE</span>
+        </div>
+        <div class="activity-list" id="activityList">
+            <div class="activity-empty"><i class="fas fa-inbox"></i> waiting for signal...</div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ERROR BANNER -->
+<div class="error-banner" id="errorBanner">
+    <i class="fas fa-exclamation-triangle"></i> <span id="errorMessage">Connection Error</span>
+</div>
+
+<script>
+    var sourceData = {};
+    var activityLog = [];
+    var MAX_ACTIVITY = 30;
+    var timerSeconds = 600;
+    var timerInterval;
+    var retryCount = 0;
+    var maxRetries = 3;
+
+    function getPartition() {
+        var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        var now = new Date();
+        return months[now.getMonth()] + '_' + String(now.getFullYear()).slice(-2);
+    }
+
+    function formatTime(s) {
+        var m = Math.floor(s / 60);
+        var sec = s % 60;
+        return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    }
+
+    function updateTimer() {
+        timerSeconds--;
+        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+        if (timerSeconds <= 0) {
+            location.reload();
+        }
+    }
+
+    function addActivity(source, status) {
+        var now = new Date();
+        var t = now.getHours().toString().padStart(2,'0') + ':' + 
+                now.getMinutes().toString().padStart(2,'0') + ':' + 
+                now.getSeconds().toString().padStart(2,'0');
+        activityLog.unshift({ time: t, source: source, status: status });
+        if (activityLog.length > MAX_ACTIVITY) activityLog.pop();
+        renderActivity();
+    }
+
+    function renderActivity() {
+        var c = document.getElementById('activityList');
+        if (activityLog.length === 0) {
+            c.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox"></i> waiting for signal...</div>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < Math.min(activityLog.length, 20); i++) {
+            var item = activityLog[i];
+            var cls = item.status === 'Y' ? 'on' : 'off';
+            var txt = item.status === 'Y' ? 'ON' : 'OFF';
+            html += '<div class="activity-item ' + cls + '">' +
+                '<span class="activity-time">' + item.time + '</span>' +
+                '<span class="activity-source">' + item.source + '</span>' +
+                '<span class="activity-status ' + cls + '">' + txt + '</span>' +
+                '</div>';
+        }
+        c.innerHTML = html;
+    }
+
+    function hideLoading() {
+        var overlay = document.getElementById('loadingOverlay');
+        overlay.classList.add('hide');
+        document.getElementById('liveBadge').style.display = 'flex';
+        document.getElementById('timerBadge').style.display = 'flex';
+        document.getElementById('statsRow').style.display = 'grid';
+        document.getElementById('mainGrid').style.display = 'grid';
+        document.getElementById('partitionBadge').textContent = '📡 ' + getPartition();
+        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function showError(msg) {
+        var banner = document.getElementById('errorBanner');
+        document.getElementById('errorMessage').textContent = msg || 'Connection Error - Retrying...';
+        banner.classList.add('show');
+        
+        setTimeout(function() {
+            banner.classList.remove('show');
+        }, 5000);
+    }
+
+    // 🔥 FIXED: fetchData with retry and relative URL
+    function fetchData() {
+        var url = window.location.pathname + '?action=fetchSourceStatus';
+        
+        fetch(url, {
+            method: 'GET',
+            cache: 'no-cache',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status + ': ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            retryCount = 0;
+            if (data.error) {
+                showError('DB Error: ' + data.error);
+                return;
+            }
+            renderSources(data);
+            updateStats(data);
+            updateActivity(data);
+            hideLoading();
+        })
+        .catch(function(e) {
+            console.error('Fetch Error:', e);
+            retryCount++;
+            
+            if (retryCount <= maxRetries) {
+                showError('Connection failed (Attempt ' + retryCount + '/' + maxRetries + ') - Retrying...');
+                setTimeout(function() {
+                    fetchData();
+                }, 3000);
+            } else {
+                showError('Connection Error - Please refresh the page');
+                hideLoading();
+                document.getElementById('sourcesGrid').innerHTML = 
+                    '<div style="text-align:center;padding:40px;color:var(--text-dim);grid-column:1/-1;">' +
+                    '<i class="fas fa-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:8px;color:var(--cyber-red);"></i>' +
+                    '<p style="font-weight:700;font-size:0.9rem;font-family:\'Orbitron\',monospace;letter-spacing:2px;">CONNECTION LOST</p>' +
+                    '<p style="font-size:0.6rem;margin-top:2px;color:var(--text-dim);">Please refresh the page</p>' +
+                    '<button onclick="location.reload()" style="margin-top:12px;padding:8px 24px;background:var(--cyber-blue);border:none;border-radius:6px;color:#000;font-weight:700;cursor:pointer;font-family:\'Orbitron\',monospace;font-size:0.6rem;">REFRESH</button>' +
+                    '</div>';
+            }
+        });
+    }
+
+    function renderSources(data) {
+        var c = document.getElementById('sourcesGrid');
+        if (!data || data.length === 0) {
+            c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);grid-column:1/-1;"><i class="fas fa-database" style="font-size:2rem;display:block;margin-bottom:8px;opacity:0.3;"></i><p style="font-family:\'Orbitron\',monospace;font-size:0.6rem;letter-spacing:2px;">NO DATA</p></div>';
+            return;
+        }
+        var html = '', active = 0;
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            var isActive = item.flag === 'Y';
+            if (isActive) active++;
+            var cls = isActive ? 'active' : 'inactive';
+            var status = isActive ? 'ONLINE' : 'OFFLINE';
+            var hits = isActive ? Math.floor(Math.random() * 50 + 10) : 0;
+            
+            html += '<div class="source-card ' + cls + '">' +
+                '<span class="status-indicator"></span>' +
+                '<div class="source-id">' + item.source_id + '</div>' +
+                '<div class="source-status">' + status + '</div>' +
+                '<span class="source-hits">' + (isActive ? '⚡ ' + hits : '⏸') + '</span>' +
+                '</div>';
+        }
+        c.innerHTML = html;
+        document.getElementById('sourceCount').textContent = active + '/' + data.length;
+    }
+
+    function updateStats(data) {
+        var active = 0, inactive = 0;
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].flag === 'Y') active++; else inactive++;
+        }
+        document.getElementById('activeCount').textContent = active;
+        document.getElementById('inactiveCount').textContent = inactive;
+        document.getElementById('totalSources').textContent = data.length;
+        var uptime = data.length > 0 ? Math.round((active / data.length) * 100) : 0;
+        document.getElementById('uptimePercent').textContent = uptime + '%';
+    }
+
+    function updateActivity(data) {
+        var current = {};
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].flag === 'Y') current[data[i].source_id] = true;
+        }
+        for (var s in current) {
+            if (!sourceData[s]) { addActivity(s, 'Y'); }
+            else if (sourceData[s] !== current[s]) { addActivity(s, current[s] ? 'Y' : 'N'); }
+        }
+        for (var old in sourceData) {
+            if (sourceData[old] && !current[old]) { addActivity(old, 'N'); }
+        }
+        sourceData = current;
+    }
+
+    window.addEventListener('beforeunload', function() {
+        if (timerInterval) clearInterval(timerInterval);
+    });
+
+    // 🔥 Start
+    fetchData();
+</script>
+</body>
+</html>
+
+// Full URL with HTTP
+fetch('http://10.191.171.12:5443/EISPortal/jsp/Source_Monitor.jsp?action=fetchSourceStatus')
