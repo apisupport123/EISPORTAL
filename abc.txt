@@ -1,62 +1,1088 @@
-HTTP Status 500 – Internal Server Error
-Type Exception Report
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, java.util.*, java.text.*, java.util.concurrent.*" %>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+<%@page import="java.util.Date"%>
 
-Message Unable to compile class for JSP:
+<%!
+// ============================================
+// BACKGROUND TASK - SINGLE CONNECTION
+// ============================================
+private static class SourceStatusCache {
+    private static volatile Map<String, String> statusMap = new ConcurrentHashMap<>();
+    private static volatile boolean isProcessing = false;
+    private static volatile String lastError = null;
+    private static volatile long lastUpdateTime = 0;
+    private static volatile int progress = 0;
+    private static volatile String statusMessage = "Initializing...";
+    private static volatile ScheduledExecutorService scheduler = null;
+    private static volatile Future<?> currentTask = null;
+    private static final Object lock = new Object();
+    
+    // Start background scheduler
+    public static void startScheduler() {
+        synchronized(lock) {
+            if (scheduler != null && !scheduler.isShutdown()) {
+                return;
+            }
+            scheduler = Executors.newScheduledThreadPool(1);
+            // Run every 10 minutes
+            currentTask = scheduler.scheduleAtFixedRate(() -> {
+                try {
+                    refreshData();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+            }, 0, 10, TimeUnit.MINUTES);
+        }
+    }
+    
+    public static void stopScheduler() {
+        synchronized(lock) {
+            if (scheduler != null) {
+                scheduler.shutdown();
+                scheduler = null;
+            }
+        }
+    }
+    
+    // Refresh data - SINGLE CONNECTION
+    private static void refreshData() {
+        if (isProcessing) return;
+        isProcessing = true;
+        progress = 0;
+        statusMessage = "Connecting to database...";
+        
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            long startTime = System.currentTimeMillis();
+            // FIX 1: Use java.util.Date with full name
+            System.out.println("⏳ Heavy query started at: " + new java.util.Date());
+            progress = 10;
+            statusMessage = "Database connected, preparing query...";
+            
+            // FIX 2: Handle AutoCloseableConnection - Convert to Connection
+            Object dbConn = DBUtilityAuto.getIIBDBConnection();
+            if (dbConn instanceof Connection) {
+                conn = (Connection) dbConn;
+            } else {
+                // If it's AutoCloseableConnection, get the underlying connection
+                conn = (Connection) dbConn.getClass().getMethod("getConnection").invoke(dbConn);
+            }
+            
+            progress = 20;
+            statusMessage = "Query prepared, executing... (may take 10 minutes)";
+            
+            String partition = getCurrentPartition();
+            String query = buildQuery(partition);
+            
+            stmt = conn.createStatement();
+            stmt.setQueryTimeout(1200); // 20 min timeout
+            progress = 30;
+            statusMessage = "Query running... " + partition + " partition";
+            
+            // 🐢 YAHAN 10 MIN LAGENGE
+            rs = stmt.executeQuery(query);
+            progress = 80;
+            statusMessage = "Query completed, processing results...";
+            
+            Map<String, String> newMap = new HashMap<>();
+            while (rs.next()) {
+                newMap.put(rs.getString("source_id"), rs.getString("flag"));
+            }
+            
+            // ✅ UPDATE CACHE - EK BAAR MEIN
+            statusMap = newMap;
+            lastUpdateTime = System.currentTimeMillis();
+            progress = 100;
+            statusMessage = "Data updated successfully";
+            lastError = null;
+            
+            long endTime = System.currentTimeMillis();
+            System.out.println("✅ Query completed in: " + (endTime - startTime)/1000 + " seconds");
+            System.out.println("📊 Found " + statusMap.size() + " source statuses");
+            
+        } catch(Exception e) {
+            e.printStackTrace();
+            lastError = "Error: " + e.getMessage();
+            statusMessage = "Error occurred: " + e.getMessage();
+            progress = 0;
+        } finally {
+            // 🔥 EK BAAR CONNECTION CLOSE
+            try { if (rs != null) rs.close(); } catch(Exception e) {}
+            try { if (stmt != null) stmt.close(); } catch(Exception e) {}
+            try { 
+                if (conn != null && !conn.isClosed()) { 
+                    conn.close(); 
+                    System.out.println("🔒 Connection closed after heavy query");
+                }
+            } catch(Exception e) {
+                System.out.println("⚠️ Connection close error: " + e.getMessage());
+            }
+            isProcessing = false;
+        }
+    }
+    
+    private static String getCurrentPartition() {
+        Calendar cal = Calendar.getInstance();
+        String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
+        String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
+        return month + "_" + year;
+    }
+    
+    private static String buildQuery(String partition) {
+        return "WITH FOUND_SOURCES AS ( " +
+            "   SELECT /*+ parallel(04) */ a.source_id " +
+            "   FROM eisapp.api_log PARTITION(" + partition + ") a " +
+            "   WHERE a.source_id IN ('AK','CA','CC','CK','CR','FA','FS','I4','IN','KA','MB','NB','ON','RL','SA','SK','SQ','UP','WB','Y2') " +
+            "   AND a.request_date_time >= SYSDATE - INTERVAL '10' MINUTE " +
+            "   GROUP BY a.source_id " +
+            ") " +
+            "SELECT s.source_id, " +
+            "CASE WHEN f.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag " +
+            "FROM ( " +
+            "   SELECT 'SA' AS source_id FROM DUAL UNION ALL " +
+            "   SELECT 'FS' FROM DUAL UNION ALL " +
+            "   SELECT 'I4' FROM DUAL UNION ALL " +
+            "   SELECT 'Y2' FROM DUAL UNION ALL " +
+            "   SELECT 'KA' FROM DUAL UNION ALL " +
+            "   SELECT 'FA' FROM DUAL UNION ALL " +
+            "   SELECT 'WB' FROM DUAL UNION ALL " +
+            "   SELECT 'ON' FROM DUAL UNION ALL " +
+            "   SELECT 'CC' FROM DUAL UNION ALL " +
+            "   SELECT 'CK' FROM DUAL UNION ALL " +
+            "   SELECT 'CR' FROM DUAL UNION ALL " +
+            "   SELECT 'SQ' FROM DUAL UNION ALL " +
+            "   SELECT 'RL' FROM DUAL UNION ALL " +
+            "   SELECT 'UP' FROM DUAL UNION ALL " +
+            "   SELECT 'CA' FROM DUAL UNION ALL " +
+            "   SELECT 'AK' FROM DUAL UNION ALL " +
+            "   SELECT 'NB' FROM DUAL UNION ALL " +
+            "   SELECT 'IN' FROM DUAL UNION ALL " +
+            "   SELECT 'MB' FROM DUAL UNION ALL " +
+            "   SELECT 'SK' FROM DUAL " +
+            ") s " +
+            "LEFT JOIN FOUND_SOURCES f ON f.source_id = s.source_id " +
+            "ORDER BY s.source_id";
+    }
+    
+    // Public getters for JSP
+    public static Map<String, String> getStatusMap() { return statusMap; }
+    public static boolean isProcessing() { return isProcessing; }
+    public static String getLastError() { return lastError; }
+    public static long getLastUpdateTime() { return lastUpdateTime; }
+    public static int getProgress() { return progress; }
+    public static String getStatusMessage() { return statusMessage; }
+    
+    // Manual refresh trigger
+    public static void triggerRefresh() {
+        if (!isProcessing) {
+            new Thread(() -> refreshData()).start();
+        }
+    }
+}
 
-Description The server encountered an unexpected condition that prevented it from fulfilling the request.
+// JSP Declaration for partition
+String getPartition() {
+    Calendar cal = Calendar.getInstance();
+    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
+    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
+    return month + "_" + year;
+}
 
-Exception
+// Initialize scheduler when JSP loads
+static {
+    SourceStatusCache.startScheduler();
+}
+%>
 
-org.apache.jasper.JasperException: Unable to compile class for JSP: 
+<%
+// ============================================
+// ACTION HANDLING
+// ============================================
+String action = request.getParameter("action");
 
-An error occurred at line: [60] in the jsp file: [/jsp/Source_Monitor.jsp]
-The type Date is ambiguous
-57:         
-58:         try {
-59:             long startTime = System.currentTimeMillis();
-60:             System.out.println("⏳ Heavy query started at: " + new Date());
-61:             progress = 10;
-62:             statusMessage = "Database connected, preparing query...";
-63:             
+// Return cached data - NO DB CONNECTION
+if ("fetchSourceStatus".equals(action)) {
+    response.setContentType("application/json");
+    Map<String, String> statusMap = SourceStatusCache.getStatusMap();
+    
+    // Static list of all sources
+    String[] allSources = {"SA","FS","I4","Y2","KA","FA","WB","ON","CC","CK","CR","SQ","RL","UP","CA","AK","NB","IN","MB","SK"};
+    
+    StringBuilder json = new StringBuilder();
+    json.append("[");
+    for (int i = 0; i < allSources.length; i++) {
+        if (i > 0) json.append(",");
+        String source = allSources[i];
+        String flag = statusMap.getOrDefault(source, "N");
+        json.append("{\"source_id\":\"").append(source).append("\",\"flag\":\"").append(flag).append("\"}");
+    }
+    json.append("]");
+    out.print(json.toString());
+    return;
+}
 
+// Get status info - for progress bar
+if ("getStatus".equals(action)) {
+    response.setContentType("application/json");
+    // FIX 3: Use java.util.Date with full name
+    String lastUpdateStr = "";
+    if (SourceStatusCache.getLastUpdateTime() > 0) {
+        lastUpdateStr = new java.util.Date(SourceStatusCache.getLastUpdateTime()).toString();
+    }
+    out.print("{\"processing\":" + SourceStatusCache.isProcessing() + 
+             ",\"progress\":" + SourceStatusCache.getProgress() + 
+             ",\"message\":\"" + SourceStatusCache.getStatusMessage() + "\"" +
+             ",\"error\":\"" + (SourceStatusCache.getLastError() != null ? SourceStatusCache.getLastError() : "") + "\"" +
+             ",\"lastUpdate\":\"" + lastUpdateStr + "\"}");
+    return;
+}
 
-An error occurred at line: [65] in the jsp file: [/jsp/Source_Monitor.jsp]
-Type mismatch: cannot convert from AutoCloseableConnection to Connection
-62:             statusMessage = "Database connected, preparing query...";
-63:             
-64:             // 🔥 EK BAAR CONNECTION LO
-65:             conn = DBUtilityAuto.getIIBDBConnection();
-66:             progress = 20;
-67:             statusMessage = "Query prepared, executing... (may take 10 minutes)";
-68:             
+// Manual refresh
+if ("refresh".equals(action)) {
+    SourceStatusCache.triggerRefresh();
+    response.setContentType("text/plain");
+    out.print("Refresh triggered");
+    return;
+}
+%>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Source Monitor | Live Dashboard</title>
+    <link rel="stylesheet" href="../css/all.min.css">
+    <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-An error occurred at line: [222] in the jsp file: [/jsp/Source_Monitor.jsp]
-The type Date is ambiguous
-219:              ",\"progress\":" + SourceStatusCache.getProgress() + 
-220:              ",\"message\":\"" + SourceStatusCache.getStatusMessage() + "\"" +
-221:              ",\"error\":\"" + (SourceStatusCache.getLastError() != null ? SourceStatusCache.getLastError() : "") + "\"" +
-222:              ",\"lastUpdate\":\"" + (SourceStatusCache.getLastUpdateTime() > 0 ? new Date(SourceStatusCache.getLastUpdateTime()) : "") + "\"}");
-223:     return;
-224: }
-225: 
+        :root {
+            --bg: #05080f;
+            --surface: #0c1220;
+            --card: #162035;
+            --border: #1f2d45;
+            --text: #e8edf5;
+            --text2: #8899bb;
+            --text3: #3d5070;
+            --green: #2ecc71;
+            --green-dark: #1a8a4a;
+            --red: #e74c3c;
+            --red-dark: #922b21;
+            --blue: #3498db;
+            --purple: #9b59b6;
+            --pink: #e91e63;
+            --cyan: #1abc9c;
+            --orange: #f39c12;
+            --yellow: #f1c40f;
+        }
 
+        body {
+            background: var(--bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+        }
 
-Stacktrace:
-	org.apache.jasper.compiler.DefaultErrorHandler.javacError(DefaultErrorHandler.java:72)
-	org.apache.jasper.compiler.ErrorDispatcher.javacError(ErrorDispatcher.java:192)
-	org.apache.jasper.compiler.JDTCompiler.generateClass(JDTCompiler.java:542)
-	org.apache.jasper.compiler.Compiler.compile(Compiler.java:371)
-	org.apache.jasper.compiler.Compiler.compile(Compiler.java:343)
-	org.apache.jasper.compiler.Compiler.compile(Compiler.java:329)
-	org.apache.jasper.JspCompilationContext.compile(JspCompilationContext.java:603)
-	org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:399)
-	org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
-	org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
-	javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-	com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	com.action.CORSFilter.doFilter(CORSFilter.java:17)
-Note The full stack trace of the root cause is available in the server logs.
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: var(--surface); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
-Apache Tomcat/9.0.98
+        .dashboard {
+            height: 100vh;
+            padding: 12px 16px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 18px;
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .header-icon {
+            width: 38px; height: 38px;
+            background: linear-gradient(135deg, var(--blue), var(--purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #fff;
+        }
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff, var(--blue), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header .sub {
+            font-size: 0.6rem;
+            color: var(--text3);
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(46,204,113,0.12);
+            padding: 4px 10px;
+            border-radius: 14px;
+            border: 1px solid rgba(46,204,113,0.2);
+            font-size: 0.6rem;
+            color: var(--green);
+        }
+        .live-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: blink 1.5s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        .timer-badge {
+            background: var(--card);
+            padding: 4px 10px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            font-size: 0.65rem;
+            color: var(--text2);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .timer-badge i { color: var(--orange); margin-right: 3px; }
+        .partition-badge {
+            font-size: 0.5rem;
+            color: var(--text3);
+            background: var(--card);
+            padding: 2px 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .refresh-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text2);
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 0.6rem;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .refresh-btn:hover {
+            border-color: var(--blue);
+            color: var(--text);
+        }
+        .refresh-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-container {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+            display: none;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--blue), var(--purple));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: var(--text2);
+        }
+        .progress-info .status-msg {
+            color: var(--text);
+            font-weight: 600;
+        }
+        .progress-info .error-msg {
+            color: var(--red);
+        }
+
+        /* ===== STATS ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .stat-card {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .stat-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+        }
+        .stat-icon.green { background: rgba(46,204,113,0.15); color: var(--green); }
+        .stat-icon.red { background: rgba(231,76,60,0.15); color: var(--red); }
+        .stat-icon.blue { background: rgba(52,152,219,0.15); color: var(--blue); }
+        .stat-icon.orange { background: rgba(243,156,18,0.15); color: var(--orange); }
+        .stat-info h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+        .stat-info p {
+            font-size: 0.5rem;
+            color: var(--text3);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== MAIN ===== */
+        .main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            gap: 10px;
+            min-height: 0;
+        }
+
+        /* ===== SOURCES PANEL ===== */
+        .sources-panel {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-head {
+            padding: 8px 14px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .panel-head h2 {
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .panel-head h2 i { color: var(--blue); }
+        .panel-head .cnt {
+            background: var(--bg);
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 0.55rem;
+            color: var(--text2);
+            font-weight: 600;
+        }
+        .legend {
+            display: flex;
+            gap: 10px;
+            font-size: 0.5rem;
+            color: var(--text3);
+        }
+        .legend .g { color: var(--green); }
+        .legend .r { color: var(--red); }
+
+        /* ===== SOURCES GRID ===== */
+        .sources-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 12px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            align-content: start;
+        }
+
+        /* ===== SOURCE CARD ===== */
+        .source-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 18px 14px;
+            border: 2px solid var(--border);
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: default;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .source-card:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+        
+        .source-card.active {
+            border-color: var(--green);
+            background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(46,204,113,0.02));
+            box-shadow: 0 8px 32px rgba(46,204,113,0.08);
+        }
+        .source-card.active::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--green), var(--cyan));
+            z-index: -1;
+            opacity: 0.15;
+            filter: blur(15px);
+        }
+        .source-card.active .source-id {
+            color: var(--green);
+            text-shadow: 0 0 30px rgba(46,204,113,0.2);
+        }
+        .source-card.active .source-status {
+            color: var(--green);
+        }
+        
+        .source-card.inactive {
+            border-color: rgba(231,76,60,0.15);
+            opacity: 0.4;
+        }
+        .source-card.inactive .source-id {
+            color: var(--text3);
+        }
+        .source-card.inactive .source-status {
+            color: var(--red);
+        }
+
+        .source-id {
+            font-size: 2.2rem;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+            line-height: 1;
+            margin-bottom: 4px;
+            transition: 0.3s;
+        }
+        
+        .source-status {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            transition: 0.3s;
+        }
+
+        .source-hits {
+            font-size: 0.65rem;
+            color: var(--text3);
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            padding: 2px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            display: inline-block;
+        }
+        .source-card.active .source-hits {
+            border-color: rgba(46,204,113,0.2);
+            color: var(--text2);
+        }
+
+        .status-dot {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+        .source-card.active .status-dot {
+            background: var(--green);
+            box-shadow: 0 0 16px rgba(46,204,113,0.6);
+            animation: blink 1.5s infinite;
+        }
+        .source-card.inactive .status-dot {
+            background: var(--red);
+            opacity: 0.3;
+        }
+
+        .source-card.active .pulse-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            border: 2px solid rgba(46,204,113,0.1);
+            animation: pulseRing 2s ease-out infinite;
+        }
+        @keyframes pulseRing {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
+        }
+
+        /* ===== ACTIVITY ===== */
+        .activity-panel {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .activity-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 8px;
+            background: var(--card);
+            border-radius: 5px;
+            border-left: 2px solid var(--border);
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-5px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .activity-item.on { border-left-color: var(--green); }
+        .activity-item.off { border-left-color: var(--red); opacity: 0.5; }
+        .activity-time {
+            font-size: 0.45rem;
+            color: var(--text3);
+            font-family: 'JetBrains Mono', monospace;
+            min-width: 38px;
+        }
+        .activity-source {
+            font-weight: 700;
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .activity-status {
+            font-size: 0.4rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-left: auto;
+            padding: 1px 6px;
+            border-radius: 6px;
+        }
+        .activity-status.on { background: rgba(46,204,113,0.12); color: var(--green); }
+        .activity-status.off { background: rgba(231,76,60,0.12); color: var(--red); }
+        .activity-empty {
+            text-align: center;
+            padding: 16px 10px;
+            color: var(--text3);
+            font-size: 0.65rem;
+        }
+        .activity-empty i {
+            font-size: 1.3rem;
+            opacity: 0.3;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1100px) {
+            .main { grid-template-columns: 1fr; }
+            .activity-panel { max-height: 160px; }
+            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+        }
+        @media (max-width: 768px) {
+            .dashboard { padding: 8px 10px; gap: 6px; }
+            .header { flex-wrap: wrap; padding: 8px 12px; }
+            .header h1 { font-size: 0.95rem; }
+            .header-icon { width: 30px; height: 30px; font-size: 13px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 5px; }
+            .stat-card { padding: 6px 10px; }
+            .stat-info h3 { font-size: 0.9rem; }
+            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); padding: 6px 8px; gap: 6px; }
+            .source-card { min-height: 90px; padding: 12px 8px; }
+            .source-id { font-size: 1.6rem; }
+            .legend { display: none; }
+            .header-right { flex-wrap: wrap; gap: 4px; }
+        }
+        @media (max-width: 480px) {
+            .sources-grid { grid-template-columns: repeat(2, 1fr); }
+            .source-card { min-height: 80px; padding: 10px 6px; }
+            .source-id { font-size: 1.3rem; }
+            .source-status { font-size: 0.5rem; }
+            .source-hits { font-size: 0.5rem; }
+            .stat-info h3 { font-size: 0.8rem; }
+            .stat-card { padding: 4px 8px; }
+            .stat-icon { width: 26px; height: 26px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <div class="header-icon"><i class="fas fa-bolt"></i></div>
+            <div>
+                <h1>Source Monitor</h1>
+                <div class="sub">Real-time Source ID Activity Tracking</div>
+            </div>
+        </div>
+        <div class="header-right">
+            <span class="partition-badge" id="partitionBadge">📁 Loading...</span>
+            <div class="live-badge">
+                <span class="live-dot"></span> LIVE
+            </div>
+            <div class="timer-badge">
+                <i class="fas fa-clock"></i> <span id="updateTime">Updating...</span>
+            </div>
+            <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- PROGRESS BAR -->
+    <div class="progress-container" id="progressContainer">
+        <div class="progress-info">
+            <span class="status-msg" id="statusMsg">Initializing...</span>
+            <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-info" style="margin-top:2px;">
+            <span class="error-msg" id="errorMsg"></span>
+            <span id="lastUpdateMsg"></span>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="stats-row" id="statsRow">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-info">
+                <h3 id="activeCount">0</h3>
+                <p>Active Sources</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
+            <div class="stat-info">
+                <h3 id="inactiveCount">0</h3>
+                <p>Inactive Sources</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon blue"><i class="fas fa-database"></i></div>
+            <div class="stat-info">
+                <h3 id="totalSources">20</h3>
+                <p>Total Sources</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon orange"><i class="fas fa-percent"></i></div>
+            <div class="stat-info">
+                <h3 id="uptimePercent">0%</h3>
+                <p>Uptime Rate</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main" id="mainGrid">
+
+        <!-- SOURCES -->
+        <div class="sources-panel">
+            <div class="panel-head">
+                <h2><i class="fas fa-server"></i> Source IDs <span class="cnt" id="sourceCount">0/20</span></h2>
+                <div class="legend">
+                    <span><span class="g">●</span> Active</span>
+                    <span><span class="r">●</span> Inactive</span>
+                </div>
+            </div>
+            <div class="sources-grid" id="sourcesGrid">
+                <div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">
+                    <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>
+                    <p>Loading source data...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIVITY -->
+        <div class="activity-panel">
+            <div class="panel-head">
+                <h2><i class="fas fa-bolt" style="color:var(--cyan);"></i> Live Activity</h2>
+                <span style="font-size:0.45rem;color:var(--text3);"><i class="fas fa-circle" style="color:var(--green);font-size:0.25rem;"></i> Real-time</span>
+            </div>
+            <div class="activity-list" id="activityList">
+                <div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    var sourceData = {};
+    var activityLog = [];
+    var MAX_ACTIVITY = 30;
+    var statusInterval, dataInterval;
+    var isFirstLoad = true;
+
+    function getPartition() {
+        var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+        var now = new Date();
+        return months[now.getMonth()] + '_' + String(now.getFullYear()).slice(-2);
+    }
+
+    function addActivity(source, status) {
+        var now = new Date();
+        var t = now.getHours().toString().padStart(2,'0') + ':' + 
+                now.getMinutes().toString().padStart(2,'0') + ':' + 
+                now.getSeconds().toString().padStart(2,'0');
+        activityLog.unshift({ time: t, source: source, status: status });
+        if (activityLog.length > MAX_ACTIVITY) activityLog.pop();
+        renderActivity();
+    }
+
+    function renderActivity() {
+        var c = document.getElementById('activityList');
+        if (activityLog.length === 0) {
+            c.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>';
+            return;
+        }
+        var html = '';
+        for (var i = 0; i < Math.min(activityLog.length, 20); i++) {
+            var item = activityLog[i];
+            var cls = item.status === 'Y' ? 'on' : 'off';
+            var txt = item.status === 'Y' ? 'ON' : 'OFF';
+            html += '<div class="activity-item ' + cls + '">' +
+                '<span class="activity-time">' + item.time + '</span>' +
+                '<span class="activity-source">' + item.source + '</span>' +
+                '<span class="activity-status ' + cls + '">' + txt + '</span>' +
+                '</div>';
+        }
+        c.innerHTML = html;
+    }
+
+    function renderSources(data) {
+        var c = document.getElementById('sourcesGrid');
+        if (!data || data.length === 0) {
+            c.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;"><i class="fas fa-database" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i><p>No data available</p></div>';
+            return;
+        }
+        var html = '', active = 0;
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            var isActive = item.flag === 'Y';
+            if (isActive) active++;
+            var cls = isActive ? 'active' : 'inactive';
+            var status = isActive ? 'ONLINE' : 'OFFLINE';
+            
+            html += '<div class="source-card ' + cls + '">' +
+                '<span class="status-dot"></span>' +
+                (isActive ? '<span class="pulse-ring"></span>' : '') +
+                '<div class="source-id">' + item.source_id + '</div>' +
+                '<div class="source-status">' + status + '</div>' +
+                '<span class="source-hits">' + (isActive ? '⚡ ACTIVE' : '⏸️ Idle') + '</span>' +
+                '</div>';
+        }
+        c.innerHTML = html;
+        document.getElementById('sourceCount').textContent = active + '/' + data.length;
+        return active;
+    }
+
+    function updateStats(data) {
+        var active = 0, inactive = 0;
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].flag === 'Y') active++; else inactive++;
+        }
+        document.getElementById('activeCount').textContent = active;
+        document.getElementById('inactiveCount').textContent = inactive;
+        document.getElementById('totalSources').textContent = data.length;
+        var uptime = data.length > 0 ? Math.round((active / data.length) * 100) : 0;
+        document.getElementById('uptimePercent').textContent = uptime + '%';
+    }
+
+    function updateActivity(data) {
+        var current = {};
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].flag === 'Y') current[data[i].source_id] = true;
+        }
+        for (var s in current) {
+            if (!sourceData[s]) { addActivity(s, 'Y'); }
+            else if (sourceData[s] !== current[s]) { addActivity(s, current[s] ? 'Y' : 'N'); }
+        }
+        for (var old in sourceData) {
+            if (sourceData[old] && !current[old]) { addActivity(old, 'N'); }
+        }
+        sourceData = current;
+    }
+
+    function fetchData() {
+        fetch('?action=fetchSourceStatus')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var active = renderSources(data);
+                updateStats(data);
+                updateActivity(data);
+                document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
+                
+                if (isFirstLoad) {
+                    isFirstLoad = false;
+                }
+            })
+            .catch(function(e) {
+                console.error(e);
+                if (isFirstLoad) {
+                    document.getElementById('sourcesGrid').innerHTML = 
+                        '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
+                        '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
+                        '<p style="font-weight:600;">Connection Error</p>' +
+                        '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
+                }
+            });
+    }
+
+    function checkStatus() {
+        fetch('?action=getStatus')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var container = document.getElementById('progressContainer');
+                var fill = document.getElementById('progressFill');
+                var msg = document.getElementById('statusMsg');
+                var percent = document.getElementById('progressPercent');
+                var error = document.getElementById('errorMsg');
+                var lastUpdate = document.getElementById('lastUpdateMsg');
+                
+                if (data.processing) {
+                    container.style.display = 'block';
+                    fill.style.width = data.progress + '%';
+                    msg.textContent = data.message;
+                    percent.textContent = data.progress + '%';
+                    error.textContent = '';
+                    document.getElementById('refreshBtn').disabled = true;
+                    document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running';
+                } else {
+                    if (data.error && data.error.length > 0) {
+                        container.style.display = 'block';
+                        error.textContent = '❌ ' + data.error;
+                        document.getElementById('refreshBtn').disabled = false;
+                        document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                    } else if (data.lastUpdate && data.lastUpdate.length > 0) {
+                        container.style.display = 'block';
+                        fill.style.width = '100%';
+                        msg.textContent = '✅ Data loaded successfully';
+                        percent.textContent = '100%';
+                        lastUpdate.textContent = 'Last update: ' + data.lastUpdate;
+                        document.getElementById('refreshBtn').disabled = false;
+                        document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+                        
+                        // Auto hide after 5 seconds
+                        setTimeout(function() {
+                            container.style.display = 'none';
+                        }, 5000);
+                    }
+                }
+            })
+            .catch(function(e) {
+                console.error('Status check error:', e);
+            });
+    }
+
+    function manualRefresh() {
+        var btn = document.getElementById('refreshBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Triggering...';
+        
+        fetch('?action=refresh')
+            .then(function() {
+                document.getElementById('progressContainer').style.display = 'block';
+                document.getElementById('statusMsg').textContent = '🔄 Refresh triggered, waiting for data...';
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('progressPercent').textContent = '0%';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running';
+            })
+            .catch(function(e) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+            });
+    }
+
+    function init() {
+        // Partition
+        document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
+        
+        // Initial data load
+        fetchData();
+        
+        // Check status every 5 seconds
+        statusInterval = setInterval(checkStatus, 5000);
+        
+        // Refresh data every 30 seconds (cached data)
+        dataInterval = setInterval(fetchData, 30000);
+    }
+
+    window.addEventListener('beforeunload', function() {
+        if (statusInterval) clearInterval(statusInterval);
+        if (dataInterval) clearInterval(dataInterval);
+    });
+
+    init();
+</script>
+</body>
+</html>
