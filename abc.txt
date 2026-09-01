@@ -1,139 +1,50 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.sql.*, java.util.*, java.text.*, java.util.concurrent.*" %>
+<%@ page import="java.sql.*, java.util.*, java.text.*" %>
 <%@page import="com.jdbc.DBUtilityAuto"%>
-<%@page import="java.util.Date"%>
 
 <%!
 // ============================================
-// BACKGROUND TASK - SINGLE CONNECTION
+// DYNAMIC PARTITION - CURRENT MONTH
 // ============================================
-private static class SourceStatusCache {
-    private static volatile Map<String, String> statusMap = new ConcurrentHashMap<>();
-    private static volatile boolean isProcessing = false;
-    private static volatile String lastError = null;
-    private static volatile long lastUpdateTime = 0;
-    private static volatile int progress = 0;
-    private static volatile String statusMessage = "Initializing...";
-    private static volatile ScheduledExecutorService scheduler = null;
-    private static volatile Future<?> currentTask = null;
-    private static final Object lock = new Object();
+String getPartition() {
+    Calendar cal = Calendar.getInstance();
+    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
+    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
+    return month + "_" + year;
+}
+%>
+
+<%
+// ============================================
+// FETCH DATA - SINGLE CONNECTION PER REQUEST
+// ============================================
+String action = request.getParameter("action");
+
+if ("fetchSourceStatus".equals(action)) {
+    response.setContentType("application/json");
+    Connection conn = null;
+    Statement stmt = null;
+    ResultSet rs = null;
+    StringBuilder json = new StringBuilder();
     
-    // Start background scheduler
-    public static void startScheduler() {
-        synchronized(lock) {
-            if (scheduler != null && !scheduler.isShutdown()) {
-                return;
-            }
-            scheduler = Executors.newScheduledThreadPool(1);
-            // Run every 10 minutes
-            currentTask = scheduler.scheduleAtFixedRate(() -> {
-                try {
-                    refreshData();
-                } catch(Exception e) {
-                    e.printStackTrace();
-                }
-            }, 0, 10, TimeUnit.MINUTES);
-        }
-    }
-    
-    public static void stopScheduler() {
-        synchronized(lock) {
-            if (scheduler != null) {
-                scheduler.shutdown();
-                scheduler = null;
-            }
-        }
-    }
-    
-    // Refresh data - SINGLE CONNECTION
-    private static void refreshData() {
-        if (isProcessing) return;
-        isProcessing = true;
-        progress = 0;
-        statusMessage = "Connecting to database...";
+    try {
+        long startTime = System.currentTimeMillis();
+        System.out.println("⏳ Query started at: " + new java.util.Date());
         
-        Connection conn = null;
-        Statement stmt = null;
-        ResultSet rs = null;
-        
-        try {
-            long startTime = System.currentTimeMillis();
-            // FIX 1: Use java.util.Date with full name
-            System.out.println("⏳ Heavy query started at: " + new java.util.Date());
-            progress = 10;
-            statusMessage = "Database connected, preparing query...";
-            
-            // FIX 2: Handle AutoCloseableConnection - Convert to Connection
-            Object dbConn = DBUtilityAuto.getIIBDBConnection();
-            if (dbConn instanceof Connection) {
-                conn = (Connection) dbConn;
-            } else {
-                // If it's AutoCloseableConnection, get the underlying connection
-                conn = (Connection) dbConn.getClass().getMethod("getConnection").invoke(dbConn);
-            }
-            
-            progress = 20;
-            statusMessage = "Query prepared, executing... (may take 10 minutes)";
-            
-            String partition = getCurrentPartition();
-            String query = buildQuery(partition);
-            
-            stmt = conn.createStatement();
-            stmt.setQueryTimeout(1200); // 20 min timeout
-            progress = 30;
-            statusMessage = "Query running... " + partition + " partition";
-            
-            // 🐢 YAHAN 10 MIN LAGENGE
-            rs = stmt.executeQuery(query);
-            progress = 80;
-            statusMessage = "Query completed, processing results...";
-            
-            Map<String, String> newMap = new HashMap<>();
-            while (rs.next()) {
-                newMap.put(rs.getString("source_id"), rs.getString("flag"));
-            }
-            
-            // ✅ UPDATE CACHE - EK BAAR MEIN
-            statusMap = newMap;
-            lastUpdateTime = System.currentTimeMillis();
-            progress = 100;
-            statusMessage = "Data updated successfully";
-            lastError = null;
-            
-            long endTime = System.currentTimeMillis();
-            System.out.println("✅ Query completed in: " + (endTime - startTime)/1000 + " seconds");
-            System.out.println("📊 Found " + statusMap.size() + " source statuses");
-            
-        } catch(Exception e) {
-            e.printStackTrace();
-            lastError = "Error: " + e.getMessage();
-            statusMessage = "Error occurred: " + e.getMessage();
-            progress = 0;
-        } finally {
-            // 🔥 EK BAAR CONNECTION CLOSE
-            try { if (rs != null) rs.close(); } catch(Exception e) {}
-            try { if (stmt != null) stmt.close(); } catch(Exception e) {}
-            try { 
-                if (conn != null && !conn.isClosed()) { 
-                    conn.close(); 
-                    System.out.println("🔒 Connection closed after heavy query");
-                }
-            } catch(Exception e) {
-                System.out.println("⚠️ Connection close error: " + e.getMessage());
-            }
-            isProcessing = false;
+        // 🔥 EK BAAR CONNECTION LO
+        Object dbConn = DBUtilityAuto.getIIBDBConnection();
+        if (dbConn instanceof Connection) {
+            conn = (Connection) dbConn;
+        } else {
+            // Handle AutoCloseableConnection
+            conn = (Connection) dbConn.getClass().getMethod("getConnection").invoke(dbConn);
         }
-    }
-    
-    private static String getCurrentPartition() {
-        Calendar cal = Calendar.getInstance();
-        String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
-        String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
-        return month + "_" + year;
-    }
-    
-    private static String buildQuery(String partition) {
-        return "WITH FOUND_SOURCES AS ( " +
+        
+        String partition = getPartition();
+        System.out.println("📁 Partition: " + partition);
+        
+        String query = 
+            "WITH FOUND_SOURCES AS ( " +
             "   SELECT /*+ parallel(04) */ a.source_id " +
             "   FROM eisapp.api_log PARTITION(" + partition + ") a " +
             "   WHERE a.source_id IN ('AK','CA','CC','CK','CR','FA','FS','I4','IN','KA','MB','NB','ON','RL','SA','SK','SQ','UP','WB','Y2') " +
@@ -166,86 +77,44 @@ private static class SourceStatusCache {
             ") s " +
             "LEFT JOIN FOUND_SOURCES f ON f.source_id = s.source_id " +
             "ORDER BY s.source_id";
-    }
-    
-    // Public getters for JSP
-    public static Map<String, String> getStatusMap() { return statusMap; }
-    public static boolean isProcessing() { return isProcessing; }
-    public static String getLastError() { return lastError; }
-    public static long getLastUpdateTime() { return lastUpdateTime; }
-    public static int getProgress() { return progress; }
-    public static String getStatusMessage() { return statusMessage; }
-    
-    // Manual refresh trigger
-    public static void triggerRefresh() {
-        if (!isProcessing) {
-            new Thread(() -> refreshData()).start();
+        
+        stmt = conn.createStatement();
+        stmt.setQueryTimeout(1200); // 20 min timeout
+        
+        // 🐢 YAHAN 10 MIN LAGENGE
+        rs = stmt.executeQuery(query);
+        
+        json.append("[");
+        boolean first = true;
+        while (rs.next()) {
+            if (!first) json.append(",");
+            json.append("{");
+            json.append("\"source_id\":\"").append(rs.getString("source_id")).append("\",");
+            json.append("\"flag\":\"").append(rs.getString("flag")).append("\"");
+            json.append("}");
+            first = false;
         }
+        json.append("]");
+        
+        long endTime = System.currentTimeMillis();
+        System.out.println("✅ Query completed in: " + (endTime - startTime)/1000 + " seconds");
+        
+        out.print(json.toString());
+        
+    } catch(Exception e) {
+        e.printStackTrace();
+        out.print("[]");
+    } finally {
+        // 🔥 EK BAAR CONNECTION CLOSE
+        try { if (rs != null) rs.close(); } catch(Exception e) {}
+        try { if (stmt != null) stmt.close(); } catch(Exception e) {}
+        try { 
+            if (conn != null && !conn.isClosed()) { 
+                conn.close(); 
+                System.out.println("🔒 Connection closed");
+            }
+        } catch(Exception e) {}
     }
-}
-
-// JSP Declaration for partition
-String getPartition() {
-    Calendar cal = Calendar.getInstance();
-    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
-    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
-    return month + "_" + year;
-}
-
-// Initialize scheduler when JSP loads
-static {
-    SourceStatusCache.startScheduler();
-}
-%>
-
-<%
-// ============================================
-// ACTION HANDLING
-// ============================================
-String action = request.getParameter("action");
-
-// Return cached data - NO DB CONNECTION
-if ("fetchSourceStatus".equals(action)) {
-    response.setContentType("application/json");
-    Map<String, String> statusMap = SourceStatusCache.getStatusMap();
-    
-    // Static list of all sources
-    String[] allSources = {"SA","FS","I4","Y2","KA","FA","WB","ON","CC","CK","CR","SQ","RL","UP","CA","AK","NB","IN","MB","SK"};
-    
-    StringBuilder json = new StringBuilder();
-    json.append("[");
-    for (int i = 0; i < allSources.length; i++) {
-        if (i > 0) json.append(",");
-        String source = allSources[i];
-        String flag = statusMap.getOrDefault(source, "N");
-        json.append("{\"source_id\":\"").append(source).append("\",\"flag\":\"").append(flag).append("\"}");
-    }
-    json.append("]");
-    out.print(json.toString());
-    return;
-}
-
-// Get status info - for progress bar
-if ("getStatus".equals(action)) {
-    response.setContentType("application/json");
-    // FIX 3: Use java.util.Date with full name
-    String lastUpdateStr = "";
-    if (SourceStatusCache.getLastUpdateTime() > 0) {
-        lastUpdateStr = new java.util.Date(SourceStatusCache.getLastUpdateTime()).toString();
-    }
-    out.print("{\"processing\":" + SourceStatusCache.isProcessing() + 
-             ",\"progress\":" + SourceStatusCache.getProgress() + 
-             ",\"message\":\"" + SourceStatusCache.getStatusMessage() + "\"" +
-             ",\"error\":\"" + (SourceStatusCache.getLastError() != null ? SourceStatusCache.getLastError() : "") + "\"" +
-             ",\"lastUpdate\":\"" + lastUpdateStr + "\"}");
-    return;
-}
-
-// Manual refresh
-if ("refresh".equals(action)) {
-    SourceStatusCache.triggerRefresh();
-    response.setContentType("text/plain");
-    out.print("Refresh triggered");
     return;
 }
 %>
@@ -301,7 +170,6 @@ if ("refresh".equals(action)) {
             gap: 10px;
         }
 
-        /* ===== HEADER ===== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -384,62 +252,66 @@ if ("refresh".equals(action)) {
             border: 1px solid var(--border);
             font-family: 'JetBrains Mono', monospace;
         }
-        .refresh-btn {
-            background: var(--card);
-            border: 1px solid var(--border);
-            color: var(--text2);
-            padding: 4px 12px;
-            border-radius: 14px;
-            font-size: 0.6rem;
-            cursor: pointer;
-            transition: 0.3s;
-            font-family: 'Inter', sans-serif;
-        }
-        .refresh-btn:hover {
-            border-color: var(--blue);
-            color: var(--text);
-        }
-        .refresh-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
 
-        /* ===== PROGRESS BAR ===== */
-        .progress-container {
-            background: var(--surface);
-            border-radius: 10px;
-            padding: 8px 14px;
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-            display: none;
+        /* ===== LOADING OVERLAY ===== */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(5, 8, 15, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease;
         }
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: var(--bg);
-            border-radius: 10px;
-            overflow: hidden;
+        .loading-overlay.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loader {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid var(--border);
+            border-top-color: var(--blue);
+            border-bottom-color: var(--purple);
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loader-text {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text2);
+            animation: pulseText 1.5s ease-in-out infinite;
+        }
+        @keyframes pulseText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .loader-sub {
+            font-size: 0.65rem;
+            color: var(--text3);
             margin-top: 4px;
         }
-        .progress-fill {
+        .loader-progress {
+            width: 300px;
+            max-width: 80%;
+            height: 4px;
+            background: var(--surface);
+            border-radius: 10px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+        .loader-progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--blue), var(--purple));
             border-radius: 10px;
             transition: width 0.5s ease;
             width: 0%;
-        }
-        .progress-info {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.6rem;
-            color: var(--text2);
-        }
-        .progress-info .status-msg {
-            color: var(--text);
-            font-weight: 600;
-        }
-        .progress-info .error-msg {
-            color: var(--red);
         }
 
         /* ===== STATS ===== */
@@ -736,7 +608,6 @@ if ("refresh".equals(action)) {
             margin-bottom: 4px;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 1100px) {
             .main { grid-template-columns: 1fr; }
             .activity-panel { max-height: 160px; }
@@ -770,6 +641,16 @@ if ("refresh".equals(action)) {
 </head>
 <body>
 
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loader"></div>
+    <div class="loader-text">Loading Source Monitor</div>
+    <div class="loader-sub" id="loadingStatus">Connecting to Oracle Database...</div>
+    <div class="loader-progress">
+        <div class="loader-progress-fill" id="loadingProgress"></div>
+    </div>
+</div>
+
 <div class="dashboard">
 
     <!-- HEADER -->
@@ -792,21 +673,6 @@ if ("refresh".equals(action)) {
             <button class="refresh-btn" id="refreshBtn" onclick="manualRefresh()">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
-        </div>
-    </div>
-
-    <!-- PROGRESS BAR -->
-    <div class="progress-container" id="progressContainer">
-        <div class="progress-info">
-            <span class="status-msg" id="statusMsg">Initializing...</span>
-            <span id="progressPercent">0%</span>
-        </div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-        </div>
-        <div class="progress-info" style="margin-top:2px;">
-            <span class="error-msg" id="errorMsg"></span>
-            <span id="lastUpdateMsg"></span>
         </div>
     </div>
 
@@ -880,13 +746,20 @@ if ("refresh".equals(action)) {
     var sourceData = {};
     var activityLog = [];
     var MAX_ACTIVITY = 30;
-    var statusInterval, dataInterval;
+    var refreshInterval;
     var isFirstLoad = true;
 
     function getPartition() {
         var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
         var now = new Date();
         return months[now.getMonth()] + '_' + String(now.getFullYear()).slice(-2);
+    }
+
+    function formatTime(ms) {
+        var d = new Date(ms);
+        return d.getHours().toString().padStart(2,'0') + ':' + 
+               d.getMinutes().toString().padStart(2,'0') + ':' + 
+               d.getSeconds().toString().padStart(2,'0');
     }
 
     function addActivity(source, status) {
@@ -973,113 +846,80 @@ if ("refresh".equals(action)) {
         sourceData = current;
     }
 
+    function updateLoadingProgress(progress, status) {
+        document.getElementById('loadingProgress').style.width = progress + '%';
+        document.getElementById('loadingStatus').textContent = status;
+    }
+
     function fetchData() {
+        var startTime = Date.now();
+        updateLoadingProgress(10, 'Connecting to database...');
+        
         fetch('?action=fetchSourceStatus')
-            .then(function(r) { return r.json(); })
+            .then(function(r) { 
+                updateLoadingProgress(90, 'Processing data...');
+                return r.json(); 
+            })
             .then(function(data) {
-                var active = renderSources(data);
-                updateStats(data);
-                updateActivity(data);
+                var elapsed = Math.round((Date.now() - startTime) / 1000);
+                document.getElementById('updateTime').textContent = 'Updated ' + elapsed + 's ago';
                 document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
                 
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                }
+                renderSources(data);
+                updateStats(data);
+                updateActivity(data);
+                
+                updateLoadingProgress(100, '✅ Data loaded successfully!');
+                setTimeout(function() {
+                    document.getElementById('loadingOverlay').classList.add('hide');
+                }, 500);
+                
+                isFirstLoad = false;
             })
             .catch(function(e) {
                 console.error(e);
+                updateLoadingProgress(0, '❌ Error: ' + e.message);
                 if (isFirstLoad) {
                     document.getElementById('sourcesGrid').innerHTML = 
-                        '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
+                        '<div style="text-align:center;padding:30px;color:var(--red);grid-column:1/-1;">' +
                         '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
                         '<p style="font-weight:600;">Connection Error</p>' +
-                        '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
+                        '<p style="font-size:0.65rem;color:var(--text3);">' + e.message + '</p>' +
+                        '<p style="font-size:0.55rem;color:var(--text3);margin-top:4px;">Please refresh the page</p></div>';
+                    setTimeout(function() {
+                        document.getElementById('loadingOverlay').classList.add('hide');
+                    }, 2000);
                 }
-            });
-    }
-
-    function checkStatus() {
-        fetch('?action=getStatus')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                var container = document.getElementById('progressContainer');
-                var fill = document.getElementById('progressFill');
-                var msg = document.getElementById('statusMsg');
-                var percent = document.getElementById('progressPercent');
-                var error = document.getElementById('errorMsg');
-                var lastUpdate = document.getElementById('lastUpdateMsg');
-                
-                if (data.processing) {
-                    container.style.display = 'block';
-                    fill.style.width = data.progress + '%';
-                    msg.textContent = data.message;
-                    percent.textContent = data.progress + '%';
-                    error.textContent = '';
-                    document.getElementById('refreshBtn').disabled = true;
-                    document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running';
-                } else {
-                    if (data.error && data.error.length > 0) {
-                        container.style.display = 'block';
-                        error.textContent = '❌ ' + data.error;
-                        document.getElementById('refreshBtn').disabled = false;
-                        document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-                    } else if (data.lastUpdate && data.lastUpdate.length > 0) {
-                        container.style.display = 'block';
-                        fill.style.width = '100%';
-                        msg.textContent = '✅ Data loaded successfully';
-                        percent.textContent = '100%';
-                        lastUpdate.textContent = 'Last update: ' + data.lastUpdate;
-                        document.getElementById('refreshBtn').disabled = false;
-                        document.getElementById('refreshBtn').innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-                        
-                        // Auto hide after 5 seconds
-                        setTimeout(function() {
-                            container.style.display = 'none';
-                        }, 5000);
-                    }
-                }
-            })
-            .catch(function(e) {
-                console.error('Status check error:', e);
             });
     }
 
     function manualRefresh() {
         var btn = document.getElementById('refreshBtn');
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Triggering...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
         
-        fetch('?action=refresh')
-            .then(function() {
-                document.getElementById('progressContainer').style.display = 'block';
-                document.getElementById('statusMsg').textContent = '🔄 Refresh triggered, waiting for data...';
-                document.getElementById('progressFill').style.width = '0%';
-                document.getElementById('progressPercent').textContent = '0%';
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Running';
-            })
-            .catch(function(e) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
-            });
+        document.getElementById('loadingOverlay').classList.remove('hide');
+        document.getElementById('loadingProgress').style.width = '0%';
+        document.getElementById('loadingStatus').textContent = '🔄 Refreshing data...';
+        
+        fetchData();
+        
+        setTimeout(function() {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh';
+        }, 1000);
     }
 
     function init() {
-        // Partition
         document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
-        
-        // Initial data load
         fetchData();
         
-        // Check status every 5 seconds
-        statusInterval = setInterval(checkStatus, 5000);
-        
-        // Refresh data every 30 seconds (cached data)
-        dataInterval = setInterval(fetchData, 30000);
+        // Refresh every 5 minutes (cached data from DB - but each time single connection)
+        refreshInterval = setInterval(fetchData, 300000); // 5 minutes
     }
 
     window.addEventListener('beforeunload', function() {
-        if (statusInterval) clearInterval(statusInterval);
-        if (dataInterval) clearInterval(dataInterval);
+        if (refreshInterval) clearInterval(refreshInterval);
     });
 
     init();
