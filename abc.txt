@@ -1,7 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*, java.util.*, java.text.*" %>
 <%@page import="com.jdbc.DBUtilityAuto"%>
-<%@page import="com.jdbc.AutoCloseableConnection"%>
 
 <%!
 // ============================================
@@ -23,7 +22,7 @@ String action = request.getParameter("action");
 
 if ("fetchSourceStatus".equals(action)) {
     response.setContentType("application/json");
-    AutoCloseableConnection conn = null;
+    Connection conn = null;
     Statement stmt = null;
     ResultSet rs = null;
     StringBuilder json = new StringBuilder();
@@ -32,7 +31,7 @@ if ("fetchSourceStatus".equals(action)) {
         long startTime = System.currentTimeMillis();
         System.out.println("⏳ Query started at: " + new java.util.Date());
         
-        // 🔥 HAR BAAR NAYA CONNECTION
+        // 🔥 BAS ITNA - DIRECT CONNECTION, KOI NATAK NAHI
         conn = DBUtilityAuto.getIIBDBConnection();
         System.out.println("✅ Connection established successfully");
         
@@ -75,10 +74,9 @@ if ("fetchSourceStatus".equals(action)) {
             "ORDER BY s.source_id";
         
         stmt = conn.createStatement();
-        stmt.setQueryTimeout(1200); // 20 min timeout
+        stmt.setQueryTimeout(1200);
         
-        System.out.println("⏳ Executing heavy query... (may take 10 minutes)");
-        // 🐢 YAHAN 10 MIN LAGENGE
+        System.out.println("⏳ Executing heavy query...");
         rs = stmt.executeQuery(query);
         System.out.println("✅ Query executed successfully");
         
@@ -104,16 +102,15 @@ if ("fetchSourceStatus".equals(action)) {
         System.err.println("❌ Error: " + e.getMessage());
         out.print("[]");
     } finally {
-        // 🔥 CONNECTION CLOSE
         try { if (rs != null) rs.close(); } catch(Exception e) {}
         try { if (stmt != null) stmt.close(); } catch(Exception e) {}
         try { 
-            if (conn != null) { 
+            if (conn != null && !conn.isClosed()) { 
                 conn.close(); 
-                System.out.println("🔒 Connection closed successfully");
+                System.out.println("🔒 Connection closed");
             }
         } catch(Exception e) {
-            System.err.println("⚠️ Error closing connection: " + e.getMessage());
+            System.err.println("⚠️ Close error: " + e.getMessage());
         }
     }
     return;
@@ -891,7 +888,6 @@ if ("fetchSourceStatus".equals(action)) {
         document.getElementById('countdownTimer').textContent = 'Next auto-refresh in ' + countdownSeconds + 's';
     }
 
-    // 🔥 MAIN FETCH FUNCTION - HAR BAAR NAYA DB CALL
     function fetchData() {
         if (isLoading) {
             console.log("⏳ Already loading, skipping...");
@@ -924,8 +920,6 @@ if ("fetchSourceStatus".equals(action)) {
                 
                 isFirstLoad = false;
                 isLoading = false;
-                
-                // Reset countdown
                 countdownSeconds = 300;
                 updateCountdown();
             })
@@ -957,10 +951,8 @@ if ("fetchSourceStatus".equals(action)) {
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
         
-        // Reset countdown
         countdownSeconds = 300;
         updateCountdown();
-        
         fetchData();
         
         setTimeout(function() {
@@ -971,18 +963,15 @@ if ("fetchSourceStatus".equals(action)) {
 
     function init() {
         document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
-        
-        // 🔥 INITIAL LOAD
         fetchData();
         
-        // 🔥 AUTO-REFRESH - HAR 5 MINUTE (300 SECONDS)
         refreshInterval = setInterval(function() {
             countdownSeconds--;
             updateCountdown();
             
             if (countdownSeconds <= 0) {
                 console.log("🔄 Auto-refresh triggered at: " + new Date());
-                fetchData(); // 🔥 NAYA DB CALL
+                fetchData();
             }
         }, 1000);
     }
