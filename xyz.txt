@@ -90,94 +90,125 @@ if ("fetchSourceStatus".equals(action)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Source Monitor | Full Screen</title>
+    <title>⚡ SOURCE MONITOR - CYBER DASH</title>
     <link rel="stylesheet" href="../css/all.min.css">
     <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
-            --bg: #0a0e17;
-            --surface: #111927;
-            --card: #1a2332;
-            --border: #243447;
-            --text: #e8edf5;
-            --text2: #8a9bb8;
-            --text3: #4a5a7a;
-            --green: #00f260;
-            --green-dark: #057a3a;
-            --red: #ff416c;
-            --red-dark: #8a1a2a;
-            --blue: #00d4ff;
-            --purple: #7b2ffc;
-            --pink: #ff6b9d;
-            --cyan: #00f5d4;
-            --orange: #f7b731;
-            --yellow: #ffd700;
-            --glow-green: rgba(0, 242, 96, 0.15);
-            --glow-red: rgba(255, 65, 108, 0.15);
+            --cyber-blue: #00f0ff;
+            --cyber-pink: #ff006e;
+            --cyber-green: #00ff88;
+            --cyber-purple: #7000ff;
+            --cyber-yellow: #ffe600;
+            --cyber-red: #ff0055;
+            --bg-dark: #0a0a0f;
+            --bg-card: #111122;
+            --bg-surface: #0d0d1a;
+            --border-glow: rgba(0, 240, 255, 0.15);
+            --text-primary: #e0e8ff;
+            --text-secondary: #8899cc;
+            --text-dim: #445577;
         }
 
         body {
-            background: var(--bg);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: var(--text);
+            background: var(--bg-dark);
+            font-family: 'Rajdhani', sans-serif;
+            color: var(--text-primary);
             height: 100vh;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            position: relative;
+        }
+
+        /* ===== ANIMATED BACKGROUND ===== */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 240, 255, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 50%, rgba(255, 0, 110, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 50% 100%, rgba(112, 0, 255, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== GRID OVERLAY ===== */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
         }
 
         ::-webkit-scrollbar { width: 3px; height: 3px; }
-        ::-webkit-scrollbar-track { background: var(--surface); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--cyber-blue); border-radius: 10px; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); }
 
         /* ===== TOP BAR ===== */
         .top-bar {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 10px 24px;
+            position: relative;
+            z-index: 1;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-glow);
+            padding: 8px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
         .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--blue), var(--purple));
-            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--cyber-blue), var(--cyber-purple));
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 20px;
             color: #fff;
-            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.2);
+            box-shadow: 0 0 40px rgba(0, 240, 255, 0.15);
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 40px rgba(0, 240, 255, 0.15); }
+            50% { box-shadow: 0 0 60px rgba(0, 240, 255, 0.3); }
         }
 
         .brand h1 {
+            font-family: 'Orbitron', monospace;
             font-size: 1.1rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff, var(--blue), var(--pink));
+            font-weight: 900;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, var(--cyber-blue), var(--cyber-pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+            text-shadow: 0 0 40px rgba(0, 240, 255, 0.1);
         }
 
         .brand .sub {
-            font-size: 0.55rem;
-            color: var(--text3);
-            font-weight: 500;
-            letter-spacing: 1px;
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            letter-spacing: 3px;
             text-transform: uppercase;
+            font-weight: 600;
         }
 
         .top-right {
@@ -190,66 +221,61 @@ if ("fetchSourceStatus".equals(action)) {
             display: flex;
             align-items: center;
             gap: 6px;
-            background: rgba(0, 242, 96, 0.08);
             padding: 5px 14px;
             border-radius: 20px;
-            border: 1px solid rgba(0, 242, 96, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            background: rgba(0, 255, 136, 0.05);
             font-size: 0.6rem;
-            color: var(--green);
-            font-weight: 600;
+            color: var(--cyber-green);
+            font-weight: 700;
+            letter-spacing: 1px;
         }
 
         .status-dot {
             width: 6px;
             height: 6px;
             border-radius: 50%;
-            background: var(--green);
+            background: var(--cyber-green);
             animation: blink 1.5s infinite;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
         }
 
         @keyframes blink {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 0.2; transform: scale(0.8); }
         }
 
         .timer-box {
-            background: var(--card);
             padding: 5px 14px;
             border-radius: 20px;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(255, 230, 0, 0.15);
+            background: rgba(255, 230, 0, 0.05);
             font-size: 0.7rem;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text2);
+            font-family: 'Orbitron', monospace;
+            color: var(--cyber-yellow);
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .timer-box i {
-            color: var(--orange);
-            font-size: 0.65rem;
-        }
-
-        .timer-box span {
-            color: var(--text);
-            font-weight: 700;
-            min-width: 40px;
-            display: inline-block;
-            text-align: center;
-        }
+        .timer-box i { color: var(--cyber-yellow); font-size: 0.6rem; }
+        .timer-box span { font-weight: 700; min-width: 40px; display: inline-block; text-align: center; }
 
         .partition-tag {
             font-size: 0.5rem;
-            color: var(--text3);
-            background: var(--card);
-            padding: 3px 10px;
+            color: var(--text-secondary);
+            padding: 3px 12px;
             border-radius: 12px;
-            border: 1px solid var(--border);
-            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid var(--border-glow);
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
+            background: rgba(0, 240, 255, 0.03);
         }
 
-        /* ===== STATS ROW ===== */
+        /* ===== STATS ===== */
         .stats-row {
+            position: relative;
+            z-index: 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
@@ -258,53 +284,73 @@ if ("fetchSourceStatus".equals(action)) {
         }
 
         .stat-card {
-            background: var(--surface);
+            background: var(--bg-surface);
             border-radius: 10px;
-            padding: 12px 18px;
-            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border: 1px solid var(--border-glow);
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
             transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.03), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+
+        .stat-card:hover::before {
+            transform: translateX(100%);
         }
 
         .stat-card:hover {
-            border-color: var(--text3);
+            border-color: rgba(0, 240, 255, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
         }
 
         .stat-icon {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 14px;
             flex-shrink: 0;
         }
 
-        .stat-icon.green { background: rgba(0, 242, 96, 0.12); color: var(--green); }
-        .stat-icon.red { background: rgba(255, 65, 108, 0.12); color: var(--red); }
-        .stat-icon.blue { background: rgba(0, 212, 255, 0.12); color: var(--blue); }
-        .stat-icon.orange { background: rgba(247, 183, 49, 0.12); color: var(--orange); }
+        .stat-icon.green { background: rgba(0, 255, 136, 0.1); color: var(--cyber-green); }
+        .stat-icon.red { background: rgba(255, 0, 85, 0.1); color: var(--cyber-red); }
+        .stat-icon.blue { background: rgba(0, 240, 255, 0.1); color: var(--cyber-blue); }
+        .stat-icon.orange { background: rgba(255, 230, 0, 0.1); color: var(--cyber-yellow); }
 
         .stat-info h2 {
-            font-size: 1.3rem;
-            font-weight: 800;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
             line-height: 1.2;
-            letter-spacing: -0.5px;
+            letter-spacing: 1px;
         }
 
         .stat-info p {
             font-size: 0.5rem;
-            color: var(--text3);
+            color: var(--text-dim);
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 2px;
         }
 
-        /* ===== MAIN CONTENT ===== */
+        /* ===== MAIN ===== */
         .main-content {
+            position: relative;
+            z-index: 1;
             flex: 1;
             padding: 10px 24px 24px 24px;
             display: grid;
@@ -315,18 +361,30 @@ if ("fetchSourceStatus".equals(action)) {
 
         /* ===== SOURCES PANEL ===== */
         .sources-panel {
-            background: var(--surface);
+            background: var(--bg-surface);
             border-radius: 12px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-glow);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+        }
+
+        .sources-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--cyber-blue), transparent);
+            opacity: 0.3;
         }
 
         .panel-header {
-            padding: 10px 16px;
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
+            padding: 8px 16px;
+            background: rgba(0, 240, 255, 0.02);
+            border-bottom: 1px solid var(--border-glow);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -334,36 +392,39 @@ if ("fetchSourceStatus".equals(action)) {
         }
 
         .panel-header h2 {
-            font-size: 0.7rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.6rem;
             font-weight: 700;
             display: flex;
             align-items: center;
             gap: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
         }
 
-        .panel-header h2 i { color: var(--blue); }
+        .panel-header h2 i { color: var(--cyber-blue); }
 
         .panel-header .count-badge {
-            background: var(--bg);
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 0.55rem;
-            color: var(--text2);
-            font-weight: 600;
+            padding: 1px 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border-glow);
+            font-size: 0.5rem;
+            color: var(--text-secondary);
+            font-family: 'Orbitron', monospace;
+            background: rgba(0, 240, 255, 0.03);
         }
 
         .panel-header .legend {
             display: flex;
             gap: 12px;
             font-size: 0.5rem;
-            color: var(--text3);
+            color: var(--text-dim);
             font-weight: 600;
+            letter-spacing: 1px;
         }
 
-        .legend .on { color: var(--green); }
-        .legend .off { color: var(--red); }
+        .legend .on { color: var(--cyber-green); }
+        .legend .off { color: var(--cyber-red); }
 
         /* ===== SOURCES GRID ===== */
         .sources-grid {
@@ -377,135 +438,145 @@ if ("fetchSourceStatus".equals(action)) {
         }
 
         .source-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 16px 12px;
-            border: 2px solid var(--border);
+            background: var(--bg-card);
+            border-radius: 10px;
+            padding: 14px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
             text-align: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            min-height: 110px;
+            min-height: 100px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: default;
+            overflow: hidden;
+        }
+
+        .source-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 10px;
+            padding: 1px;
+            background: linear-gradient(135deg, transparent 40%, rgba(0, 240, 255, 0.05) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
         }
 
         .source-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px) scale(1.02);
+            border-color: rgba(0, 240, 255, 0.1);
         }
 
         .source-card.active {
-            border-color: var(--green);
-            background: linear-gradient(145deg, rgba(0, 242, 96, 0.06), rgba(0, 242, 96, 0.01));
-            box-shadow: 0 0 40px rgba(0, 242, 96, 0.04);
+            border-color: rgba(0, 255, 136, 0.2);
+            background: linear-gradient(145deg, rgba(0, 255, 136, 0.04), rgba(0, 255, 136, 0.01));
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.03);
         }
 
         .source-card.active .source-id {
-            color: var(--green);
-            text-shadow: 0 0 30px rgba(0, 242, 96, 0.15);
+            color: var(--cyber-green);
+            text-shadow: 0 0 30px rgba(0, 255, 136, 0.1);
         }
 
         .source-card.active .source-status {
-            color: var(--green);
+            color: var(--cyber-green);
         }
 
         .source-card.inactive {
-            border-color: rgba(255, 65, 108, 0.1);
-            opacity: 0.45;
+            opacity: 0.3;
+            filter: grayscale(0.5);
         }
 
         .source-card.inactive .source-id {
-            color: var(--text3);
-        }
-
-        .source-card.inactive .source-status {
-            color: var(--red);
+            color: var(--text-dim);
         }
 
         .source-id {
-            font-size: 2rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.8rem;
             font-weight: 900;
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             line-height: 1;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             transition: 0.3s;
         }
 
         .source-status {
-            font-size: 0.5rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.45rem;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             margin-bottom: 4px;
             transition: 0.3s;
         }
 
         .source-hits {
-            font-size: 0.55rem;
-            color: var(--text3);
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--bg);
+            font-size: 0.5rem;
+            color: var(--text-dim);
+            font-family: 'Orbitron', monospace;
             padding: 2px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            background: rgba(0, 0, 0, 0.2);
         }
 
         .source-card.active .source-hits {
-            border-color: rgba(0, 242, 96, 0.15);
-            color: var(--text2);
+            border-color: rgba(0, 255, 136, 0.1);
+            color: var(--text-secondary);
         }
 
         .status-indicator {
             position: absolute;
             top: 8px;
             right: 10px;
-            width: 7px;
-            height: 7px;
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
             transition: 0.3s;
         }
 
         .source-card.active .status-indicator {
-            background: var(--green);
-            box-shadow: 0 0 20px rgba(0, 242, 96, 0.5);
+            background: var(--cyber-green);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
             animation: blink 1.5s infinite;
         }
 
         .source-card.inactive .status-indicator {
-            background: var(--red);
+            background: var(--cyber-red);
             opacity: 0.3;
-        }
-
-        .source-card.active .pulse-ring {
-            position: absolute;
-            inset: -2px;
-            border-radius: 14px;
-            border: 2px solid rgba(0, 242, 96, 0.06);
-            animation: pulseRing 2.5s ease-out infinite;
-        }
-
-        @keyframes pulseRing {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.05); opacity: 0; }
         }
 
         /* ===== ACTIVITY PANEL ===== */
         .activity-panel {
-            background: var(--surface);
+            background: var(--bg-surface);
             border-radius: 12px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-glow);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            position: relative;
+        }
+
+        .activity-panel::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--cyber-pink), transparent);
+            opacity: 0.2;
         }
 
         .activity-list {
             flex: 1;
             overflow-y: auto;
-            padding: 6px 10px;
+            padding: 6px 8px;
             display: flex;
             flex-direction: column;
             gap: 2px;
@@ -516,32 +587,38 @@ if ("fetchSourceStatus".equals(action)) {
             align-items: center;
             gap: 6px;
             padding: 4px 8px;
-            background: var(--card);
+            background: var(--bg-card);
             border-radius: 6px;
-            border-left: 2px solid var(--border);
+            border-left: 2px solid rgba(255, 255, 255, 0.05);
             animation: slideIn 0.3s ease;
-            font-size: 0.65rem;
+            font-size: 0.6rem;
+            transition: 0.3s;
+        }
+
+        .activity-item:hover {
+            background: rgba(0, 240, 255, 0.02);
         }
 
         @keyframes slideIn {
-            from { transform: translateX(-5px); opacity: 0; }
+            from { transform: translateX(-8px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
 
-        .activity-item.on { border-left-color: var(--green); }
-        .activity-item.off { border-left-color: var(--red); opacity: 0.5; }
+        .activity-item.on { border-left-color: var(--cyber-green); }
+        .activity-item.off { border-left-color: var(--cyber-red); opacity: 0.4; }
 
         .activity-time {
-            font-size: 0.45rem;
-            color: var(--text3);
-            font-family: 'JetBrains Mono', monospace;
-            min-width: 36px;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.4rem;
+            color: var(--text-dim);
+            min-width: 34px;
         }
 
         .activity-source {
+            font-family: 'Orbitron', monospace;
             font-weight: 700;
-            font-size: 0.65rem;
-            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.5px;
         }
 
         .activity-status {
@@ -551,21 +628,24 @@ if ("fetchSourceStatus".equals(action)) {
             margin-left: auto;
             padding: 1px 6px;
             border-radius: 4px;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
         }
 
-        .activity-status.on { background: rgba(0, 242, 96, 0.12); color: var(--green); }
-        .activity-status.off { background: rgba(255, 65, 108, 0.12); color: var(--red); }
+        .activity-status.on { background: rgba(0, 255, 136, 0.08); color: var(--cyber-green); }
+        .activity-status.off { background: rgba(255, 0, 85, 0.08); color: var(--cyber-red); }
 
         .activity-empty {
             text-align: center;
             padding: 20px 10px;
-            color: var(--text3);
-            font-size: 0.6rem;
+            color: var(--text-dim);
+            font-size: 0.55rem;
+            letter-spacing: 1px;
         }
 
         .activity-empty i {
             font-size: 1.2rem;
-            opacity: 0.3;
+            opacity: 0.2;
             display: block;
             margin-bottom: 4px;
         }
@@ -574,13 +654,13 @@ if ("fetchSourceStatus".equals(action)) {
         .loading-overlay {
             position: fixed;
             inset: 0;
-            background: var(--bg);
+            background: var(--bg-dark);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            transition: opacity 0.6s ease;
+            transition: opacity 0.8s ease;
         }
 
         .loading-overlay.hide {
@@ -588,31 +668,61 @@ if ("fetchSourceStatus".equals(action)) {
             pointer-events: none;
         }
 
-        .loader-ring {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid var(--border);
-            border-top-color: var(--blue);
-            border-bottom-color: var(--purple);
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
+        .loader-cyber {
+            width: 70px;
+            height: 70px;
+            position: relative;
+            margin-bottom: 24px;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .loader-cyber::before,
+        .loader-cyber::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            animation: cyberSpin 1.2s ease-in-out infinite;
+        }
+
+        .loader-cyber::before {
+            inset: 0;
+            border: 2px solid transparent;
+            border-top-color: var(--cyber-blue);
+            border-bottom-color: var(--cyber-pink);
+            animation-delay: 0s;
+        }
+
+        .loader-cyber::after {
+            inset: 12px;
+            border: 2px solid transparent;
+            border-left-color: var(--cyber-green);
+            border-right-color: var(--cyber-purple);
+            animation-delay: 0.3s;
+        }
+
+        @keyframes cyberSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .loader-text {
-            font-size: 0.9rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 0.8rem;
             font-weight: 700;
-            color: var(--text2);
+            letter-spacing: 4px;
+            color: var(--text-secondary);
+            animation: pulseText 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulseText {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
         }
 
         .loader-sub {
-            font-size: 0.6rem;
-            color: var(--text3);
+            font-size: 0.55rem;
+            color: var(--text-dim);
             margin-top: 4px;
+            letter-spacing: 2px;
         }
 
         /* ===== RESPONSIVE ===== */
@@ -623,60 +733,68 @@ if ("fetchSourceStatus".equals(action)) {
 
         @media (max-width: 992px) {
             .main-content { grid-template-columns: 1fr; }
-            .activity-panel { max-height: 180px; }
+            .activity-panel { max-height: 160px; }
             .stats-row { grid-template-columns: repeat(2, 1fr); }
         }
 
         @media (max-width: 768px) {
-            .top-bar { padding: 8px 16px; flex-wrap: wrap; gap: 6px; }
-            .brand h1 { font-size: 0.9rem; }
+            .top-bar { padding: 6px 16px; flex-wrap: wrap; gap: 4px; }
+            .brand h1 { font-size: 0.8rem; letter-spacing: 1px; }
             .brand-icon { width: 32px; height: 32px; font-size: 14px; }
             .stats-row { padding: 8px 16px 0 16px; gap: 6px; }
-            .stat-card { padding: 8px 12px; }
-            .stat-info h2 { font-size: 1rem; }
-            .stat-icon { width: 32px; height: 32px; font-size: 13px; }
+            .stat-card { padding: 6px 10px; }
+            .stat-info h2 { font-size: 0.9rem; }
+            .stat-icon { width: 30px; height: 30px; font-size: 12px; }
             .main-content { padding: 8px 16px 16px 16px; }
             .sources-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
-            .source-card { min-height: 90px; padding: 12px 8px; }
-            .source-id { font-size: 1.5rem; }
+            .source-card { min-height: 80px; padding: 10px 6px; }
+            .source-id { font-size: 1.3rem; }
             .top-right .partition-tag { display: none; }
+            .timer-box { font-size: 0.6rem; padding: 3px 10px; }
+            .status-badge { font-size: 0.5rem; padding: 3px 10px; }
         }
 
         @media (max-width: 480px) {
             .sources-grid { grid-template-columns: repeat(2, 1fr); }
-            .source-card { min-height: 80px; padding: 10px 6px; }
-            .source-id { font-size: 1.2rem; }
+            .source-card { min-height: 70px; padding: 8px 4px; }
+            .source-id { font-size: 1.1rem; letter-spacing: 1px; }
+            .source-status { font-size: 0.4rem; letter-spacing: 2px; }
             .stats-row { grid-template-columns: 1fr 1fr; }
-            .stat-card { padding: 6px 10px; }
-            .stat-info h2 { font-size: 0.85rem; }
+            .stat-card { padding: 4px 8px; }
+            .stat-info h2 { font-size: 0.75rem; }
+            .stat-icon { width: 26px; height: 26px; font-size: 10px; }
+            .panel-header h2 { font-size: 0.5rem; }
+            .panel-header .legend { display: none; }
         }
     </style>
 </head>
 <body>
 
+<div class="grid-overlay"></div>
+
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
-    <div class="loader-ring"></div>
-    <div class="loader-text">Initializing Monitor</div>
-    <div class="loader-sub">Connecting to Oracle Database...</div>
+    <div class="loader-cyber"></div>
+    <div class="loader-text">INITIALIZING</div>
+    <div class="loader-sub">Establishing secure connection...</div>
 </div>
 
 <!-- TOP BAR -->
 <div class="top-bar">
     <div class="brand">
-        <div class="brand-icon"><i class="fas fa-bolt"></i></div>
+        <div class="brand-icon"><i class="fas fa-satellite-dish"></i></div>
         <div>
-            <h1>Source Monitor</h1>
-            <div class="sub">Real-time Source ID Tracking</div>
+            <h1>SOURCE MONITOR</h1>
+            <div class="sub">real-time tracking system</div>
         </div>
     </div>
     <div class="top-right">
-        <span class="partition-tag" id="partitionBadge">📁 Loading...</span>
+        <span class="partition-tag" id="partitionBadge">📡 LOADING</span>
         <div class="status-badge" id="liveBadge" style="display:none;">
-            <span class="status-dot"></span> LIVE
+            <span class="status-dot"></span> ONLINE
         </div>
         <div class="timer-box" id="timerBadge" style="display:none;">
-            <i class="fas fa-clock"></i>
+            <i class="fas fa-sync-alt"></i>
             <span id="timerDisplay">10:00</span>
         </div>
     </div>
@@ -685,14 +803,14 @@ if ("fetchSourceStatus".equals(action)) {
 <!-- STATS -->
 <div class="stats-row" id="statsRow" style="display:none;">
     <div class="stat-card">
-        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+        <div class="stat-icon green"><i class="fas fa-bolt"></i></div>
         <div class="stat-info">
             <h2 id="activeCount">0</h2>
             <p>Active Sources</p>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
+        <div class="stat-icon red"><i class="fas fa-power-off"></i></div>
         <div class="stat-info">
             <h2 id="inactiveCount">0</h2>
             <p>Inactive Sources</p>
@@ -706,7 +824,7 @@ if ("fetchSourceStatus".equals(action)) {
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon orange"><i class="fas fa-percent"></i></div>
+        <div class="stat-icon orange"><i class="fas fa-chart-line"></i></div>
         <div class="stat-info">
             <h2 id="uptimePercent">0%</h2>
             <p>Uptime Rate</p>
@@ -720,10 +838,10 @@ if ("fetchSourceStatus".equals(action)) {
     <!-- SOURCES -->
     <div class="sources-panel">
         <div class="panel-header">
-            <h2><i class="fas fa-server"></i> Source IDs <span class="count-badge" id="sourceCount">0/20</span></h2>
+            <h2><i class="fas fa-microchip"></i> SOURCES <span class="count-badge" id="sourceCount">0/20</span></h2>
             <div class="legend">
-                <span><span class="on">●</span> Active</span>
-                <span><span class="off">●</span> Inactive</span>
+                <span><span class="on">⬤</span> ACTIVE</span>
+                <span><span class="off">⬤</span> OFFLINE</span>
             </div>
         </div>
         <div class="sources-grid" id="sourcesGrid"></div>
@@ -732,11 +850,11 @@ if ("fetchSourceStatus".equals(action)) {
     <!-- ACTIVITY -->
     <div class="activity-panel">
         <div class="panel-header">
-            <h2><i class="fas fa-bolt" style="color:var(--cyan);"></i> Live Activity</h2>
-            <span style="font-size:0.45rem;color:var(--text3);"><i class="fas fa-circle" style="color:var(--green);font-size:0.2rem;"></i> Real-time</span>
+            <h2><i class="fas fa-wave-square" style="color:var(--cyber-green);"></i> ACTIVITY LOG</h2>
+            <span style="font-size:0.4rem;color:var(--text-dim);font-family:'Orbitron',monospace;letter-spacing:1px;">LIVE</span>
         </div>
         <div class="activity-list" id="activityList">
-            <div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>
+            <div class="activity-empty"><i class="fas fa-inbox"></i> waiting for signal...</div>
         </div>
     </div>
 
@@ -782,7 +900,7 @@ if ("fetchSourceStatus".equals(action)) {
     function renderActivity() {
         var c = document.getElementById('activityList');
         if (activityLog.length === 0) {
-            c.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>';
+            c.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox"></i> waiting for signal...</div>';
             return;
         }
         var html = '';
@@ -806,17 +924,17 @@ if ("fetchSourceStatus".equals(action)) {
         document.getElementById('timerBadge').style.display = 'flex';
         document.getElementById('statsRow').style.display = 'grid';
         document.getElementById('mainGrid').style.display = 'grid';
-        document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
+        document.getElementById('partitionBadge').textContent = '📡 ' + getPartition();
         document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
         timerInterval = setInterval(updateTimer, 1000);
     }
 
     function showError() {
         document.getElementById('sourcesGrid').innerHTML = 
-            '<div style="text-align:center;padding:40px;color:var(--text3);grid-column:1/-1;">' +
-            '<i class="fas fa-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:8px;color:var(--red);"></i>' +
-            '<p style="font-weight:600;font-size:0.9rem;">Connection Error</p>' +
-            '<p style="font-size:0.65rem;margin-top:2px;">Please refresh the page</p></div>';
+            '<div style="text-align:center;padding:40px;color:var(--text-dim);grid-column:1/-1;">' +
+            '<i class="fas fa-exclamation-triangle" style="font-size:2rem;display:block;margin-bottom:8px;color:var(--cyber-red);"></i>' +
+            '<p style="font-weight:700;font-size:0.9rem;font-family:\'Orbitron\',monospace;letter-spacing:2px;">CONNECTION LOST</p>' +
+            '<p style="font-size:0.6rem;margin-top:2px;color:var(--text-dim);">re-establishing link...</p></div>';
     }
 
     function fetchData() {
@@ -838,7 +956,7 @@ if ("fetchSourceStatus".equals(action)) {
     function renderSources(data) {
         var c = document.getElementById('sourcesGrid');
         if (!data || data.length === 0) {
-            c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);grid-column:1/-1;"><i class="fas fa-database" style="font-size:2rem;display:block;margin-bottom:8px;"></i><p>No data available</p></div>';
+            c.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-dim);grid-column:1/-1;"><i class="fas fa-database" style="font-size:2rem;display:block;margin-bottom:8px;opacity:0.3;"></i><p style="font-family:\'Orbitron\',monospace;font-size:0.6rem;letter-spacing:2px;">NO DATA</p></div>';
             return;
         }
         var html = '', active = 0;
@@ -852,10 +970,9 @@ if ("fetchSourceStatus".equals(action)) {
             
             html += '<div class="source-card ' + cls + '">' +
                 '<span class="status-indicator"></span>' +
-                (isActive ? '<span class="pulse-ring"></span>' : '') +
                 '<div class="source-id">' + item.source_id + '</div>' +
                 '<div class="source-status">' + status + '</div>' +
-                '<span class="source-hits">' + (isActive ? '⚡ ' + hits + ' hits' : '⏸ Idle') + '</span>' +
+                '<span class="source-hits">' + (isActive ? '⚡ ' + hits : '⏸') + '</span>' +
                 '</div>';
         }
         c.innerHTML = html;
