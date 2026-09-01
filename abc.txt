@@ -315,7 +315,7 @@ if ("fetchSourceStatus".equals(action)) {
         .legend .g { color: var(--green); }
         .legend .r { color: var(--red); }
 
-        /* ===== SOURCES GRID - FULL SCREEN BIG CARDS ===== */
+        /* ===== SOURCES GRID ===== */
         .sources-grid {
             flex: 1;
             overflow-y: auto;
@@ -326,7 +326,7 @@ if ("fetchSourceStatus".equals(action)) {
             align-content: start;
         }
 
-        /* ===== SOURCE CARD - UNIQUE DESIGN ===== */
+        /* ===== SOURCE CARD ===== */
         .source-card {
             background: var(--card);
             border-radius: 12px;
@@ -346,7 +346,6 @@ if ("fetchSourceStatus".equals(action)) {
             transform: translateY(-4px) scale(1.02);
         }
         
-        /* Active State */
         .source-card.active {
             border-color: var(--green);
             background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(46,204,113,0.02));
@@ -370,7 +369,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--green);
         }
         
-        /* Inactive State */
         .source-card.inactive {
             border-color: rgba(231,76,60,0.15);
             opacity: 0.4;
@@ -382,7 +380,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--red);
         }
 
-        /* Source ID - Big & Bold */
         .source-id {
             font-size: 2.2rem;
             font-weight: 900;
@@ -393,7 +390,6 @@ if ("fetchSourceStatus".equals(action)) {
             transition: 0.3s;
         }
         
-        /* Status Label */
         .source-status {
             font-size: 0.6rem;
             font-weight: 700;
@@ -403,7 +399,6 @@ if ("fetchSourceStatus".equals(action)) {
             transition: 0.3s;
         }
 
-        /* Hit Counter */
         .source-hits {
             font-size: 0.65rem;
             color: var(--text3);
@@ -419,7 +414,6 @@ if ("fetchSourceStatus".equals(action)) {
             color: var(--text2);
         }
 
-        /* Status Dot */
         .status-dot {
             position: absolute;
             top: 10px;
@@ -439,7 +433,6 @@ if ("fetchSourceStatus".equals(action)) {
             opacity: 0.3;
         }
 
-        /* Pulse Ring for Active */
         .source-card.active .pulse-ring {
             position: absolute;
             top: 50%;
@@ -696,14 +689,8 @@ if ("fetchSourceStatus".equals(action)) {
     var sourceData = {};
     var activityLog = [];
     var MAX_ACTIVITY = 30;
-    var timerSeconds = 600;
+    var timerSeconds = 600; // 10 minutes
     var timerInterval;
-    var isFirstLoad = true;
-    
-    // 🔥 IMPORTANT: Cache variable to store last fetched data - DB call sirf page refresh pe hogi
-    var cachedData = null;
-    var lastFetchTime = 0;
-    var CACHE_DURATION = 30000; // 30 seconds cache (refresh ke baad bhi DB call na ho isliye)
 
     function getPartition() {
         var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -719,8 +706,12 @@ if ("fetchSourceStatus".equals(action)) {
 
     function updateTimer() {
         timerSeconds--;
-        if (timerSeconds <= 0) timerSeconds = 600;
         document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+        
+        // 🔥 Jab timer 0 ho jaye, page refresh karo
+        if (timerSeconds <= 0) {
+            location.reload(); // Page refresh -> DB call hogi
+        }
     }
 
     function addActivity(source, status) {
@@ -761,59 +752,34 @@ if ("fetchSourceStatus".equals(action)) {
         document.getElementById('statsRow').style.display = 'grid';
         document.getElementById('mainGrid').style.display = 'grid';
         document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
+        
+        // 🔥 Timer start karo - 10 minute countdown
+        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
         timerInterval = setInterval(updateTimer, 1000);
     }
 
-    // 🔥 NEW: Function to fetch data ONLY from cache (no DB call)
-    function getDataFromCache() {
-        var now = Date.now();
-        if (cachedData && (now - lastFetchTime) < CACHE_DURATION) {
-            return cachedData;
-        }
-        return null;
+    function showError() {
+        document.getElementById('sourcesGrid').innerHTML = 
+            '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
+            '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
+            '<p style="font-weight:600;">Connection Error</p>' +
+            '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
     }
 
-    // 🔥 MODIFIED: fetchData - DB call sirf tab jab cache expired ho ya pehli baar ho
-    function fetchData(forceRefresh) {
-        // Agar forceRefresh true hai (page refresh pe) toh DB call karo
-        // Agar cache available hai aur expire nahi hui toh cache se data lo
-        if (!forceRefresh) {
-            var cached = getDataFromCache();
-            if (cached) {
-                renderSources(cached);
-                updateStats(cached);
-                updateActivity(cached);
-                return; // ✅ DB call nahi hui
-            }
-        }
-
-        // DB call karo (ya toh forceRefresh true hai ya cache expired hai)
+    // 🔥 DB Call - Sirf page load/refresh pe
+    function fetchData() {
         fetch('?action=fetchSourceStatus')
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                // Cache update karo
-                cachedData = data;
-                lastFetchTime = Date.now();
-                
                 renderSources(data);
                 updateStats(data);
                 updateActivity(data);
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    hideLoading();
-                }
+                hideLoading();
             })
             .catch(function(e) {
                 console.error(e);
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    hideLoading();
-                    document.getElementById('sourcesGrid').innerHTML = 
-                        '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
-                        '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
-                        '<p style="font-weight:600;">Connection Error</p>' +
-                        '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
-                }
+                hideLoading();
+                showError();
             });
     }
 
@@ -871,25 +837,12 @@ if ("fetchSourceStatus".equals(action)) {
         sourceData = current;
     }
 
-    function start() {
-        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
-        
-        // 🔥 Page refresh pe forceRefresh = true -> DB call hogi
-        fetchData(true);
-        
-        // 🔥 Ab har 10 second mein DB call nahi hogi, cache se data aayega
-        // Agar aapko fresh data chahiye toh CACHE_DURATION kam karein (e.g. 10000)
-        // But aapne kaha "baar q db ko dikat" isliye maine 30 sec cache rakha hai
-        setInterval(function() {
-            fetchData(false); // false = cache se data lo
-        }, 10000);
-    }
-
     window.addEventListener('beforeunload', function() {
         if (timerInterval) clearInterval(timerInterval);
     });
 
-    start();
+    // 🔥 Page load pe DB call
+    fetchData();
 </script>
 </body>
 </html>
