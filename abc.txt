@@ -1,69 +1,112 @@
-Sept 01, 2026 12:40:00 PM org.apache.catalina.core.StandardWrapperValve invoke
-SEVERE: Servlet.service() for servlet [jsp] in context with path [/EISPortalVer1] threw exception [Unable to compile class for JSP: 
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.sql.*, java.util.*, java.text.*" %>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+<%@page import="com.jdbc.AutoCloseableConnection"%>  <!-- 🔥 Ye import karo -->
 
-An error occurred at line: [35] in the jsp file: [/jsp/Source_Monitor.jsp]
-Type mismatch: cannot convert from AutoCloseableConnection to Connection
-32:         System.out.println("⏳ Query started at: " + new java.util.Date());
-33:         
-34:         // 🔥 BAS ITNA - DIRECT CONNECTION, KOI NATAK NAHI
-35:         conn = DBUtilityAuto.getIIBDBConnection();
-36:         System.out.println("✅ Connection established successfully");
-37:         
-38:         String partition = getPartition();
+<%!
+String getPartition() {
+    Calendar cal = Calendar.getInstance();
+    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
+    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
+    return month + "_" + year;
+}
+%>
 
+<%
+String action = request.getParameter("action");
 
-Stacktrace:] with root cause
-org.apache.jasper.JasperException: Unable to compile class for JSP: 
-
-An error occurred at line: [35] in the jsp file: [/jsp/Source_Monitor.jsp]
-Type mismatch: cannot convert from AutoCloseableConnection to Connection
-32:         System.out.println("⏳ Query started at: " + new java.util.Date());
-33:         
-34:         // 🔥 BAS ITNA - DIRECT CONNECTION, KOI NATAK NAHI
-35:         conn = DBUtilityAuto.getIIBDBConnection();
-36:         System.out.println("✅ Connection established successfully");
-37:         
-38:         String partition = getPartition();
-
-
-Stacktrace:
-	at org.apache.jasper.compiler.DefaultErrorHandler.javacError(DefaultErrorHandler.java:72)
-	at org.apache.jasper.compiler.ErrorDispatcher.javacError(ErrorDispatcher.java:192)
-	at org.apache.jasper.compiler.JDTCompiler.generateClass(JDTCompiler.java:542)
-	at org.apache.jasper.compiler.Compiler.compile(Compiler.java:371)
-	at org.apache.jasper.compiler.Compiler.compile(Compiler.java:343)
-	at org.apache.jasper.compiler.Compiler.compile(Compiler.java:329)
-	at org.apache.jasper.JspCompilationContext.compile(JspCompilationContext.java:603)
-	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:399)
-	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
-	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
-	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1791)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-
+if ("fetchSourceStatus".equals(action)) {
+    response.setContentType("application/json");
+    AutoCloseableConnection conn = null;  // 🔥 Ye type use karo
+    Statement stmt = null;
+    ResultSet rs = null;
+    StringBuilder json = new StringBuilder();
+    
+    try {
+        long startTime = System.currentTimeMillis();
+        System.out.println("⏳ Query started at: " + new java.util.Date());
+        
+        // 🔥 Direct assign - No type mismatch
+        conn = DBUtilityAuto.getIIBDBConnection();
+        System.out.println("✅ Connection established successfully");
+        
+        String partition = getPartition();
+        System.out.println("📁 Partition: " + partition);
+        
+        String query = 
+            "WITH FOUND_SOURCES AS ( " +
+            "   SELECT /*+ parallel(04) */ a.source_id " +
+            "   FROM eisapp.api_log PARTITION(" + partition + ") a " +
+            "   WHERE a.source_id IN ('AK','CA','CC','CK','CR','FA','FS','I4','IN','KA','MB','NB','ON','RL','SA','SK','SQ','UP','WB','Y2') " +
+            "   AND a.request_date_time >= SYSDATE - INTERVAL '10' MINUTE " +
+            "   GROUP BY a.source_id " +
+            ") " +
+            "SELECT s.source_id, " +
+            "CASE WHEN f.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag " +
+            "FROM ( " +
+            "   SELECT 'SA' AS source_id FROM DUAL UNION ALL " +
+            "   SELECT 'FS' FROM DUAL UNION ALL " +
+            "   SELECT 'I4' FROM DUAL UNION ALL " +
+            "   SELECT 'Y2' FROM DUAL UNION ALL " +
+            "   SELECT 'KA' FROM DUAL UNION ALL " +
+            "   SELECT 'FA' FROM DUAL UNION ALL " +
+            "   SELECT 'WB' FROM DUAL UNION ALL " +
+            "   SELECT 'ON' FROM DUAL UNION ALL " +
+            "   SELECT 'CC' FROM DUAL UNION ALL " +
+            "   SELECT 'CK' FROM DUAL UNION ALL " +
+            "   SELECT 'CR' FROM DUAL UNION ALL " +
+            "   SELECT 'SQ' FROM DUAL UNION ALL " +
+            "   SELECT 'RL' FROM DUAL UNION ALL " +
+            "   SELECT 'UP' FROM DUAL UNION ALL " +
+            "   SELECT 'CA' FROM DUAL UNION ALL " +
+            "   SELECT 'AK' FROM DUAL UNION ALL " +
+            "   SELECT 'NB' FROM DUAL UNION ALL " +
+            "   SELECT 'IN' FROM DUAL UNION ALL " +
+            "   SELECT 'MB' FROM DUAL UNION ALL " +
+            "   SELECT 'SK' FROM DUAL " +
+            ") s " +
+            "LEFT JOIN FOUND_SOURCES f ON f.source_id = s.source_id " +
+            "ORDER BY s.source_id";
+        
+        stmt = conn.createStatement();
+        stmt.setQueryTimeout(1200);
+        
+        System.out.println("⏳ Executing heavy query...");
+        rs = stmt.executeQuery(query);
+        System.out.println("✅ Query executed successfully");
+        
+        json.append("[");
+        boolean first = true;
+        while (rs.next()) {
+            if (!first) json.append(",");
+            json.append("{");
+            json.append("\"source_id\":\"").append(rs.getString("source_id")).append("\",");
+            json.append("\"flag\":\"").append(rs.getString("flag")).append("\"");
+            json.append("}");
+            first = false;
+        }
+        json.append("]");
+        
+        long endTime = System.currentTimeMillis();
+        System.out.println("✅ Query completed in: " + (endTime - startTime)/1000 + " seconds");
+        
+        out.print(json.toString());
+        
+    } catch(Exception e) {
+        e.printStackTrace();
+        System.err.println("❌ Error: " + e.getMessage());
+        out.print("[]");
+    } finally {
+        try { if (rs != null) rs.close(); } catch(Exception e) {}
+        try { if (stmt != null) stmt.close(); } catch(Exception e) {}
+        try { 
+            if (conn != null) { 
+                conn.close(); 
+                System.out.println("🔒 Connection closed");
+            }
+        } catch(Exception e) {}
+    }
+    return;
+}
+%>
+<!-- Rest of HTML same as before -->
