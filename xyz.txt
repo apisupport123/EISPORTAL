@@ -33,8 +33,11 @@ public class HourlySysMonitoringCron {
     private static Map<String, List<String>> brokerIPMapping = new HashMap<>();
     private static Map<String, Map<String, Boolean>> isolatedBrokers = new HashMap<>();
 
+    // Date formatter for consistent logging
+    private static final SimpleDateFormat LOG_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     public static void main(String[] args) {
-        // Compute 60â€‘minute rolling window ending at the current 10â€‘minute mark
+        // Compute 60-minute rolling window ending at the current 10-minute mark
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
@@ -45,10 +48,9 @@ public class HourlySysMonitoringCron {
         cal.add(Calendar.MINUTE, -60);
         java.util.Date startTime = cal.getTime();
 
-        System.out.println("[" + new Date(0) + "] Running SYS Monitoring Cron (10-min trigger, 60-min window): " +
-                startTime + " to " + endTime);
-        final String fromDate = formatDate(startTime);
-        final String toDate = formatDate(endTime);
+        // Fix: Use proper date formatting for logging
+        System.out.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] Running SYS Monitoring Cron (10-min trigger, 60-min window): " +
+                LOG_DATE_FORMAT.format(startTime) + " to " + LOG_DATE_FORMAT.format(endTime));
         final String partition = getPartition(startTime);
 
         ExecutorService executor = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
@@ -58,25 +60,25 @@ public class HourlySysMonitoringCron {
 
         Future<?> future = executor.submit(() -> {
             String threadName = Thread.currentThread().getName();
-            System.out.println("[" + threadName + "] Starting SYS Monitoring");
+            System.out.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] [" + threadName + "] Starting SYS Monitoring");
             int attempt = 1;
             boolean success = false;
             while (!success && attempt <= MAX_RETRIES) {
                 long queryStart = System.currentTimeMillis();
                 try {
-                    executeMonitoring(fromDate, toDate, partition, startTime, endTime);
+                    executeMonitoring(partition, startTime, endTime);
                     success = true;
                     long queryDuration = System.currentTimeMillis() - queryStart;
-                    System.out.println("[" + threadName + "] SYS Monitoring completed successfully in " + queryDuration + " ms (attempt " + attempt + ")");
+                    System.out.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] [" + threadName + "] SYS Monitoring completed successfully in " + queryDuration + " ms (attempt " + attempt + ")");
                 } catch (Exception e) {
                     long queryDuration = System.currentTimeMillis() - queryStart;
-                    System.err.println("[" + threadName + "] Attempt " + attempt + " failed: " + e.getMessage());
+                    System.err.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] [" + threadName + "] Attempt " + attempt + " failed: " + e.getMessage());
                     if (attempt == MAX_RETRIES) {
                         e.printStackTrace();
                     } else {
                         try {
                             long delay = RETRY_DELAY_MS * attempt;
-                            System.out.println("[" + threadName + "] Retrying after " + delay + " ms");
+                            System.out.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] [" + threadName + "] Retrying after " + delay + " ms");
                             Thread.sleep(delay);
                         } catch (InterruptedException ie) {
                             Thread.currentThread().interrupt();
@@ -87,7 +89,7 @@ public class HourlySysMonitoringCron {
                 }
             }
             if (!success) {
-                System.err.println("[" + threadName + "] SYS Monitoring failed after " + MAX_RETRIES + " attempts.");
+                System.err.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] [" + threadName + "] SYS Monitoring failed after " + MAX_RETRIES + " attempts.");
             }
         });
         futures.add(future);
@@ -96,7 +98,7 @@ public class HourlySysMonitoringCron {
         try {
             if (!executor.awaitTermination(60, TimeUnit.MINUTES)) {
                 executor.shutdownNow();
-                System.err.println("[" + new Date(batchStart) + "] Tasks did not finish within timeout");
+                System.err.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] Tasks did not finish within timeout");
             }
         } catch (InterruptedException e) {
             executor.shutdownNow();
@@ -104,12 +106,7 @@ public class HourlySysMonitoringCron {
         }
 
         long totalTime = System.currentTimeMillis() - batchStart;
-        System.out.println("[" + new Date(totalTime) + "] SYS Monitoring completed in " + totalTime + " ms");
-    }
-
-    private static String formatDate(java.util.Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
-        return sdf.format(date).toUpperCase();
+        System.out.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] SYS Monitoring completed in " + totalTime + " ms");
     }
 
     private static String getPartition(java.util.Date fromDate) {
@@ -122,7 +119,7 @@ public class HourlySysMonitoringCron {
         return month + "_" + year;
     }
 
-    private static void executeMonitoring(String fromDate, String toDate, String partition,
+    private static void executeMonitoring(String partition,
                                           java.util.Date startTime, java.util.Date endTime) throws Exception {
         long methodStart = System.currentTimeMillis();
         Connection reportConn = null;
@@ -177,12 +174,7 @@ public class HourlySysMonitoringCron {
                 IPs = String.join(",", allIPs.stream().map(ip -> "'" + ip + "'").toArray(String[]::new));
             }
 
-            // Time condition for 60â€‘minute rolling window
-            String timeCondition = " AND ((REQUEST_DATE_TIME >= TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') " +
-                    "AND REQUEST_DATE_TIME < TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS')) " +
-                    "OR (REQUEST_DATE_TIME IS NULL AND CREATION_DATE_TIME >= TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') " +
-                    "AND CREATION_DATE_TIME < TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS')))";
-
+            // Build the base query with parameter placeholders for dates
             String baseQuery = "SELECT /*+ PARALLEL(04)*/ * FROM (\n" +
                     "SELECT " + caseStatements + ",\n" +
                     "TRIM(SYS_ip) AS ip,\n" +
@@ -190,15 +182,27 @@ public class HourlySysMonitoringCron {
                     "FROM eisapp.BACKEND_LOG PARTITION(" + partition + ")\n" +
                     "WHERE API_NAME!='AmlockScreeningAck_SYS'";
 
+            // Time condition with parameter placeholders
+            String timeCondition = " AND ((REQUEST_DATE_TIME >= ? AND REQUEST_DATE_TIME < ?) " +
+                    "OR (REQUEST_DATE_TIME IS NULL AND CREATION_DATE_TIME >= ? AND CREATION_DATE_TIME < ?))";
+
             String query = baseQuery + timeCondition + "\n" +
                     "GROUP BY " + caseStatements1 + ", TRIM(SYS_ip))\n" +
                     "PIVOT (SUM(TOTAL_HITS) AS TOTAL_HITS FOR ip IN (" + IPs + "))\n" +
                     "ORDER BY \n" + orderByBroker;
 
-            System.out.println("Executing SYS query: " + query);
+            System.out.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] Executing SYS query with parameters: start=" + 
+                    LOG_DATE_FORMAT.format(startTime) + ", end=" + LOG_DATE_FORMAT.format(endTime));
 
             long execStart = System.currentTimeMillis();
             ps = iibConn.prepareStatement(query);
+            
+            // Set the date parameters
+            ps.setTimestamp(1, new Timestamp(startTime.getTime()));
+            ps.setTimestamp(2, new Timestamp(endTime.getTime()));
+            ps.setTimestamp(3, new Timestamp(startTime.getTime()));
+            ps.setTimestamp(4, new Timestamp(endTime.getTime()));
+            
             ps.setFetchSize(FETCH_SIZE);
             ps.setQueryTimeout(QUERY_TIMEOUT_SECONDS);
             rs = ps.executeQuery();
@@ -345,7 +349,7 @@ public class HourlySysMonitoringCron {
                         impactedServer.put("status", "warning");
                         impactedServersList.add(impactedServer);
                     } else {
-                        // Healthy â€“ insert into impacted table with status 'healthy'
+                        // Healthy - insert into impacted table with status 'healthy'
                         status = "healthy";
                         healthyCount++;
                         insertImpactedStmt.setTimestamp(1, new Timestamp(startTime.getTime()));
@@ -393,7 +397,7 @@ public class HourlySysMonitoringCron {
             reportConn.commit();
 
             long totalDuration = System.currentTimeMillis() - methodStart;
-            System.out.println("SYS Monitoring inserted " + brokerDataList.size() + " brokers and " +
+            System.out.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] SYS Monitoring inserted " + brokerDataList.size() + " brokers and " +
                     (impactedServersList.size() + isolatedServersList.size()) + " impacted servers. Total time: " + totalDuration + " ms");
 
         } catch (SQLException e) {
@@ -490,7 +494,7 @@ public class HourlySysMonitoringCron {
     }
 
     private static JSONObject fetchURLData() {
-        // Same as EXP cron â€“ reuse the code
+        // Same as EXP cron - reuse the code
         JSONObject urlData = new JSONObject();
         HttpURLConnection conn = null;
         BufferedReader reader = null;
@@ -528,7 +532,7 @@ public class HourlySysMonitoringCron {
                 urlData = parseJsonWithDuplicates(jsonString);
             }
         } catch (Exception e) {
-            System.err.println("Failed to fetch URL data: " + e.getMessage());
+            System.err.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] Failed to fetch URL data: " + e.getMessage());
         } finally {
             try { if (reader != null) reader.close(); } catch (Exception e) {}
             if (conn != null) conn.disconnect();
@@ -598,7 +602,7 @@ public class HourlySysMonitoringCron {
                     }
                 }
             } catch (Exception ex) {
-                System.err.println("Custom JSON parsing failed: " + ex.getMessage());
+                System.err.println("[" + LOG_DATE_FORMAT.format(new java.util.Date()) + "] Custom JSON parsing failed: " + ex.getMessage());
             }
         }
         return result;
