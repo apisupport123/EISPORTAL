@@ -1,37 +1,33 @@
-document.addEventListener("DOMContentLoaded",async ()=> {
-var uid=localStorage.getItem('uidd');
-var password=localStorage.getItem('password');
-var sessionId=localStorage.getItem('sessionid');
-console.log("uid", uid);
-console.log("password", password);
-console.log("sessionId", sessionId);
-try{
-     const response  = await fetch('https://10.191.171.12:5443/EISHOME/awthenticationService/authenticatePortal/',{
-     method:'POST',
-     headers:{
-         'Content-Type':'application/json',
-	     'Authorization': `Bearer ${sessionId}`
-
-    },
-    body: JSON.stringify({uid,password})
-    });
-    const data = await response.json();
-    if(data.status==302){
-            console.log("login successfull");
-	    const redirectUrl=localStorage.getItem("redirectafterlogin");
-	    if (redirectUrl){
-		localStorage.removeItem("redirectafterlogin");
-		window.location.href=redirectUrl;
-	    }
-    }
-    else{
-	    console.log(data.status)
-	    localStorage.setItem("redirectafterlogin",window.location.href);
-          window.location.href='https://10.191.171.12:5443/EISHOME/';
-    }
-  }
-catch(e){
-console.log("an error occured for login"+e)
-
-}
+document.addEventListener("DOMContentLoaded", async () => {
+    var uid = localStorage.getItem('uidd');
+    var password = localStorage.getItem('password');
+    var sessionId = localStorage.getItem('sessionid');
+    console.log("uid", uid);
+    console.log("password", password);
+    console.log("sessionId", sessionId);
+    try {
+        const response = await fetch('https://10.191.171.12:5443/EISHOME/awthenticationService/authenticatePortal/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionId}`
+            },
+            body: JSON.stringify({ uid, password })
+        });
+        const data = await response.json();
+        if (data.status == 302) {
+            console.log("login successful");
+            const redirectUrl = localStorage.getItem("redirectafterlogin");
+            if (redirectUrl) {
+                localStorage.removeItem("redirectafterlogin");
+                window.location.href = redirectUrl;
+            }
+        } else {
+            console.log(data.status);
+            localStorage.setItem("redirectafterlogin", window.location.href);
+            window.location.href = 'https://10.191.171.12:5443/EISHOME/';
+        }
+    } catch (e) {
+        console.log("An error occurred for login: " + e);
+    }
 });
