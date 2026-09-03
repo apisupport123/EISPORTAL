@@ -6,32 +6,52 @@
     String startParam = request.getParameter("start");
     String endParam = request.getParameter("end");
     String showQueries = request.getParameter("showQueries");
-    Calendar cal = Calendar.getInstance();
-    cal.set(Calendar.MINUTE, 0);
-    cal.set(Calendar.SECOND, 0);
-    cal.set(Calendar.MILLISECOND, 0);
+    
     java.util.Date startDate, endDate;
+    
     if (startParam != null && !startParam.isEmpty() && endParam != null && !endParam.isEmpty()) {
         try {
             SimpleDateFormat iso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
             startDate = iso.parse(startParam);
             endDate = iso.parse(endParam);
         } catch (Exception e) {
-            cal.add(Calendar.HOUR_OF_DAY, -1);
-            startDate = cal.getTime();
-            cal.add(Calendar.HOUR_OF_DAY, 1);
-            endDate = cal.getTime();
+            // Default to previous hour
+            Calendar defaultCal = Calendar.getInstance();
+            defaultCal.set(Calendar.MINUTE, 0);
+            defaultCal.set(Calendar.SECOND, 0);
+            defaultCal.set(Calendar.MILLISECOND, 0);
+            defaultCal.add(Calendar.HOUR_OF_DAY, -1);
+            startDate = defaultCal.getTime();
+            defaultCal.add(Calendar.HOUR_OF_DAY, 1);
+            endDate = defaultCal.getTime();
         }
     } else {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         cal.add(Calendar.HOUR_OF_DAY, -1);
         startDate = cal.getTime();
         cal.add(Calendar.HOUR_OF_DAY, 1);
         endDate = cal.getTime();
     }
+    
+    // Validate dates are not null (safety check)
+    if (startDate == null || endDate == null) {
+        Calendar defaultCal = Calendar.getInstance();
+        defaultCal.set(Calendar.MINUTE, 0);
+        defaultCal.set(Calendar.SECOND, 0);
+        defaultCal.set(Calendar.MILLISECOND, 0);
+        defaultCal.add(Calendar.HOUR_OF_DAY, -1);
+        startDate = defaultCal.getTime();
+        defaultCal.add(Calendar.HOUR_OF_DAY, 1);
+        endDate = defaultCal.getTime();
+    }
 
     SimpleDateFormat oracleFmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     String fromStr = oracleFmt.format(startDate).toUpperCase();
     String toStr = oracleFmt.format(endDate).toUpperCase();
+    
     SimpleDateFormat displayFmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm");
     String rangeDisplay = displayFmt.format(startDate) + " to " + displayFmt.format(endDate);
     String startIso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(startDate);
@@ -81,15 +101,16 @@
         "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "SIDB", "SIDB", "SIDB"
     };
 
-    // Fetch data – exclusive end time
+    // Fetch data – using Timestamp for safety
     Map<String, List<Map<String, Object>>> tableData = new LinkedHashMap<>();
     try (Connection conn = DBUtilityAuto.getReportDBConnection()) {
         for (String tbl : tables) {
-            String sql = "SELECT * FROM " + tbl + " WHERE START_TIME >= TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') AND START_TIME < TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') ORDER BY START_TIME";
+            // Use parameterized query with Timestamp
+            String sql = "SELECT * FROM " + tbl + " WHERE START_TIME >= ? AND START_TIME < ? ORDER BY START_TIME";
             List<Map<String, Object>> rows = new ArrayList<>();
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, fromStr);
-                ps.setString(2, toStr);
+                ps.setTimestamp(1, new java.sql.Timestamp(startDate.getTime()));
+                ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
                 try (ResultSet rs = ps.executeQuery()) {
                     ResultSetMetaData meta = rs.getMetaData();
                     int colCount = meta.getColumnCount();
@@ -101,6 +122,10 @@
                         rows.add(row);
                     }
                 }
+            } catch (SQLException e) {
+                // Log error but continue with other tables
+                System.err.println("Error fetching data for table: " + tbl);
+                e.printStackTrace();
             }
             tableData.put(tbl, rows);
         }
@@ -515,78 +540,3 @@
 <script src="../js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-
-
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0
-
-	at oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:509)
-	at oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:461)
-	at oracle.jdbc.driver.T4C8Oall.processError(T4C8Oall.java:1104)
-	at oracle.jdbc.driver.T4CTTIfun.receive(T4CTTIfun.java:553)
-	at oracle.jdbc.driver.T4CTTIfun.doRPC(T4CTTIfun.java:269)
-	at oracle.jdbc.driver.T4C8Oall.doOALL(T4C8Oall.java:655)
-	at oracle.jdbc.driver.T4CPreparedStatement.doOall8(T4CPreparedStatement.java:270)
-	at oracle.jdbc.driver.T4CPreparedStatement.doOall8(T4CPreparedStatement.java:91)
-	at oracle.jdbc.driver.T4CPreparedStatement.executeForDescribe(T4CPreparedStatement.java:807)
-	at oracle.jdbc.driver.OracleStatement.executeMaybeDescribe(OracleStatement.java:983)
-	at oracle.jdbc.driver.OracleStatement.doExecuteWithTimeout(OracleStatement.java:1168)
-	at oracle.jdbc.driver.OraclePreparedStatement.executeInternal(OraclePreparedStatement.java:3666)
-	at oracle.jdbc.driver.T4CPreparedStatement.executeInternal(T4CPreparedStatement.java:1426)
-	at oracle.jdbc.driver.OraclePreparedStatement.executeQuery(OraclePreparedStatement.java:3713)
-	at oracle.jdbc.driver.OraclePreparedStatementWrapper.executeQuery(OraclePreparedStatementWrapper.java:1167)
-	at org.apache.jsp.jsp.eisSbiDashboard_jsp._jspService(eisSbiDashboard_jsp.java:216)
-	at org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:67)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
-	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
-	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
-	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
-	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
-	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
-	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
-	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
-	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
-	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
-	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
-	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
-	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
-	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
-	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
-	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
-	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
-	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1791)
-	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
-	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
-	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
-	at java.base/java.lang.Thread.run(Thread.java:1583)
-Caused by: Error : 1841, Position : 113, Sql = SELECT * FROM ADHARVAULT_HOURLY WHERE START_TIME >= TO_TIMESTAMP(:1 , 'DD-MON-YYYY HH24:MI:SS') AND START_TIME < TO_TIMESTAMP(:2 , 'DD-MON-YYYY HH24:MI:SS') ORDER BY START_TIME, OriginalSql = SELECT * FROM ADHARVAULT_HOURLY WHERE START_TIME >= TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') AND START_TIME < TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') ORDER BY START_TIME, Error Msg = ORA-01841: (full) year must be between -4713 and +9999, and not be 0
-
-	at oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:513)
-	... 49 more
-Connected to PRIMARY DB 1
-Flag Status: PR, Location: HI
-Flag check connection closed
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
-Using cached flag values - Flag: PR, Location: HI
-getReportDBConnection - flagStatus: PR
-Connecting to Report PR Database
-Report PR Connected
