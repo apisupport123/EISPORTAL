@@ -6,32 +6,52 @@
     String startParam = request.getParameter("start");
     String endParam = request.getParameter("end");
     String showQueries = request.getParameter("showQueries");
-    Calendar cal = Calendar.getInstance();
-    cal.set(Calendar.MINUTE, 0);
-    cal.set(Calendar.SECOND, 0);
-    cal.set(Calendar.MILLISECOND, 0);
+    
     java.util.Date startDate, endDate;
+    
     if (startParam != null && !startParam.isEmpty() && endParam != null && !endParam.isEmpty()) {
         try {
             SimpleDateFormat iso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
             startDate = iso.parse(startParam);
             endDate = iso.parse(endParam);
         } catch (Exception e) {
-            cal.add(Calendar.HOUR_OF_DAY, -1);
-            startDate = cal.getTime();
-            cal.add(Calendar.HOUR_OF_DAY, 1);
-            endDate = cal.getTime();
+            // Default to previous hour
+            Calendar defaultCal = Calendar.getInstance();
+            defaultCal.set(Calendar.MINUTE, 0);
+            defaultCal.set(Calendar.SECOND, 0);
+            defaultCal.set(Calendar.MILLISECOND, 0);
+            defaultCal.add(Calendar.HOUR_OF_DAY, -1);
+            startDate = defaultCal.getTime();
+            defaultCal.add(Calendar.HOUR_OF_DAY, 1);
+            endDate = defaultCal.getTime();
         }
     } else {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         cal.add(Calendar.HOUR_OF_DAY, -1);
         startDate = cal.getTime();
         cal.add(Calendar.HOUR_OF_DAY, 1);
         endDate = cal.getTime();
     }
+    
+    // Validate dates are not null (safety check)
+    if (startDate == null || endDate == null) {
+        Calendar defaultCal = Calendar.getInstance();
+        defaultCal.set(Calendar.MINUTE, 0);
+        defaultCal.set(Calendar.SECOND, 0);
+        defaultCal.set(Calendar.MILLISECOND, 0);
+        defaultCal.add(Calendar.HOUR_OF_DAY, -1);
+        startDate = defaultCal.getTime();
+        defaultCal.add(Calendar.HOUR_OF_DAY, 1);
+        endDate = defaultCal.getTime();
+    }
 
     SimpleDateFormat oracleFmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     String fromStr = oracleFmt.format(startDate).toUpperCase();
     String toStr = oracleFmt.format(endDate).toUpperCase();
+    
     SimpleDateFormat displayFmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm");
     String rangeDisplay = displayFmt.format(startDate) + " to " + displayFmt.format(endDate);
     String startIso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(startDate);
@@ -70,15 +90,16 @@
         "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "SIDB"
     };
 
-    // Fetch data – exclusive end time to avoid duplicates
+    // Fetch data – using Timestamp for safety
     Map<String, List<Map<String, Object>>> tableData = new LinkedHashMap<>();
     try (Connection conn = DBUtilityAuto.getReportDBConnection()) {
         for (String tbl : tables) {
-            String sql = "SELECT * FROM " + tbl + " WHERE START_TIME >= TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') AND START_TIME < TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') ORDER BY START_TIME";
+            // Use parameterized query with Timestamp
+            String sql = "SELECT * FROM " + tbl + " WHERE START_TIME >= ? AND START_TIME < ? ORDER BY START_TIME";
             List<Map<String, Object>> rows = new ArrayList<>();
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setString(1, fromStr);
-                ps.setString(2, toStr);
+                ps.setTimestamp(1, new java.sql.Timestamp(startDate.getTime()));
+                ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
                 try (ResultSet rs = ps.executeQuery()) {
                     ResultSetMetaData meta = rs.getMetaData();
                     int colCount = meta.getColumnCount();
@@ -90,6 +111,10 @@
                         rows.add(row);
                     }
                 }
+            } catch (SQLException e) {
+                // Log error but continue with other tables
+                System.err.println("Error fetching data for table: " + tbl);
+                e.printStackTrace();
             }
             tableData.put(tbl, rows);
         }
