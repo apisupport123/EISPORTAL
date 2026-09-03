@@ -1,848 +1,592 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*, java.util.*, java.text.*" %>
-<%@page import="com.jdbc.DBUtilityAuto"%>
-<%!
-// ============================================
-// DYNAMIC PARTITION - CURRENT MONTH
-// ============================================
-String getPartition() {
-    Calendar cal = Calendar.getInstance();
-    String month = new SimpleDateFormat("MMM", Locale.US).format(cal.getTime()).toUpperCase();
-    String year = new SimpleDateFormat("yy", Locale.US).format(cal.getTime());
-    return month + "_" + year;
-}
-%>
+<%@ page import="com.jdbc.DBUtilityAuto" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%
-String action = request.getParameter("action");
-
-if ("fetchSourceStatus".equals(action)) {
-    response.setContentType("application/json");
-    Connection conn = null;
-    Statement stmt = null;
-    ResultSet rs = null;
-    StringBuilder json = new StringBuilder();
-    
-    try {
-        conn = DBUtilityAuto.getIIBDBConnection();
-        String partition = getPartition();
-        
-        String query = 
-            "WITH FOUND_SOURCES AS ( " +
-            "   SELECT /*+ parallel(04) */ a.source_id " +
-            "   FROM eisapp.api_log PARTITION(" + partition + ") a " +
-            "   WHERE a.source_id IN ('AK','CA','CC','CK','CR','FA','FS','I4','IN','KA','MB','NB','ON','RL','SA','SK','SQ','UP','WB','Y2') " +
-            "   AND a.request_date_time >= SYSDATE - INTERVAL '10' MINUTE " +
-            "   GROUP BY a.source_id " +
-            ") " +
-            "SELECT s.source_id, " +
-            "CASE WHEN f.source_id IS NOT NULL THEN 'Y' ELSE 'N' END AS flag " +
-            "FROM ( " +
-            "   SELECT 'SA' AS source_id FROM DUAL UNION ALL " +
-            "   SELECT 'FS' FROM DUAL UNION ALL " +
-            "   SELECT 'I4' FROM DUAL UNION ALL " +
-            "   SELECT 'Y2' FROM DUAL UNION ALL " +
-            "   SELECT 'KA' FROM DUAL UNION ALL " +
-            "   SELECT 'FA' FROM DUAL UNION ALL " +
-            "   SELECT 'WB' FROM DUAL UNION ALL " +
-            "   SELECT 'ON' FROM DUAL UNION ALL " +
-            "   SELECT 'CC' FROM DUAL UNION ALL " +
-            "   SELECT 'CK' FROM DUAL UNION ALL " +
-            "   SELECT 'CR' FROM DUAL UNION ALL " +
-            "   SELECT 'SQ' FROM DUAL UNION ALL " +
-            "   SELECT 'RL' FROM DUAL UNION ALL " +
-            "   SELECT 'UP' FROM DUAL UNION ALL " +
-            "   SELECT 'CA' FROM DUAL UNION ALL " +
-            "   SELECT 'AK' FROM DUAL UNION ALL " +
-            "   SELECT 'NB' FROM DUAL UNION ALL " +
-            "   SELECT 'IN' FROM DUAL UNION ALL " +
-            "   SELECT 'MB' FROM DUAL UNION ALL " +
-            "   SELECT 'SK' FROM DUAL " +
-            ") s " +
-            "LEFT JOIN FOUND_SOURCES f ON f.source_id = s.source_id " +
-            "ORDER BY s.source_id";
-        
-        stmt = conn.createStatement();
-        stmt.setQueryTimeout(1200);
-        rs = stmt.executeQuery(query);
-        
-        json.append("[");
-        boolean first = true;
-        while (rs.next()) {
-            if (!first) json.append(",");
-            json.append("{");
-            json.append("\"source_id\":\"").append(rs.getString("source_id")).append("\",");
-            json.append("\"flag\":\"").append(rs.getString("flag")).append("\"");
-            json.append("}");
-            first = false;
+    // Parse start/end – default to previous hour
+    String startParam = request.getParameter("start");
+    String endParam = request.getParameter("end");
+    String showQueries = request.getParameter("showQueries");
+    Calendar cal = Calendar.getInstance();
+    cal.set(Calendar.MINUTE, 0);
+    cal.set(Calendar.SECOND, 0);
+    cal.set(Calendar.MILLISECOND, 0);
+    java.util.Date startDate, endDate;
+    if (startParam != null && !startParam.isEmpty() && endParam != null && !endParam.isEmpty()) {
+        try {
+            SimpleDateFormat iso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+            startDate = iso.parse(startParam);
+            endDate = iso.parse(endParam);
+        } catch (Exception e) {
+            cal.add(Calendar.HOUR_OF_DAY, -1);
+            startDate = cal.getTime();
+            cal.add(Calendar.HOUR_OF_DAY, 1);
+            endDate = cal.getTime();
         }
-        json.append("]");
-        out.print(json.toString());
-        
-    } catch(Exception e) {
-        out.print("[]");
-    } finally {
-        try { if (rs != null) rs.close(); } catch(Exception e) {}
-        try { if (stmt != null) stmt.close(); } catch(Exception e) {}
-        try { if (conn != null) conn.close(); } catch(Exception e) {}
+    } else {
+        cal.add(Calendar.HOUR_OF_DAY, -1);
+        startDate = cal.getTime();
+        cal.add(Calendar.HOUR_OF_DAY, 1);
+        endDate = cal.getTime();
     }
-    return;
-}
+
+    SimpleDateFormat oracleFmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
+    String fromStr = oracleFmt.format(startDate).toUpperCase();
+    String toStr = oracleFmt.format(endDate).toUpperCase();
+    SimpleDateFormat displayFmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm");
+    String rangeDisplay = displayFmt.format(startDate) + " to " + displayFmt.format(endDate);
+    String startIso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(startDate);
+    String endIso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(endDate);
+
+    int selectedHour = startDate.getHours();
+
+    Calendar partCal = Calendar.getInstance();
+    partCal.setTime(startDate);
+    String[] months = {"JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"};
+    String partition = months[partCal.get(Calendar.MONTH)] + "_" + String.valueOf(partCal.get(Calendar.YEAR)).substring(2);
+
+    // Tables (14 tables)
+    String[] tables = {
+        "ADHARVAULT_HOURLY",
+        "PANVALIDATION_HOURLY",
+        "CKYC_HOURLY",
+        "AMLOCK_HOURLY",
+        "SBI_CAPS_HOURLY",
+        "IVR_HOURLY",
+        "DMZ_HOURLY",
+        "DMZ_OUTBOUND_HOURLY",
+        "DEAF_LOGGING_HOURLY",
+        "DEAF_AUDIT_HOURLY",
+        "EIS_INACTIVE_HOURLY",
+        "EKYC_HOURLY",
+        "PMJJBY_HOURLY",
+        "PMSBY_HOURLY"
+    };
+    String[] displayNames = {
+        "Aadhar Vault",
+        "PAN Validation",
+        "CKYC (New)",
+        "AMLOCK",
+        "SBI CAPS",
+        "IVR",
+        "DMZ",
+        "DMZ Outbound",
+        "Deaf Logging",
+        "Deaf Audit",
+        "EIS Inactive",
+        "EKYC",
+        "PMJJBY Renewal",
+        "PMSBY Renewal"
+    };
+    String[] sourceDB = {
+        "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "SIDB", "SIDB", "SIDB"
+    };
+
+    // Fetch data – exclusive end time
+    Map<String, List<Map<String, Object>>> tableData = new LinkedHashMap<>();
+    try (Connection conn = DBUtilityAuto.getReportDBConnection()) {
+        for (String tbl : tables) {
+            String sql = "SELECT * FROM " + tbl + " WHERE START_TIME >= TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') AND START_TIME < TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') ORDER BY START_TIME";
+            List<Map<String, Object>> rows = new ArrayList<>();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, fromStr);
+                ps.setString(2, toStr);
+                try (ResultSet rs = ps.executeQuery()) {
+                    ResultSetMetaData meta = rs.getMetaData();
+                    int colCount = meta.getColumnCount();
+                    while (rs.next()) {
+                        Map<String, Object> row = new LinkedHashMap<>();
+                        for (int i = 1; i <= colCount; i++) {
+                            row.put(meta.getColumnName(i).toUpperCase(), rs.getObject(i));
+                        }
+                        rows.add(row);
+                    }
+                }
+            }
+            tableData.put(tbl, rows);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    Set<String> hiddenCols = new HashSet<>(Arrays.asList("ID", "START_TIME", "END_TIME", "QUERY_DURATION_SEC"));
+
+    // Build query strings – include all 14 queries
+    String queriesDisplay = "";
+    if ("true".equals(showQueries)) {
+        StringBuilder sb = new StringBuilder();
+        String part = " PARTITION(" + partition + ")";
+        String fromDate = fromStr;
+        String toDate = toStr;
+
+        // Query 0 – Aadhar Vault
+        sb.append("-- Query 0: Aadhar Vault\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS,\n");
+        sb.append("SUM(CASE WHEN ERROR_CODE IS NULL THEN 1 ELSE 0 END) AS SUCCESS,\n");
+        sb.append("SUM(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051') THEN 1 ELSE 0 END) AS FAILURE,\n");
+        sb.append("ROUND(AVG(EXTRACT(SECOND FROM (response_date_time - request_date_time))), 4) AS Avg_response_end_to_end\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE url IN ('http://eispri.sbi.co.in:3113/aadharVault/refKeyEnq/misc', 'http://eispri.sbi.co.in:3113/aadharVault/storeData/misc', 'http://eispri.sbi.co.in:3113/aadharVault/fetchAadhar/misc')\n");
+        sb.append("AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 1 – PAN Validation
+        sb.append("-- Query 1: PAN Validation\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS,\n");
+        sb.append("SUM(CASE WHEN ERROR_CODE IS NULL THEN 1 ELSE 0 END) AS SUCCESS,\n");
+        sb.append("SUM(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051') THEN 1 ELSE 0 END) AS TD,\n");
+        sb.append("SUM(CASE WHEN ERROR_CODE NOT IN ('SI002','SI014','SI001','SI051') THEN 1 ELSE 0 END) AS BD\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE url = 'http://eispri.sbi.co.in:3013/PANMatchingDetails/misc'\n");
+        sb.append("AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 2 – CKYC (New)
+        sb.append("-- Query 2: CKYC (New)\n");
+        sb.append("SELECT /*+ PARALLEL(4) */\n");
+        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('SI001','SI002','SI007','SI014','SI017','SI569','SI570') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS EIS_TD_PERCENT,\n");
+        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('CK002','CK014') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS DEST_TD_PERCENT\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE source_id IN ('CK','LP','YB','YA','IN','FA')\n");
+        sb.append("AND url IN ('http://eispri.sbi.co.in:3002/ckyc/Creation/customers', 'http://eispri.sbi.co.in:3002/ckycPersonalDetails_th/update/customers', 'http://eispri.sbi.co.in:3002/ckycPersonalDetails_th/enquiry/customers')\n");
+        sb.append("AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 3 – AMLOCK
+        sb.append("-- Query 3: AMLOCK\n");
+        sb.append("SELECT /*+ PARALLEL(4) */\n");
+        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('SI001','SI002','SI007','SI014','SI017','SI569','SI570') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS EIS_TD_PERCENT,\n");
+        sb.append("ROUND(SUM(CASE WHEN SUBSTR(ERROR_CODE, 3, 3) IN ('002','014') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS DEST_TD_PERCENT\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE URL IN ('http://eispri.sbi.co.in:3021/amlockName/CCSID/ScreeningDetails/customers', 'http://eispri.sbi.co.in:3011/amlockName/acknowledgeDetails/misc')\n");
+        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 4 – SBI CAPS
+        sb.append("-- Query 4: SBI CAPS\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS,\n");
+        sb.append("SUM(CASE WHEN RESPONSE_STATUS IN ('0','SUCCESS') THEN 1 ELSE 0 END) AS SUCCESS,\n");
+        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051','SI007','SI569','SI570') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS TD_PERCENT\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE SUBSTR(URN, 4, 2) = 'SA'\n");
+        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 5 – IVR
+        sb.append("-- Query 5: IVR\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS,\n");
+        sb.append("SUM(CASE WHEN RESPONSE_STATUS IN ('0','SUCCESS') THEN 1 ELSE 0 END) AS SUCCESS,\n");
+        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051','SI007','SI569','SI570') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS TD_PERCENT\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE BROKER_NAME = 'IVR_EXP'\n");
+        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 6 – DMZ (dynamic)
+        sb.append("-- Query 6: DMZ (dynamic)\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ dpg_ip AS IP, COUNT(*) AS COUNT\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS')\n");
+        sb.append("AND dpg_ip IS NOT NULL\n");
+        sb.append("GROUP BY dpg_ip;\n\n");
+
+        // Query 7 – DMZ Outbound
+        sb.append("-- Query 7: DMZ Outbound\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS Total_hits\n");
+        sb.append("FROM EISAPP.backend_log" + part + "\n");
+        sb.append("WHERE END_POINT_PORT = '7443'\n");
+        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 8 – Deaf Logging
+        sb.append("-- Query 8: Deaf Logging\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS\n");
+        sb.append("FROM EISAPP.deaf_logging\n");
+        sb.append("WHERE CREATION_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 9 – Deaf Audit
+        sb.append("-- Query 9: Deaf Audit\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS\n");
+        sb.append("FROM EISAPP.deaf_audit\n");
+        sb.append("WHERE CREATION_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 10 – EIS Inactive
+        sb.append("-- Query 10: EIS Inactive\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ 'EIS Application In Active' AS Application_InActive, COUNT(*) AS COUNT\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE ERROR_CODE = 'SI002' AND LOWER(ERROR_DESCRIPTION) LIKE '%eis application inactive%'\n");
+        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS')\n");
+        sb.append("GROUP BY 'EIS Application In Active';\n\n");
+
+        // Query 11 – EKYC
+        sb.append("-- Query 11: EKYC\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(1) AS TOTAL_HITS,\n");
+        sb.append("SUM(CASE WHEN ERROR_CODE IS NULL THEN 1 ELSE 0 END) AS SUCCESS,\n");
+        sb.append("ROUND((SUM(CASE WHEN ERROR_CODE IN ('SI392','SI207') THEN 1 ELSE 0 END)/NULLIF(COUNT(1), 0))*100, 2) AS TD_PERCENT\n");
+        sb.append("FROM SBISI.EKYC_log\n");
+        sb.append("WHERE REQ_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 12 – PMJJBY
+        sb.append("-- Query 12: PMJJBY Renewal\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ status_code, COUNT(1) AS COUNT\n");
+        sb.append("FROM SBISI.pmjjby_renewal_txn_master\n");
+        sb.append("WHERE txn_cycle = 1\n");
+        sb.append("GROUP BY status_code\n");
+        sb.append("ORDER BY status_code;\n\n");
+
+        // Query 13 – PMSBY
+        sb.append("-- Query 13: PMSBY Renewal\n");
+        sb.append("SELECT /*+ PARALLEL(4) */ status_code, COUNT(1) AS COUNT\n");
+        sb.append("FROM SBISI.pmsby_renewal_txn_master\n");
+        sb.append("WHERE txn_cycle = 1\n");
+        sb.append("GROUP BY status_code\n");
+        sb.append("ORDER BY status_code;\n");
+
+        queriesDisplay = sb.toString();
+    }
 %>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Source Monitor | Live Dashboard</title>
+    <title>EIS SBI Dashboard</title>
+    <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/all.min.css">
-    <link href="../css/fonts.googleapis.com1.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --bg: #05080f;
-            --surface: #0c1220;
-            --card: #162035;
-            --border: #1f2d45;
-            --text: #e8edf5;
-            --text2: #8899bb;
-            --text3: #3d5070;
-            --green: #2ecc71;
-            --green-dark: #1a8a4a;
-            --red: #e74c3c;
-            --red-dark: #922b21;
-            --blue: #3498db;
-            --purple: #9b59b6;
-            --pink: #e91e63;
-            --cyan: #1abc9c;
-            --orange: #f39c12;
-            --yellow: #f1c40f;
-        }
-
-        body {
-            background: var(--bg);
-            font-family: 'Inter', sans-serif;
-            color: var(--text);
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: var(--surface); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-        .dashboard {
-            height: 100vh;
-            padding: 12px 16px 16px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        /* ===== HEADER ===== */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 18px;
-            background: var(--surface);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            flex-shrink: 0;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .header-icon {
-            width: 38px; height: 38px;
-            background: linear-gradient(135deg, var(--blue), var(--purple));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #fff;
-        }
-        .header h1 {
-            font-size: 1.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #fff, var(--blue), var(--pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .header .sub {
-            font-size: 0.6rem;
-            color: var(--text3);
-        }
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .live-badge {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(46,204,113,0.12);
-            padding: 4px 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(46,204,113,0.2);
-            font-size: 0.6rem;
-            color: var(--green);
-        }
-        .live-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--green);
-            animation: blink 1.5s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.2; }
-        }
-        .timer-badge {
-            background: var(--card);
-            padding: 4px 10px;
-            border-radius: 14px;
-            border: 1px solid var(--border);
-            font-size: 0.65rem;
-            color: var(--text2);
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .timer-badge i { color: var(--orange); margin-right: 3px; }
-        .partition-badge {
-            font-size: 0.5rem;
-            color: var(--text3);
-            background: var(--card);
-            padding: 2px 8px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* ===== STATS ===== */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-            flex-shrink: 0;
-        }
-        .stat-card {
-            background: var(--surface);
-            border-radius: 10px;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .stat-icon {
-            width: 32px; height: 32px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-        }
-        .stat-icon.green { background: rgba(46,204,113,0.15); color: var(--green); }
-        .stat-icon.red { background: rgba(231,76,60,0.15); color: var(--red); }
-        .stat-icon.blue { background: rgba(52,152,219,0.15); color: var(--blue); }
-        .stat-icon.orange { background: rgba(243,156,18,0.15); color: var(--orange); }
-        .stat-info h3 {
-            font-size: 1.1rem;
-            font-weight: 800;
-            line-height: 1.2;
-        }
-        .stat-info p {
-            font-size: 0.5rem;
-            color: var(--text3);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* ===== MAIN ===== */
-        .main {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr 280px;
-            gap: 10px;
-            min-height: 0;
-        }
-
-        /* ===== SOURCES PANEL ===== */
-        .sources-panel {
-            background: var(--surface);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .panel-head {
-            padding: 8px 14px;
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-        .panel-head h2 {
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .panel-head h2 i { color: var(--blue); }
-        .panel-head .cnt {
-            background: var(--bg);
-            padding: 1px 8px;
-            border-radius: 10px;
-            font-size: 0.55rem;
-            color: var(--text2);
-            font-weight: 600;
-        }
-        .legend {
-            display: flex;
-            gap: 10px;
-            font-size: 0.5rem;
-            color: var(--text3);
-        }
-        .legend .g { color: var(--green); }
-        .legend .r { color: var(--red); }
-
-        /* ===== SOURCES GRID ===== */
-        .sources-grid {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px 12px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 10px;
-            align-content: start;
-        }
-
-        /* ===== SOURCE CARD ===== */
-        .source-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 18px 14px;
-            border: 2px solid var(--border);
-            text-align: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            cursor: default;
-            min-height: 120px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .source-card:hover {
-            transform: translateY(-4px) scale(1.02);
-        }
-        
-        .source-card.active {
-            border-color: var(--green);
-            background: linear-gradient(145deg, rgba(46,204,113,0.08), rgba(46,204,113,0.02));
-            box-shadow: 0 8px 32px rgba(46,204,113,0.08);
-        }
-        .source-card.active::after {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, var(--green), var(--cyan));
-            z-index: -1;
-            opacity: 0.15;
-            filter: blur(15px);
-        }
-        .source-card.active .source-id {
-            color: var(--green);
-            text-shadow: 0 0 30px rgba(46,204,113,0.2);
-        }
-        .source-card.active .source-status {
-            color: var(--green);
-        }
-        
-        .source-card.inactive {
-            border-color: rgba(231,76,60,0.15);
-            opacity: 0.4;
-        }
-        .source-card.inactive .source-id {
-            color: var(--text3);
-        }
-        .source-card.inactive .source-status {
-            color: var(--red);
-        }
-
-        .source-id {
-            font-size: 2.2rem;
-            font-weight: 900;
-            font-family: 'JetBrains Mono', monospace;
-            letter-spacing: 1px;
-            line-height: 1;
-            margin-bottom: 4px;
-            transition: 0.3s;
-        }
-        
-        .source-status {
-            font-size: 0.6rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 6px;
-            transition: 0.3s;
-        }
-
-        .source-hits {
-            font-size: 0.65rem;
-            color: var(--text3);
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--bg);
-            padding: 2px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            display: inline-block;
-        }
-        .source-card.active .source-hits {
-            border-color: rgba(46,204,113,0.2);
-            color: var(--text2);
-        }
-
-        .status-dot {
-            position: absolute;
-            top: 10px;
-            right: 12px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            transition: 0.3s;
-        }
-        .source-card.active .status-dot {
-            background: var(--green);
-            box-shadow: 0 0 16px rgba(46,204,113,0.6);
-            animation: blink 1.5s infinite;
-        }
-        .source-card.inactive .status-dot {
-            background: var(--red);
-            opacity: 0.3;
-        }
-
-        .source-card.active .pulse-ring {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            border-radius: 12px;
-            border: 2px solid rgba(46,204,113,0.1);
-            animation: pulseRing 2s ease-out infinite;
-        }
-        @keyframes pulseRing {
-            0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0; }
-        }
-
-        /* ===== ACTIVITY ===== */
-        .activity-panel {
-            background: var(--surface);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .activity-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 6px 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 8px;
-            background: var(--card);
-            border-radius: 5px;
-            border-left: 2px solid var(--border);
-            animation: slideIn 0.3s ease;
-        }
-        @keyframes slideIn {
-            from { transform: translateX(-5px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        .activity-item.on { border-left-color: var(--green); }
-        .activity-item.off { border-left-color: var(--red); opacity: 0.5; }
-        .activity-time {
-            font-size: 0.45rem;
-            color: var(--text3);
-            font-family: 'JetBrains Mono', monospace;
-            min-width: 38px;
-        }
-        .activity-source {
-            font-weight: 700;
-            font-size: 0.7rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .activity-status {
-            font-size: 0.4rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-left: auto;
-            padding: 1px 6px;
-            border-radius: 6px;
-        }
-        .activity-status.on { background: rgba(46,204,113,0.12); color: var(--green); }
-        .activity-status.off { background: rgba(231,76,60,0.12); color: var(--red); }
-        .activity-empty {
-            text-align: center;
-            padding: 16px 10px;
-            color: var(--text3);
-            font-size: 0.65rem;
-        }
-        .activity-empty i {
-            font-size: 1.3rem;
-            opacity: 0.3;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        /* ===== LOADING ===== */
-        .loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: var(--bg);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease;
-        }
-        .loading-overlay.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-        .loader {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            border: 3px solid var(--border);
-            border-top-color: var(--blue);
-            border-bottom-color: var(--purple);
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .loader-text {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text2);
-            animation: pulseText 1.5s ease-in-out infinite;
-        }
-        @keyframes pulseText {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        .loader-sub {
-            font-size: 0.65rem;
-            color: var(--text3);
-            margin-top: 4px;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 1100px) {
-            .main { grid-template-columns: 1fr; }
-            .activity-panel { max-height: 160px; }
-            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
-        }
-        @media (max-width: 768px) {
-            .dashboard { padding: 8px 10px; gap: 6px; }
-            .header { flex-wrap: wrap; padding: 8px 12px; }
-            .header h1 { font-size: 0.95rem; }
-            .header-icon { width: 30px; height: 30px; font-size: 13px; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 5px; }
-            .stat-card { padding: 6px 10px; }
-            .stat-info h3 { font-size: 0.9rem; }
-            .sources-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); padding: 6px 8px; gap: 6px; }
-            .source-card { min-height: 90px; padding: 12px 8px; }
-            .source-id { font-size: 1.6rem; }
-            .legend { display: none; }
-            .header-right { flex-wrap: wrap; gap: 4px; }
-        }
-        @media (max-width: 480px) {
-            .sources-grid { grid-template-columns: repeat(2, 1fr); }
-            .source-card { min-height: 80px; padding: 10px 6px; }
-            .source-id { font-size: 1.3rem; }
-            .source-status { font-size: 0.5rem; }
-            .source-hits { font-size: 0.5rem; }
-            .stat-info h3 { font-size: 0.8rem; }
-            .stat-card { padding: 4px 8px; }
-            .stat-icon { width: 26px; height: 26px; font-size: 11px; }
-        }
+        /* Same styles as above, but with green primary color */
+        body { background: #f0f4f8; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; }
+        .header { margin-bottom: 28px; }
+        .header h1 { font-weight: 700; font-size: 2rem; color: #1a202c; letter-spacing: -0.02em; }
+        .header p { color: #4a5568; font-weight: 400; }
+        .controls-card { border-radius: 24px; border: none; background: white; padding: 28px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); margin-bottom: 32px; }
+        .controls-card .form-control { border-radius: 30px; border: 1px solid #e2e8f0; padding: 10px 18px; transition: 0.15s; }
+        .controls-card .form-control:focus { border-color: #38a169; box-shadow: 0 0 0 3px rgba(56,161,105,0.15); }
+        .hour-btn { min-width: 52px; padding: 5px 10px; border-radius: 30px; border: 1px solid #e2e8f0; background: white; font-size: 0.78rem; font-weight: 500; color: #2d3748; transition: 0.15s; cursor: pointer; }
+        .hour-btn:hover { background: #edf2f7; border-color: #a0aec0; }
+        .hour-btn.active { background: #38a169; color: white; border-color: #38a169; box-shadow: 0 2px 8px rgba(56,161,105,0.2); }
+        .time-badge { background: #edf2f7; padding: 6px 20px; border-radius: 30px; font-size: 0.9rem; color: #2d3748; font-weight: 500; }
+        .btn-fetch { border-radius: 30px; padding: 10px 28px; font-weight: 500; background: #38a169; border: none; }
+        .btn-fetch:hover { background: #2f855a; }
+        .btn-now { border-radius: 30px; padding: 10px 28px; font-weight: 500; border: 1px solid #e2e8f0; background: white; }
+        .btn-now:hover { background: #f7fafc; }
+        .btn-queries { border-radius: 30px; padding: 10px 28px; font-weight: 500; background: #805ad5; border: none; color: white; }
+        .btn-queries:hover { background: #6b46c1; }
+        .card-dashboard { border-radius: 24px; border: none; background: white; box-shadow: 0 8px 30px rgba(0,0,0,0.04); transition: 0.2s; height: 100%; overflow: hidden; }
+        .card-dashboard:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+        .card-header-custom { background: linear-gradient(135deg, #f7fafc 0%, #ffffff 100%); border-bottom: 1px solid #edf2f7; padding: 16px 20px; font-weight: 600; color: #1a202c; display: flex; justify-content: space-between; align-items: center; }
+        .badge-db { padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em; }
+        .badge-db.iib { background: #bee3f8; color: #2b6cb0; }
+        .badge-db.sidb { background: #e9d8fd; color: #6b46c1; }
+        .badge-count { background: #edf2f7; color: #2d3748; font-weight: 500; }
+        .badge-duration { background: #e9edf4; color: #2d3748; }
+        .table-container { max-height: 300px; overflow-y: auto; }
+        .table-container table { font-size: 0.8rem; margin-bottom: 0; }
+        .table-container thead { position: sticky; top: 0; background: #f7fafc; z-index: 1; }
+        .table-container thead th { background: #f7fafc; color: #2d3748; font-weight: 600; border-bottom: 1px solid #e2e8f0; padding: 8px 12px; }
+        .table-container tbody td { padding: 6px 12px; vertical-align: middle; }
+        .table-container tbody tr:hover { background: #f7fafc; }
+        .no-data { color: #a0aec0; font-style: italic; padding: 20px 0; text-align: center; }
+        .gap-1 { gap: 0.25rem; }
+        .queries-card { border-radius: 24px; border: none; background: #1a202c; padding: 20px; margin-top: 20px; }
+        .queries-card .header-actions { display: flex; gap: 12px; align-items: center; }
+        .queries-card .close-btn { background: transparent; border: none; color: #a0aec0; font-size: 1.4rem; cursor: pointer; padding: 0 8px; }
+        .queries-card .close-btn:hover { color: white; }
+        .query-block { background: #2d3748; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px; position: relative; }
+        .query-block pre { margin: 0; color: #e2e8f0; font-size: 0.8rem; white-space: pre-wrap; word-break: break-all; }
+        .query-block .copy-query-btn { position: absolute; top: 8px; right: 8px; background: #4a5568; border: none; color: white; border-radius: 20px; padding: 4px 12px; font-size: 0.7rem; cursor: pointer; }
+        .query-block .copy-query-btn:hover { background: #718096; }
+        .queries-card .copy-all-btn { background: #4a5568; border: none; color: white; border-radius: 20px; padding: 6px 18px; font-size: 0.8rem; cursor: pointer; }
+        .queries-card .copy-all-btn:hover { background: #718096; }
     </style>
 </head>
 <body>
-
-<!-- LOADING -->
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="loader"></div>
-    <div class="loader-text">Loading Source Monitor</div>
-    <div class="loader-sub">Connecting to Oracle Database...</div>
-</div>
-
-<div class="dashboard">
-
-    <!-- HEADER -->
-    <div class="header">
-        <div class="header-left">
-            <div class="header-icon"><i class="fas fa-bolt"></i></div>
-            <div>
-                <h1>Source Monitor</h1>
-                <div class="sub">Real-time Source ID Activity Tracking</div>
-            </div>
+<div class="container-fluid">
+    <div class="header d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-database text-success me-2"></i>EIS SBI Dashboard</h1>
+            <p>Hourly internal EIS KPI data from cron jobs.</p>
         </div>
-        <div class="header-right">
-            <span class="partition-badge" id="partitionBadge">📁 Loading...</span>
-            <div class="live-badge" id="liveBadge" style="display:none;">
-                <span class="live-dot"></span> LIVE
-            </div>
-            <div class="timer-badge" id="timerBadge" style="display:none;">
-                <i class="fas fa-clock"></i> <span id="timerDisplay">10:00</span>
-            </div>
-        </div>
+        <span class="time-badge"><i class="far fa-clock me-1"></i><%= rangeDisplay %></span>
     </div>
 
-    <!-- STATS -->
-    <div class="stats-row" id="statsRow" style="display:none;">
-        <div class="stat-card">
-            <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-            <div class="stat-info">
-                <h3 id="activeCount">0</h3>
-                <p>Active Sources</p>
+    <!-- Controls -->
+    <form method="get" class="controls-card" id="mainForm">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label for="start" class="form-label fw-semibold"><i class="far fa-calendar-alt me-1"></i>Start</label>
+                <input type="datetime-local" class="form-control" id="start" name="start" value="<%= startIso %>">
+            </div>
+            <div class="col-md-3">
+                <label for="end" class="form-label fw-semibold"><i class="far fa-calendar-alt me-1"></i>End</label>
+                <input type="datetime-local" class="form-control" id="end" name="end" value="<%= endIso %>">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success w-100 btn-fetch"><i class="fas fa-sync-alt me-2"></i>Fetch</button>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-now w-100" onclick="setPrevHour()"><i class="fas fa-undo me-1"></i>Now</button>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" name="showQueries" value="true" class="btn btn-queries w-100"><i class="fas fa-code me-1"></i>Show Queries</button>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
-            <div class="stat-info">
-                <h3 id="inactiveCount">0</h3>
-                <p>Inactive Sources</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon blue"><i class="fas fa-database"></i></div>
-            <div class="stat-info">
-                <h3 id="totalSources">20</h3>
-                <p>Total Sources</p>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon orange"><i class="fas fa-percent"></i></div>
-            <div class="stat-info">
-                <h3 id="uptimePercent">0%</h3>
-                <p>Uptime Rate</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- MAIN -->
-    <div class="main" id="mainGrid" style="display:none;">
-
-        <!-- SOURCES -->
-        <div class="sources-panel">
-            <div class="panel-head">
-                <h2><i class="fas fa-server"></i> Source IDs <span class="cnt" id="sourceCount">0/20</span></h2>
-                <div class="legend">
-                    <span><span class="g">●</span> Active</span>
-                    <span><span class="r">●</span> Inactive</span>
+        <div class="row mt-3">
+            <div class="col-12">
+                <span class="fw-semibold me-2">Hour shortcuts:</span>
+                <div class="d-flex flex-wrap gap-1">
+                    <% for (int h = 0; h < 24; h++) {
+                        String label = String.format("%02d-%02d", h, (h+1)%24);
+                        String activeClass = (h == selectedHour) ? "active" : "";
+                    %>
+                    <button type="button" class="hour-btn <%= activeClass %>" onclick="setHour(<%= h %>)"><%= label %></button>
+                    <% } %>
                 </div>
             </div>
-            <div class="sources-grid" id="sourcesGrid"></div>
         </div>
+    </form>
 
-        <!-- ACTIVITY -->
-        <div class="activity-panel">
-            <div class="panel-head">
-                <h2><i class="fas fa-bolt" style="color:var(--cyan);"></i> Live Activity</h2>
-                <span style="font-size:0.45rem;color:var(--text3);"><i class="fas fa-circle" style="color:var(--green);font-size:0.25rem;"></i> Real-time</span>
-            </div>
-            <div class="activity-list" id="activityList">
-                <div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>
+    <!-- Show Queries panel -->
+    <% if ("true".equals(showQueries) && !queriesDisplay.isEmpty()) { %>
+    <div class="queries-card" id="queriesPanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-white fw-bold"><i class="fas fa-database me-2"></i>SQL Queries for this period</span>
+            <div class="header-actions">
+                <button class="copy-all-btn" onclick="copyAllQueries()"><i class="far fa-copy me-1"></i>Copy All</button>
+                <button class="close-btn" onclick="closeQueries()">&times;</button>
             </div>
         </div>
+        <%
+            String[] queryBlocks = queriesDisplay.split("\n\n");
+            for (String block : queryBlocks) {
+                if (block.trim().isEmpty()) continue;
+                String escaped = block.replace("'", "\\'").replace("\"", "\\\"");
+        %>
+        <div class="query-block">
+            <button class="copy-query-btn" onclick="copyQuery('<%= escaped %>')"><i class="far fa-copy"></i> Copy</button>
+            <pre><%= block %></pre>
+        </div>
+        <% } %>
+    </div>
+    <script>
+        function closeQueries() {
+            var panel = document.getElementById('queriesPanel');
+            panel.style.display = 'none';
+            var url = new URL(window.location);
+            url.searchParams.delete('showQueries');
+            window.history.replaceState({}, '', url);
+        }
+        function copyQuery(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Query copied to clipboard!');
+            }).catch(function() {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                alert('Copied!');
+            });
+        }
+        function copyAllQueries() {
+            var texts = document.querySelectorAll('.query-block pre');
+            var full = '';
+            texts.forEach(function(pre) {
+                full += pre.innerText + '\n\n';
+            });
+            navigator.clipboard.writeText(full).then(function() {
+                alert('All queries copied to clipboard!');
+            }).catch(function() {
+                var ta = document.createElement('textarea');
+                ta.value = full;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                alert('Copied!');
+            });
+        }
+    </script>
+    <% } %>
 
+    <!-- Dashboard Cards -->
+    <div class="row">
+        <% for (int i = 0; i < tables.length; i++) {
+            String tbl = tables[i];
+            String display = displayNames[i];
+            String dbSource = sourceDB[i];
+            List<Map<String, Object>> rows = tableData.get(tbl);
+            if (rows == null) rows = new ArrayList<>();
+            int rowCount = rows.size();
+            double avgDur = 0.0;
+            if (rowCount > 0) {
+                for (Map<String, Object> row : rows) {
+                    Object dur = row.get("QUERY_DURATION_SEC");
+                    if (dur instanceof Number) avgDur += ((Number)dur).doubleValue();
+                }
+                avgDur = avgDur / rowCount;
+            }
+            String dbBadgeClass = dbSource.equalsIgnoreCase("IIB") ? "iib" : "sidb";
+        %>
+        <div class="col-xl-4 col-lg-6 col-md-12 mb-4">
+            <div class="card-dashboard">
+                <div class="card-header-custom">
+                    <span><%= display %></span>
+                    <span>
+                        <span class="badge badge-db <%= dbBadgeClass %> me-2"><%= dbSource %></span>
+                        <span class="badge badge-count me-2"><%= rowCount %></span>
+                        <span class="badge badge-duration"><i class="far fa-clock me-1"></i><%= String.format("%.2f", avgDur) %>s</span>
+                    </span>
+                </div>
+                <div class="card-body p-3">
+                    <% if (rowCount == 0) { %>
+                        <div class="no-data">No data for this period.</div>
+                    <% } else { %>
+                        <div class="table-container">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <% for (String col : rows.get(0).keySet()) {
+                                            if (hiddenCols.contains(col)) continue;
+                                            String displayCol = col.equals("QUERY_DURATION_SEC") ? "Duration (sec)" : col;
+                                        %>
+                                            <th><%= displayCol %></th>
+                                        <% } %>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% for (Map<String, Object> row : rows) { %>
+                                        <tr>
+                                            <% for (Map.Entry<String, Object> entry : row.entrySet()) {
+                                                String col = entry.getKey();
+                                                if (hiddenCols.contains(col)) continue;
+                                                Object val = entry.getValue();
+                                                String str = (val == null) ? "-" : val.toString();
+                                                if (val instanceof Double || val instanceof Float) {
+                                                    str = String.format("%.2f", ((Number)val).doubleValue());
+                                                }
+                                            %>
+                                                <td><%= str %></td>
+                                            <% } %>
+                                        </tr>
+                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+        <% } %>
     </div>
 </div>
 
 <script>
-    var sourceData = {};
-    var activityLog = [];
-    var MAX_ACTIVITY = 30;
-    var timerSeconds = 600; // 10 minutes
-    var timerInterval;
-
-    function getPartition() {
-        var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-        var now = new Date();
-        return months[now.getMonth()] + '_' + String(now.getFullYear()).slice(-2);
-    }
-
-    function formatTime(s) {
-        var m = Math.floor(s / 60);
-        var sec = s % 60;
-        return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
-    }
-
-    function updateTimer() {
-        timerSeconds--;
-        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
-        
-        // 🔥 Jab timer 0 ho jaye, page refresh karo
-        if (timerSeconds <= 0) {
-            location.reload(); // Page refresh -> DB call hogi
+    function setHour(h) {
+        let date = document.getElementById('start').value.substring(0,10);
+        let start = date + 'T' + String(h).padStart(2,'0') + ':00';
+        let endHour = (h+1) % 24;
+        let endDate = date;
+        if (h === 23) {
+            let d = new Date(date + 'T00:00:00');
+            d.setDate(d.getDate() + 1);
+            endDate = d.toISOString().split('T')[0];
         }
+        let end = endDate + 'T' + String(endHour).padStart(2,'0') + ':00';
+        document.getElementById('start').value = start;
+        document.getElementById('end').value = end;
+        document.querySelector('form').submit();
     }
 
-    function addActivity(source, status) {
-        var now = new Date();
-        var t = now.getHours().toString().padStart(2,'0') + ':' + 
-                now.getMinutes().toString().padStart(2,'0') + ':' + 
-                now.getSeconds().toString().padStart(2,'0');
-        activityLog.unshift({ time: t, source: source, status: status });
-        if (activityLog.length > MAX_ACTIVITY) activityLog.pop();
-        renderActivity();
+    function setPrevHour() {
+        let now = new Date();
+        now.setMinutes(0);
+        now.setSeconds(0);
+        now.setMilliseconds(0);
+        let end = new Date(now);
+        let start = new Date(now);
+        start.setHours(start.getHours() - 1);
+        // Format to local datetime string (YYYY-MM-DDTHH:mm) – no timezone conversion
+        const formatLocal = (d) => {
+            let year = d.getFullYear();
+            let month = String(d.getMonth()+1).padStart(2,'0');
+            let day = String(d.getDate()).padStart(2,'0');
+            let hours = String(d.getHours()).padStart(2,'0');
+            let mins = String(d.getMinutes()).padStart(2,'0');
+            return year + '-' + month + '-' + day + 'T' + hours + ':' + mins;
+        };
+        document.getElementById('start').value = formatLocal(start);
+        document.getElementById('end').value = formatLocal(end);
+        document.querySelector('form').submit();
     }
-
-    function renderActivity() {
-        var c = document.getElementById('activityList');
-        if (activityLog.length === 0) {
-            c.innerHTML = '<div class="activity-empty"><i class="fas fa-inbox"></i> Waiting for activity...</div>';
-            return;
-        }
-        var html = '';
-        for (var i = 0; i < Math.min(activityLog.length, 20); i++) {
-            var item = activityLog[i];
-            var cls = item.status === 'Y' ? 'on' : 'off';
-            var txt = item.status === 'Y' ? 'ON' : 'OFF';
-            html += '<div class="activity-item ' + cls + '">' +
-                '<span class="activity-time">' + item.time + '</span>' +
-                '<span class="activity-source">' + item.source + '</span>' +
-                '<span class="activity-status ' + cls + '">' + txt + '</span>' +
-                '</div>';
-        }
-        c.innerHTML = html;
-    }
-
-    function hideLoading() {
-        var overlay = document.getElementById('loadingOverlay');
-        overlay.classList.add('hide');
-        document.getElementById('liveBadge').style.display = 'flex';
-        document.getElementById('timerBadge').style.display = 'flex';
-        document.getElementById('statsRow').style.display = 'grid';
-        document.getElementById('mainGrid').style.display = 'grid';
-        document.getElementById('partitionBadge').textContent = '📁 ' + getPartition();
-        
-        // 🔥 Timer start karo - 10 minute countdown
-        document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
-        timerInterval = setInterval(updateTimer, 1000);
-    }
-
-    function showError() {
-        document.getElementById('sourcesGrid').innerHTML = 
-            '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;">' +
-            '<i class="fas fa-exclamation-triangle" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i>' +
-            '<p style="font-weight:600;">Connection Error</p>' +
-            '<p style="font-size:0.65rem;">Please refresh the page</p></div>';
-    }
-
-    // 🔥 DB Call - Sirf page load/refresh pe
-    function fetchData() {
-        fetch('?action=fetchSourceStatus')
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                renderSources(data);
-                updateStats(data);
-                updateActivity(data);
-                hideLoading();
-            })
-            .catch(function(e) {
-                console.error(e);
-                hideLoading();
-                showError();
-            });
-    }
-
-    function renderSources(data) {
-        var c = document.getElementById('sourcesGrid');
-        if (!data || data.length === 0) {
-            c.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text3);grid-column:1/-1;"><i class="fas fa-database" style="font-size:1.5rem;display:block;margin-bottom:6px;"></i><p>No data available</p></div>';
-            return;
-        }
-        var html = '', active = 0;
-        for (var i = 0; i < data.length; i++) {
-            var item = data[i];
-            var isActive = item.flag === 'Y';
-            if (isActive) active++;
-            var cls = isActive ? 'active' : 'inactive';
-            var status = isActive ? 'ONLINE' : 'OFFLINE';
-            var hits = isActive ? Math.floor(Math.random() * 50 + 10) : 0;
-            
-            html += '<div class="source-card ' + cls + '">' +
-                '<span class="status-dot"></span>' +
-                (isActive ? '<span class="pulse-ring"></span>' : '') +
-                '<div class="source-id">' + item.source_id + '</div>' +
-                '<div class="source-status">' + status + '</div>' +
-                '<span class="source-hits">' + (isActive ? '⚡ ' + hits + ' hits' : '⏸️ Idle') + '</span>' +
-                '</div>';
-        }
-        c.innerHTML = html;
-        document.getElementById('sourceCount').textContent = active + '/' + data.length;
-    }
-
-    function updateStats(data) {
-        var active = 0, inactive = 0;
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].flag === 'Y') active++; else inactive++;
-        }
-        document.getElementById('activeCount').textContent = active;
-        document.getElementById('inactiveCount').textContent = inactive;
-        document.getElementById('totalSources').textContent = data.length;
-        var uptime = data.length > 0 ? Math.round((active / data.length) * 100) : 0;
-        document.getElementById('uptimePercent').textContent = uptime + '%';
-    }
-
-    function updateActivity(data) {
-        var current = {};
-        for (var i = 0; i < data.length; i++) {
-            if (data[i].flag === 'Y') current[data[i].source_id] = true;
-        }
-        for (var s in current) {
-            if (!sourceData[s]) { addActivity(s, 'Y'); }
-            else if (sourceData[s] !== current[s]) { addActivity(s, current[s] ? 'Y' : 'N'); }
-        }
-        for (var old in sourceData) {
-            if (sourceData[old] && !current[old]) { addActivity(old, 'N'); }
-        }
-        sourceData = current;
-    }
-
-    window.addEventListener('beforeunload', function() {
-        if (timerInterval) clearInterval(timerInterval);
-    });
-
-    // 🔥 Page load pe DB call
-    fetchData();
 </script>
+<script src="../js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+
+Connected to PRIMARY DB 1
+Flag Status: PR, Location: HI
+Flag check connection closed
+getReportDBConnection - flagStatus: PR
+Connecting to Report PR Database
+Report PR Connected
+java.sql.SQLDataException: ORA-01841: (full) year must be between -4713 and +9999, and not be 0
+
+	at oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:509)
+	at oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:461)
+	at oracle.jdbc.driver.T4C8Oall.processError(T4C8Oall.java:1104)
+	at oracle.jdbc.driver.T4CTTIfun.receive(T4CTTIfun.java:553)
+	at oracle.jdbc.driver.T4CTTIfun.doRPC(T4CTTIfun.java:269)
+	at oracle.jdbc.driver.T4C8Oall.doOALL(T4C8Oall.java:655)
+	at oracle.jdbc.driver.T4CPreparedStatement.doOall8(T4CPreparedStatement.java:270)
+	at oracle.jdbc.driver.T4CPreparedStatement.doOall8(T4CPreparedStatement.java:91)
+	at oracle.jdbc.driver.T4CPreparedStatement.executeForDescribe(T4CPreparedStatement.java:807)
+	at oracle.jdbc.driver.OracleStatement.executeMaybeDescribe(OracleStatement.java:983)
+	at oracle.jdbc.driver.OracleStatement.doExecuteWithTimeout(OracleStatement.java:1168)
+	at oracle.jdbc.driver.OraclePreparedStatement.executeInternal(OraclePreparedStatement.java:3666)
+	at oracle.jdbc.driver.T4CPreparedStatement.executeInternal(T4CPreparedStatement.java:1426)
+	at oracle.jdbc.driver.OraclePreparedStatement.executeQuery(OraclePreparedStatement.java:3713)
+	at oracle.jdbc.driver.OraclePreparedStatementWrapper.executeQuery(OraclePreparedStatementWrapper.java:1167)
+	at org.apache.jsp.jsp.eisSbiDashboard_jsp._jspService(eisSbiDashboard_jsp.java:216)
+	at org.apache.jasper.runtime.HttpJspBase.service(HttpJspBase.java:67)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.jasper.servlet.JspServletWrapper.service(JspServletWrapper.java:466)
+	at org.apache.jasper.servlet.JspServlet.serviceJspFile(JspServlet.java:376)
+	at org.apache.jasper.servlet.JspServlet.service(JspServlet.java:324)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:623)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:199)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+	at com.action.CORSFilter.doFilter(CORSFilter.java:17)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:168)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:144)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:168)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:482)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:130)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93)
+	at org.apache.catalina.valves.AbstractAccessLogValve.invoke(AbstractAccessLogValve.java:660)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:346)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:396)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:937)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1791)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: Error : 1841, Position : 113, Sql = SELECT * FROM ADHARVAULT_HOURLY WHERE START_TIME >= TO_TIMESTAMP(:1 , 'DD-MON-YYYY HH24:MI:SS') AND START_TIME < TO_TIMESTAMP(:2 , 'DD-MON-YYYY HH24:MI:SS') ORDER BY START_TIME, OriginalSql = SELECT * FROM ADHARVAULT_HOURLY WHERE START_TIME >= TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') AND START_TIME < TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') ORDER BY START_TIME, Error Msg = ORA-01841: (full) year must be between -4713 and +9999, and not be 0
+
+	at oracle.jdbc.driver.T4CTTIoer11.processError(T4CTTIoer11.java:513)
+	... 49 more
+Connected to PRIMARY DB 1
+Flag Status: PR, Location: HI
+Flag check connection closed
+getReportDBConnection - flagStatus: PR
+Connecting to Report PR Database
+Report PR Connected
+Using cached flag values - Flag: PR, Location: HI
+getReportDBConnection - flagStatus: PR
+Connecting to Report PR Database
+Report PR Connected
