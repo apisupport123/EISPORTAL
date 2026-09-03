@@ -6,52 +6,32 @@
     String startParam = request.getParameter("start");
     String endParam = request.getParameter("end");
     String showQueries = request.getParameter("showQueries");
-    
+    Calendar cal = Calendar.getInstance();
+    cal.set(Calendar.MINUTE, 0);
+    cal.set(Calendar.SECOND, 0);
+    cal.set(Calendar.MILLISECOND, 0);
     java.util.Date startDate, endDate;
-    
     if (startParam != null && !startParam.isEmpty() && endParam != null && !endParam.isEmpty()) {
         try {
             SimpleDateFormat iso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
             startDate = iso.parse(startParam);
             endDate = iso.parse(endParam);
         } catch (Exception e) {
-            // Default to previous hour
-            Calendar defaultCal = Calendar.getInstance();
-            defaultCal.set(Calendar.MINUTE, 0);
-            defaultCal.set(Calendar.SECOND, 0);
-            defaultCal.set(Calendar.MILLISECOND, 0);
-            defaultCal.add(Calendar.HOUR_OF_DAY, -1);
-            startDate = defaultCal.getTime();
-            defaultCal.add(Calendar.HOUR_OF_DAY, 1);
-            endDate = defaultCal.getTime();
+            cal.add(Calendar.HOUR_OF_DAY, -1);
+            startDate = cal.getTime();
+            cal.add(Calendar.HOUR_OF_DAY, 1);
+            endDate = cal.getTime();
         }
     } else {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
         cal.add(Calendar.HOUR_OF_DAY, -1);
         startDate = cal.getTime();
         cal.add(Calendar.HOUR_OF_DAY, 1);
         endDate = cal.getTime();
     }
-    
-    // Validate dates are not null (safety check)
-    if (startDate == null || endDate == null) {
-        Calendar defaultCal = Calendar.getInstance();
-        defaultCal.set(Calendar.MINUTE, 0);
-        defaultCal.set(Calendar.SECOND, 0);
-        defaultCal.set(Calendar.MILLISECOND, 0);
-        defaultCal.add(Calendar.HOUR_OF_DAY, -1);
-        startDate = defaultCal.getTime();
-        defaultCal.add(Calendar.HOUR_OF_DAY, 1);
-        endDate = defaultCal.getTime();
-    }
 
     SimpleDateFormat oracleFmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss");
     String fromStr = oracleFmt.format(startDate).toUpperCase();
     String toStr = oracleFmt.format(endDate).toUpperCase();
-    
     SimpleDateFormat displayFmt = new SimpleDateFormat("dd-MMM-yyyy HH:mm");
     String rangeDisplay = displayFmt.format(startDate) + " to " + displayFmt.format(endDate);
     String startIso = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm").format(startDate);
@@ -59,58 +39,46 @@
 
     int selectedHour = startDate.getHours();
 
+    // Partition (only for query display)
     Calendar partCal = Calendar.getInstance();
     partCal.setTime(startDate);
     String[] months = {"JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"};
     String partition = months[partCal.get(Calendar.MONTH)] + "_" + String.valueOf(partCal.get(Calendar.YEAR)).substring(2);
 
-    // Tables (14 tables)
+    // Tables
     String[] tables = {
-        "ADHARVAULT_HOURLY",
-        "PANVALIDATION_HOURLY",
-        "CKYC_HOURLY",
-        "AMLOCK_HOURLY",
-        "SBI_CAPS_HOURLY",
-        "IVR_HOURLY",
-        "DMZ_HOURLY",
-        "DMZ_OUTBOUND_HOURLY",
-        "DEAF_LOGGING_HOURLY",
-        "DEAF_AUDIT_HOURLY",
-        "EIS_INACTIVE_HOURLY",
-        "EKYC_HOURLY",
-        "PMJJBY_HOURLY",
-        "PMSBY_HOURLY"
+        "EIS_TD_PERCENTAGE_HOURLY",
+        "MAJOR_DOWNSTREAM_HOURLY",
+        "CKYC_STATUS_HOURLY",
+        "PAN_STATUS_HOURLY",
+        "ACCOUNT_OPENING_HOURLY",
+        "YONO_STATUS_HOURLY",
+        "NON_YONO_STATUS_HOURLY",
+        "NPCI_STATUS_HOURLY"
     };
     String[] displayNames = {
-        "Aadhar Vault",
-        "PAN Validation",
-        "CKYC (New)",
-        "AMLOCK",
-        "SBI CAPS",
-        "IVR",
-        "DMZ",
-        "DMZ Outbound",
-        "Deaf Logging",
-        "Deaf Audit",
-        "EIS Inactive",
-        "EKYC",
-        "PMJJBY Renewal",
-        "PMSBY Renewal"
+        "Overall EIS TD%",
+        "Major Downstream",
+        "CKYC Status",
+        "PAN Status",
+        "Account Opening",
+        "YONO",
+        "Non-YONO",
+        "NPCI"
     };
     String[] sourceDB = {
-        "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "SIDB", "SIDB", "SIDB"
+        "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "IIB", "SIDB"
     };
 
-    // Fetch data – using Timestamp for safety
+    // Fetch data – exclusive end time to avoid duplicates
     Map<String, List<Map<String, Object>>> tableData = new LinkedHashMap<>();
     try (Connection conn = DBUtilityAuto.getReportDBConnection()) {
         for (String tbl : tables) {
-            // Use parameterized query with Timestamp
-            String sql = "SELECT * FROM " + tbl + " WHERE START_TIME >= ? AND START_TIME < ? ORDER BY START_TIME";
+            String sql = "SELECT * FROM " + tbl + " WHERE START_TIME >= TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') AND START_TIME < TO_TIMESTAMP(?, 'DD-MON-YYYY HH24:MI:SS') ORDER BY START_TIME";
             List<Map<String, Object>> rows = new ArrayList<>();
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setTimestamp(1, new java.sql.Timestamp(startDate.getTime()));
-                ps.setTimestamp(2, new java.sql.Timestamp(endDate.getTime()));
+                ps.setString(1, fromStr);
+                ps.setString(2, toStr);
                 try (ResultSet rs = ps.executeQuery()) {
                     ResultSetMetaData meta = rs.getMetaData();
                     int colCount = meta.getColumnCount();
@@ -122,10 +90,6 @@
                         rows.add(row);
                     }
                 }
-            } catch (SQLException e) {
-                // Log error but continue with other tables
-                System.err.println("Error fetching data for table: " + tbl);
-                e.printStackTrace();
             }
             tableData.put(tbl, rows);
         }
@@ -135,7 +99,7 @@
 
     Set<String> hiddenCols = new HashSet<>(Arrays.asList("ID", "START_TIME", "END_TIME", "QUERY_DURATION_SEC"));
 
-    // Build query strings – include all 14 queries
+    // Build query strings for display (include all 8 queries)
     String queriesDisplay = "";
     if ("true".equals(showQueries)) {
         StringBuilder sb = new StringBuilder();
@@ -143,121 +107,84 @@
         String fromDate = fromStr;
         String toDate = toStr;
 
-        // Query 0 – Aadhar Vault
-        sb.append("-- Query 0: Aadhar Vault\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS,\n");
-        sb.append("SUM(CASE WHEN ERROR_CODE IS NULL THEN 1 ELSE 0 END) AS SUCCESS,\n");
-        sb.append("SUM(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051') THEN 1 ELSE 0 END) AS FAILURE,\n");
-        sb.append("ROUND(AVG(EXTRACT(SECOND FROM (response_date_time - request_date_time))), 4) AS Avg_response_end_to_end\n");
+        // Query 0
+        sb.append("-- Query 0: Overall EIS TD%\n");
+        sb.append("SELECT /*+ PARALLEL(2) */ COUNT(*) AS TOTAL_COUNT,\n");
+        sb.append("COUNT(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051','SI007','SI569','SI570') THEN 1 END) AS TD_COUNT,\n");
+        sb.append("ROUND((COUNT(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051','SI007','SI569','SI570') THEN 1 END) * 100.0) / NULLIF(COUNT(*), 0), 2) AS TD_PERCENT\n");
         sb.append("FROM EISAPP.api_log" + part + "\n");
-        sb.append("WHERE url IN ('http://eispri.sbi.co.in:3113/aadharVault/refKeyEnq/misc', 'http://eispri.sbi.co.in:3113/aadharVault/storeData/misc', 'http://eispri.sbi.co.in:3113/aadharVault/fetchAadhar/misc')\n");
+        sb.append("WHERE request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS')\n");
+        sb.append("AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 1
+        sb.append("-- Query 1: Major Downstream\n");
+        sb.append("SELECT /*+ PARALLEL(2) */ txn_endpoint, COUNT(*) AS TOTAL_COUNT,\n");
+        sb.append("COUNT(CASE WHEN (ERROR_CODE IS NULL OR NVL(SUBSTR(error_code,3,3),'A') NOT IN ('001','002','007','051','014') OR error_code IN ('00014','70007','00017','CK001')) THEN 1 END) AS SUCCESS_COUNT,\n");
+        sb.append("ROUND((COUNT(CASE WHEN (ERROR_CODE IS NULL OR NVL(SUBSTR(error_code,3,3),'A') NOT IN ('001','002','007','051','014') OR error_code IN ('00014','70007','00017','CK001')) THEN 1 END) * 100.0) / NULLIF(COUNT(*), 0), 2) AS SUCCESS_PERCENT,\n");
+        sb.append("COUNT(CASE WHEN SUBSTR(error_code,3,3) IN ('001','002','007','051','014','111') AND error_code <> '00014' THEN 1 END) AS TD_COUNT,\n");
+        sb.append("ROUND((COUNT(CASE WHEN SUBSTR(error_code,3,3) IN ('001','002','007','051','014','111') AND error_code <> '00014' THEN 1 END) * 100.0) / NULLIF(COUNT(*), 0), 2) AS TD_PERCENT\n");
+        sb.append("FROM eisapp.BACKEND_LOG" + part + "\n");
+        sb.append("WHERE (txn_endpoint IN ('DCMS','Vault','NSDL','HRMS') AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS'))\n");
+        sb.append("OR (txn_endpoint = 'ATM' AND creation_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS'))\n");
+        sb.append("GROUP BY txn_endpoint ORDER BY txn_endpoint;\n\n");
+
+        // Query 2
+        sb.append("-- Query 2: CKYC Status\n");
+        sb.append("SELECT /*+ PARALLEL(2) */ COUNT(*) AS TOTAL_COUNT,\n");
+        sb.append("COUNT(CASE WHEN ERROR_CODE IS NULL OR NVL(SUBSTR(error_code,3,3),'A') NOT IN ('001','002','007','051','014') OR error_code IN ('00014','70007','00017','CK001') THEN 1 END) AS SUCCESS_COUNT,\n");
+        sb.append("ROUND((COUNT(CASE WHEN ERROR_CODE IS NULL OR NVL(SUBSTR(error_code,3,3),'A') NOT IN ('001','002','007','051','014') OR error_code IN ('00014','70007','00017','CK001') THEN 1 END) * 100.0) / NULLIF(COUNT(*), 0), 2) AS SUCCESS_PERCENTAGE\n");
+        sb.append("FROM eisapp.BACKEND_LOG" + part + "\n");
+        sb.append("WHERE txn_endpoint='CKYC' AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+
+        // Query 3
+        sb.append("-- Query 3: PAN Status\n");
+        sb.append("SELECT /*+ PARALLEL(2) */ COUNT(*) AS TOTAL_COUNT,\n");
+        sb.append("COUNT(CASE WHEN error_code IS NULL AND response_status = '0' THEN 1 END) AS SUCCESS_COUNT,\n");
+        sb.append("COUNT(CASE WHEN (NVL(SUBSTR(error_code,3,3),'A') NOT IN ('001','002','007','051','014') OR error_code IN ('00014','70007')) AND RESPONSE_STATUS NOT IN ('0','SUCCESS') THEN 1 END) AS OTHER_COUNT,\n");
+        sb.append("ROUND((COUNT(CASE WHEN error_code IS NULL AND response_status = '0' THEN 1 END) + COUNT(CASE WHEN (NVL(SUBSTR(error_code,3,3),'A') NOT IN ('001','002','007','051','014') OR error_code IN ('00014','70007')) AND RESPONSE_STATUS NOT IN ('0','SUCCESS') THEN 1 END)) * 100.0 / NULLIF(COUNT(*), 0), 2) AS PAN_SUCCESS\n");
+        sb.append("FROM EISAPP.api_log" + part + "\n");
+        sb.append("WHERE url IN ('http://eispri.sbi.co.in:3002/dedupOn_bth/PANMobile/customers', 'http://eispri.sbi.co.in:3002/dedupOn/PANMobile/customers', 'http://eispri.sbi.co.in:3016/misc/PAN/Enquiry/details/misc', 'http://eispri.sbi.co.in:3013/misc/PAN/Details/misc', 'http://eispri.sbi.co.in:3013/misc/PAN_bth/Details/misc', 'http://eispri.sbi.co.in:3002/dedupOn_th/PANMobile/customers', 'http://eispri.sbi.co.in:3002/dedupOn_bth/PANMobileCheck/customers', 'http://eispri.sbi.co.in:3013/misc/PAN_th/Details/misc')\n");
         sb.append("AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
 
-        // Query 1 – PAN Validation
-        sb.append("-- Query 1: PAN Validation\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS,\n");
-        sb.append("SUM(CASE WHEN ERROR_CODE IS NULL THEN 1 ELSE 0 END) AS SUCCESS,\n");
-        sb.append("SUM(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051') THEN 1 ELSE 0 END) AS TD,\n");
-        sb.append("SUM(CASE WHEN ERROR_CODE NOT IN ('SI002','SI014','SI001','SI051') THEN 1 ELSE 0 END) AS BD\n");
-        sb.append("FROM EISAPP.api_log" + part + "\n");
-        sb.append("WHERE url = 'http://eispri.sbi.co.in:3013/PANMatchingDetails/misc'\n");
-        sb.append("AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+        // Query 4
+        sb.append("-- Query 4: Account Opening\n");
+        sb.append("WITH urls AS (SELECT 'http://eispri.sbi.co.in:3002/personal/cifCreation/customers' AS url FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3002/personal_th/cifCreation/customers' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3002/ckyc/Creation/customers' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3002/ckyc_th/Creation/customers' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3011/amlockName/acknowledgeDetails/misc' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3011/amlockName_th/acknowledgeDetails/misc' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3002/depositAccounts_th/opening/customers' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3002/depositAccounts/opening/customers' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3001/upload/signature/misc' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3001/upload_th/signature/misc' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3001/nominee/create/accounts' FROM DUAL UNION ALL SELECT 'http://eispri.sbi.co.in:3001/nominee_th/create/accounts' FROM DUAL)\n");
+        sb.append("SELECT COUNT(*) AS TOTAL_COUNT,\n");
+        sb.append("COUNT(CASE WHEN (SUBSTR(error_code,3,3) IN ('002','014') OR error_code IN ('SI001','SI007','SI051','SI569','SI570')) AND error_code <> '00014' THEN 1 END) AS TD_COUNT,\n");
+        sb.append("ROUND(COUNT(CASE WHEN (SUBSTR(error_code,3,3) IN ('002','014') OR error_code IN ('SI001','SI007','SI051','SI569','SI570')) AND error_code <> '00014' THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2) AS TD_PERCENT,\n");
+        sb.append("COUNT(CASE WHEN (NVL(SUBSTR(error_code,3,3),'A') NOT IN ('001','002','007','051','014') OR error_code IN ('00014','70007')) AND RESPONSE_STATUS NOT IN ('0','SUCCESS') THEN 1 END) AS BD_COUNT,\n");
+        sb.append("ROUND(COUNT(CASE WHEN (NVL(SUBSTR(error_code,3,3),'A') NOT IN ('001','002','007','051','014') OR error_code IN ('00014','70007')) AND RESPONSE_STATUS NOT IN ('0','SUCCESS') THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2) AS BD_PERCENT\n");
+        sb.append("FROM eisapp.api_log" + part + "\n");
+        sb.append("WHERE url IN (SELECT url FROM urls) AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
 
-        // Query 2 – CKYC (New)
-        sb.append("-- Query 2: CKYC (New)\n");
-        sb.append("SELECT /*+ PARALLEL(4) */\n");
-        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('SI001','SI002','SI007','SI014','SI017','SI569','SI570') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS EIS_TD_PERCENT,\n");
-        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('CK002','CK014') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS DEST_TD_PERCENT\n");
-        sb.append("FROM EISAPP.api_log" + part + "\n");
-        sb.append("WHERE source_id IN ('CK','LP','YB','YA','IN','FA')\n");
-        sb.append("AND url IN ('http://eispri.sbi.co.in:3002/ckyc/Creation/customers', 'http://eispri.sbi.co.in:3002/ckycPersonalDetails_th/update/customers', 'http://eispri.sbi.co.in:3002/ckycPersonalDetails_th/enquiry/customers')\n");
-        sb.append("AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+        // Query 5
+        sb.append("-- Query 5: YONO\n");
+        sb.append("SELECT /*+ PARALLEL(2) */ COUNT(*) AS TOTAL_COUNT,\n");
+        sb.append("COUNT(CASE WHEN (error_code IS NULL AND response_status IN ('0','SUCCESS')) OR SUBSTR(error_code,3,3) NOT IN ('001','002','007','051','014') THEN 1 END) AS SUCCESS_COUNT,\n");
+        sb.append("ROUND(COUNT(CASE WHEN (error_code IS NULL AND response_status IN ('0','SUCCESS')) OR SUBSTR(error_code,3,3) NOT IN ('001','002','007','051','014') THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2) AS SUCCESS_PERCENT,\n");
+        sb.append("COUNT(CASE WHEN error_code IS NOT NULL AND response_status NOT IN ('0','SUCCESS') THEN 1 END) AS FAILURE_COUNT\n");
+        sb.append("FROM eisapp.api_log" + part + "\n");
+        sb.append("WHERE source_id IN ('YA','YB') AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
 
-        // Query 3 – AMLOCK
-        sb.append("-- Query 3: AMLOCK\n");
-        sb.append("SELECT /*+ PARALLEL(4) */\n");
-        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('SI001','SI002','SI007','SI014','SI017','SI569','SI570') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS EIS_TD_PERCENT,\n");
-        sb.append("ROUND(SUM(CASE WHEN SUBSTR(ERROR_CODE, 3, 3) IN ('002','014') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS DEST_TD_PERCENT\n");
-        sb.append("FROM EISAPP.api_log" + part + "\n");
-        sb.append("WHERE URL IN ('http://eispri.sbi.co.in:3021/amlockName/CCSID/ScreeningDetails/customers', 'http://eispri.sbi.co.in:3011/amlockName/acknowledgeDetails/misc')\n");
-        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
+        // Query 6
+        sb.append("-- Query 6: Non-YONO\n");
+        sb.append("SELECT /*+ PARALLEL(2) */ COUNT(*) AS TOTAL_COUNT,\n");
+        sb.append("COUNT(CASE WHEN (error_code IS NULL AND response_status IN ('0','SUCCESS')) OR SUBSTR(error_code,3,3) NOT IN ('001','002','007','051','014') THEN 1 END) AS SUCCESS_COUNT,\n");
+        sb.append("ROUND(COUNT(CASE WHEN (error_code IS NULL AND response_status IN ('0','SUCCESS')) OR SUBSTR(error_code,3,3) NOT IN ('001','002','007','051','014') THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2) AS SUCCESS_PERCENT,\n");
+        sb.append("COUNT(CASE WHEN error_code IS NOT NULL AND response_status NOT IN ('0','SUCCESS') THEN 1 END) AS FAILURE_COUNT\n");
+        sb.append("FROM eisapp.api_log" + part + "\n");
+        sb.append("WHERE source_id NOT IN ('YA','YB') AND request_date_time BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
 
-        // Query 4 – SBI CAPS
-        sb.append("-- Query 4: SBI CAPS\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS,\n");
-        sb.append("SUM(CASE WHEN RESPONSE_STATUS IN ('0','SUCCESS') THEN 1 ELSE 0 END) AS SUCCESS,\n");
-        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051','SI007','SI569','SI570') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS TD_PERCENT\n");
-        sb.append("FROM EISAPP.api_log" + part + "\n");
-        sb.append("WHERE SUBSTR(URN, 4, 2) = 'SA'\n");
-        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
-
-        // Query 5 – IVR
-        sb.append("-- Query 5: IVR\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS,\n");
-        sb.append("SUM(CASE WHEN RESPONSE_STATUS IN ('0','SUCCESS') THEN 1 ELSE 0 END) AS SUCCESS,\n");
-        sb.append("ROUND(SUM(CASE WHEN ERROR_CODE IN ('SI002','SI014','SI001','SI051','SI007','SI569','SI570') THEN 1 ELSE 0 END) * 100 / NULLIF(COUNT(*), 0), 2) AS TD_PERCENT\n");
-        sb.append("FROM EISAPP.api_log" + part + "\n");
-        sb.append("WHERE BROKER_NAME = 'IVR_EXP'\n");
-        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
-
-        // Query 6 – DMZ (dynamic)
-        sb.append("-- Query 6: DMZ (dynamic)\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ dpg_ip AS IP, COUNT(*) AS COUNT\n");
-        sb.append("FROM EISAPP.api_log" + part + "\n");
-        sb.append("WHERE REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS')\n");
-        sb.append("AND dpg_ip IS NOT NULL\n");
-        sb.append("GROUP BY dpg_ip;\n\n");
-
-        // Query 7 – DMZ Outbound
-        sb.append("-- Query 7: DMZ Outbound\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS Total_hits\n");
-        sb.append("FROM EISAPP.backend_log" + part + "\n");
-        sb.append("WHERE END_POINT_PORT = '7443'\n");
-        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
-
-        // Query 8 – Deaf Logging
-        sb.append("-- Query 8: Deaf Logging\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS\n");
-        sb.append("FROM EISAPP.deaf_logging\n");
-        sb.append("WHERE CREATION_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
-
-        // Query 9 – Deaf Audit
-        sb.append("-- Query 9: Deaf Audit\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(*) AS TOTAL_HITS\n");
-        sb.append("FROM EISAPP.deaf_audit\n");
-        sb.append("WHERE CREATION_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
-
-        // Query 10 – EIS Inactive
-        sb.append("-- Query 10: EIS Inactive\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ 'EIS Application In Active' AS Application_InActive, COUNT(*) AS COUNT\n");
-        sb.append("FROM EISAPP.api_log" + part + "\n");
-        sb.append("WHERE ERROR_CODE = 'SI002' AND LOWER(ERROR_DESCRIPTION) LIKE '%eis application inactive%'\n");
-        sb.append("AND REQUEST_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS')\n");
-        sb.append("GROUP BY 'EIS Application In Active';\n\n");
-
-        // Query 11 – EKYC
-        sb.append("-- Query 11: EKYC\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ COUNT(1) AS TOTAL_HITS,\n");
-        sb.append("SUM(CASE WHEN ERROR_CODE IS NULL THEN 1 ELSE 0 END) AS SUCCESS,\n");
-        sb.append("ROUND((SUM(CASE WHEN ERROR_CODE IN ('SI392','SI207') THEN 1 ELSE 0 END)/NULLIF(COUNT(1), 0))*100, 2) AS TD_PERCENT\n");
+        // Query 7
+        sb.append("-- Query 7: NPCI\n");
+        sb.append("SELECT /*+ PARALLEL(2) */ COUNT(*) AS TOTAL_COUNT,\n");
+        sb.append("COUNT(CASE WHEN ERROR_CODE IS NULL OR error_code NOT IN ('SI207','SI392','SI001') THEN 1 END) AS SUCCESS_COUNT,\n");
+        sb.append("ROUND(COUNT(CASE WHEN ERROR_CODE IS NULL OR error_code NOT IN ('SI207','SI392','SI001') THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2) AS SUCCESS_PERCENT,\n");
+        sb.append("COUNT(CASE WHEN error_code IN ('SI207','SI392','SI001') THEN 1 END) AS TD_COUNT,\n");
+        sb.append("COUNT(CASE WHEN error_code IN ('SI207','SI392') THEN 1 END) AS SPECIFIC_TD_COUNT,\n");
+        sb.append("ROUND(COUNT(CASE WHEN error_code IN ('SI207','SI392') THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2) AS TD_PERCENT\n");
         sb.append("FROM SBISI.EKYC_log\n");
-        sb.append("WHERE REQ_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n\n");
-
-        // Query 12 – PMJJBY
-        sb.append("-- Query 12: PMJJBY Renewal\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ status_code, COUNT(1) AS COUNT\n");
-        sb.append("FROM SBISI.pmjjby_renewal_txn_master\n");
-        sb.append("WHERE txn_cycle = 1\n");
-        sb.append("GROUP BY status_code\n");
-        sb.append("ORDER BY status_code;\n\n");
-
-        // Query 13 – PMSBY
-        sb.append("-- Query 13: PMSBY Renewal\n");
-        sb.append("SELECT /*+ PARALLEL(4) */ status_code, COUNT(1) AS COUNT\n");
-        sb.append("FROM SBISI.pmsby_renewal_txn_master\n");
-        sb.append("WHERE txn_cycle = 1\n");
-        sb.append("GROUP BY status_code\n");
-        sb.append("ORDER BY status_code;\n");
+        sb.append("WHERE REQ_DATE_TIME BETWEEN TO_DATE('" + fromDate + "', 'DD-MON-YYYY HH24:MI:SS') AND TO_DATE('" + toDate + "', 'DD-MON-YYYY HH24:MI:SS');\n");
 
         queriesDisplay = sb.toString();
     }
@@ -266,24 +193,23 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>EIS SBI Dashboard</title>
+    <title>Stat Mgmt Dashboard</title>
     <link href="../css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/all.min.css">
     <style>
-        /* Same styles as above, but with green primary color */
         body { background: #f0f4f8; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 24px; }
         .header { margin-bottom: 28px; }
         .header h1 { font-weight: 700; font-size: 2rem; color: #1a202c; letter-spacing: -0.02em; }
         .header p { color: #4a5568; font-weight: 400; }
         .controls-card { border-radius: 24px; border: none; background: white; padding: 28px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); margin-bottom: 32px; }
         .controls-card .form-control { border-radius: 30px; border: 1px solid #e2e8f0; padding: 10px 18px; transition: 0.15s; }
-        .controls-card .form-control:focus { border-color: #38a169; box-shadow: 0 0 0 3px rgba(56,161,105,0.15); }
+        .controls-card .form-control:focus { border-color: #3182ce; box-shadow: 0 0 0 3px rgba(49,130,206,0.15); }
         .hour-btn { min-width: 52px; padding: 5px 10px; border-radius: 30px; border: 1px solid #e2e8f0; background: white; font-size: 0.78rem; font-weight: 500; color: #2d3748; transition: 0.15s; cursor: pointer; }
         .hour-btn:hover { background: #edf2f7; border-color: #a0aec0; }
-        .hour-btn.active { background: #38a169; color: white; border-color: #38a169; box-shadow: 0 2px 8px rgba(56,161,105,0.2); }
+        .hour-btn.active { background: #3182ce; color: white; border-color: #3182ce; box-shadow: 0 2px 8px rgba(49,130,206,0.2); }
         .time-badge { background: #edf2f7; padding: 6px 20px; border-radius: 30px; font-size: 0.9rem; color: #2d3748; font-weight: 500; }
-        .btn-fetch { border-radius: 30px; padding: 10px 28px; font-weight: 500; background: #38a169; border: none; }
-        .btn-fetch:hover { background: #2f855a; }
+        .btn-fetch { border-radius: 30px; padding: 10px 28px; font-weight: 500; background: #3182ce; border: none; }
+        .btn-fetch:hover { background: #2c5282; }
         .btn-now { border-radius: 30px; padding: 10px 28px; font-weight: 500; border: 1px solid #e2e8f0; background: white; }
         .btn-now:hover { background: #f7fafc; }
         .btn-queries { border-radius: 30px; padding: 10px 28px; font-weight: 500; background: #805ad5; border: none; color: white; }
@@ -320,8 +246,8 @@
 <div class="container-fluid">
     <div class="header d-flex justify-content-between align-items-center">
         <div>
-            <h1><i class="fas fa-database text-success me-2"></i>EIS SBI Dashboard</h1>
-            <p>Hourly internal EIS KPI data from cron jobs.</p>
+            <h1><i class="fas fa-chart-line text-primary me-2"></i>Stat Mgmt Dashboard</h1>
+            <p>Hourly KPI data from cron jobs.</p>
         </div>
         <span class="time-badge"><i class="far fa-clock me-1"></i><%= rangeDisplay %></span>
     </div>
@@ -338,7 +264,7 @@
                 <input type="datetime-local" class="form-control" id="end" name="end" value="<%= endIso %>">
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-success w-100 btn-fetch"><i class="fas fa-sync-alt me-2"></i>Fetch</button>
+                <button type="submit" class="btn btn-primary w-100 btn-fetch"><i class="fas fa-sync-alt me-2"></i>Fetch</button>
             </div>
             <div class="col-md-2">
                 <button type="button" class="btn btn-now w-100" onclick="setPrevHour()"><i class="fas fa-undo me-1"></i>Now</button>
