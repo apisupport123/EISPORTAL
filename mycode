@@ -1,3 +1,14 @@
+// ---------- ADID: Remove special characters ----------
+        if ("ADID".equalsIgnoreCase(columnName) && cellValue != null && !cellValue.trim().isEmpty()) {
+            // Option 1: Remove ALL special characters (keep only letters and numbers)
+            cellValue = cellValue.replaceAll("[^a-zA-Z0-9]", "");
+            // Option 2: OR remove only _, -, space
+            // cellValue = cellValue.replaceAll("[_\\-\\s]", "");
+            
+            // Convert to uppercase for consistency
+            cellValue = cellValue.toUpperCase();
+        }
+
 // ---------- VALIDATE TEAM COLUMN WITH ALIAS SUPPORT ----------
 boolean hasInvalidTeam = false;
 StringBuilder teamErrors = new StringBuilder();
