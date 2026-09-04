@@ -1,146 +1,67 @@
-for (int i = 1; i <= ((org.apache.poi.ss.usermodel.Sheet) sheet).getLastRowNum(); i++) {
-    Row row = ((org.apache.poi.ss.usermodel.Sheet) sheet).getRow(i);
-    if (row == null) continue;
+// ---------- VALIDATE TEAM COLUMN WITH ALIAS SUPPORT ----------
+boolean hasInvalidTeam = false;
+StringBuilder teamErrors = new StringBuilder();
+String normalizedSelectedTeam = team.replaceAll("\\s+", "").toLowerCase();
 
-    // Track Team column value for validation
-    String teamCellValue = null;
+for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+    Row row = sheet.getRow(i);
+    if (row == null) continue;
     
-    // First pass: collect all values and apply transformations
-    Map<String, String> transformedValues = new LinkedHashMap<>();
+    Cell teamCell = row.getCell(columnMap.get("Team"));
+    String teamValue = getCellValue(teamCell);
     
-    for (Map.Entry<String, Integer> entry : columnMap.entrySet()) {
-        String columnName = entry.getKey();
-        int columnIndex = entry.getValue();
-        String cellValue = row.getCell(columnIndex) != null ? row.getCell(columnIndex).getStringCellValue() : "";
-        
-        // FIRST: Clean whitespace for ALL columns
-        if (cellValue != null && !cellValue.trim().isEmpty()) {
-            cellValue = cellValue.trim().replaceAll("\\s+", " ");
-        } else {
-            cellValue = "NA";
-        }
-        
-        // SECOND: Apply column-specific transformations
-        if (columnName.equalsIgnoreCase("Name")) {
-            // Name: Keep as-is (already cleaned above)
-            // No additional transformation needed
-        } 
-        else if (columnName.equalsIgnoreCase("ADID")) {
-            // ADID: Remove _, -, and whitespace
-            cellValue = cellValue.replaceAll("[_\\s-]", "");
-        } 
-        else {
-            // For all other columns (Team, Position, Monthyear, day columns)
-            String normalizedCellValue = cellValue.replaceAll("\\s+", "").toLowerCase();
-            
-            // --- DAY COLUMN TRANSFORMATIONS ---
-            if ("m(0)".equalsIgnoreCase(normalizedCellValue) || "m(o)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "Morning";
-            } else if ("d(0)".equalsIgnoreCase(normalizedCellValue) || "d(o)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "General";
-            } else if ("a(0)".equalsIgnoreCase(normalizedCellValue) || "a(o)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "Afternoon";
-            } else if ("n(0)".equalsIgnoreCase(normalizedCellValue) || "n(o)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "Night";
-            } else if ("wfh-m(0)".equalsIgnoreCase(normalizedCellValue) || "wfh-m(o)".equalsIgnoreCase(normalizedCellValue) || 
-                      "m(wfh)".equalsIgnoreCase(normalizedCellValue) || "m(w)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "WFH-Morning";
-            } else if ("wfh-d(0)".equalsIgnoreCase(normalizedCellValue) || "wfh-d(o)".equalsIgnoreCase(normalizedCellValue) || 
-                      "d(wfh)".equalsIgnoreCase(normalizedCellValue) || "d(w)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "WFH-General";
-            } else if ("wfh-a(0)".equalsIgnoreCase(normalizedCellValue) || "wfh-a(o)".equalsIgnoreCase(normalizedCellValue) || 
-                      "a(wfh)".equalsIgnoreCase(normalizedCellValue) || "a(w)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "WFH-Afternoon";
-            } else if ("wfh-n(0)".equalsIgnoreCase(normalizedCellValue) || "wfh-n(o)".equalsIgnoreCase(normalizedCellValue) || 
-                      "n(wfh)".equalsIgnoreCase(normalizedCellValue) || "n(w)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "WFH-Night";
-            } else if ("cc-m(0)".equalsIgnoreCase(normalizedCellValue) || "cc-m(o)".equalsIgnoreCase(normalizedCellValue) || 
-                      "m(cc)".equalsIgnoreCase(normalizedCellValue) || "m(c)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "CC-Morning";
-            } else if ("cc-d(0)".equalsIgnoreCase(normalizedCellValue) || "cc-d(o)".equalsIgnoreCase(normalizedCellValue) || 
-                      "d(cc)".equalsIgnoreCase(normalizedCellValue) || "d(c)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "CC-General";
-            } else if ("cc-a(0)".equalsIgnoreCase(normalizedCellValue) || "cc-a(o)".equalsIgnoreCase(normalizedCellValue) || 
-                      "a(cc)".equalsIgnoreCase(normalizedCellValue) || "a(c)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "CC-Afternoon";
-            } else if ("cc-n(0)".equalsIgnoreCase(normalizedCellValue) || "cc-n(o)".equalsIgnoreCase(normalizedCellValue) || 
-                      "n(cc)".equalsIgnoreCase(normalizedCellValue) || "n(c)".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "CC-Night";
-            } else if ("w".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "Weekoff";
-            } else if ("sl".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "SickLeave";
-            } else if ("cl".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "CasualLeave";
-            } else if ("el".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "EarnedLeave";
-            } else if ("fl".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "FlexiLeave";
-            } else if ("hl".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "HolidayLeave";
-            } 
-            // --- TEAM/OTHER COLUMN TRANSFORMATIONS ---
-            else if ("issuemanagement".equalsIgnoreCase(normalizedCellValue) || 
-                     "mails".equalsIgnoreCase(normalizedCellValue) ||
-                     "issue management".equalsIgnoreCase(cellValue)) {
-                cellValue = "Incident Management";
-            } else if ("monitoring".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "Event Management";
-            } else if ("score".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "Service Desk";
-            } else if ("adhoc".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "Service Reporting Management";
-            } else if ("automation".equalsIgnoreCase(normalizedCellValue)) {
-                cellValue = "Process Improvement";
-            }
-            
-            // VALIDATION: Check for invalid 'L' in day columns only
-            boolean isDayColumn = true;
-            for (String fixedCol : requiredFixedColumns) {
-                if (fixedCol.equalsIgnoreCase(columnName)) {
-                    isDayColumn = false;
-                    break;
-                }
-            }
-            if (isDayColumn && cellValue.trim().equalsIgnoreCase("L")) {
-                errorMessages.add("Row " + (i + 1) + ", column '" + columnName + "' contains invalid 'L'. " +
-                                  "Use SL, CL, EL, FL, or HL.");
-            }
-        }
-        
-        // Store Team value for validation
-        if (columnName.equalsIgnoreCase("Team")) {
-            teamCellValue = cellValue;
-        }
-        
-        // Store transformed value
-        transformedValues.put(columnName, cellValue);
+    if (teamValue == null || teamValue.trim().isEmpty()) {
+        hasInvalidTeam = true;
+        teamErrors.append("Row ").append(i + 1).append(": Empty Team, ");
+        continue;
     }
     
-    // ---------- VALIDATION: Check if Team matches selected team ----------
-    if (teamCellValue != null) {
-        // Both are already cleaned, so just compare case-insensitive
-        if (!teamCellValue.equalsIgnoreCase(team.trim())) {
-            String errorMsg = "Team mismatch at row " + (i + 1) + ":<br>";
-            errorMsg += "Uploaded team: '" + teamCellValue + "'<br>";
-            errorMsg += "Selected team: '" + team + "'<br>";
-            errorMsg += "Please ensure all rows have the correct team name.";
-            request.setAttribute("errorMessage", errorMsg);
-            request.getRequestDispatcher("/jsp/ExcelRoster.jsp").forward(request, response);
-            return;
-        }
+    // Normalize and check for aliases
+    String normalizedTeamValue = teamValue.replaceAll("\\s+", "").toLowerCase();
+    String standardTeamName = null;
+    
+    // Map aliases to standard team names
+    if (normalizedTeamValue.equals("issuemanagement") || 
+        normalizedTeamValue.equals("mails")) {
+        standardTeamName = "Incident Management";
+    } else if (normalizedTeamValue.equals("monitoring")) {
+        standardTeamName = "Event Management";
+    } else if (normalizedTeamValue.equals("score")) {
+        standardTeamName = "Service Desk";
+    } else if (normalizedTeamValue.equals("adhoc")) {
+        standardTeamName = "Service Reporting Management";
+    } else if (normalizedTeamValue.equals("automation")) {
+        standardTeamName = "Process Improvement";
     }
     
-    // Now set values in prepared statement (preserving column order)
-    int paramIndex = 1;
-    for (Map.Entry<String, Integer> entry : columnMap.entrySet()) {
-        String columnName = entry.getKey();
-        String transformedValue = transformedValues.get(columnName);
-        pstmt.setString(paramIndex, transformedValue);
-        pstmtBkp.setString(paramIndex, transformedValue);
-        paramIndex++;
-    }
+    // Get the normalized value for comparison
+    String normalizedCompareValue = standardTeamName != null ? 
+                                   standardTeamName.replaceAll("\\s+", "").toLowerCase() : 
+                                   normalizedTeamValue;
     
-    pstmt.addBatch();
-    pstmtBkp.addBatch();
+    // Check if it matches the selected team
+    if (!normalizedCompareValue.equals(normalizedSelectedTeam)) {
+        hasInvalidTeam = true;
+        String displayValue = standardTeamName != null ? 
+                             standardTeamName + " (from alias: '" + teamValue + "')" : 
+                             teamValue;
+        teamErrors.append("Row ").append(i + 1).append(": '")
+               .append(displayValue).append("' should be '").append(team).append("', ");
+    }
+}
+
+if (hasInvalidTeam) {
+    String errorMsg = "Team column errors:<br>";
+    errorMsg += teamErrors.substring(0, Math.max(0, teamErrors.length() - 2));
+    errorMsg += "<br><br>All rows should have Team as: <strong>" + team + "</strong>";
+    errorMsg += "<br><br>Accepted values and their aliases:<br>";
+    errorMsg += "• Incident Management (or: issue management, mails, ISSUE MANAGEMENT)<br>";
+    errorMsg += "• Event Management (or: monitoring, MONITORING)<br>";
+    errorMsg += "• Service Desk (or: score, SCORE)<br>";
+    errorMsg += "• Service Reporting Management (or: adhoc, ADHOC)<br>";
+    errorMsg += "• Process Improvement (or: automation, AUTOMATION)";
+    
+    request.setAttribute("errorMessage", errorMsg);
+    request.getRequestDispatcher("/jsp/ExcelRoster.jsp").forward(request, response);
+    return;
 }
