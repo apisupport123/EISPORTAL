@@ -1,3 +1,21 @@
+SEVERE: Servlet.service() for servlet [jsp] in context with path [/EISPortalVer2] threw exception [Unable to compile class for JSP:
+
+An error occurred at line: [14] in the generated java file: [F:\Updated Tomcat\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\work\Catalina\localhost\EISPortalVer2\org\apache\jsp\jsp\ExcelRoster_005fnew_jsp.java]
+Only a type can be imported. org.apache.poi.util.SystemOutLogger resolves to a package
+
+Stacktrace:] with root cause
+org.apache.jasper.JasperException: Unable to compile class for JSP:
+
+An error occurred at line: [14] in the generated java file: [F:\Updated Tomcat\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\work\Catalina\localhost\EISPortalVer2\org\apache\jsp\jsp\ExcelRoster_005fnew_jsp.java]
+Only a type can be imported. org.apache.poi.util.SystemOutLogger resolves to a package
+
+Stacktrace:
+at org.apache.jasper.compiler.DefaultErrorHandler.javacError(DefaultErrorHandler.java:70)
+at org.apache.jasper.compiler.ErrorDispatcher.javacError(ErrorDispatcher.java:189)
+at org.apache.jasper.compiler.JDTCompiler.generateClass(JDTCompiler.java:523)
+at org.apache.jasper.compiler.Compiler.compile(Compiler.java:367)
+at org.apache.jasper.compiler.Compiler.compile(Compiler.java:339)
+
 <!DOCTYPE html>
 <%@page import="org.apache.poi.util.SystemOutLogger"%>
 <html lang="en">
