@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<%@page import="org.apache.poi.util.SystemOutLogger"%>
+<html lang="en">
+<%@ page import="java.sql.*"%>
+<%@ page import="javax.sql.*"%>
+<%@ page import="javax.naming.*"%>
+<%@ page import="java.util.*"%>
+<%@ page import="java.util.Locale"%>.
+<%@ page import="java.time.DayOfWeek" %>
+<%@ page import="java.time.LocalDate" %>
+<%@ page import="java.time.Month" %>
+<%@ page import="java.time.format.TextStyle" %>
+<%@page import="com.jdbc.DBUtilityAuto"%>
+<%@page import="com.jdbc.DBUtility"%>
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EIS Team Roster</title>
+<!-- <meta http-equiv="refresh" content="600"> -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel='stylesheet' href='../css/font-awesome-sysexp.css'>
+<link rel='stylesheet' href='../css/bootstrap-expsys.css'>
+<link rel='stylesheet' href='../css/dataTables.bootstrap.min.css'>
+<link rel='stylesheet' href='../css/buttons.bootstrap4.min-expsys.css'>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> -->
+<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.70/vfs_fonts.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.4/xlsx.full.min.js"></script> -->
+<script src="../js/xlsx.full.min.js"></script>
+</head>
+<style>
+.N_BROKERNAME_TD {
+background: linear-gradient(to bottom right, #000000 40%, red 50%, #000000 60%);
+background-size: 200% 200%;
+background-repeat: no-repeat;
+animation: placeholderShimmer 5s infinite linear;
+}
+
+@
+keyframes placeholderShimmer { 0% {
+background-position: 100% 100%; /*OR bottom right*/
+}
+
+100
+
+
+%
+{
+background-position
+
+
+:
+
+
+0
+
+
+0
+; /*OR top left*/
+
+
+}
+}
+#pin_div {
+display: flex;
+background-color: #ffffff2b;
+width: 100%;
+/* height: 800px; */
+justify-content: space-around;
+flex-wrap: wrap;
+align-content: center;
+margin: 5px;
+/* flex-direction: row; */
+}
+
+BROKERNAME_TD {
+font-weight: bold;
+color: ivory;
+font-family: serif;
+
+}
+
+.BK_PORTno_TD {
+font-weight: bold;
+color: ivory;
+font-family: serif;
+}
+
+.ip_update_div {
+font-size: 16px;
+display: none;
+position: absolute;
+background: #ffff00;
+color: black;
+padding: 5px;
+text-align: center;
+font-family: cursive;
+width: max-content;
+}
+
+td:hover .ip_update_div {
+display: block;
+}
+
+.tool_tip_div {
+font-size: 16px;
+display: none;
+position: absolute;
+background: #ffff00;
+color: black;
+padding: 5px;
+text-align: center;
+font-family: cursive;
+width: max-content;
+border-radius: 5px;
+}
+
+td:hover .tool_tip_div {
+display: block;
+}
+
+title_div
+
+
+.blink {
+font-size: 20px;
+font-weight: bold;
+font-family: sans-serif;
+}
+
+.Td_for_ipadd {
+background-color: aqua;
+color: black;
+}
+
+/* tr {
+/* border: 5px solid red; */
+/* border: 1px solid rgb(0, 255, 13); */
+
+/* width: 100%; */
+/* background-color: rgb(110, 98, 99); */
+
+/* } */
+.TH_IP_ALL {
+background-color: rgb(96, 194, 255) !important;
+}
+
+body {
+background-color: black;
+}
+
+.table_title_div {
+color: white;
+height: 25px;
+display: flex;
+width: 100%;
+text-align: center !important;
+align-content: center;
+justify-content: center;
+padding-top: 15px;
+font-size: x-large;
+}
+
+.tablecontainer {
+display: flex;
+background-color: rgb(0, 0, 0);
+width: 100%;
+/* height: 800px; */
+justify-content: space-around;
+flex-wrap: wrap;
+align-content: center;
+margin: 5px;
+/* flex-direction: row; */
+}
+
+.onetable_div {
+display: flex;
+flex-direction: column;
+background-color: black;
+height: fit-content;
+border-radius: 16px;
+
+margin-top: 1%;
+}
+
+td {
+transition: 0.25s;
+
+/* min-width: 30px; */
+}
+
+td:hover {
+transform: scale(0.9)
+}
+
+.demonclass {
+border-radius: 10px;
+overflow: visible;
+}
+
+.onetable_div:hover {
+}
+
+.title_div {
+background-color: black;
+width: 100%;
+text-align: center;
+justify-content: center;
+font-weight: bolder;
+font-size: xx-large;
+color: white;
+}
+
+td, th, table {
+border: 6.5px solid black;
+border-collapse: collapse;
+/* width: 20rem; */
+text-align: center;
+margin: 10px;
+padding: 0.2%;
+background-color: #000000;
+color: white;
+border-radius: 0px;
+}
+
+tr {
+border: 1px;
+border-style: solid;
+border-color: #96D4D4;
+
+/* min-width: 80px; */
+}
+
+.HN_title {
+font-weight: bold;
+font-size: 20px;
+background-color: rgb(132, 136, 132);
+color: whitesmoke;
+}
+
+table {
+border: 1px;
+border-radius: 5px !important;
+border-style: solid;
+border-color: #96D4D4;
+}
+
+td {
+border: 1px;
+height: 30px;
+width: 1rem !important;
+font-size: 15px;
+border-style: solid;
+border-color: #96D4D4;
+}
+
+.isolator_row {
+color: black;
+}
+
+/* //////////////////////for all the heads */
+.BROKER_title {
+font-weight: bold;
+padding: 6px;
+background-color: rgb(167, 199, 231);
+color: Black;
+}
+
+/*.BROKER_title,
+.PORT_title {
+background-color: rgb(211 209 228 / 61%);
+color: aqua;
+font-weight: bold;
+padding: 6px;
+
+}*/
+.isoltator_title, .iso_port {
+font-weight: bold;
+color: aqua;
+}
+
+.TH_IP_ALL, .Td_for_ipadd {
+color: black;
+font-weight: bold;
+font-size: 1rem;
+}
+
+.blinkbroker {
+animation: mymove 1s infinite;
+animation-timing-function: ease-in;
+}
+
+@
+keyframes mymove {from { color:rgb(243, 2, 2);
+}
+
+to {
+color: rgb(125, 151, 251);
+}
+
+}
+.timer {
+/* text-align: center; */
+border: 5px solid white;
+display: inline;
+padding: 5px;
+color: white;
+font-family: Verdana, sans-serif, Arial;
+font-size: 40px;
+height: 50px;
+font-weight: bold;
+text-decoration: none;
+}
+
+.blink {
+animation: blinker 0s linear infinite;
+color: white;
+font-family: sans-serif;
+font-size: larger;
+text-align-last: center;
+font-weight: 900;
+}
+
+.popup {
+display: none;
+position: fixed;
+top: 50%;
+left: 50%;
+transform: translate(-50%, -50%);
+background-color: #f9f9f9;
+padding: 50px;
+border: 2px solid #ccc;
+z-index: 9999;
+}
+
+.button-container{
+display: flex;
+justify-content: flex-end;
+margin-right: 10px;
+}
+
+.button{
+padding: 10px 20px;
+border: none;
+border-radius:5px;
+cursor: pointer;
+margin-right: 10px;
+}
+
+$gray-100: #f7fafc;
+$gray-200: #edf2f7;
+$gray-300: #e2e8f0;
+$gray-400: #cbd5e0;
+$gray-500: #a0aec0;
+$gray-600: #718096;
+$gray-700: #4a5568;
+$gray-800: #2d3748;
+$gray-900: #1a202c;
+
+$white: #ffffff;
+
+.container {
+max-width: 500px;
+margin: auto;
+margin-top: 3rem;
+overflow-x: auto;
+}
+
+table {
+position: relative;
+width: 100%;
+white-space: nowrap;
+thead tr {
+text-align: left;
+
+th {
+vertical-align: middle;
+}
+}
+
+tbody {
+tr:nth-child(odd) td {
+}
+
+tr>th:first-child,tr>td:first-child {
+position: sticky;
+left: 0;
+}
+}
+
+
+
+.MorningText{ background-color:#FFA500; }
+
+.GenralText{ background-color:#B2BEB5; }
+
+.AfternoonText{ background-color:#FFD700; }
+
+.NightText{ background-color:#1E90FF; }
+
+.WeekoffText{ background-color:#0000CD; color: white; }
+
+.LeaveText{ background-color: #FF3333 }
+.FlexiText{ background-color: #D7DBDD}
+.HolidayText{ background-color: #90EE90 }
+
+</style>
+<script>
+
+
+</script>
+<body >
+<%
+String monthYr=request.getParameter("myRocMonthView");
+System.out.println(monthYr);
+String[] s= monthYr.split("-");
+String selectedYear= s[0];
+String selectedMonth= s[1];
+String sortMonth=null;
+if(selectedMonth.equalsIgnoreCase("01")) {
+sortMonth= "Jan";
+} else if(selectedMonth.equalsIgnoreCase("02")){
+sortMonth= "Feb";
+} else if(selectedMonth.equalsIgnoreCase("03")){
+sortMonth= "Mar";
+} else if(selectedMonth.equalsIgnoreCase("04")){
+sortMonth= "Apr";
+} else if(selectedMonth.equalsIgnoreCase("05")){
+sortMonth= "May";
+} else if(selectedMonth.equalsIgnoreCase("06")){
+sortMonth= "Jun";
+} else if(selectedMonth.equalsIgnoreCase("07")){
+sortMonth= "Jul";
+} else if(selectedMonth.equalsIgnoreCase("08")){
+sortMonth= "Aug";
+} else if(selectedMonth.equalsIgnoreCase("09")){
+sortMonth= "Sep";
+} else if(selectedMonth.equalsIgnoreCase("10")){
+sortMonth= "Oct";
+} else if(selectedMonth.equalsIgnoreCase("11")){
+sortMonth= "Nov";
+} else if(selectedMonth.equalsIgnoreCase("12")){
+sortMonth= "Dec";
+}
+String monthYear=sortMonth+"_"+selectedYear;
+// String m_strroles= request.getParameter("m_strrole");
+if(selectedMonth != null && selectedYear != null){
+int year= Integer.parseInt(selectedYear);
+int month=Integer.parseInt(selectedMonth);
+System.out.println("Year :-"+year);
+int noOfDays=0;
+if(selectedMonth.equalsIgnoreCase("01") || selectedMonth.equalsIgnoreCase("03") || selectedMonth.equalsIgnoreCase("05") || selectedMonth.equalsIgnoreCase("07") || selectedMonth.equalsIgnoreCase("08") || selectedMonth.equalsIgnoreCase("10") || selectedMonth.equalsIgnoreCase("12")) {
+noOfDays=31;
+} else if(selectedMonth.equalsIgnoreCase("04") || selectedMonth.equalsIgnoreCase("06") || selectedMonth.equalsIgnoreCase("09") || selectedMonth.equalsIgnoreCase("11")) {
+noOfDays=30;
+} else if(selectedMonth.equalsIgnoreCase("02")) {
+if((year % 400 == 0) || (year % 100 != 0) && (year % 4 == 0)) {
+noOfDays=29;
+}else {
+noOfDays=28;
+}
+}
+System.out.println("No Of Days :-"+noOfDays);
+System.out.println("Month Year :-"+monthYear);
+boolean showTable= (selectedMonth != null && selectedYear != null);
+%>
+<div class="onetable_div" id="aceprsys09_tablediv" style="order: -3;">
+<div>
+<!-- <button onclick="downloadPDF('aceprsys09_tb')" style="width: 80px; cursor: pointer; background-color: transparent; border: none;"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAAA6/NlyAAAACXBIWXMAAAsTAAALEwEAmpwYAAADq0lEQVR4nO2YW0gUURzG/wRFwa4760N2p4jChygour0IURCRdCONkjTTwih6iKSorKhIuki1FVlJpVtT9tBdUopICiOLisyoVOyyupnp1q6rabv7xYzbzM66GkWLR+d88D3sOf8znN98s3POHCIuLi4url4kRBLC5s0bXmDHjj6kG2DRCmzfVImkpP6kG2DRCuzeZkdKXCTpBli0Apm7HEiMG6ofYNEKZGW6kbQoWj/AohXeIwdbkRo/TTfAkKCzj3mxYtki3QBDtMJz+oQPKQmpugGGlPS5HHjSErfoBhgSdN5ZtKQlHdYNMEQrfOdz0bhmZb5ugCH5Qh5sa1OLezSwaPizLxsI94yEchPhm5nQ64AvGgiFRsILE8EuELxBY3oF8A0joTSC8EEgtP1hTI8GrhYIzea/G9OjgfEP5sD/W2AgVZ5wOIVIvSecHKd1bAwwwqitkX4H1ixfCMyeDgzqFxpk2Txg1dLQ7nbgUGp2A0cPAFF922umRocsg8sJWPYDQwZor2n7iE7FCnBbYwNaamzweb3q5HKOyzXuKSrwj892tDkatRDPSoHhBuWaLZ/agT3uJvyw12rMDPDzrenyLunKqIGoe1jsvwttwCgBrgDg4sWxct3VsUNRmZujQp88olyz2Q/89oSlw1aTGeDqjHS8MxGeRhBKEuNVkJgJGuCK+Fi8MREeRxDyDYSawltyu8/dBAzurwH+lG1BhYk0Zga4LiNdaavP2tve6PPBNTZKA/x1SaxS5zQTSlMS1JszY5IG2FFwHYifo3rmZHaAXUUFwJ6twNV8wOOR2+x3i+RPuM6AJb+fP0vpa5kbowHuoPt32AEO1rfyMhSMGSJ/znUF7MzYqPaNH6kBbm34Cld5meL6c6fYAXZWvkNNYQGqrGdQkpKAS5H9lP9cp8DjhsFT/0Vud7x6iQZz1y8t6cOfube0aCDcNBLeC2pNILDzUCawLhk4ngU4v8tt0lJWvGA2PEFvaVu2BR8FUvzFzBCwLSNdTsgdYlKBwMHyuN14tDoRTyLU+t/AddkW9raWruoq2bXrV3U6KdfE0Updk+SqCtQ9uI+yvTvl9fi2UXuy0fj0MZprbKjdt4s9YNH/GL8OsUb+9ndz6PMqaR2W1u2fQfXX/P1SH3PAFf4NgaOLo5nWgDrJ0lHOZ6EjqLJUCYRKgVBvZhAY3WwO/L8FBlLlCYdTYCBVnnA4BQZS5QmHU2AgVZ5wOAW9JUxESxkzB+bi4uLioh6qX40Oay2nphmdAAAAAElFTkSuQmCC"></button> -->
+<button id ='tableId' onclick="downloadExcel('aceprsys09_tb')" style="width: 80px; cursor: pointer; background-color: transparent; border: none; position: relative; "> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsTAAALEwEAmpwYAAADGUlEQVR4nO2Za0hTYRzG9z0vu59JpK3vedvmTHOmM1OnE0wqbZWJjjTNS2nz7jZvFVmJUTOCchF0+RaBiAThQkgQKSKKbjohIqMIKlG3J3aiVXicw3PaMToPPF/eT7/fe/7vew4cHo8LFy5c/qlssht1cnvpjNxuxGqqcJhX1dhRs1M5as6kLbBx0OhcLTwdAYVHwtE+TVuADjxdAYXDDE5Azj0BMzdCtLLhTCH8aXifAREXiyC/WhrYQ0z06HVET+4M0a0H0ZUDojMb0g4dpNYsSC1ZkJgzIWnPgKRtB8Rt6RC3pkPcsh2i5jSImrQQNqZC2JACUYMWMose4f2GPyT+vkC33kkXXmhKgeD4NkhMqVB1FyHJVoHkKzVk6V4CPD8EGIEX1CdDUK+BqusAEs+XB1Cgizl4fl3SD4H+sgAKdDIHzz/GgoCUAn69NRsvZ2fgSeuQzQsffaoQcwvz+DY/h5gTBUvg+Ue3siBgpd75/dfbSYHZL58QYckhd/7W5Ai5Zh26RAkfWpvIgoBl+bEZef6QBO4YvgxNXwlcbjdevHdC1phGCR9akxB4AYmPmU84V4z5xQV8/PoZY68fwe12Q2+rXhY+tHoLCwLtvg/sBcdt/MyNiWGf8CFV8SwItPm+bezjd70CNyeGfcKHHImHOCcS0l0KyAxqsvzmVFrlrRRf8DkDNeTYjE89wYNXk6RE3kDtsvAhlWoWBFqp4cOa0/Hs3RsSWm+rgrbPSMpMfXiLMJOWEj64Mo4FgRbql9Tpe9dI+OGnY96xufP4PrnWOzJICR9coQq8gIgCPqH3IHn7uNwuaM4We2de2VOABdci2cST+5bABx1WsiDQtPLnga+Z/x0+qJwFASGD8EFlChYEGpiDX3coNvACAlOKkyn4oJJoFgTqNZn8Oo2TCXjBzkiIc6NA7P4lQLc8uhHpNsPfivVRkObHgChQrR0BSV4M/KnU0/xYELuVkO2NWzsCxB4l/K5n5xmElzEhwCSMjBP4H58AYVA72YInDGr6PzhkhepMNiQIg3paZojPoC3AhQsXLjwm8x3YSSmFlSW/AQAAAABJRU5ErkJggg=="></button>
+</div>
+<div class="table_title_div" style="margin-top: -4%;">
+<h2>ROC Roster</h2>
+</div>
+<br>24230
+<br>
+<table class="demonclass table table-border" id="aceprsys09_tb"
+style="border: 1px solid white; zoom: 80%; overflow-x:auto;">
+<tr id="aceprsys09IP_th">
+<td class="HN_title" colspan="2"><%=monthYear %> ROC Roster</td>
+<%
+for (int i = 1; i <= noOfDays; i++) {
+%>
+<td class="Td_for_ipadd" id="logprsys39_IP_td"
+style="background: aqua;"><%= i %></td>
+<%} %>
+</tr>
+
+
+<tr id="aceprsys09_th">
+<td class="BROKER_title" >Employee Name</td>
+<td class="BROKER_title">Mobile No</td>
+<%
+for(int day=1; day<=noOfDays; day++) {
+LocalDate currentDate= LocalDate.of(year, month, day);
+DayOfWeek dayOfWeek= currentDate.getDayOfWeek();
+String dayOfWeekShort= dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+%>
+<td class=""><%=dayOfWeekShort %></td>
+<%}
+%>
+</tr>
+<%
+StringBuilder sql= new StringBuilder("select r.name, TRIM(REGEXP_REPLACE(e.CONTACTNUMBER, '(.{5})', '\\1 ', 1, 0)) AS CONTACTNUMBER");
+for(int day=1; day<=noOfDays; day++ ) {
+sql.append(", CASE WHEN LOWER(r.day_").append(day).append(") IN ('cc-morning', 'cc-general', 'cc-afternoon', 'cc-night') THEN r.day_").append(day).append(" ELSE '' END AS day_").append(day);
+}
+sql.append(" FROM rostertable_bkp r");
+sql.append(" LEFT JOIN eisupport_employee_master e ON UPPER(r.ad_id) = UPPER(e.AD_ID)");
+sql.append(" WHERE lower(r.monthyear)= lower('").append(monthYear).append("') and( ");
+sql.append(" LOWER(r.day_1) IN ('cc-morning', 'cc-general', 'cc-afternoon', 'cc-night')");
+for(int day=2; day<=noOfDays; day++ ) {
+sql.append(" OR LOWER(r.day_").append(day).append(") IN ('cc-morning', 'cc-general', 'cc-afternoon', 'cc-night')");
+}
+sql.append(")");
+String query=sql.toString();
+//String query="select * from rocrostertable where MONTHYEAR='"+monthYear+"' order by id";
+System.out.println("Query :-"+query);
+Connection conn=null;
+Statement stmt=null;
+try{
+conn=DBUtilityAuto.getReportDBConnection();
+stmt=conn.createStatement();
+ResultSet rs=stmt.executeQuery(query);
+while(rs.next()){
+%>
+<tr id='block'>
+<td class="BROKERNAME_TD" style="background-color: rgb(147, 197, 114); color: black; font-weight: bolder;"><%=rs.getString("NAME") %></td>
+<td class="BK_PORTno_TD"><%=rs.getString("CONTACTNUMBER") %></td>
+<% for(int i=1;i<=noOfDays;i++){
+String dayColumn= "DAY_"+ Integer.toString(i);
+if(rs.getString(dayColumn)!=null){
+if(rs.getString(dayColumn).equalsIgnoreCase("CC-Morning")){
+%>
+<td id="block_" class="MorningText" ><b>M(o)</b></td>
+<%}else if(rs.getString(dayColumn).equalsIgnoreCase("CC-Genral") || rs.getString(dayColumn).equalsIgnoreCase("CC-General")){ %>
+<td id="block_" class="GenralText" ><b>D(o)</b></td>
+<%}else if(rs.getString(dayColumn).equalsIgnoreCase("CC-Afternoon")){ %>
+<td id="block_" class="AfternoonText" ><b>A(o)</b></td>
+<%} else if(rs.getString(dayColumn).equalsIgnoreCase("CC-Night")){ %>
+<td id="block_" class="NightText" ><b>N(o)</b></td>
+<%} %>
+<%} else{ %>
+<td id="block_" > </td>
+<%}
+} %>
+</tr>
+<%}}catch(Exception e) {
+e.printStackTrace();
+}finally{
+if(stmt != null) stmt.close();
+}
+%>
+</table>
+<!-- <button onclick="downloadPDF('aceprsys09_tb')"> PDF</button> -->
+<!-- <button id ='tableId' onclick="downloadExcel('aceprsys09_tb')"> Excel</button> -->
+<% }%>
+
+<script>
+function downloadExcel(tableId) {
+try {
+// Get the table element
+let tableElement = document.getElementById(tableId);
+if (!tableElement) {
+console.error('Table not found:', tableId);
+return;
+}
+
+// Clone the table to avoid modifying the original
+let clonedTable = tableElement.cloneNode(true);
+// Preserve background colors by adding them as data attributes or inline styles
+let rows = tableElement.rows;
+for (let i = 0; i < rows.length; i++) {
+for (let j = 0; j < rows[i].cells.length; j++) {
+let originalCell = rows[i].cells[j];
+let clonedCell = clonedTable.rows[i]?.cells[j];
+if (clonedCell) {
+// Copy computed background color to inline style
+let bgColor = window.getComputedStyle(originalCell).backgroundColor;
+if (bgColor && bgColor !== 'rgba(0, 0, 0, 0)' && bgColor !== 'transparent') {
+clonedCell.style.backgroundColor = bgColor;
+}
+// Copy font color
+let textColor = window.getComputedStyle(originalCell).color;
+if (textColor && textColor !== 'rgba(0, 0, 0, 0)') {
+clonedCell.style.color = textColor;
+}
+// Copy font weight
+let fontWeight = window.getComputedStyle(originalCell).fontWeight;
+if (fontWeight) {
+clonedCell.style.fontWeight = fontWeight;
+}
+}
+}
+}
+
+// Convert the cloned table to worksheet
+let worksheet = XLSX.utils.table_to_sheet(clonedTable, { raw: true });
+// Auto-size columns (basic implementation)
+let colWidths = [];
+for (let i = 0; i < rows[0]?.cells.length; i++) {
+let maxWidth = 10;
+for (let j = 0; j < rows.length; j++) {
+let cellText = rows[j].cells[i]?.innerText || '';
+maxWidth = Math.max(maxWidth, cellText.length);
+}
+colWidths.push({ wch: Math.min(maxWidth + 2, 30) });
+}
+worksheet['!cols'] = colWidths;
+
+// Create workbook and append worksheet
+let workbook = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(workbook, worksheet, 'ROC Roster');
+// Save the file
+XLSX.writeFile(workbook, 'ROC_Roster.xlsx');
+console.log('Excel download initiated successfully');
+} catch (error) {
+console.error('Error generating Excel:', error);
+alert('Error generating Excel file. Please check console for details.');
+}
+}
+
+// Alternative simpler version without styling (guaranteed to work):
+function downloadExcelSimple(tableId) {
+try {
+let tableElement = document.getElementById(tableId);
+if (!tableElement) {
+console.error('Table not found:', tableId);
+return;
+}
+// Convert table to worksheet without styling
+let worksheet = XLSX.utils.table_to_sheet(tableElement, { raw: true });
+// Create workbook
+let workbook = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(workbook, worksheet, 'Team Roster');
+// Save file
+XLSX.writeFile(workbook, 'ROC_Roster.xlsx');
+console.log('Excel download successful');
+} catch (error) {
+console.error('Error:', error);
+alert('Error downloading Excel: ' + error.message);
+}
+}
+</script>
+</body>
+
+</html>
