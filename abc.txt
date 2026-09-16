@@ -1,82 +1,89 @@
-# EIS Portal vs Dynatrace: Technical Comparison
+-------------------------------API LOG----------------------------------
 
----
+select trim(API_NAME), trim(exp_ip),
+COUNT(1) "TOTAL_HITS",
+SUM(CASE WHEN RESPONSE_STATUS in ('0','SUCCESS') THEN 1 ELSE 0 END) AS SUCCESS,
+SUM(CASE WHEN error_code ='SI001' then 1 else 0 end) As "SI001",
+SUM(CASE WHEN substr(error_code,3,3) ='002'then 1 else 0 end) As "002",
+SUM(CASE WHEN error_code ='SI007' and error_code<> '70007' then 1 else 0 end) As "SI007",
+SUM(CASE WHEN error_code ='SI051' then 1 else 0 end) As "SI051",
+SUM(CASE WHEN substr(error_code,3,3) ='014' and error_code <> '00014' then 1 else 0 end) AS "014",
+SUM(CASE WHEN error_code ='SI569' then 1 else 0 end) As "SI569",
+SUM(CASE WHEN error_code ='SI570' then 1 else 0 end) As "SI570",
+SUM(CASE WHEN error_code ='SI052' then 1 else 0 end) As "SI052",
+SUM(CASE WHEN error_code ='SI005' then 1 else 0 end) As "SI005",
+SUM(CASE WHEN error_code ='SI077' then 1 else 0 end) As "SI077",
+SUM(CASE WHEN error_code ='SI003' then 1 else 0 end) As "SI003",
+SUM(CASE WHEN error_code ='SI017' then 1 else 0 end) As "SI017",
+SUM(CASE WHEN error_code ='SI015' then 1 else 0 end) As "SI015",
+SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') OR error_code in ('SI001','SI007','SI051','SI569','SI570','SI052','SI005','SI077','SI003','SI017','SI015')) and error_code <> '00014' THEN 1 ELSE 0 END) AS TD,
+ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') OR error_code in ('SI001','SI007','SI051','SI569','SI570','SI052','SI005','SI077','SI003','SI017','SI015')) and error_code <> '00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2) AS TD_PERCENT,
+SUM(CASE WHEN (nvl( substr(error_code,3,3),'A') NOT in ('001','002','007','051','014','015') OR error_code IN ('00014','70007') ) and RESPONSE_STATUS not in ('0','SUCCESS') THEN 1 ELSE 0 END) AS BD,
+ROUND((SUM(CASE WHEN (nvl( substr(error_code,3,3),'A') NOT in ('001','002','007','051','014','015') OR error_code IN ('00014','70007') ) and RESPONSE_STATUS not in ('0','SUCCESS') THEN 1 ELSE 0 END)*100)/COUNT(1),2) AS BD_PERCENT
+from eisapp.api_log where
+--creation_date_time=SYSDATE - INTERVAL '60' minute
+creation_date_time between to_date('16-SEP-2026 07:00:00','DD-MON-YYYY HH24:MI:SS') and to_date('16-SEP-2026 08:00:00','DD-MON-YYYY HH24:MI:SS')
+and api_name in ('thirdPartyGenericRouting_NSE_expDS','thirdPartyGenericRouting_INB_expDS')
+GROUP BY trim(API_NAME),trim(exp_ip)
+ORDER BY 1,2;
 
-## The Core Truth
 
-> **"Dynatrace team is 100% dependent on us for data, queries, business logic, and fixes. If we do all the work, why add a middleman?"**
+----------------------------BSE-------------------
 
----
+select trim(API_NAME),trim(exp_ip),
+COUNT(1) "TOTAL_HITS",
+SUM(CASE WHEN RESPONSE_STATUS in ('0','SUCCESS') THEN 1 ELSE 0 END) AS SUCCESS,
+SUM(CASE WHEN error_code ='SI001' then 1 else 0 end) As "SI001",
+SUM(CASE WHEN substr(error_code,3,3) ='002'then 1 else 0 end) As "002",
+SUM(CASE WHEN error_code ='SI007' and error_code<> '70007' then 1 else 0 end) As "SI007",
+SUM(CASE WHEN error_code ='SI051' then 1 else 0 end) As "SI051",
+SUM(CASE WHEN substr(error_code,3,3) ='014' and error_code <> '00014' then 1 else 0 end) AS "014",
+SUM(CASE WHEN error_code ='SI569' then 1 else 0 end) As "SI569",
+SUM(CASE WHEN error_code ='SI570' then 1 else 0 end) As "SI570",
+SUM(CASE WHEN error_code ='SI052' then 1 else 0 end) As "SI052",
+SUM(CASE WHEN error_code ='SI005' then 1 else 0 end) As "SI005",
+SUM(CASE WHEN error_code ='SI077' then 1 else 0 end) As "SI077",
+SUM(CASE WHEN error_code ='SI003' then 1 else 0 end) As "SI003",
+SUM(CASE WHEN error_code ='SI017' then 1 else 0 end) As "SI017",
+SUM(CASE WHEN error_code ='SI015' then 1 else 0 end) As "SI015",
+SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') OR error_code in ('SI001','SI007','SI051','SI569','SI570','SI052','SI005','SI077','SI003','SI017','SI015')) and error_code <> '00014' THEN 1 ELSE 0 END) AS TD,
+ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') OR error_code in ('SI001','SI007','SI051','SI569','SI570','SI052','SI005','SI077','SI003','SI017','SI015')) and error_code <> '00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2) AS TD_PERCENT,
+SUM(CASE WHEN (nvl( substr(error_code,3,3),'A') NOT in ('001','002','007','051','014','015') OR error_code IN ('00014','70007') ) and RESPONSE_STATUS not in ('0','SUCCESS') THEN 1 ELSE 0 END) AS BD,
+ROUND((SUM(CASE WHEN (nvl( substr(error_code,3,3),'A') NOT in ('001','002','007','051','014','015') OR error_code IN ('00014','70007') ) and RESPONSE_STATUS not in ('0','SUCCESS') THEN 1 ELSE 0 END)*100)/COUNT(1),2) AS BD_PERCENT
+from eisapp.api_log where
+--creation_date_time=SYSDATE - INTERVAL '60' minute
+creation_date_time between to_date('16-SEP-2026 07:00:00','DD-MON-YYYY HH24:MI:SS') and to_date('16-SEP-2026 08:00:00','DD-MON-YYYY HH24:MI:SS')
+and api_name = 'thirdPartyGenericRouting_expDS'
+and sup_url = 'BSE'
+and ORIGINAL_URN = 'IPO_ORDER'
+and transaction_urn = 'IPO_SERVICE'
+GROUP BY trim(API_NAME),trim(exp_ip)
+ORDER BY 1,2;
 
-## 10 Key Differences
 
-| # | Aspect | EIS Portal ✅ | Dynatrace ❌ |
-|---|--------|---------------|--------------|
-| 1 | **Query Changes** | We execute directly (minutes) | They ask us → We do (days) |
-| 2 | **Business Logic** | Built-in (TD/BD/Mixed) | They don't know → Ask us every time |
-| 3 | **Error Mapping** | We know SI002, CK002, etc. | They ask us for every error |
-| 4 | **Change Management** | We control everything (hours) | They request → We implement (days) |
-| 5 | **Debugging** | Direct DB access (instant) | They report → We investigate (hours) |
-| 6 | **New Features** | We build (hours) | They ask → We build → They consume |
-| 7 | **Data Freshness** | Real-time (<100ms) | API delay (2-8 seconds) |
-| 8 | **Architecture** | Single server (direct) | Multi-hop (DB→API→Dynatrace) |
-| 9 | **Drill-down** | Deep (1-2 clicks) | Limited (5-6 clicks) |
-| 10 | **Vendor Dependency** | Zero (we own everything) | Complete (they need us) |
+----------------------------------------------------------------------------------------------------------------------
 
----
 
-## The Problem: We Are the Backend
-
-```
-Dynatrace Team → Comes to us for EVERYTHING:
-├── Query writing → Us
-├── Error understanding → Us  
-├── Data explanation → Us
-├── Bug fixing → Us
-├── Feature development → Us
-└── Change implementation → Us
-
-If we're doing ALL the work, why add a middleman?
-```
-
----
-
-## Time Comparison
-
-| Scenario | EIS Portal | Dynatrace |
-|----------|------------|-----------|
-| New Metric | 1-2 hours | 3-4 days |
-| Bug Fix | 1 hour | 4-5 hours |
-| Error Mapping | 5 minutes | 4 hours |
-| New Feature | 2 hours | 2-3 days |
-
----
-
-## Quick Decision Matrix
-
-| Parameter | EIS Portal | Dynatrace |
-|-----------|------------|-----------|
-| Who writes queries? | ✅ We do | ❌ We do (they ask) |
-| Who understands data? | ✅ We do | ❌ We do (they ask) |
-| Who fixes bugs? | ✅ We do | ❌ We do (they ask) |
-| Who owns business logic? | ✅ We do | ❌ They need us |
-| Change time | ✅ Hours | ❌ Days |
-| Control | ✅ Complete | ❌ None |
-
----
-
-## Bottom Line
-
-> *"Dynatrace team comes to us for everything - queries, errors, fixes, features. If we're doing all the work anyway, why use a middleman?"*
-
----
-
-## Verdict
-
-✅ **EIS Portal** - Faster, Smarter, Independent, Ours  
-❌ **Dynatrace** - Slower, Dependent, Extra Layer, Vendor Lock-in
-
----
-
-*Prepared by: EIS Development Team*
-*Status: Ready for Approval* 🚀
+select trim(api_name),TRIM(sys_ip),
+COUNT(1) "TOTAL_HITS",
+SUM(CASE WHEN error_code is null or error_code = 'CK001' THEN 1 ELSE 0 END) AS SUCCESS,
+SUM(CASE WHEN error_code ='SI001' then 1 else 0 end) As "SI001",
+SUM(CASE WHEN error_code ='SI002' then 1 else 0 end) As "SI002",
+SUM(CASE WHEN substr(error_code,3,3) ='002' AND error_code <>'SI002' then 1 else 0 end) As "DYNAMIC 002",
+SUM(CASE WHEN error_code ='SI007' and error_code<> '70007' then 1 else 0 end) As "SI007",
+SUM(CASE WHEN error_code ='SI051' then 1 else 0 end) As "SI051",
+SUM(CASE WHEN error_code ='SI052' then 1 else 0 end) As "SI052",
+SUM(CASE WHEN substr(error_code,3,3) ='052' AND error_code <>'SI052' then 1 else 0 end) As "DYNAMIC 052",
+SUM(CASE WHEN substr(error_code,3,3) ='014' and error_code <> '00014' then 1 else 0 end) AS "014",
+SUM(CASE WHEN error_code ='SI569' then 1 else 0 end) As "SI569",
+SUM(CASE WHEN error_code ='SI570' then 1 else 0 end) As "SI570",
+SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') or error_code in('SI001','SI007','SI017','SI569','SI570','SI052','SI077','SI051','SI111')) and error_code<>'00014' THEN 1 ELSE 0 END) AS TD,
+ROUND((SUM(CASE WHEN (substr(error_code,3,3) in ('002','014') OR error_code in ('SI001','SI007','SI051','SI052','SI077','SI569','SI570')) and error_code <> '00014' THEN 1 ELSE 0 END)*100)/COUNT(1),2) AS TD_PERCENT,
+SUM(CASE  WHEN ((nvl( substr(error_code,3,3),'A') not in  ('002','014') and  error_code not in('SI001','SI007','SI017','SI569','SI570','SI052','SI077','SI051','SI111')) AND error_code <> 'CK001'  OR error_code IN ('00014','70007') ) THEN 1 ELSE 0 END) AS BD,
+ROUND((SUM(CASE WHEN (nvl( substr(error_code,3,3),'A') NOT in ('001','002','007','052','051','014') OR error_code IN ('00014','70007') ) AND error_code <> 'CK001' and error_code IS NOT NULL THEN 1 ELSE 0 END)*100)/COUNT(1),2) AS BD_PERCENT
+from eisapp.BACKEND_LOG where
+api_name in ('thirdPartyINBIpo_sys','thirdPartyNSEAuth_sys','thirdPartyBSEAuth_sys') and 
+--creation_date_time >= sysdate - interval '05' minute
+creation_date_time between to_date('16-SEP-2026 00:00:00','DD-MON-YYYY HH24:MI:SS') and to_date('16-SEP-2026 14:00:00','DD-MON-YYYY HH24:MI:SS')
+GROUP BY trim(api_name),TRIM(sys_ip)
+ORDER BY 1,2;
